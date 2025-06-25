@@ -18,19 +18,34 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+  SheetFooter,
+} from "@/components/ui/sheet"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Calendar } from "@/components/ui/calendar"
 import { useUser } from "@/hooks/use-user"
 import { mockShifts, mockJobs, mockClients, mockEmployees } from "@/lib/mock-data"
 import { notFound, useRouter } from "next/navigation"
 import { format } from 'date-fns'
 import { Badge } from "@/components/ui/badge"
 import type { AssignedPersonnel, TimesheetStatus, RoleCode } from "@/lib/types"
-import { ArrowLeft, Building2, Calendar, Check, Clock, MapPin, User, Pencil, UserCheck, ClipboardCheck, Ban, Loader2, Minus, Plus, RefreshCw } from "lucide-react"
+import { ArrowLeft, Building2, Calendar as CalendarIcon, Check, Clock, MapPin, User, Pencil, UserCheck, ClipboardCheck, Ban, Loader2, Minus, Plus, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import {
   AlertDialog,
@@ -107,6 +122,9 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   const [isFinalizing, setIsFinalizing] = useState(false);
   const { toast } = useToast();
   const [newAssignments, setNewAssignments] = useState<Record<string, string>>({});
+  
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingShift, setEditingShift] = useState(shift);
 
 
   const [roleCounts, setRoleCounts] = useState<Record<RoleCode, number>>(() => {
@@ -242,6 +260,17 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
         title: "Changes Saved",
         description: "New personnel have been assigned to the shift.",
     });
+  };
+
+  const handleSaveShiftChanges = () => {
+    if (editingShift) {
+        setShift(editingShift);
+        setIsEditing(false);
+        toast({
+            title: "Shift Updated",
+            description: "The shift details have been successfully updated.",
+        });
+    }
   };
 
   const handleTimeAction = (person: AssignedPersonnel) => {
@@ -392,11 +421,81 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                     <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus.replace(/ /g, '\u00A0')}</Badge>
                   </Link>
                   {canEdit && (
-                  <Button size="icon" variant="outline" className="h-8 w-8">
-                    <Pencil className="h-4 w-4" />
-                    <span className="sr-only">Edit Shift Details</span>
-                  </Button>
-                )}
+                    <Sheet open={isEditing} onOpenChange={setIsEditing}>
+                      <SheetTrigger asChild>
+                        <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setEditingShift(shift)}>
+                          <Pencil className="h-4 w-4" />
+                          <span className="sr-only">Edit Shift Details</span>
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent>
+                        <SheetHeader>
+                          <SheetTitle>Edit Shift</SheetTitle>
+                          <SheetDescription>
+                            Make changes to the shift details. Click save when you're done.
+                          </SheetDescription>
+                        </SheetHeader>
+                        {editingShift && (
+                          <div className="grid gap-4 py-4">
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="location" className="text-right">Location</Label>
+                              <Input id="location" value={editingShift.location} onChange={(e) => setEditingShift({...editingShift, location: e.target.value})} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="date" className="text-right">Date</Label>
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button variant={"outline"} className={cn("w-[280px] justify-start text-left font-normal col-span-3", !editingShift.date && "text-muted-foreground")}>
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {editingShift.date ? format(new Date(editingShift.date), "PPP") : <span>Pick a date</span>}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0">
+                                  <Calendar
+                                    mode="single"
+                                    selected={new Date(editingShift.date)}
+                                    onSelect={(date) => date && setEditingShift({...editingShift, date: date.toISOString()})}
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="start-time" className="text-right">Start Time</Label>
+                              <Input id="start-time" type="time" value={editingShift.startTime} onChange={(e) => setEditingShift({...editingShift, startTime: e.target.value})} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="end-time" className="text-right">End Time</Label>
+                              <Input id="end-time" type="time" value={editingShift.endTime} onChange={(e) => setEditingShift({...editingShift, endTime: e.target.value})} className="col-span-3" />
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                              <Label htmlFor="crew-chief" className="text-right">Crew Chief</Label>
+                               <Select
+                                value={editingShift.crewChief.id}
+                                onValueChange={(employeeId) => {
+                                  const newChief = mockEmployees.find(e => e.id === employeeId);
+                                  if (newChief) setEditingShift({...editingShift, crewChief: newChief});
+                                }}
+                              >
+                                <SelectTrigger className="col-span-3">
+                                  <SelectValue placeholder="Select crew chief" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {mockEmployees.map(emp => (
+                                    <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        )}
+                        <SheetFooter>
+                          <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
+                          <Button onClick={handleSaveShiftChanges}>Save Changes</Button>
+                        </SheetFooter>
+                      </SheetContent>
+                    </Sheet>
+                  )}
               </div>
             </CardTitle>
             <CardDescription>
@@ -405,7 +504,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
               <div className="flex items-center gap-3">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
                 <span>{format(new Date(shift.date), 'EEEE, MMMM d, yyyy')}</span>
               </div>
               <div className="flex items-center gap-3">
