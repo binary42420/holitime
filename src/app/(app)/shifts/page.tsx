@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import { useMemo } from "react"
 import { MoreHorizontal, PlusCircle } from "lucide-react"
 
@@ -37,6 +37,7 @@ import { format, isWithinInterval, subHours, addHours } from "date-fns"
 export default function ShiftsPage() {
   const { user } = useUser()
   const searchParams = useSearchParams()
+  const router = useRouter()
 
   const shiftsToDisplay = useMemo(() => {
     let filteredShifts = user.role === 'Employee' 
@@ -112,9 +113,11 @@ export default function ShiftsPage() {
                 <TableHead>Date</TableHead>
                 <TableHead className="hidden md:table-cell">Crew Chief</TableHead>
                 <TableHead>Timesheet Status</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
+                {user.role !== 'Employee' && (
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -122,31 +125,36 @@ export default function ShiftsPage() {
                 const job = mockJobs.find(j => j.id === shift.jobId);
                 const client = job ? mockClients.find(c => c.id === job.clientId) : undefined;
                 return (
-                  <TableRow key={shift.id}>
+                  <TableRow 
+                    key={shift.id}
+                    onClick={() => router.push(`/shifts/${shift.id}`)}
+                    className="cursor-pointer"
+                  >
                     <TableCell className="font-medium">{client?.name || 'N/A'}</TableCell>
                     <TableCell>{format(new Date(shift.date), 'EEE, MMM d')}</TableCell>
                     <TableCell className="hidden md:table-cell">{shift.crewChief.name}</TableCell>
                     <TableCell>
-                       <Link href={`/timesheets/${shift.timesheetId}/approve`}>
+                       <Link href={`/timesheets/${shift.timesheetId}/approve`} onClick={(e) => e.stopPropagation()}>
                           <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus}</Badge>
                         </Link>
                     </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild><Link href={`/shifts/${shift.id}`}>View Details</Link></DropdownMenuItem>
-                          {user.role !== 'Employee' && <DropdownMenuItem>Edit Shift</DropdownMenuItem>}
-                          {user.role === 'Manager/Admin' && <DropdownMenuItem className="text-destructive">Cancel Shift</DropdownMenuItem>}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                    {user.role !== 'Employee' && (
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>Edit Shift</DropdownMenuItem>
+                            {user.role === 'Manager/Admin' && <DropdownMenuItem className="text-destructive">Cancel Shift</DropdownMenuItem>}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
                   </TableRow>
                 )
               })}
