@@ -31,12 +31,12 @@ const AssignedPersonnelSchema = z.object({
   timeEntries: z.array(TimeEntrySchema),
 });
 
-export const AdjustTimesheetInputSchema = z.object({
+const AdjustTimesheetInputSchema = z.object({
   personnel: z.array(AssignedPersonnelSchema).describe('The list of assigned personnel with their current time entries.'),
 });
 export type AdjustTimesheetInput = z.infer<typeof AdjustTimesheetInputSchema>;
 
-export const AdjustTimesheetOutputSchema = z.object({
+const AdjustTimesheetOutputSchema = z.object({
   adjustedPersonnel: z.array(AssignedPersonnelSchema).describe('The list of assigned personnel with their adjusted time entries.'),
   adjustmentsSummary: z.string().describe('A brief summary of the changes made.')
 });
