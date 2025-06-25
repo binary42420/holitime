@@ -27,7 +27,7 @@ import { notFound } from "next/navigation"
 import { format } from 'date-fns'
 import { Badge } from "@/components/ui/badge"
 import type { AssignedPersonnel, TimesheetStatus } from "@/lib/types"
-import { ArrowLeft, Building2, Calendar, Check, Clock, LogOut, MapPin, User, Pencil, UserCheck, ClipboardCheck, Ban } from "lucide-react"
+import { ArrowLeft, Building2, Calendar, Check, Clock, MapPin, User, Pencil, UserCheck, ClipboardCheck, Ban, Loader2 } from "lucide-react"
 import Link from "next/link"
 import {
   AlertDialog,
@@ -40,12 +40,40 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
+import { adjustTimesheet } from "@/ai/flows/adjust-timesheet"
+import type { AdjustTimesheetInput, AdjustTimesheetOutput } from "@/ai/flows/adjust-timesheet"
+
+
+// Helper function to round time
+const roundTime = (date: Date, direction: 'up' | 'down') => {
+  const newDate = new Date(date);
+  const minutes = newDate.getMinutes();
+  const mod = minutes % 15;
+
+  if (mod === 0) {
+    newDate.setSeconds(0);
+    newDate.setMilliseconds(0);
+    return newDate;
+  }
+
+  if (direction === 'down') {
+    newDate.setMinutes(minutes - mod, 0, 0);
+  } else { // direction === 'up'
+    newDate.setMinutes(minutes + (15 - mod), 0, 0);
+  }
+  
+  return newDate;
+};
+
 
 export default function ShiftDetailPage({ params }: { params: { id: string } }) {
   const { user } = useUser()
   const initialShift = mockShifts.find((s) => s.id === params.id)
 
   const [shift, setShift] = useState(initialShift);
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const { toast } = useToast();
 
   if (!shift) {
     notFound()
@@ -66,11 +94,12 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   };
 
   const handleTimeAction = (person: AssignedPersonnel) => {
-    const currentTime = format(new Date(), 'HH:mm');
     let updatedPerson = JSON.parse(JSON.stringify(person));
     
     // Initial check-in
     if (person.status === 'Clocked Out' && person.timeEntries.length === 0) {
+      const roundedTime = roundTime(new Date(), 'down');
+      const currentTime = format(roundedTime, 'HH:mm');
       updatedPerson.status = 'Clocked In';
       updatedPerson.timeEntries.push({ clockIn: currentTime });
     } else {
@@ -78,10 +107,14 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
       const isClockedIn = lastEntry && lastEntry.clockIn && !lastEntry.clockOut;
 
       if (isClockedIn) {
+        const roundedTime = roundTime(new Date(), 'up');
+        const currentTime = format(roundedTime, 'HH:mm');
         lastEntry.clockOut = currentTime;
         updatedPerson.status = 'On Break';
       } else {
         if (updatedPerson.timeEntries.length < 3) {
+           const roundedTime = roundTime(new Date(), 'down');
+           const currentTime = format(roundedTime, 'HH:mm');
           updatedPerson.timeEntries.push({ clockIn: currentTime });
           updatedPerson.status = 'Clocked In';
         }
@@ -95,7 +128,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
     const lastEntry = updatedPerson.timeEntries[updatedPerson.timeEntries.length - 1];
     
     if (updatedPerson.status === 'Clocked In' && lastEntry) {
-      lastEntry.clockOut = format(new Date(), 'HH:mm');
+      lastEntry.clockOut = format(roundTime(new Date(), 'up'), 'HH:mm');
     }
     updatedPerson.status = 'Shift Ended';
     handlePersonnelUpdate(updatedPerson);
@@ -111,7 +144,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
           const lastEntry = updatedPerson.timeEntries[updatedPerson.timeEntries.length - 1];
           
           if (updatedPerson.status === 'Clocked In' && lastEntry && !lastEntry.clockOut) {
-            lastEntry.clockOut = format(new Date(), 'HH:mm');
+            lastEntry.clockOut = format(roundTime(new Date(), 'up'), 'HH:mm');
           }
           updatedPerson.status = 'Shift Ended';
           return updatedPerson;
@@ -123,9 +156,52 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
     });
   };
 
-  const handleFinalizeTimesheet = () => {
-    setShift(currentShift => currentShift ? { ...currentShift, timesheetStatus: 'Awaiting Client Approval' } : currentShift);
-    // In a real app, this would also create/update the timesheet record in the database.
+  const handleFinalizeTimesheet = async () => {
+    setIsFinalizing(true);
+    try {
+      // Filter out personnel with no time entries, as they are not relevant for the timesheet
+      const personnelForTimesheet = shift.assignedPersonnel.filter(p => p.timeEntries.some(t => t.clockIn));
+
+      // Call the AI flow to adjust times
+      const result = await adjustTimesheet({
+        personnel: personnelForTimesheet,
+      });
+
+      // Update the shift state with adjusted personnel data
+      setShift(currentShift => {
+        if (!currentShift) return currentShift;
+        
+        const adjustedPersonnelMap = new Map(result.adjustedPersonnel.map(p => [p.employee.id, p]));
+
+        const fullyUpdatedPersonnel = currentShift.assignedPersonnel.map(p => 
+          adjustedPersonnelMap.has(p.employee.id) 
+            ? (adjustedPersonnelMap.get(p.employee.id) as AssignedPersonnel)
+            : p
+        );
+
+        return { 
+          ...currentShift, 
+          assignedPersonnel: fullyUpdatedPersonnel,
+          timesheetStatus: 'Awaiting Client Approval' 
+        };
+      });
+
+      // Show a summary of changes
+      toast({
+        title: "Timesheet Adjusted & Finalized",
+        description: result.adjustmentsSummary,
+      });
+
+    } catch (error) {
+      console.error("Error finalizing timesheet:", error);
+      toast({
+        title: "Error",
+        description: "Could not finalize timesheet. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFinalizing(false);
+    }
   };
 
   const getRowClass = (status: AssignedPersonnel['status']) => {
@@ -345,7 +421,8 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
-                <Button onClick={handleFinalizeTimesheet} disabled={shift.timesheetStatus !== 'Pending Finalization'}>
+                <Button onClick={handleFinalizeTimesheet} disabled={shift.timesheetStatus !== 'Pending Finalization' || isFinalizing}>
+                {isFinalizing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 <ClipboardCheck className="mr-2 h-4 w-4" />
                 Finalize Timesheet
               </Button>
