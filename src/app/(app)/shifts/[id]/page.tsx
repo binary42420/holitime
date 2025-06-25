@@ -1,9 +1,11 @@
 "use client"
 
+import { useState } from "react"
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -26,18 +28,55 @@ import { mockShifts } from "@/lib/mock-data"
 import { notFound } from "next/navigation"
 import { format } from 'date-fns'
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Building2, Calendar, Clock, MapPin, User, Pencil } from "lucide-react"
+import { ArrowLeft, Building2, Calendar, Clock, LogOut, MapPin, User, Pencil } from "lucide-react"
 import Link from "next/link"
 
 export default function ShiftDetailPage({ params }: { params: { id: string } }) {
   const { user } = useUser()
-  const shift = mockShifts.find((s) => s.id === params.id)
+  const initialShift = mockShifts.find((s) => s.id === params.id)
 
-  if (!shift) {
+  const [assignedPersonnel, setAssignedPersonnel] = useState(initialShift?.assignedPersonnel || [])
+  const [notes, setNotes] = useState(initialShift?.notes || "")
+
+  if (!initialShift) {
     notFound()
   }
 
+  // To keep the page reactive, we create a new shift object with the stateful data
+  const shift = { ...initialShift, assignedPersonnel, notes }
+
   const canEdit = user.role === 'Crew Chief' || user.role === 'Manager/Admin'
+
+  const handleInputChange = (employeeId: string, field: 'clockIn' | 'clockOut', value: string) => {
+    const updatedPersonnel = assignedPersonnel.map(p => {
+      if (p.employee.id === employeeId) {
+        return { ...p, [field]: value };
+      }
+      return p;
+    });
+    setAssignedPersonnel(updatedPersonnel);
+  };
+
+  const handleCheckInToggle = (employeeId: string, checked: boolean) => {
+     const updatedPersonnel = assignedPersonnel.map(p => {
+      if (p.employee.id === employeeId) {
+        return { ...p, checkedIn: checked };
+      }
+      return p;
+    });
+    setAssignedPersonnel(updatedPersonnel);
+  };
+
+  const handleClockOutAll = () => {
+    const currentTime = format(new Date(), 'HH:mm');
+    const updatedPersonnel = assignedPersonnel.map(p => {
+        if (p.checkedIn && !p.clockOut) {
+            return { ...p, clockOut: currentTime };
+        }
+        return p;
+    });
+    setAssignedPersonnel(updatedPersonnel);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -77,24 +116,45 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Input type="time" defaultValue={clockIn} disabled={!canEdit} className="w-32" />
+                        <Input
+                          type="time"
+                          value={clockIn || ''}
+                          onChange={(e) => handleInputChange(employee.id, 'clockIn', e.target.value)}
+                          disabled={!canEdit}
+                          className="w-32"
+                        />
                       </TableCell>
                       <TableCell>
-                        <Input type="time" defaultValue={clockOut} disabled={!canEdit} className="w-32" />
+                        <Input
+                          type="time"
+                          value={clockOut || ''}
+                          onChange={(e) => handleInputChange(employee.id, 'clockOut', e.target.value)}
+                          disabled={!canEdit}
+                          className="w-32"
+                        />
                       </TableCell>
                       <TableCell className="text-right">
-                        <Switch defaultChecked={checkedIn} disabled={!canEdit} aria-label={`${employee.name} check-in status`} />
+                        <Switch
+                          checked={checkedIn}
+                          onCheckedChange={(checked) => handleCheckInToggle(employee.id, checked)}
+                          disabled={!canEdit}
+                          aria-label={`${employee.name} check-in status`}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              {canEdit && (
-                <div className="flex justify-end mt-4">
-                  <Button>Save Changes</Button>
-                </div>
-              )}
             </CardContent>
+            {canEdit && (
+              <CardFooter className="justify-end gap-2 border-t pt-6">
+                <Button variant="outline" onClick={handleClockOutAll}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Clock Out All
+                </Button>
+                <Button>Save Changes</Button>
+              </CardFooter>
+            )}
           </Card>
 
           {canEdit && <Card>
@@ -103,7 +163,11 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
               <CardDescription>Add or update notes for this shift. Visible to the crew chief and manager.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Textarea defaultValue={shift.notes} placeholder="Add any important notes for the shift..." />
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Add any important notes for the shift..."
+              />
               <Button>Save Notes</Button>
             </CardContent>
           </Card>}
