@@ -78,12 +78,13 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   const job = initialShift ? mockJobs.find(j => j.id === initialShift.jobId) : undefined;
   const client = job ? mockClients.find(c => c.id === job.clientId) : undefined;
 
-  const canView = shift && (
-    user.role === 'Manager/Admin' || 
-    shift.crewChief.id === user.id ||
-    shift.authorizedViewerIds.includes(user.id) ||
-    shift.assignedPersonnel.some(p => p.employee.id === user.id)
-  );
+  const hasCrewChiefView = user.role === 'Manager/Admin' || 
+    (shift && shift.crewChief.id === user.id) ||
+    (client && client.authorizedCrewChiefIds?.includes(user.id)) ||
+    (job && job.authorizedCrewChiefIds?.includes(user.id)) ||
+    (shift && shift.authorizedCrewChiefIds.includes(user.id));
+  
+  const canView = hasCrewChiefView || (shift && shift.assignedPersonnel.some(p => p.employee.id === user.id));
 
   useEffect(() => {
     if (initialShift && !canView) {
@@ -99,7 +100,6 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
     return null; // Render nothing while redirecting
   }
 
-  const hasCrewChiefView = user.role === 'Manager/Admin' || shift.crewChief.id === user.id || shift.authorizedViewerIds.includes(user.id);
   const canEdit = user.role === 'Manager/Admin' || (user.role === 'Crew Chief' && shift.crewChief.id === user.id);
   
   const personnelToDisplay = hasCrewChiefView 

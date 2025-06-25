@@ -16,12 +16,12 @@ export const mockEmployees: Employee[] = [
 
 export const mockClients: Client[] = [
   { id: 'cli1', name: 'Constructo Corp.', address: '123 Main St, Buildville', contactPerson: 'John Smith', contactEmail: 'jsmith@constructo.com', contactPhone: '555-1234' },
-  { id: 'cli2', name: 'EventMakers Inc.', address: '456 Market Ave, EventCity', contactPerson: 'Jane Doe', contactEmail: 'jdoe@eventmakers.com', contactPhone: '555-5678' },
+  { id: 'cli2', name: 'EventMakers Inc.', address: '456 Market Ave, EventCity', contactPerson: 'Jane Doe', contactEmail: 'jdoe@eventmakers.com', contactPhone: '555-5678', authorizedCrewChiefIds: ['emp2'] },
 ];
 
 export const mockJobs: Job[] = [
   { id: 'job1', clientId: 'cli1', name: 'Downtown Core Project', description: 'Major construction project in the city center.' },
-  { id: 'job2', clientId: 'cli1', name: 'Suburban Office Complex', description: 'Renovation of a 3-story office building.' },
+  { id: 'job2', clientId: 'cli1', name: 'Suburban Office Complex', description: 'Renovation of a 3-story office building.', authorizedCrewChiefIds: ['emp1'] },
   { id: 'job3', clientId: 'cli2', name: 'City Park Festival', description: 'Annual music and arts festival setup and teardown.' },
 ];
 
@@ -30,7 +30,7 @@ export const mockShifts: Shift[] = [
     id: 'shft1',
     timesheetId: 'ts1',
     jobId: 'job1',
-    authorizedViewerIds: [],
+    authorizedCrewChiefIds: [],
     date: '2024-08-15T00:00:00.000Z',
     startTime: '08:00',
     endTime: '17:00',
@@ -49,7 +49,7 @@ export const mockShifts: Shift[] = [
     id: 'shft2',
     timesheetId: 'ts2',
     jobId: 'job3',
-    authorizedViewerIds: [],
+    authorizedCrewChiefIds: [],
     date: '2024-08-16T00:00:00.000Z',
     startTime: '10:00',
     endTime: '19:00',
@@ -66,7 +66,7 @@ export const mockShifts: Shift[] = [
     id: 'shft3',
     timesheetId: 'ts3',
     jobId: 'job2',
-    authorizedViewerIds: ['cc1'], // Maria Garcia can view this shift even though she is not the chief
+    authorizedCrewChiefIds: ['cc1'], // Maria Garcia can view this shift even though she is not the chief
     date: '2024-08-10T00:00:00.000Z',
     startTime: '09:00',
     endTime: '17:00',

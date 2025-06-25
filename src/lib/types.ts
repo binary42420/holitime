@@ -15,6 +15,7 @@ export interface Client {
   contactPerson: string;
   contactEmail: string;
   contactPhone: string;
+  authorizedCrewChiefIds?: string[];
 }
 
 export interface Job {
@@ -22,6 +23,7 @@ export interface Job {
   name: string;
   clientId: string;
   description: string;
+  authorizedCrewChiefIds?: string[];
 }
 
 export interface Employee {
@@ -48,7 +50,7 @@ export interface Shift {
   id: string;
   timesheetId: string;
   jobId: string;
-  authorizedViewerIds: string[];
+  authorizedCrewChiefIds: string[];
   date: string;
   startTime: string;
   endTime: string;
