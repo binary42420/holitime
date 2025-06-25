@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { notFound, useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
@@ -18,15 +18,26 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, FileSignature, MapPin, User, Pencil, Save, RefreshCw } from "lucide-react"
 
 export default function ApproveTimesheetPage({ params }: { params: { id: string } }) {
+  const { user } = useUser()
   const router = useRouter();
   const signatureRef = useRef<SignaturePadRef>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (user.role === 'Employee') {
+      router.push('/dashboard');
+    }
+  }, [user.role, router]);
   
   const timesheet = mockTimesheets.find(t => t.id === params.id)
   const shift = mockShifts.find(s => s.id === timesheet?.shiftId)
 
   if (!timesheet || !shift) {
     notFound()
+  }
+
+  if (user.role === 'Employee') {
+    return null; // Render nothing while redirecting
   }
 
   const calculateTotalHours = (timeEntries: { clockIn?: string; clockOut?: string }[]) => {

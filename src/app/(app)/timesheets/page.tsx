@@ -1,7 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { useMemo } from "react"
+import { useMemo, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import {
   Table,
   TableBody,
@@ -28,6 +29,13 @@ import { ArrowRight, Check, FileSignature, VenetianMask } from "lucide-react"
 
 export default function TimesheetsPage() {
   const { user } = useUser();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user.role === 'Employee') {
+      router.push('/dashboard');
+    }
+  }, [user.role, router]);
 
   const timesheetsToDisplay = useMemo(() => {
     if (user.role === 'Manager/Admin') {
@@ -41,6 +49,10 @@ export default function TimesheetsPage() {
     }
     return [];
   }, [user.role, user.id]);
+
+  if (user.role === 'Employee') {
+    return null; // Render nothing while redirecting
+  }
 
   const getTimesheetStatusVariant = (status: TimesheetStatus) => {
     switch (status) {
