@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Fragment, useEffect } from "react"
+import { useState, Fragment, useEffect, useMemo } from "react"
 import {
   Card,
   CardContent,
@@ -20,14 +20,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useUser } from "@/hooks/use-user"
-import { mockShifts, mockJobs, mockClients } from "@/lib/mock-data"
+import { mockShifts, mockJobs, mockClients, mockEmployees } from "@/lib/mock-data"
 import { notFound, useRouter } from "next/navigation"
 import { format } from 'date-fns'
 import { Badge } from "@/components/ui/badge"
-import type { AssignedPersonnel, TimesheetStatus } from "@/lib/types"
-import { ArrowLeft, Building2, Calendar, Check, Clock, MapPin, User, Pencil, UserCheck, ClipboardCheck, Ban, Loader2 } from "lucide-react"
+import type { AssignedPersonnel, TimesheetStatus, RoleCode } from "@/lib/types"
+import { ArrowLeft, Building2, Calendar, Check, Clock, MapPin, User, Pencil, UserCheck, ClipboardCheck, Ban, Loader2, Minus, Plus } from "lucide-react"
 import Link from "next/link"
 import {
   AlertDialog,
@@ -42,7 +44,36 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { adjustTimesheet } from "@/ai/flows/adjust-timesheet"
+import { cn } from "@/lib/utils"
 
+const roleConfig: Record<RoleCode, { label: string; color: string }> = {
+  CC: { label: 'Crew Chiefs', color: 'border-red-500' },
+  SH: { label: 'Stage Hands', color: 'border-sky-500' },
+  FO: { label: 'Fork Operators', color: 'border-amber-500' },
+  RFO: { label: 'Reach Fork Ops', color: 'border-purple-500' },
+  RG: { label: 'Riggers', color: 'border-indigo-500' },
+  GL: { label: 'General Laborers', color: 'border-slate-500' },
+};
+
+function NumberInputControl({ value, onChange }: { value: number; onChange: (newValue: number) => void }) {
+  return (
+    <div className="flex items-center gap-1">
+      <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => onChange(Math.max(0, value - 1))}>
+        <Minus className="h-4 w-4" />
+      </Button>
+      <Input
+        type="number"
+        className="h-8 w-12 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value, 10) || 0)}
+        min={0}
+      />
+      <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" onClick={() => onChange(value + 1)}>
+        <Plus className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
 
 // Helper function to round time
 const roundTime = (date: Date, direction: 'up' | 'down') => {
@@ -75,6 +106,23 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   const [isFinalizing, setIsFinalizing] = useState(false);
   const { toast } = useToast();
 
+  const [roleCounts, setRoleCounts] = useState<Record<RoleCode, number>>(() => {
+    const counts = {} as Record<RoleCode, number>;
+    if (initialShift) {
+        initialShift.assignedPersonnel.forEach(p => {
+        counts[p.roleCode] = (counts[p.roleCode] || 0) + 1;
+        });
+    }
+    Object.keys(roleConfig).forEach(code => {
+        if (!counts[code as RoleCode]) {
+        counts[code as RoleCode] = 0;
+        }
+    });
+    // A shift must have at least one crew chief
+    if(counts['CC'] === 0 && initialShift?.assignedPersonnel.some(p => p.roleCode === 'CC')) counts['CC'] = 1;
+    return counts;
+  });
+
   const job = initialShift ? mockJobs.find(j => j.id === initialShift.jobId) : undefined;
   const client = job ? mockClients.find(c => c.id === job.clientId) : undefined;
 
@@ -102,9 +150,40 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
 
   const canEdit = user.role === 'Manager/Admin' || (user.role === 'Crew Chief' && shift.crewChief.id === user.id);
   
-  const personnelToDisplay = hasCrewChiefView 
-    ? shift.assignedPersonnel 
-    : shift.assignedPersonnel.filter(p => p.employee.id === user.id);
+  const personnelToDisplay = useMemo(() => {
+    const displayRows: (AssignedPersonnel & { isPlaceholder: boolean; id: string })[] = [];
+    let placeholderId = 0;
+
+    Object.entries(roleConfig).forEach(([code, config]) => {
+        const roleCode = code as RoleCode;
+        const requiredCount = roleCounts[roleCode] || 0;
+        const assignedForRole = shift.assignedPersonnel.filter(p => p.roleCode === roleCode);
+
+        for (let i = 0; i < requiredCount; i++) {
+            if (i < assignedForRole.length) {
+                displayRows.push({ ...assignedForRole[i], isPlaceholder: false, id: assignedForRole[i].employee.id });
+            } else {
+                const pId = `placeholder-${placeholderId++}`;
+                displayRows.push({
+                    id: pId,
+                    employee: { id: pId, name: 'Unassigned', avatar: '', certifications: [], location: '', performance: 0 },
+                    isPlaceholder: true,
+                    roleCode,
+                    roleOnShift: config.label.slice(0, -1),
+                    status: 'Clocked Out',
+                    timeEntries: [],
+                });
+            }
+        }
+    });
+
+    // For employee view, filter to only show themselves
+    if (user.role === 'Employee') {
+        return displayRows.filter(p => !p.isPlaceholder && p.employee.id === user.id);
+    }
+    
+    return displayRows;
+  }, [roleCounts, shift.assignedPersonnel, user.role, user.id]);
 
   const handlePersonnelUpdate = (updatedPersonnel: AssignedPersonnel) => {
     setShift(currentShift => {
@@ -184,26 +263,15 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   const handleFinalizeTimesheet = async () => {
     setIsFinalizing(true);
     try {
-      // Filter out personnel with no time entries, as they are not relevant for the timesheet
       const personnelForTimesheet = shift.assignedPersonnel.filter(p => p.timeEntries.some(t => t.clockIn));
+      const result = await adjustTimesheet({ personnel: personnelForTimesheet });
 
-      // Call the AI flow to adjust times
-      const result = await adjustTimesheet({
-        personnel: personnelForTimesheet,
-      });
-
-      // Update the shift state with adjusted personnel data
       setShift(currentShift => {
         if (!currentShift) return currentShift;
-        
         const adjustedPersonnelMap = new Map(result.adjustedPersonnel.map(p => [p.employee.id, p]));
-
         const fullyUpdatedPersonnel = currentShift.assignedPersonnel.map(p => 
-          adjustedPersonnelMap.has(p.employee.id) 
-            ? (adjustedPersonnelMap.get(p.employee.id)!)
-            : p
+          adjustedPersonnelMap.has(p.employee.id) ? (adjustedPersonnelMap.get(p.employee.id)!) : p
         );
-
         return { 
           ...currentShift, 
           assignedPersonnel: fullyUpdatedPersonnel,
@@ -211,7 +279,6 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
         };
       });
 
-      // Show a summary of changes
       toast({
         title: "Timesheet Adjusted & Finalized",
         description: result.adjustmentsSummary,
@@ -339,6 +406,26 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
       </div>
 
       <div className="space-y-6">
+        {hasCrewChiefView && (
+          <Card>
+            <CardHeader>
+                <CardTitle>Required Personnel</CardTitle>
+                <CardDescription>Set the number of workers needed for each role on this shift.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                {Object.entries(roleConfig).map(([code, config]) => (
+                <div key={code} className="space-y-1">
+                    <Label htmlFor={`count-${code}`}>{config.label}</Label>
+                    <NumberInputControl
+                        value={roleCounts[code as RoleCode]}
+                        onChange={(newValue) => setRoleCounts(counts => ({ ...counts, [code]: newValue }))}
+                    />
+                </div>
+                ))}
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>Assigned Workers</CardTitle>
@@ -349,78 +436,108 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
               <TableHeader>
                 <TableRow>
                   <TableHead>Employee</TableHead>
-                  {[1, 2, 3].map(i => (
-                    <Fragment key={i}>
-                      <TableHead>In {i}</TableHead>
-                      <TableHead>Out {i}</TableHead>
-                    </Fragment>
-                  ))}
-                  <TableHead className="text-right">Actions</TableHead>
+                   {hasCrewChiefView && (
+                     <>
+                        {[1, 2, 3].map(i => (
+                            <Fragment key={i}>
+                            <TableHead>In {i}</TableHead>
+                            <TableHead>Out {i}</TableHead>
+                            </Fragment>
+                        ))}
+                        <TableHead className="text-right">Actions</TableHead>
+                     </>
+                   )}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {personnelToDisplay.map((person) => (
-                  <TableRow key={person.employee.id} className={getRowClass(person.status)}>
+                {personnelToDisplay.map((person) => {
+                  const isPlaceholder = person.isPlaceholder;
+                  const roleColorClass = roleConfig[person.roleCode as RoleCode]?.color || 'border-transparent';
+
+                  return (
+                  <TableRow key={person.id} className={cn(!isPlaceholder && getRowClass(person.status), 'border-l-4', roleColorClass)}>
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                          <Avatar className="h-9 w-9">
-                          <AvatarImage src={person.employee.avatar} alt={person.employee.name} data-ai-hint="person face" />
-                          <AvatarFallback>{person.employee.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{person.employee.name}</span>
-                          <span className="text-xs text-muted-foreground">{person.roleOnShift}</span>
+                      {isPlaceholder ? (
+                        <Select disabled={!canEdit}>
+                            <SelectTrigger className="w-[200px]">
+                                <SelectValue placeholder={`Select ${person.roleOnShift}...`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {mockEmployees.map(emp => (
+                                    <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9">
+                            <AvatarImage src={person.employee.avatar} alt={person.employee.name} data-ai-hint="person face" />
+                            <AvatarFallback>{person.employee.name.charAt(0)}</AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{person.employee.name}</span>
+                            <span className="text-xs text-muted-foreground">{person.roleOnShift}</span>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </TableCell>
                     
-                    {[...Array(3)].map((_, index) => (
-                      <Fragment key={index}>
-                        <TableCell>
-                          <Input
-                            type="time"
-                            value={person.timeEntries[index]?.clockIn || ''}
-                            disabled={!canEdit}
-                            className="w-28"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="time"
-                            value={person.timeEntries[index]?.clockOut || ''}
-                            disabled={!canEdit || !person.timeEntries[index]?.clockIn}
-                            className="w-28"
-                          />
-                        </TableCell>
-                      </Fragment>
-                    ))}
-
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {renderActionButton(person)}
-                        {canEdit && person.status !== 'Shift Ended' && (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button size="sm" variant="destructive"><Ban className="mr-2 h-4 w-4" /> End Shift</Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>End shift for {person.employee.name}?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will finalize their time entries for this shift. This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleEndShift(person)}>Confirm End Shift</AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        )}
-                      </div>
-                    </TableCell>
+                    {hasCrewChiefView && (
+                        isPlaceholder ? (
+                            <TableCell colSpan={7} className="text-center text-muted-foreground italic">
+                                Unassigned
+                            </TableCell>
+                        ) : (
+                        <>
+                            {[...Array(3)].map((_, index) => (
+                            <Fragment key={index}>
+                                <TableCell>
+                                <Input
+                                    type="time"
+                                    value={person.timeEntries[index]?.clockIn || ''}
+                                    disabled={!canEdit}
+                                    className="w-28"
+                                />
+                                </TableCell>
+                                <TableCell>
+                                <Input
+                                    type="time"
+                                    value={person.timeEntries[index]?.clockOut || ''}
+                                    disabled={!canEdit || !person.timeEntries[index]?.clockIn}
+                                    className="w-28"
+                                />
+                                </TableCell>
+                            </Fragment>
+                            ))}
+                            <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                                {renderActionButton(person)}
+                                {canEdit && person.status !== 'Shift Ended' && (
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                    <Button size="sm" variant="destructive"><Ban className="mr-2 h-4 w-4" /> End Shift</Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>End shift for {person.employee.name}?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                        This will finalize their time entries for this shift. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleEndShift(person)}>Confirm End Shift</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                                )}
+                            </div>
+                            </TableCell>
+                        </>
+                        )
+                    )}
                   </TableRow>
-                ))}
+                )})}
               </TableBody>
             </Table>
           </CardContent>

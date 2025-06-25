@@ -37,9 +37,10 @@ export const mockShifts: Shift[] = [
     location: 'Downtown Core Project - Site A',
     crewChief: mockEmployees[4], // Maria Garcia
     assignedPersonnel: [
-      { employee: mockEmployees[0], roleOnShift: 'Forklift Operator', status: 'Clocked In', timeEntries: [{ clockIn: '07:58' }] },
-      { employee: mockEmployees[2], roleOnShift: 'General Laborer', status: 'On Break', timeEntries: [{ clockIn: '08:01', clockOut: '12:00' }] },
-      { employee: mockEmployees[3], roleOnShift: 'General Laborer', status: 'Clocked Out', timeEntries: [] },
+      { employee: mockEmployees[0], roleOnShift: 'Forklift Operator', roleCode: 'FO', status: 'Clocked In', timeEntries: [{ clockIn: '07:58' }] },
+      { employee: mockEmployees[2], roleOnShift: 'General Laborer', roleCode: 'GL', status: 'On Break', timeEntries: [{ clockIn: '08:01', clockOut: '12:00' }] },
+      { employee: mockEmployees[3], roleOnShift: 'General Laborer', roleCode: 'GL', status: 'Clocked Out', timeEntries: [] },
+      { employee: mockEmployees[4], roleOnShift: 'Crew Chief', roleCode: 'CC', status: 'Clocked In', timeEntries: [{ clockIn: '07:55' }] },
     ],
     status: 'In Progress',
     timesheetStatus: 'Pending Finalization',
@@ -56,8 +57,8 @@ export const mockShifts: Shift[] = [
     location: 'City Park Festival Setup',
     crewChief: mockEmployees[4], // Maria Garcia
     assignedPersonnel: [
-      { employee: mockEmployees[4], roleOnShift: 'Crew Chief', status: 'Clocked Out', timeEntries: [] },
-      { employee: mockEmployees[0], roleOnShift: 'General Laborer', status: 'Clocked Out', timeEntries: [] }
+      { employee: mockEmployees[4], roleOnShift: 'Crew Chief', roleCode: 'CC', status: 'Clocked Out', timeEntries: [] },
+      { employee: mockEmployees[0], roleOnShift: 'General Laborer', roleCode: 'GL', status: 'Clocked Out', timeEntries: [] }
     ],
     status: 'Upcoming',
     timesheetStatus: 'Pending Finalization',
@@ -73,7 +74,8 @@ export const mockShifts: Shift[] = [
     location: 'Suburban Office Complex - West Wing',
     crewChief: mockEmployees[1], // Ben Carter
     assignedPersonnel: [
-      { employee: mockEmployees[0], roleOnShift: 'Rigger', status: 'Shift Ended', timeEntries: [{ clockIn: '09:00', clockOut: '17:00' }] },
+      { employee: mockEmployees[0], roleOnShift: 'Rigger', roleCode: 'RG', status: 'Shift Ended', timeEntries: [{ clockIn: '09:00', clockOut: '17:00' }] },
+      { employee: mockEmployees[1], roleOnShift: 'Crew Chief', roleCode: 'CC', status: 'Shift Ended', timeEntries: [{ clockIn: '08:55', clockOut: '17:05' }] },
     ],
     status: 'Completed',
     timesheetStatus: 'Approved'

@@ -37,9 +37,12 @@ export interface Employee {
 
 export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended';
 
+export type RoleCode = 'CC' | 'SH' | 'FO' | 'RFO' | 'RG' | 'GL';
+
 export interface AssignedPersonnel {
   employee: Employee;
   roleOnShift: string;
+  roleCode: RoleCode;
   status: AssignedPersonnelStatus;
   timeEntries: { clockIn?: string; clockOut?: string }[];
 }
