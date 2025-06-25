@@ -29,12 +29,12 @@ export const mockShifts: Shift[] = [
     location: 'Downtown Core Project',
     crewChief: mockEmployees[4],
     assignedPersonnel: [
-      { employee: mockEmployees[0], roleOnShift: 'Forklift Operator', status: 'Shift Ended', timeEntries: [{ clockIn: '07:58', clockOut: '12:00' }, { clockIn: '12:30', clockOut: '17:02' }] },
-      { employee: mockEmployees[2], roleOnShift: 'General Laborer', status: 'Shift Ended', timeEntries: [{ clockIn: '08:01', clockOut: '17:00' }] },
+      { employee: mockEmployees[0], roleOnShift: 'Forklift Operator', status: 'Clocked In', timeEntries: [{ clockIn: '07:58' }] },
+      { employee: mockEmployees[2], roleOnShift: 'General Laborer', status: 'On Break', timeEntries: [{ clockIn: '08:01', clockOut: '12:00' }] },
       { employee: mockEmployees[3], roleOnShift: 'General Laborer', status: 'Clocked Out', timeEntries: [] },
     ],
-    status: 'Upcoming',
-    timesheetStatus: 'Awaiting Client Approval',
+    status: 'In Progress',
+    timesheetStatus: 'Pending Finalization',
     notes: 'Morning safety meeting at 7:45 AM sharp. Hard hats required on site at all times.'
   },
   {
