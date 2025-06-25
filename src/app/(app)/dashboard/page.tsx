@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button"
 import { mockShifts, mockAnnouncements, mockEmployees } from "@/lib/mock-data"
 import { useUser } from "@/hooks/use-user"
 import Link from 'next/link'
-import { ArrowRight, CheckCircle, Clock, FilePlus, UserPlus } from 'lucide-react'
+import { ArrowRight, CheckCircle, FileClock, CalendarDays, PlusCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import type { TimesheetStatus } from "@/lib/types"
 
@@ -95,17 +95,26 @@ export default function DashboardPage() {
             <CardDescription>Common tasks at your fingertips.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <Button variant="default" className="w-full justify-start">
-              <Clock className="mr-2 h-4 w-4" /> Clock In / Out
-            </Button>
-            {user.role !== 'Employee' && (
-              <Button variant="outline" className="w-full justify-start">
-                <UserPlus className="mr-2 h-4 w-4" /> Add Crew to Shift
+             { (user.role === 'Employee' || user.role === 'Crew Chief') && (
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link href="/shifts?status=Completed"><CheckCircle className="mr-2 h-4 w-4" /> View Completed Shifts</Link>
               </Button>
             )}
-             <Button variant="outline" className="w-full justify-start">
-              <FilePlus className="mr-2 h-4 w-4" /> Submit Timesheet
-            </Button>
+            { user.role === 'Manager/Admin' && (
+              <>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/timesheets"><FileClock className="mr-2 h-4 w-4" /> Pending Timesheets</Link>
+                </Button>
+                <Button asChild variant="outline" className="w-full justify-start">
+                  <Link href="/shifts?range=today"><CalendarDays className="mr-2 h-4 w-4" /> Today's Shifts</Link>
+                </Button>
+              </>
+            )}
+            { (user.role === 'Crew Chief' || user.role === 'Manager/Admin') && (
+              <Button asChild variant="outline" className="w-full justify-start">
+                <Link href="/shifts"><PlusCircle className="mr-2 h-4 w-4" /> Create New Shift</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
 

@@ -1,6 +1,8 @@
 "use client"
 
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { useMemo } from "react"
 import { MoreHorizontal, PlusCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -28,16 +30,37 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useUser } from "@/hooks/use-user"
-import { mockShifts, mockTimesheets } from "@/lib/mock-data"
+import { mockShifts } from "@/lib/mock-data"
 import type { Shift, TimesheetStatus } from "@/lib/types"
-import { format } from "date-fns"
+import { format, isWithinInterval, subHours, addHours } from "date-fns"
 
 export default function ShiftsPage() {
   const { user } = useUser()
+  const searchParams = useSearchParams()
 
-  const shiftsToDisplay = user.role === 'Employee' 
-    ? mockShifts.filter(shift => shift.assignedPersonnel.some(p => p.employee.id === user.id))
-    : mockShifts;
+  const shiftsToDisplay = useMemo(() => {
+    let filteredShifts = user.role === 'Employee' 
+      ? mockShifts.filter(shift => shift.assignedPersonnel.some(p => p.employee.id === user.id))
+      : mockShifts;
+
+    const statusFilter = searchParams.get('status')
+    if (statusFilter) {
+      // The type assertion is safe because we are comparing to a property of type Shift['status']
+      filteredShifts = filteredShifts.filter(shift => shift.status === (statusFilter as Shift['status']))
+    }
+
+    const rangeFilter = searchParams.get('range')
+    if (rangeFilter === 'today') {
+      const now = new Date()
+      filteredShifts = filteredShifts.filter(shift => isWithinInterval(new Date(shift.date), {
+        start: subHours(now, 24),
+        end: addHours(now, 48)
+      }))
+    }
+    
+    return filteredShifts
+  }, [user.id, user.role, searchParams])
+
 
   const getStatusVariant = (status: Shift['status']) => {
     switch (status) {
