@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, Fragment } from "react"
 import {
   Card,
   CardContent,
@@ -43,10 +43,18 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   const shift = { ...initialShift, assignedPersonnel, notes }
   const canEdit = user.role === 'Crew Chief' || user.role === 'Manager/Admin'
 
-  const handleInputChange = (employeeId: string, field: 'clockIn' | 'clockOut', value: string) => {
-    setAssignedPersonnel(assignedPersonnel.map(p => 
-      p.employee.id === employeeId ? { ...p, [field]: value } : p
-    ));
+  const handleInputChange = (employeeId: string, entryIndex: number, field: 'clockIn' | 'clockOut', value: string) => {
+    setAssignedPersonnel(assignedPersonnel.map(p => {
+      if (p.employee.id === employeeId) {
+        const newTimeEntries = p.timeEntries.map(entry => ({...entry}));
+        while (newTimeEntries.length <= entryIndex) {
+            newTimeEntries.push({});
+        }
+        newTimeEntries[entryIndex] = { ...newTimeEntries[entryIndex], [field]: value };
+        return { ...p, timeEntries: newTimeEntries };
+      }
+      return p;
+    }));
   };
   
   const handleClockToggle = (employeeId: string) => {
@@ -54,11 +62,18 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
     setAssignedPersonnel(
       assignedPersonnel.map(p => {
         if (p.employee.id === employeeId) {
-          const isClockedIn = p.clockIn && !p.clockOut;
+          const newTimeEntries = p.timeEntries.map(entry => ({...entry}));
+          const lastEntry = newTimeEntries[newTimeEntries.length - 1];
+          const isClockedIn = lastEntry && lastEntry.clockIn && !lastEntry.clockOut;
+
           if (isClockedIn) {
-            return { ...p, clockOut: currentTime, checkedIn: false };
+            lastEntry.clockOut = currentTime;
+            return { ...p, timeEntries: newTimeEntries, checkedIn: false };
           } else {
-            return { ...p, clockIn: currentTime, clockOut: undefined, checkedIn: true };
+            if (newTimeEntries.length < 3) {
+              newTimeEntries.push({ clockIn: currentTime });
+              return { ...p, timeEntries: newTimeEntries, checkedIn: true };
+            }
           }
         }
         return p;
@@ -69,10 +84,13 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   const handleClockOutAll = () => {
     const currentTime = format(new Date(), 'HH:mm');
     setAssignedPersonnel(assignedPersonnel.map(p => {
-        if (p.clockIn && !p.clockOut) {
-            return { ...p, clockOut: currentTime, checkedIn: false };
-        }
-        return p;
+      const newTimeEntries = p.timeEntries.map(entry => ({...entry}));
+      const lastEntry = newTimeEntries[newTimeEntries.length - 1];
+      if (lastEntry && lastEntry.clockIn && !lastEntry.clockOut) {
+          lastEntry.clockOut = currentTime;
+          return { ...p, timeEntries: newTimeEntries, checkedIn: false };
+      }
+      return p;
     }));
   };
 
@@ -96,49 +114,60 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                 <TableHeader>
                   <TableRow>
                     <TableHead>Employee</TableHead>
-                    <TableHead>Clock In</TableHead>
-                    <TableHead>Clock Out</TableHead>
+                    {[1, 2, 3].map(i => (
+                      <Fragment key={i}>
+                        <TableHead>In {i}</TableHead>
+                        <TableHead>Out {i}</TableHead>
+                      </Fragment>
+                    ))}
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {shift.assignedPersonnel.map(({ employee, clockIn, clockOut }) => {
-                    const isClockedIn = clockIn && !clockOut;
+                  {assignedPersonnel.map((person) => {
+                    const isClockedIn = person.checkedIn;
+                    const canClockIn = person.timeEntries.length < 3;
                     return (
-                    <TableRow key={employee.id}>
+                    <TableRow key={person.employee.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                            <Avatar className="h-9 w-9">
-                            <AvatarImage src={employee.avatar} alt={employee.name} data-ai-hint="person face" />
-                            <AvatarFallback>{employee.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={person.employee.avatar} alt={person.employee.name} data-ai-hint="person face" />
+                            <AvatarFallback>{person.employee.name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <span className="font-medium">{employee.name}</span>
+                          <span className="font-medium">{person.employee.name}</span>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Input
-                          type="time"
-                          value={clockIn || ''}
-                          onChange={(e) => handleInputChange(employee.id, 'clockIn', e.target.value)}
-                          disabled={!canEdit}
-                          className="w-32"
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="time"
-                          value={clockOut || ''}
-                          onChange={(e) => handleInputChange(employee.id, 'clockOut', e.target.value)}
-                          disabled={!canEdit}
-                          className="w-32"
-                        />
-                      </TableCell>
+                      
+                      {[...Array(3)].map((_, index) => (
+                        <Fragment key={index}>
+                          <TableCell>
+                            <Input
+                              type="time"
+                              value={person.timeEntries[index]?.clockIn || ''}
+                              onChange={(e) => handleInputChange(person.employee.id, index, 'clockIn', e.target.value)}
+                              disabled={!canEdit}
+                              className="w-28"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="time"
+                              value={person.timeEntries[index]?.clockOut || ''}
+                              onChange={(e) => handleInputChange(person.employee.id, index, 'clockOut', e.target.value)}
+                              disabled={!canEdit || !person.timeEntries[index]?.clockIn}
+                              className="w-28"
+                            />
+                          </TableCell>
+                        </Fragment>
+                      ))}
+
                       <TableCell className="text-right">
                         <Button 
                           variant={isClockedIn ? "destructive" : "default"} 
                           size="sm"
-                          onClick={() => handleClockToggle(employee.id)}
-                          disabled={!canEdit}
+                          onClick={() => handleClockToggle(person.employee.id)}
+                          disabled={!canEdit || (!isClockedIn && !canClockIn)}
                           className="w-28"
                         >
                           {isClockedIn ? "Clock Out" : "Clock In"}

@@ -11,6 +11,7 @@ export const mockEmployees: Employee[] = [
   { id: 'emp2', name: 'Ben Carter', certifications: ['OSHA 30'], performance: 4.8, location: 'Northside', avatar: 'https://placehold.co/32x32.png' },
   { id: 'emp3', name: 'Chloe Davis', certifications: ['Forklift'], performance: 4.2, location: 'West End', avatar: 'https://placehold.co/32x32.png' },
   { id: 'emp4', name: 'David Evans', certifications: [], performance: 4.0, location: 'Downtown', avatar: 'https://placehold.co/32x32.png' },
+  { id: 'cc1', name: 'Maria Garcia', certifications: ['First Aid', 'Crew Management'], performance: 4.9, location: 'Downtown', avatar: 'https://placehold.co/32x32.png' },
 ];
 
 export const mockClients: Client[] = [
@@ -28,9 +29,9 @@ export const mockShifts: Shift[] = [
     location: 'Downtown Core Project',
     crewChief: mockEmployees[1],
     assignedPersonnel: [
-      { employee: mockUsers['Employee'], checkedIn: true, clockIn: '07:58', clockOut: '17:02' },
-      { employee: mockEmployees[2], checkedIn: true, clockIn: '08:01', clockOut: '17:00' },
-      { employee: mockEmployees[3], checkedIn: false },
+      { employee: mockEmployees[0], checkedIn: false, timeEntries: [{ clockIn: '07:58', clockOut: '12:00' }, { clockIn: '12:30', clockOut: '17:02' }] },
+      { employee: mockEmployees[2], checkedIn: false, timeEntries: [{ clockIn: '08:01', clockOut: '17:00' }] },
+      { employee: mockEmployees[3], checkedIn: false, timeEntries: [] },
     ],
     status: 'Upcoming',
     notes: 'Morning safety meeting at 7:45 AM sharp. Hard hats required on site at all times.'
@@ -42,10 +43,10 @@ export const mockShifts: Shift[] = [
     startTime: '10:00',
     endTime: '19:00',
     location: 'City Park Festival Setup',
-    crewChief: mockUsers['Crew Chief'] as Employee,
+    crewChief: mockEmployees[4],
     assignedPersonnel: [
-      { employee: mockUsers['Crew Chief'], checkedIn: false },
-      { employee: mockEmployees[0], checkedIn: false }
+      { employee: mockEmployees[4], checkedIn: false, timeEntries: [] },
+      { employee: mockEmployees[0], checkedIn: false, timeEntries: [] }
     ],
     status: 'Upcoming'
   },
@@ -58,7 +59,7 @@ export const mockShifts: Shift[] = [
     location: 'Suburban Office Complex',
     crewChief: mockEmployees[1],
     assignedPersonnel: [
-      { employee: mockUsers['Employee'], checkedIn: true, clockIn: '09:00', clockOut: '17:00' },
+      { employee: mockEmployees[0], checkedIn: false, timeEntries: [{ clockIn: '09:00', clockOut: '17:00' }] },
     ],
     status: 'Completed'
   },

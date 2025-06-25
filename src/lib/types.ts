@@ -34,7 +34,11 @@ export interface Shift {
   endTime: string;
   location: string;
   crewChief: Employee;
-  assignedPersonnel: { employee: Employee; checkedIn: boolean, clockIn?: string, clockOut?: string }[];
+  assignedPersonnel: {
+    employee: Employee;
+    checkedIn: boolean;
+    timeEntries: { clockIn?: string; clockOut?: string }[];
+  }[];
   status: 'Upcoming' | 'In Progress' | 'Completed' | 'Cancelled';
   notes?: string;
 }
