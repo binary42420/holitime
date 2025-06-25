@@ -134,19 +134,19 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   }
 
   const renderActionButton = (person: AssignedPersonnel) => {
-    if (!canEdit || person.status === 'Shift Ended') return <div className="w-32" />;
+    if (!canEdit || person.status === 'Shift Ended') return null;
 
     if (person.status === 'Clocked Out' && person.timeEntries.length === 0) {
-      return <Button size="sm" onClick={() => handleTimeAction(person)} className="w-32"><Check className="mr-2 h-4 w-4" /> Check In</Button>;
+      return <Button size="sm" onClick={() => handleTimeAction(person)}><Check className="mr-2 h-4 w-4" /> Check In</Button>;
     }
     
     if (person.status === 'Clocked In' || person.status === 'On Break') {
       const isClockedIn = person.status === 'Clocked In';
       const canClockIn = person.timeEntries.length < 3 || (person.timeEntries.length === 3 && !person.timeEntries[2].clockOut);
-      return <Button variant={isClockedIn ? "outline" : "default"} size="sm" onClick={() => handleTimeAction(person)} disabled={!isClockedIn && !canClockIn} className="w-32">{isClockedIn ? "Clock Out" : "Clock In"}</Button>;
+      return <Button variant={isClockedIn ? "outline" : "default"} size="sm" onClick={() => handleTimeAction(person)} disabled={!isClockedIn && !canClockIn}>{isClockedIn ? "Clock Out" : "Clock In"}</Button>;
     }
 
-    return <div className="w-32" />
+    return null;
   };
 
   return (
@@ -221,7 +221,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                           {canEdit && person.status !== 'Shift Ended' && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="destructive" className="w-32"><Ban className="mr-2 h-4 w-4" /> End Shift</Button>
+                                <Button size="sm" variant="destructive"><Ban className="mr-2 h-4 w-4" /> End Shift</Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
