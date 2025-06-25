@@ -1,9 +1,10 @@
 import type { User, Client, Job, Employee, Shift, Announcement, AppDocument, UserRole, Timesheet } from './types';
 
-export const mockUsers: Record<UserRole, User> = {
+export const mockUsers: Record<UserRole | 'Client', User> = {
   'Employee': { id: 'emp1', name: 'Alex Johnson', email: 'alex.j@handson.com', avatar: '/avatars/01.png', role: 'Employee' },
   'Crew Chief': { id: 'cc1', name: 'Maria Garcia', email: 'maria.g@handson.com', avatar: '/avatars/02.png', role: 'Crew Chief' },
   'Manager/Admin': { id: 'mgr1', name: 'Sam Chen', email: 'sam.c@handson.com', avatar: '/avatars/03.png', role: 'Manager/Admin' },
+  'Client': { id: 'cli-user1', name: 'John Smith', email: 'jsmith@constructo.com', avatar: '/avatars/04.png', role: 'Client', clientId: 'cli1' },
 };
 
 export const mockEmployees: Employee[] = [
@@ -12,10 +13,11 @@ export const mockEmployees: Employee[] = [
   { id: 'emp3', name: 'Chloe Davis', certifications: ['Forklift'], performance: 4.2, location: 'West End', avatar: 'https://placehold.co/32x32.png' },
   { id: 'emp4', name: 'David Evans', certifications: [], performance: 4.0, location: 'Downtown', avatar: 'https://placehold.co/32x32.png' },
   { id: 'cc1', name: 'Maria Garcia', certifications: ['First Aid', 'Crew Management'], performance: 4.9, location: 'Downtown', avatar: 'https://placehold.co/32x32.png' },
+  { id: 'cli-user1', name: 'John Smith', certifications: [], performance: 0, location: 'Constructo Corp.', avatar: 'https://placehold.co/32x32.png' },
 ];
 
 export const mockClients: Client[] = [
-  { id: 'cli1', name: 'Constructo Corp.', address: '123 Main St, Buildville', contactPerson: 'John Smith', contactEmail: 'jsmith@constructo.com', contactPhone: '555-1234' },
+  { id: 'cli1', name: 'Constructo Corp.', address: '123 Main St, Buildville', contactPerson: 'John Smith', contactEmail: 'jsmith@constructo.com', contactPhone: '555-1234', contactUserIds: ['cli-user1'] },
   { id: 'cli2', name: 'EventMakers Inc.', address: '456 Market Ave, EventCity', contactPerson: 'Jane Doe', contactEmail: 'jdoe@eventmakers.com', contactPhone: '555-5678', authorizedCrewChiefIds: ['emp2'] },
 ];
 

@@ -51,6 +51,7 @@ export function UserNav() {
                 <DropdownMenuRadioItem value="Employee">Employee</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="Crew Chief">Crew Chief</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="Manager/Admin">Manager/Admin</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="Client">Client</DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

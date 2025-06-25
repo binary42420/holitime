@@ -30,12 +30,14 @@ import {
 } from "@/components/ui/sheet"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { mockClients, mockShifts, mockJobs } from "@/lib/mock-data"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
+import { mockClients, mockShifts, mockJobs, mockEmployees } from "@/lib/mock-data"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { format } from "date-fns"
 import type { Shift, Client } from "@/lib/types"
-import { ArrowLeft, Building2, Mail, Phone, User, Pencil } from "lucide-react"
+import { ArrowLeft, Building2, Mail, Phone, User, Pencil, X } from "lucide-react"
 import { useUser } from "@/hooks/use-user"
 import { useToast } from "@/hooks/use-toast"
 
@@ -84,6 +86,24 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
     }
   };
 
+  const handleAddContact = (employeeId: string) => {
+    if (editingClient && !editingClient.contactUserIds?.includes(employeeId)) {
+      setEditingClient({
+        ...editingClient,
+        contactUserIds: [...(editingClient.contactUserIds || []), employeeId],
+      });
+    }
+  };
+
+  const handleRemoveContact = (employeeId: string) => {
+    if (editingClient) {
+      setEditingClient({
+        ...editingClient,
+        contactUserIds: editingClient.contactUserIds?.filter(id => id !== employeeId),
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -103,12 +123,12 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
               {canEdit && (
                  <Sheet open={isEditing} onOpenChange={setIsEditing}>
                   <SheetTrigger asChild>
-                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setEditingClient(client)}>
+                    <Button size="icon" variant="outline" className="h-8 w-8" onClick={() => setEditingClient(JSON.parse(JSON.stringify(client)))}>
                       <Pencil className="h-4 w-4" />
                       <span className="sr-only">Edit Client</span>
                     </Button>
                   </SheetTrigger>
-                  <SheetContent>
+                  <SheetContent className="overflow-y-auto">
                     <SheetHeader>
                       <SheetTitle>Edit Client</SheetTitle>
                       <SheetDescription>
@@ -116,7 +136,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                       </SheetDescription>
                     </SheetHeader>
                     {editingClient && (
-                      <div className="grid gap-4 py-4">
+                      <div className="grid gap-6 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
                           <Label htmlFor="name" className="text-right">Company Name</Label>
                           <Input id="name" value={editingClient.name} onChange={(e) => setEditingClient({...editingClient, name: e.target.value})} className="col-span-3" />
@@ -137,6 +157,40 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                           <Label htmlFor="contact-phone" className="text-right">Contact Phone</Label>
                           <Input id="contact-phone" type="tel" value={editingClient.contactPhone} onChange={(e) => setEditingClient({...editingClient, contactPhone: e.target.value})} className="col-span-3" />
                         </div>
+                        
+                        <Separator />
+
+                        <div className="col-span-4 space-y-2">
+                            <Label>Client Contacts</Label>
+                            <div className="space-y-2">
+                                {(editingClient.contactUserIds || []).map(userId => {
+                                    const contactUser = mockEmployees.find(e => e.id === userId);
+                                    return (
+                                        <div key={userId} className="flex items-center justify-between p-2 border rounded-md">
+                                            <span>{contactUser?.name || 'Unknown User'}</span>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleRemoveContact(userId)}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    )
+                                })}
+                                 {(editingClient.contactUserIds || []).length === 0 && (
+                                    <p className="text-sm text-muted-foreground px-2">No contacts assigned.</p>
+                                )}
+                            </div>
+                            <Select onValueChange={handleAddContact} value="">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Add a user as a contact..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {mockEmployees
+                                        .filter(emp => !(editingClient.contactUserIds || []).includes(emp.id))
+                                        .map(emp => (
+                                            <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                       </div>
                     )}
                     <SheetFooter>
@@ -154,7 +208,7 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
               </div>
               <div className="flex items-start gap-3">
                 <User className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                <span>{client.contactPerson}</span>
+                <span>{client.contactPerson} (Primary)</span>
               </div>
               <div className="flex items-start gap-3">
                 <Mail className="h-4 w-4 mt-0.5 text-muted-foreground" />
@@ -164,6 +218,28 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                 <Phone className="h-4 w-4 mt-0.5 text-muted-foreground" />
                 <a href={`tel:${client.contactPhone}`} className="hover:underline">{client.contactPhone}</a>
               </div>
+              
+              <Separator />
+
+              <div>
+                <h4 className="font-medium mb-2">Assigned Contacts</h4>
+                <div className="space-y-2">
+                    {(client.contactUserIds || []).map(userId => {
+                        const contactUser = mockEmployees.find(e => e.id === userId);
+                        if (!contactUser) return null;
+                        return (
+                            <div key={userId} className="flex items-center gap-3">
+                                <User className="h-4 w-4 text-muted-foreground" />
+                                <span>{contactUser.name}</span>
+                            </div>
+                        )
+                    })}
+                    {(client.contactUserIds || []).length === 0 && (
+                        <p className="text-muted-foreground">No additional contacts assigned.</p>
+                    )}
+                </div>
+              </div>
+
             </CardContent>
           </Card>
         </div>
@@ -198,6 +274,13 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
                       </TableCell>
                     </TableRow>
                   ))}
+                   {clientShifts.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">
+                        No shift history for this client.
+                      </TableCell>
+                    </TableRow>
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

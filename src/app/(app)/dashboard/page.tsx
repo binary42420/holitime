@@ -1,6 +1,7 @@
 
 "use client"
 
+import { useMemo } from "react"
 import {
   Card,
   CardContent,
@@ -28,7 +29,19 @@ import type { TimesheetStatus } from "@/lib/types"
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const upcomingShifts = mockShifts.filter(shift => new Date(shift.date) >= new Date()).slice(0, 3);
+
+  const shiftsForUser = useMemo(() => {
+    let allShifts = mockShifts;
+    if (user.role === 'Client' && user.clientId) {
+        const clientJobIds = mockJobs.filter(j => j.clientId === user.clientId).map(j => j.id);
+        allShifts = mockShifts.filter(s => clientJobIds.includes(s.jobId));
+    } else if (user.role === 'Employee') {
+        allShifts = mockShifts.filter(s => s.assignedPersonnel.some(p => p.employee.id === user.id));
+    }
+    return allShifts;
+  }, [user]);
+
+  const upcomingShifts = shiftsForUser.filter(shift => new Date(shift.date) >= new Date()).slice(0, 3);
   const teamMembers = mockEmployees.slice(0, 5);
 
    const getTimesheetStatusVariant = (status: TimesheetStatus) => {
@@ -100,7 +113,7 @@ export default function DashboardPage() {
             <CardDescription>Common tasks at your fingertips.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-             { (user.role === 'Employee' || user.role === 'Crew Chief') && (
+             { (user.role === 'Employee' || user.role === 'Crew Chief' || user.role === 'Client') && (
               <Button asChild variant="outline" className="w-full justify-start">
                 <Link href="/shifts?status=Completed"><CheckCircle className="mr-2 h-4 w-4" /> View Completed Shifts</Link>
               </Button>
@@ -123,7 +136,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {user.role !== 'Employee' && (
+        {user.role !== 'Employee' && user.role !== 'Client' && (
           <Card>
             <CardHeader>
               <CardTitle>Team Overview</CardTitle>
@@ -151,7 +164,7 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        <Card className={user.role === 'Employee' ? 'lg:col-span-2' : ''}>
+        <Card className={(user.role === 'Employee' || user.role === 'Client') ? 'lg:col-span-2' : ''}>
           <CardHeader>
             <CardTitle>Company Announcements</CardTitle>
             <CardDescription>Latest news and updates.</CardDescription>

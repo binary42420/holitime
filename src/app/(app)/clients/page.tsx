@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { format } from "date-fns"
@@ -26,7 +27,6 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetFooter,
-  SheetClose
 } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -41,18 +41,46 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ClientsPage() {
-  const { user } = useUser();
-  const router = useRouter();
-  const canEdit = user.role === 'Manager/Admin';
+  const { user } = useUser()
+  const router = useRouter()
+  const canEdit = user.role === 'Manager/Admin'
+  const { toast } = useToast()
+
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [newClient, setNewClient] = useState({
+    name: '',
+    address: '',
+    contactPerson: '',
+    contactEmail: '',
+    contactPhone: '',
+  })
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setNewClient(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleCreateClient = () => {
+    // In a real app, you would send this data to an API
+    // For this demo, we'll just show a success message.
+    toast({
+      title: "Client Created",
+      description: `${newClient.name} has been successfully added to the system.`,
+    });
+    // Reset form and close sheet
+    setNewClient({ name: '', address: '', contactPerson: '', contactEmail: '', contactPhone: '' });
+    setIsSheetOpen(false);
+  };
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold font-headline">Clients</h1>
         {canEdit && (
-          <Sheet>
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
               <Button size="sm" className="gap-1">
                 <PlusCircle className="h-4 w-4" />
@@ -69,29 +97,28 @@ export default function ClientsPage() {
               <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="name" className="text-right">Company Name</Label>
-                  <Input id="name" className="col-span-3" />
+                  <Input id="name" value={newClient.name} onChange={handleInputChange} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="address" className="text-right">Address</Label>
-                  <Input id="address" className="col-span-3" />
+                  <Input id="address" value={newClient.address} onChange={handleInputChange} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="contact-person" className="text-right">Contact Person</Label>
-                  <Input id="contact-person" className="col-span-3" />
+                  <Label htmlFor="contactPerson" className="text-right">Contact Person</Label>
+                  <Input id="contactPerson" value={newClient.contactPerson} onChange={handleInputChange} className="col-span-3" />
                 </div>
                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="contact-email" className="text-right">Contact Email</Label>
-                  <Input id="contact-email" type="email" className="col-span-3" />
+                  <Label htmlFor="contactEmail" className="text-right">Contact Email</Label>
+                  <Input id="contactEmail" type="email" value={newClient.contactEmail} onChange={handleInputChange} className="col-span-3" />
                 </div>
                  <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="contact-phone" className="text-right">Contact Phone</Label>
-                  <Input id="contact-phone" type="tel" className="col-span-3" />
+                  <Label htmlFor="contactPhone" className="text-right">Contact Phone</Label>
+                  <Input id="contactPhone" type="tel" value={newClient.contactPhone} onChange={handleInputChange} className="col-span-3" />
                 </div>
               </div>
               <SheetFooter>
-                <SheetClose asChild>
-                  <Button type="submit">Save Client</Button>
-                </SheetClose>
+                <Button variant="outline" onClick={() => setIsSheetOpen(false)}>Cancel</Button>
+                <Button onClick={handleCreateClient}>Save Client</Button>
               </SheetFooter>
             </SheetContent>
           </Sheet>

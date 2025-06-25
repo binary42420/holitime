@@ -37,6 +37,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return pathname.startsWith(path)
   }
 
+  const isClient = user.role === 'Client';
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
@@ -62,7 +64,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 Shifts
               </SidebarMenuButton>
             </SidebarMenuItem>
-            {user.role !== 'Employee' && (
+            {(user.role === 'Manager/Admin' || user.role === 'Crew Chief') && (
               <SidebarMenuItem>
                 <SidebarMenuButton href="/timesheets" tooltip="Timesheets" isActive={isActive('/timesheets')}>
                   <ClipboardCheck />
@@ -70,24 +72,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/clients" tooltip="Clients" isActive={isActive('/clients')}>
-                <Building2 />
-                Clients
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {!isClient && (
+              <SidebarMenuItem>
+                <SidebarMenuButton href="/clients" tooltip="Clients" isActive={isActive('/clients')}>
+                  <Building2 />
+                  Clients
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
               <SidebarMenuButton href="/documents" tooltip="Documents" isActive={isActive('/documents')}>
                 <FileText />
                 Documents
               </SidebarMenuButton>
             </SidebarMenuItem>
-             <SidebarMenuItem>
-              <SidebarMenuButton href="/staffing" tooltip="AI Staffing" isActive={isActive('/staffing')}>
-                <BrainCircuit />
-                Smart Staffing
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {!isClient && (
+               <SidebarMenuItem>
+                <SidebarMenuButton href="/staffing" tooltip="AI Staffing" isActive={isActive('/staffing')}>
+                  <BrainCircuit />
+                  Smart Staffing
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
           </SidebarMenu>
         </SidebarContent>
       </Sidebar>

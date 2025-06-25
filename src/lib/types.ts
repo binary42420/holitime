@@ -1,4 +1,4 @@
-export type UserRole = 'Employee' | 'Crew Chief' | 'Manager/Admin';
+export type UserRole = 'Employee' | 'Crew Chief' | 'Manager/Admin' | 'Client';
 
 export interface User {
   id: string;
@@ -6,6 +6,7 @@ export interface User {
   email: string;
   avatar: string;
   role: UserRole;
+  clientId?: string; // To link a client user to a client company
 }
 
 export interface Client {
@@ -16,6 +17,7 @@ export interface Client {
   contactEmail: string;
   contactPhone: string;
   authorizedCrewChiefIds?: string[];
+  contactUserIds?: string[]; // To link a client to user accounts
 }
 
 export interface Job {
