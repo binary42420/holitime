@@ -177,7 +177,9 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
             <CardTitle className="flex justify-between items-center">
               <span>Shift Details</span>
               <div className="flex items-center gap-2">
-                  <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)}>{shift.timesheetStatus.replace(/ /g, '\u00A0')}</Badge>
+                  <Link href={`/timesheets/${shift.timesheetId}/approve`}>
+                    <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus.replace(/ /g, '\u00A0')}</Badge>
+                  </Link>
                   {canEdit && (
                   <Button size="icon" variant="outline" className="h-8 w-8">
                     <Pencil className="h-4 w-4" />

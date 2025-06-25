@@ -26,9 +26,11 @@ import {
 } from '@/components/ui/sidebar'
 import { UserNav } from '@/components/user-nav'
 import { Button } from '@/components/ui/button'
+import { useUser } from '@/hooks/use-user'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { user } = useUser()
 
   const isActive = (path: string) => {
     if (path === '/dashboard') return pathname === path
@@ -60,12 +62,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 Shifts
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/timesheets" tooltip="Timesheets" isActive={isActive('/timesheets')}>
-                <ClipboardCheck />
-                Timesheets
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {user.role !== 'Employee' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton href="/timesheets" tooltip="Timesheets" isActive={isActive('/timesheets')}>
+                  <ClipboardCheck />
+                  Timesheets
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
             <SidebarMenuItem>
               <SidebarMenuButton href="/clients" tooltip="Clients" isActive={isActive('/clients')}>
                 <Building2 />

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useMemo } from "react"
 import {
   Table,
   TableBody,
@@ -27,6 +28,19 @@ import { ArrowRight, Check, FileSignature, VenetianMask } from "lucide-react"
 
 export default function TimesheetsPage() {
   const { user } = useUser();
+
+  const timesheetsToDisplay = useMemo(() => {
+    if (user.role === 'Manager/Admin') {
+      return mockTimesheets;
+    }
+    if (user.role === 'Crew Chief') {
+      const crewChiefShiftIds = mockShifts
+        .filter(shift => shift.crewChief.id === user.id)
+        .map(shift => shift.id);
+      return mockTimesheets.filter(ts => crewChiefShiftIds.includes(ts.shiftId));
+    }
+    return [];
+  }, [user.role, user.id]);
 
   const getTimesheetStatusVariant = (status: TimesheetStatus) => {
     switch (status) {
@@ -98,7 +112,7 @@ export default function TimesheetsPage() {
                             </TableRow>
                             </TableHeader>
                             <TableBody>
-                            {mockTimesheets.filter(t => t.status === status).map(timesheet => {
+                            {timesheetsToDisplay.filter(t => t.status === status).map(timesheet => {
                                 const shift = mockShifts.find(s => s.id === timesheet.shiftId);
                                 if (!shift) return null;
                                 return (

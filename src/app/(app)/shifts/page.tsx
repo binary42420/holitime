@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useUser } from "@/hooks/use-user"
-import { mockShifts } from "@/lib/mock-data"
+import { mockShifts, mockTimesheets } from "@/lib/mock-data"
 import type { Shift, TimesheetStatus } from "@/lib/types"
 import { format } from "date-fns"
 
@@ -101,7 +101,9 @@ export default function ShiftsPage() {
                   <TableCell>{format(new Date(shift.date), 'EEE, MMM d')}</TableCell>
                   <TableCell className="hidden md:table-cell">{shift.crewChief.name}</TableCell>
                   <TableCell>
-                    <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)}>{shift.timesheetStatus}</Badge>
+                     <Link href={`/timesheets/${shift.timesheetId}/approve`}>
+                        <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus}</Badge>
+                      </Link>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

@@ -39,6 +39,7 @@ export type TimesheetStatus = 'Pending Finalization' | 'Awaiting Client Approval
 
 export interface Shift {
   id: string;
+  timesheetId: string;
   client: Client;
   date: string;
   startTime: string;

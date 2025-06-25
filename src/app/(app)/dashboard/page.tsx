@@ -78,7 +78,9 @@ export default function DashboardPage() {
                     <TableCell>{shift.client.name}</TableCell>
                     <TableCell className="hidden md:table-cell">{shift.startTime} - {shift.endTime}</TableCell>
                     <TableCell className="text-right">
-                       <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)}>{shift.timesheetStatus}</Badge>
+                      <Link href={`/timesheets/${shift.timesheetId}/approve`}>
+                        <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus}</Badge>
+                      </Link>
                     </TableCell>
                   </TableRow>
                 ))}

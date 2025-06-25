@@ -22,6 +22,7 @@ export const mockClients: Client[] = [
 export const mockShifts: Shift[] = [
   {
     id: 'shft1',
+    timesheetId: 'ts1',
     client: mockClients[0],
     date: '2024-08-15T00:00:00.000Z',
     startTime: '08:00',
@@ -34,11 +35,12 @@ export const mockShifts: Shift[] = [
       { employee: mockEmployees[3], roleOnShift: 'General Laborer', status: 'Clocked Out', timeEntries: [] },
     ],
     status: 'In Progress',
-    timesheetStatus: 'Pending Finalization',
+    timesheetStatus: 'Awaiting Client Approval',
     notes: 'Morning safety meeting at 7:45 AM sharp. Hard hats required on site at all times.'
   },
   {
     id: 'shft2',
+    timesheetId: 'ts2',
     client: mockClients[1],
     date: '2024-08-16T00:00:00.000Z',
     startTime: '10:00',
@@ -54,6 +56,7 @@ export const mockShifts: Shift[] = [
   },
   {
     id: 'shft3',
+    timesheetId: 'ts3',
     client: mockClients[0],
     date: '2024-08-10T00:00:00.000Z',
     startTime: '09:00',
