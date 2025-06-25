@@ -102,10 +102,24 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   };
   
   const handleEndShiftAll = () => {
-    shift.assignedPersonnel.forEach(p => {
+    setShift(currentShift => {
+      if (!currentShift) return currentShift;
+
+      const updatedPersonnelList = currentShift.assignedPersonnel.map(p => {
         if (p.status === 'Clocked In' || p.status === 'On Break') {
-            handleEndShift(p);
+          const updatedPerson = JSON.parse(JSON.stringify(p));
+          const lastEntry = updatedPerson.timeEntries[updatedPerson.timeEntries.length - 1];
+          
+          if (updatedPerson.status === 'Clocked In' && lastEntry && !lastEntry.clockOut) {
+            lastEntry.clockOut = format(new Date(), 'HH:mm');
+          }
+          updatedPerson.status = 'Shift Ended';
+          return updatedPerson;
         }
+        return p;
+      });
+
+      return { ...currentShift, assignedPersonnel: updatedPersonnelList };
     });
   };
 
