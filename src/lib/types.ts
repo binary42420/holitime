@@ -59,13 +59,18 @@ export interface Announcement {
   date: string;
 }
 
+export type DocumentStatus = 'Pending Submission' | 'Submitted' | 'Approved' | 'Rejected';
+
 export interface AppDocument {
   id: string;
   name: string;
-  type: 'Contract' | 'Certification' | 'Insurance' | 'Training Record';
-  category: 'Employee' | 'Client';
+  type: 'Contract' | 'Certification' | 'Insurance' | 'Training Record' | 'Tax Form' | 'Policy';
+  category: 'Employee' | 'Client' | 'Company';
   uploadDate: string;
   url: string;
+  status?: DocumentStatus;
+  assigneeId?: string;
+  isTemplate?: boolean;
 }
 
 export interface Timesheet {

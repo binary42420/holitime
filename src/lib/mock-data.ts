@@ -32,10 +32,10 @@ export const mockShifts: Shift[] = [
     assignedPersonnel: [
       { employee: mockEmployees[0], roleOnShift: 'Forklift Operator', status: 'Clocked In', timeEntries: [{ clockIn: '07:58' }] },
       { employee: mockEmployees[2], roleOnShift: 'General Laborer', status: 'On Break', timeEntries: [{ clockIn: '08:01', clockOut: '12:00' }] },
-      { employee: mockEmployees[3], roleOnShift: 'General Laborer', status: 'Clocked Out', timeEntries: [] },
+      { employee: mockEmployees[3], roleOnShift: 'Clocked Out', timeEntries: [] },
     ],
     status: 'In Progress',
-    timesheetStatus: 'Awaiting Client Approval',
+    timesheetStatus: 'Pending Finalization',
     notes: 'Morning safety meeting at 7:45 AM sharp. Hard hats required on site at all times.'
   },
   {
@@ -77,11 +77,27 @@ export const mockAnnouncements: Announcement[] = [
 ];
 
 export const mockDocuments: AppDocument[] = [
-    { id: 'doc1', name: 'Alex_Johnson_OSHA10.pdf', type: 'Certification', category: 'Employee', uploadDate: '2023-06-15', url: '#' },
+    // Admin/Manager view documents
+    { id: 'doc1', name: 'Alex_Johnson_OSHA10.pdf', type: 'Certification', category: 'Employee', uploadDate: '2023-06-15', url: '#', assigneeId: 'emp1', status: 'Approved' },
     { id: 'doc2', name: 'Constructo_Corp_Contract_2024.pdf', type: 'Contract', category: 'Client', uploadDate: '2024-01-20', url: '#' },
     { id: 'doc3', name: 'Company_Insurance_Policy.pdf', type: 'Insurance', category: 'Client', uploadDate: '2024-03-01', url: '#' },
-    { id: 'doc4', name: 'Ben_Carter_OSHA30.pdf', type: 'Certification', category: 'Employee', uploadDate: '2023-09-10', url: '#' },
+    { id: 'doc4', name: 'Ben_Carter_OSHA30.pdf', type: 'Certification', category: 'Employee', uploadDate: '2023-09-10', url: '#', assigneeId: 'emp2', status: 'Approved' },
+
+    // Templates for new hires
+    { id: 'template1', name: 'W-4 (Federal Tax Withholding)', type: 'Tax Form', category: 'Company', uploadDate: '2023-01-01', url: '#', isTemplate: true },
+    { id: 'template2', name: 'I-9 (Employment Eligibility)', type: 'Tax Form', category: 'Company', uploadDate: '2023-01-01', url: '#', isTemplate: true },
+    { id: 'template3', name: 'Company Handbook Agreement', type: 'Policy', category: 'Company', uploadDate: '2023-01-01', url: '#', isTemplate: true },
+    
+    // Documents assigned to our demo user 'Alex Johnson' (emp1)
+    { id: 'userdoc1', name: 'W-4 (Federal Tax Withholding)', type: 'Tax Form', category: 'Employee', uploadDate: '2024-08-20', url: '#', assigneeId: 'emp1', status: 'Pending Submission' },
+    { id: 'userdoc2', name: 'I-9 (Employment Eligibility)', type: 'Tax Form', category: 'Employee', uploadDate: '2024-08-20', url: '#', assigneeId: 'emp1', status: 'Pending Submission' },
+    { id: 'userdoc3', name: 'Company Handbook Agreement', type: 'Policy', category: 'Employee', uploadDate: '2024-08-20', url: '#', assigneeId: 'emp1', status: 'Submitted' },
+    { id: 'userdoc4', name: 'Direct Deposit Form', type: 'Policy', category: 'Employee', uploadDate: '2024-08-19', url: '#', assigneeId: 'emp1', status: 'Approved' },
+    
+    // Another user for testing
+    { id: 'userdoc5', name: 'W-4 (Federal Tax Withholding)', type: 'Tax Form', category: 'Employee', uploadDate: '2024-08-20', url: '#', assigneeId: 'cc1', status: 'Approved' },
 ];
+
 
 export const mockTimesheets: Timesheet[] = [
     { id: 'ts1', shiftId: 'shft1', status: 'Awaiting Client Approval' },
