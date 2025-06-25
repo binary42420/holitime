@@ -20,8 +20,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
 import { useUser } from "@/hooks/use-user"
 import { mockShifts } from "@/lib/mock-data"
@@ -42,40 +40,40 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
     notFound()
   }
 
-  // To keep the page reactive, we create a new shift object with the stateful data
   const shift = { ...initialShift, assignedPersonnel, notes }
-
   const canEdit = user.role === 'Crew Chief' || user.role === 'Manager/Admin'
 
   const handleInputChange = (employeeId: string, field: 'clockIn' | 'clockOut', value: string) => {
-    const updatedPersonnel = assignedPersonnel.map(p => {
-      if (p.employee.id === employeeId) {
-        return { ...p, [field]: value };
-      }
-      return p;
-    });
-    setAssignedPersonnel(updatedPersonnel);
+    setAssignedPersonnel(assignedPersonnel.map(p => 
+      p.employee.id === employeeId ? { ...p, [field]: value } : p
+    ));
   };
-
-  const handleCheckInToggle = (employeeId: string, checked: boolean) => {
-     const updatedPersonnel = assignedPersonnel.map(p => {
-      if (p.employee.id === employeeId) {
-        return { ...p, checkedIn: checked };
-      }
-      return p;
-    });
-    setAssignedPersonnel(updatedPersonnel);
+  
+  const handleClockToggle = (employeeId: string) => {
+    const currentTime = format(new Date(), 'HH:mm');
+    setAssignedPersonnel(
+      assignedPersonnel.map(p => {
+        if (p.employee.id === employeeId) {
+          const isClockedIn = p.clockIn && !p.clockOut;
+          if (isClockedIn) {
+            return { ...p, clockOut: currentTime, checkedIn: false };
+          } else {
+            return { ...p, clockIn: currentTime, clockOut: undefined, checkedIn: true };
+          }
+        }
+        return p;
+      })
+    );
   };
 
   const handleClockOutAll = () => {
     const currentTime = format(new Date(), 'HH:mm');
-    const updatedPersonnel = assignedPersonnel.map(p => {
-        if (p.checkedIn && !p.clockOut) {
-            return { ...p, clockOut: currentTime };
+    setAssignedPersonnel(assignedPersonnel.map(p => {
+        if (p.clockIn && !p.clockOut) {
+            return { ...p, clockOut: currentTime, checkedIn: false };
         }
         return p;
-    });
-    setAssignedPersonnel(updatedPersonnel);
+    }));
   };
 
   return (
@@ -100,11 +98,13 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                     <TableHead>Employee</TableHead>
                     <TableHead>Clock In</TableHead>
                     <TableHead>Clock Out</TableHead>
-                    <TableHead className="text-right">Checked In</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {shift.assignedPersonnel.map(({ employee, checkedIn, clockIn, clockOut }) => (
+                  {shift.assignedPersonnel.map(({ employee, clockIn, clockOut }) => {
+                    const isClockedIn = clockIn && !clockOut;
+                    return (
                     <TableRow key={employee.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -134,15 +134,18 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                         />
                       </TableCell>
                       <TableCell className="text-right">
-                        <Switch
-                          checked={checkedIn}
-                          onCheckedChange={(checked) => handleCheckInToggle(employee.id, checked)}
+                        <Button 
+                          variant={isClockedIn ? "destructive" : "default"} 
+                          size="sm"
+                          onClick={() => handleClockToggle(employee.id)}
                           disabled={!canEdit}
-                          aria-label={`${employee.name} check-in status`}
-                        />
+                          className="w-28"
+                        >
+                          {isClockedIn ? "Clock Out" : "Clock In"}
+                        </Button>
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )})}
                 </TableBody>
               </Table>
             </CardContent>
