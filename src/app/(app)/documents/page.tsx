@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react"
@@ -23,6 +24,7 @@ import { useUser } from "@/hooks/use-user"
 import { mockDocuments, mockEmployees } from "@/lib/mock-data"
 import { Badge } from "@/components/ui/badge"
 import type { AppDocument, DocumentStatus } from "@/lib/types"
+import { cn } from "@/lib/utils"
 
 export default function DocumentsPage() {
   const { user } = useUser()
@@ -109,7 +111,7 @@ export default function DocumentsPage() {
       </div>
 
       <Tabs defaultValue="my-documents">
-        <TabsList className="grid w-full" style={{ gridTemplateColumns: canManage ? 'repeat(4, 1fr)' : '1fr' }}>
+        <TabsList className={cn("grid w-full", canManage ? "grid-cols-4" : "grid-cols-1")}>
           <TabsTrigger value="my-documents">My Documents</TabsTrigger>
           {canManage && <TabsTrigger value="employee">All Employee Docs</TabsTrigger>}
           {canManage && <TabsTrigger value="client">Client Docs</TabsTrigger>}
@@ -161,121 +163,123 @@ export default function DocumentsPage() {
         </TabsContent>
         
         {canManage && (
-          <>
-            <TabsContent value="employee">
-              <Card>
-                <CardHeader>
-                  <CardTitle>All Employee Documents</CardTitle>
-                  <CardDescription>
-                    Manage certifications, submitted forms, and other employee-related files.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Document Name</TableHead>
-                        <TableHead>Employee</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {employeeDocs.map(doc => {
-                          const employee = mockEmployees.find(e => e.id === doc.assigneeId)
-                          return (
-                            <TableRow key={doc.id}>
-                                <TableCell className="font-medium">{doc.name}</TableCell>
-                                <TableCell>{employee?.name || 'N/A'}</TableCell>
-                                <TableCell>
-                                    {doc.status && <Badge variant={getStatusVariant(doc.status)}>{doc.status}</Badge>}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="outline" size="sm" asChild>
-                                    <a href={doc.url} download><Download className="mr-2 h-4 w-4" /> Download</a>
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
-                          )
-                        })}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
+          <TabsContent value="employee">
+            <Card>
+              <CardHeader>
+                <CardTitle>All Employee Documents</CardTitle>
+                <CardDescription>
+                  Manage certifications, submitted forms, and other employee-related files.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document Name</TableHead>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {employeeDocs.map(doc => {
+                        const employee = mockEmployees.find(e => e.id === doc.assigneeId)
+                        return (
+                          <TableRow key={doc.id}>
+                              <TableCell className="font-medium">{doc.name}</TableCell>
+                              <TableCell>{employee?.name || 'N/A'}</TableCell>
+                              <TableCell>
+                                  {doc.status && <Badge variant={getStatusVariant(doc.status)}>{doc.status}</Badge>}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                  <Button variant="outline" size="sm" asChild>
+                                  <a href={doc.url} download><Download className="mr-2 h-4 w-4" /> Download</a>
+                                  </Button>
+                              </TableCell>
+                          </TableRow>
+                        )
+                      })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
-            <TabsContent value="client">
-               <Card>
-                <CardHeader>
-                  <CardTitle>Client Documents</CardTitle>
-                  <CardDescription>
-                    Manage contracts, insurance documents, and other client-related files.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Document Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead className="hidden md:table-cell">Upload Date</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
+        {canManage && (
+          <TabsContent value="client">
+             <Card>
+              <CardHeader>
+                <CardTitle>Client Documents</CardTitle>
+                <CardDescription>
+                  Manage contracts, insurance documents, and other client-related files.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Document Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="hidden md:table-cell">Upload Date</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {clientDocs.map(doc => (
+                      <TableRow key={doc.id}>
+                        <TableCell className="font-medium">{doc.name}</TableCell>
+                         <TableCell><Badge variant="outline">{doc.type}</Badge></TableCell>
+                        <TableCell className="hidden md:table-cell">{doc.uploadDate}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="outline" size="sm" asChild>
+                            <a href={doc.url} download><Download className="mr-2 h-4 w-4" /> Download</a>
+                          </Button>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {clientDocs.map(doc => (
-                        <TableRow key={doc.id}>
-                          <TableCell className="font-medium">{doc.name}</TableCell>
-                           <TableCell><Badge variant="outline">{doc.type}</Badge></TableCell>
-                          <TableCell className="hidden md:table-cell">{doc.uploadDate}</TableCell>
-                          <TableCell className="text-right">
-                            <Button variant="outline" size="sm" asChild>
-                              <a href={doc.url} download><Download className="mr-2 h-4 w-4" /> Download</a>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
 
-            <TabsContent value="templates">
-               <Card>
-                <CardHeader>
-                  <CardTitle>Document Templates</CardTitle>
-                  <CardDescription>
-                    Manage templates for new hire packets, contracts, and policies.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Template Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
+        {canManage && (
+          <TabsContent value="templates">
+             <Card>
+              <CardHeader>
+                <CardTitle>Document Templates</CardTitle>
+                <CardDescription>
+                  Manage templates for new hire packets, contracts, and policies.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Template Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="text-right">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {templates.map(doc => (
+                      <TableRow key={doc.id}>
+                        <TableCell className="font-medium">{doc.name}</TableCell>
+                         <TableCell><Badge variant="outline">{doc.type}</Badge></TableCell>
+                        <TableCell className="text-right">
+                           <Button variant="outline" size="sm">
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                          </Button>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {templates.map(doc => (
-                        <TableRow key={doc.id}>
-                          <TableCell className="font-medium">{doc.name}</TableCell>
-                           <TableCell><Badge variant="outline">{doc.type}</Badge></TableCell>
-                          <TableCell className="text-right">
-                             <Button variant="outline" size="sm">
-                              <Edit className="mr-2 h-4 w-4" /> Edit
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
         )}
       </Tabs>
     </div>
