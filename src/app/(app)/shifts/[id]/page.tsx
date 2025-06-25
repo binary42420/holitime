@@ -26,7 +26,7 @@ import { mockShifts } from "@/lib/mock-data"
 import { notFound } from "next/navigation"
 import { format } from 'date-fns'
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Building2, Calendar, Clock, MapPin, User } from "lucide-react"
+import { ArrowLeft, Building2, Calendar, Clock, MapPin, User, Pencil } from "lucide-react"
 import Link from "next/link"
 
 export default function ShiftDetailPage({ params }: { params: { id: string } }) {
@@ -51,8 +51,8 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Shift Personnel</CardTitle>
-              <CardDescription>Manage assigned crew members and their times.</CardDescription>
+              <CardTitle>Assigned Workers</CardTitle>
+              <CardDescription>Manage assigned workers and their times.</CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
@@ -114,7 +114,15 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
                 <span>Shift Details</span>
-                 <Badge variant="secondary">{shift.status}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{shift.status}</Badge>
+                   {canEdit && (
+                    <Button size="icon" variant="outline" className="h-8 w-8">
+                      <Pencil className="h-4 w-4" />
+                      <span className="sr-only">Edit Shift Details</span>
+                    </Button>
+                  )}
+                </div>
               </CardTitle>
               <CardDescription>
                 {shift.client.name} - {shift.location}
@@ -142,7 +150,11 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
            <Card>
             <CardHeader>
               <CardTitle>Client Information</CardTitle>
-              <CardDescription>{shift.client.name}</CardDescription>
+                <CardDescription>
+                  <Link href={`/clients/${shift.client.id}`} className="hover:underline">
+                    {shift.client.name}
+                  </Link>
+                </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
                  <div className="flex items-center gap-3">
