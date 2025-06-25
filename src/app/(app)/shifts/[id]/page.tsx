@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, Fragment, useEffect, useMemo } from "react"
@@ -105,6 +106,8 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   const [shift, setShift] = useState(initialShift);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const { toast } = useToast();
+  const [newAssignments, setNewAssignments] = useState<Record<string, string>>({});
+
 
   const [roleCounts, setRoleCounts] = useState<Record<RoleCode, number>>(() => {
     const counts = {} as Record<RoleCode, number>;
@@ -185,6 +188,8 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
     return displayRows;
   }, [roleCounts, shift.assignedPersonnel, user.role, user.id]);
 
+  const assignedEmployeeIds = useMemo(() => new Set(shift.assignedPersonnel.map(p => p.employee.id)), [shift.assignedPersonnel]);
+
   const handlePersonnelUpdate = (updatedPersonnel: AssignedPersonnel) => {
     setShift(currentShift => {
       if (!currentShift) return currentShift;
@@ -194,6 +199,48 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
           p.employee.id === updatedPersonnel.employee.id ? updatedPersonnel : p
         )
       };
+    });
+  };
+  
+  const handleNewAssignment = (placeholderId: string, employeeId: string) => {
+    setNewAssignments(prev => ({ ...prev, [placeholderId]: employeeId }));
+  };
+
+  const handleSaveChanges = () => {
+    if (Object.keys(newAssignments).length === 0) {
+        toast({ title: "No changes to save.", description: "Select an employee from a dropdown to assign them." });
+        return;
+    }
+
+    setShift(currentShift => {
+        if (!currentShift) return currentShift;
+
+        let updatedPersonnel = [...currentShift.assignedPersonnel];
+        
+        Object.entries(newAssignments).forEach(([placeholderId, employeeId]) => {
+            const placeholderInfo = personnelToDisplay.find(p => p.id === placeholderId);
+            const employeeInfo = mockEmployees.find(e => e.id === employeeId);
+
+            if (placeholderInfo && employeeInfo) {
+                const newPersonnel: AssignedPersonnel = {
+                    employee: employeeInfo,
+                    roleOnShift: placeholderInfo.roleOnShift,
+                    roleCode: placeholderInfo.roleCode,
+                    status: 'Clocked Out',
+                    timeEntries: []
+                };
+                updatedPersonnel.push(newPersonnel);
+            }
+        });
+        
+        return { ...currentShift, assignedPersonnel: updatedPersonnel };
+    });
+    
+    setNewAssignments({});
+
+    toast({
+        title: "Changes Saved",
+        description: "New personnel have been assigned to the shift.",
     });
   };
 
@@ -453,17 +500,32 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                 {personnelToDisplay.map((person) => {
                   const isPlaceholder = person.isPlaceholder;
                   const roleColorClass = roleConfig[person.roleCode as RoleCode]?.color || 'border-transparent';
+                  
+                  const availableForThisSlot = mockEmployees.filter(emp => {
+                      if (assignedEmployeeIds.has(emp.id)) return false;
+                      
+                      const isSelectedForOtherSlot = Object.entries(newAssignments).some(
+                          ([pId, eId]) => pId !== person.id && eId === emp.id
+                      );
+                      if (isSelectedForOtherSlot) return false;
+                      
+                      return true;
+                  });
 
                   return (
                   <TableRow key={person.id} className={cn(!isPlaceholder && getRowClass(person.status), 'border-l-4', roleColorClass)}>
                     <TableCell>
                       {isPlaceholder ? (
-                        <Select disabled={!canEdit}>
+                        <Select
+                            disabled={!canEdit}
+                            value={newAssignments[person.id] || ""}
+                            onValueChange={(employeeId) => handleNewAssignment(person.id, employeeId)}
+                        >
                             <SelectTrigger className="w-[200px]">
                                 <SelectValue placeholder={`Select ${person.roleOnShift}...`} />
                             </SelectTrigger>
                             <SelectContent>
-                                {mockEmployees.map(emp => (
+                                {availableForThisSlot.map(emp => (
                                     <SelectItem key={emp.id} value={emp.id}>{emp.name}</SelectItem>
                                 ))}
                             </SelectContent>
@@ -568,7 +630,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                 <ClipboardCheck className="mr-2 h-4 w-4" />
                 Finalize Timesheet
               </Button>
-              <Button>Save Changes</Button>
+              <Button onClick={handleSaveChanges}>Save Changes</Button>
             </CardFooter>
           )}
         </Card>
@@ -591,3 +653,5 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
     </div>
   )
 }
+
+    
