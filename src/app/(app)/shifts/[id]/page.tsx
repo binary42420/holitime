@@ -29,6 +29,17 @@ import { Badge } from "@/components/ui/badge"
 import type { AssignedPersonnel, TimesheetStatus } from "@/lib/types"
 import { ArrowLeft, Building2, Calendar, Check, Clock, LogOut, MapPin, User, Pencil, UserCheck, ClipboardCheck, Ban } from "lucide-react"
 import Link from "next/link"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function ShiftDetailPage({ params }: { params: { id: string } }) {
   const { user } = useUser()
@@ -92,7 +103,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
   
   const handleEndShiftAll = () => {
     shift.assignedPersonnel.forEach(p => {
-        if (p.status === 'Clocked In') {
+        if (p.status === 'Clocked In' || p.status === 'On Break') {
             handleEndShift(p);
         }
     });
@@ -208,7 +219,23 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                         <div className="flex items-center justify-end gap-2">
                           {renderActionButton(person)}
                           {canEdit && person.status !== 'Shift Ended' && (
-                            <Button size="sm" variant="destructive" onClick={() => handleEndShift(person)} className="w-32"><Ban className="mr-2 h-4 w-4" /> End Shift</Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button size="sm" variant="destructive" className="w-32"><Ban className="mr-2 h-4 w-4" /> End Shift</Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>End shift for {person.employee.name}?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    This will finalize their time entries for this shift. This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleEndShift(person)}>Confirm End Shift</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           )}
                         </div>
                       </TableCell>
@@ -219,10 +246,26 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
             </CardContent>
             {canEdit && (
               <CardFooter className="justify-end gap-2 border-t pt-6">
-                <Button variant="outline" onClick={handleEndShiftAll}>
-                  <Ban className="mr-2 h-4 w-4" />
-                  End All Shifts
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline">
+                      <Ban className="mr-2 h-4 w-4" />
+                      End All Shifts
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>End all active shifts?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will end the shift for all currently clocked-in or on-break employees. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleEndShiftAll}>Confirm End All</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
                  <Button onClick={handleFinalizeTimesheet} disabled={shift.timesheetStatus !== 'Pending Finalization'}>
                   <ClipboardCheck className="mr-2 h-4 w-4" />
                   Finalize Timesheet
