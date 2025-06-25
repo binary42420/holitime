@@ -34,7 +34,7 @@ type SidebarContext = {
   setOpen: (open: boolean) => void
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
-  isMobile: boolean
+  isMobile: boolean | undefined
   toggleSidebar: () => void
 }
 
@@ -93,9 +93,11 @@ const SidebarProvider = React.forwardRef<
 
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {
-      return isMobile
-        ? setOpenMobile((open) => !open)
-        : setOpen((open) => !open)
+      if (isMobile) {
+        setOpenMobile((open) => !open)
+      } else {
+        setOpen((open) => !open)
+      }
     }, [isMobile, setOpen, setOpenMobile])
 
     // Adds a keyboard shortcut to toggle the sidebar.
@@ -190,6 +192,32 @@ const Sidebar = React.forwardRef<
           {...props}
         >
           {children}
+        </div>
+      )
+    }
+
+    if (isMobile === undefined) {
+      return (
+        <div
+          className={cn(
+            "group peer hidden h-svh shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex",
+            state === "expanded" ? "w-[--sidebar-width]" : "w-[--sidebar-width-icon]",
+            "transition-[width] duration-200 ease-linear",
+            className
+          )}
+        >
+          <div className="flex h-full flex-col gap-4 p-2">
+            <SidebarHeader>
+              <Skeleton className="h-8 w-full" />
+            </SidebarHeader>
+            <SidebarContent className="flex flex-col gap-2">
+              <SidebarMenuSkeleton showIcon />
+              <SidebarMenuSkeleton showIcon />
+              <SidebarMenuSkeleton showIcon />
+              <SidebarMenuSkeleton showIcon />
+              <SidebarMenuSkeleton showIcon />
+            </SidebarContent>
+          </div>
         </div>
       )
     }
@@ -593,7 +621,7 @@ const SidebarMenuButton = React.forwardRef<
         <TooltipContent
           side="right"
           align="center"
-          hidden={state !== "collapsed" || isMobile}
+          hidden={isMobile === undefined ? true : (state !== "collapsed" || isMobile)}
           {...tooltip}
         />
       </Tooltip>
