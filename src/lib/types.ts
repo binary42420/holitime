@@ -17,6 +17,13 @@ export interface Client {
   contactPhone: string;
 }
 
+export interface Job {
+  id: string;
+  name: string;
+  clientId: string;
+  description: string;
+}
+
 export interface Employee {
   id: string;
   name: string;
@@ -40,7 +47,8 @@ export type TimesheetStatus = 'Pending Finalization' | 'Awaiting Client Approval
 export interface Shift {
   id: string;
   timesheetId: string;
-  client: Client;
+  jobId: string;
+  authorizedViewerIds: string[];
   date: string;
   startTime: string;
   endTime: string;

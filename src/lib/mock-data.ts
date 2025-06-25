@@ -1,4 +1,4 @@
-import type { User, Client, Employee, Shift, Announcement, AppDocument, UserRole, Timesheet } from './types';
+import type { User, Client, Job, Employee, Shift, Announcement, AppDocument, UserRole, Timesheet } from './types';
 
 export const mockUsers: Record<UserRole, User> = {
   'Employee': { id: 'emp1', name: 'Alex Johnson', email: 'alex.j@handson.com', avatar: '/avatars/01.png', role: 'Employee' },
@@ -19,20 +19,27 @@ export const mockClients: Client[] = [
   { id: 'cli2', name: 'EventMakers Inc.', address: '456 Market Ave, EventCity', contactPerson: 'Jane Doe', contactEmail: 'jdoe@eventmakers.com', contactPhone: '555-5678' },
 ];
 
+export const mockJobs: Job[] = [
+  { id: 'job1', clientId: 'cli1', name: 'Downtown Core Project', description: 'Major construction project in the city center.' },
+  { id: 'job2', clientId: 'cli1', name: 'Suburban Office Complex', description: 'Renovation of a 3-story office building.' },
+  { id: 'job3', clientId: 'cli2', name: 'City Park Festival', description: 'Annual music and arts festival setup and teardown.' },
+];
+
 export const mockShifts: Shift[] = [
   {
     id: 'shft1',
     timesheetId: 'ts1',
-    client: mockClients[0],
+    jobId: 'job1',
+    authorizedViewerIds: [],
     date: '2024-08-15T00:00:00.000Z',
     startTime: '08:00',
     endTime: '17:00',
-    location: 'Downtown Core Project',
-    crewChief: mockEmployees[4],
+    location: 'Downtown Core Project - Site A',
+    crewChief: mockEmployees[4], // Maria Garcia
     assignedPersonnel: [
       { employee: mockEmployees[0], roleOnShift: 'Forklift Operator', status: 'Clocked In', timeEntries: [{ clockIn: '07:58' }] },
       { employee: mockEmployees[2], roleOnShift: 'General Laborer', status: 'On Break', timeEntries: [{ clockIn: '08:01', clockOut: '12:00' }] },
-      { employee: mockEmployees[3], roleOnShift: 'Clocked Out', timeEntries: [] },
+      { employee: mockEmployees[3], roleOnShift: 'General Laborer', status: 'Clocked Out', timeEntries: [] },
     ],
     status: 'In Progress',
     timesheetStatus: 'Pending Finalization',
@@ -41,12 +48,13 @@ export const mockShifts: Shift[] = [
   {
     id: 'shft2',
     timesheetId: 'ts2',
-    client: mockClients[1],
+    jobId: 'job3',
+    authorizedViewerIds: [],
     date: '2024-08-16T00:00:00.000Z',
     startTime: '10:00',
     endTime: '19:00',
     location: 'City Park Festival Setup',
-    crewChief: mockEmployees[4],
+    crewChief: mockEmployees[4], // Maria Garcia
     assignedPersonnel: [
       { employee: mockEmployees[4], roleOnShift: 'Crew Chief', status: 'Clocked Out', timeEntries: [] },
       { employee: mockEmployees[0], roleOnShift: 'General Laborer', status: 'Clocked Out', timeEntries: [] }
@@ -57,12 +65,13 @@ export const mockShifts: Shift[] = [
   {
     id: 'shft3',
     timesheetId: 'ts3',
-    client: mockClients[0],
+    jobId: 'job2',
+    authorizedViewerIds: ['cc1'], // Maria Garcia can view this shift even though she is not the chief
     date: '2024-08-10T00:00:00.000Z',
     startTime: '09:00',
     endTime: '17:00',
-    location: 'Suburban Office Complex',
-    crewChief: mockEmployees[1],
+    location: 'Suburban Office Complex - West Wing',
+    crewChief: mockEmployees[1], // Ben Carter
     assignedPersonnel: [
       { employee: mockEmployees[0], roleOnShift: 'Rigger', status: 'Shift Ended', timeEntries: [{ clockIn: '09:00', clockOut: '17:00' }] },
     ],

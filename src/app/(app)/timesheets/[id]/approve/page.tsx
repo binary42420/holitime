@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { notFound, useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
-import { mockShifts, mockTimesheets } from "@/lib/mock-data"
+import { mockShifts, mockTimesheets, mockJobs, mockClients } from "@/lib/mock-data"
 import { format, differenceInMinutes } from 'date-fns'
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -25,6 +25,8 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
 
   const timesheet = mockTimesheets.find(t => t.id === params.id)
   const shift = mockShifts.find(s => s.id === timesheet?.shiftId)
+  const job = shift ? mockJobs.find(j => j.id === shift.jobId) : undefined;
+  const client = job ? mockClients.find(c => c.id === job.clientId) : undefined;
 
   useEffect(() => {
     // Redirect if user is not authorized
@@ -37,7 +39,7 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
     }
   }, [user, shift, router]);
   
-  if (!timesheet || !shift) {
+  if (!timesheet || !shift || !client) {
     notFound()
   }
 
@@ -107,7 +109,7 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
             <div className="grid grid-cols-3 gap-6 text-sm mb-6">
                 <div className="space-y-1">
                     <p className="text-muted-foreground">Client</p>
-                    <p className="font-medium">{shift.client.name}</p>
+                    <p className="font-medium">{client.name}</p>
                 </div>
                 <div className="space-y-1">
                     <p className="text-muted-foreground">Location</p>

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { mockClients, mockShifts } from "@/lib/mock-data"
+import { mockClients, mockShifts, mockJobs } from "@/lib/mock-data"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { format } from "date-fns"
@@ -30,7 +30,10 @@ export default function ClientDetailPage({ params }: { params: { id: string } })
   const canEdit = user.role === 'Manager/Admin';
 
   const client = mockClients.find((c) => c.id === params.id)
-  const clientShifts = mockShifts.filter((s) => s.client.id === params.id)
+  
+  const clientJobs = mockJobs.filter(j => j.clientId === params.id)
+  const clientJobIds = clientJobs.map(j => j.id)
+  const clientShifts = mockShifts.filter((s) => clientJobIds.includes(s.jobId))
 
   if (!client) {
     notFound()

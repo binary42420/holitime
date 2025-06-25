@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useUser } from "@/hooks/use-user"
-import { mockShifts } from "@/lib/mock-data"
+import { mockShifts, mockJobs, mockClients } from "@/lib/mock-data"
 import type { Shift, TimesheetStatus } from "@/lib/types"
 import { format, isWithinInterval, subHours, addHours } from "date-fns"
 
@@ -118,34 +118,38 @@ export default function ShiftsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {shiftsToDisplay.map((shift) => (
-                <TableRow key={shift.id}>
-                  <TableCell className="font-medium">{shift.client.name}</TableCell>
-                  <TableCell>{format(new Date(shift.date), 'EEE, MMM d')}</TableCell>
-                  <TableCell className="hidden md:table-cell">{shift.crewChief.name}</TableCell>
-                  <TableCell>
-                     <Link href={`/timesheets/${shift.timesheetId}/approve`}>
-                        <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus}</Badge>
-                      </Link>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild><Link href={`/shifts/${shift.id}`}>View Details</Link></DropdownMenuItem>
-                        {user.role !== 'Employee' && <DropdownMenuItem>Edit Shift</DropdownMenuItem>}
-                        {user.role === 'Manager/Admin' && <DropdownMenuItem className="text-destructive">Cancel Shift</DropdownMenuItem>}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {shiftsToDisplay.map((shift) => {
+                const job = mockJobs.find(j => j.id === shift.jobId);
+                const client = job ? mockClients.find(c => c.id === job.clientId) : undefined;
+                return (
+                  <TableRow key={shift.id}>
+                    <TableCell className="font-medium">{client?.name || 'N/A'}</TableCell>
+                    <TableCell>{format(new Date(shift.date), 'EEE, MMM d')}</TableCell>
+                    <TableCell className="hidden md:table-cell">{shift.crewChief.name}</TableCell>
+                    <TableCell>
+                       <Link href={`/timesheets/${shift.timesheetId}/approve`}>
+                          <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus}</Badge>
+                        </Link>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem asChild><Link href={`/shifts/${shift.id}`}>View Details</Link></DropdownMenuItem>
+                          {user.role !== 'Employee' && <DropdownMenuItem>Edit Shift</DropdownMenuItem>}
+                          {user.role === 'Manager/Admin' && <DropdownMenuItem className="text-destructive">Cancel Shift</DropdownMenuItem>}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </CardContent>

@@ -18,7 +18,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { mockShifts, mockAnnouncements, mockEmployees } from "@/lib/mock-data"
+import { mockShifts, mockAnnouncements, mockEmployees, mockJobs, mockClients } from "@/lib/mock-data"
 import { useUser } from "@/hooks/use-user"
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, FileClock, CalendarDays, PlusCircle } from 'lucide-react'
@@ -70,20 +70,24 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {upcomingShifts.map((shift) => (
-                  <TableRow key={shift.id}>
-                    <TableCell>
-                      <Link href={`/shifts/${shift.id}`} className="font-medium hover:underline">{format(new Date(shift.date), 'EEE, MMM d')}</Link>
-                    </TableCell>
-                    <TableCell>{shift.client.name}</TableCell>
-                    <TableCell className="hidden md:table-cell">{shift.startTime} - {shift.endTime}</TableCell>
-                    <TableCell className="text-right">
-                      <Link href={`/timesheets/${shift.timesheetId}/approve`}>
-                        <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus}</Badge>
-                      </Link>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {upcomingShifts.map((shift) => {
+                    const job = mockJobs.find(j => j.id === shift.jobId);
+                    const client = job ? mockClients.find(c => c.id === job.clientId) : undefined;
+                    return (
+                      <TableRow key={shift.id}>
+                        <TableCell>
+                          <Link href={`/shifts/${shift.id}`} className="font-medium hover:underline">{format(new Date(shift.date), 'EEE, MMM d')}</Link>
+                        </TableCell>
+                        <TableCell>{client?.name || 'N/A'}</TableCell>
+                        <TableCell className="hidden md:table-cell">{shift.startTime} - {shift.endTime}</TableCell>
+                        <TableCell className="text-right">
+                          <Link href={`/timesheets/${shift.timesheetId}/approve`}>
+                            <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus}</Badge>
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    )
+                })}
               </TableBody>
             </Table>
           </CardContent>
