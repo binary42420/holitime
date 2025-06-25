@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -134,7 +135,7 @@ export default function ShiftsPage() {
                     <TableCell>{format(new Date(shift.date), 'EEE, MMM d')}</TableCell>
                     <TableCell className="hidden md:table-cell">{shift.crewChief.name}</TableCell>
                     <TableCell>
-                       <Link href={`/timesheets/${shift.timesheetId}/approve`} onClick={(e) => e.stopPropagation()}>
+                       <Link href={user.role === 'Employee' || shift.timesheetStatus === 'Pending Finalization' ? `/shifts/${shift.id}` : `/timesheets/${shift.timesheetId}/approve`} onClick={(e) => e.stopPropagation()}>
                           <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus}</Badge>
                         </Link>
                     </TableCell>

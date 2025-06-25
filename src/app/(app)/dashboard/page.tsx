@@ -1,3 +1,4 @@
+
 "use client"
 
 import {
@@ -81,7 +82,7 @@ export default function DashboardPage() {
                         <TableCell>{client?.name || 'N/A'}</TableCell>
                         <TableCell className="hidden md:table-cell">{shift.startTime} - {shift.endTime}</TableCell>
                         <TableCell className="text-right">
-                          <Link href={`/timesheets/${shift.timesheetId}/approve`}>
+                          <Link href={user.role === 'Employee' || shift.timesheetStatus === 'Pending Finalization' ? `/shifts/${shift.id}` : `/timesheets/${shift.timesheetId}/approve`}>
                             <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus}</Badge>
                           </Link>
                         </TableCell>
