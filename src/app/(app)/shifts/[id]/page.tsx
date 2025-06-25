@@ -30,7 +30,7 @@ import { notFound, useRouter } from "next/navigation"
 import { format } from 'date-fns'
 import { Badge } from "@/components/ui/badge"
 import type { AssignedPersonnel, TimesheetStatus, RoleCode } from "@/lib/types"
-import { ArrowLeft, Building2, Calendar, Check, Clock, MapPin, User, Pencil, UserCheck, ClipboardCheck, Ban, Loader2, Minus, Plus } from "lucide-react"
+import { ArrowLeft, Building2, Calendar, Check, Clock, MapPin, User, Pencil, UserCheck, ClipboardCheck, Ban, Loader2, Minus, Plus, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import {
   AlertDialog,
@@ -284,6 +284,18 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
     updatedPerson.status = 'Shift Ended';
     handlePersonnelUpdate(updatedPerson);
   };
+
+  const handleContinueShift = (person: AssignedPersonnel) => {
+    let updatedPerson = JSON.parse(JSON.stringify(person));
+    // Revert status to allow further time entries.
+    // 'On Break' is a safe state that requires an explicit "Clock In" action.
+    if (updatedPerson.timeEntries.length > 0) {
+      updatedPerson.status = 'On Break';
+    } else {
+      updatedPerson.status = 'Clocked Out';
+    }
+    handlePersonnelUpdate(updatedPerson);
+  };
   
   const handleEndShiftAll = () => {
     setShift(currentShift => {
@@ -361,22 +373,6 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
       default: return 'secondary'
     }
   }
-
-  const renderActionButton = (person: AssignedPersonnel) => {
-    if (!canEdit || person.status === 'Shift Ended') return null;
-
-    if (person.status === 'Clocked Out' && person.timeEntries.length === 0) {
-      return <Button size="sm" onClick={() => handleTimeAction(person)}><Check className="mr-2 h-4 w-4" /> Check In</Button>;
-    }
-    
-    if (person.status === 'Clocked In' || person.status === 'On Break') {
-      const isClockedIn = person.status === 'Clocked In';
-      const canClockIn = person.timeEntries.length < 3 || (person.timeEntries.length === 3 && !person.timeEntries[2].clockOut);
-      return <Button variant={isClockedIn ? "outline" : "default"} size="sm" onClick={() => handleTimeAction(person)} disabled={!isClockedIn && !canClockIn}>{isClockedIn ? "Clock Out" : "Clock In"}</Button>;
-    }
-
-    return null;
-  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -572,28 +568,54 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                             </Fragment>
                             ))}
                             <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
-                                {renderActionButton(person)}
-                                {canEdit && person.status !== 'Shift Ended' && (
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                    <Button size="sm" variant="destructive"><Ban className="mr-2 h-4 w-4" /> End Shift</Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>End shift for {person.employee.name}?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                        This will finalize their time entries for this shift. This action cannot be undone.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={() => handleEndShift(person)}>Confirm End Shift</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                                )}
-                            </div>
+                              <div className="flex items-center justify-end gap-2">
+                                {canEdit && (() => {
+                                  if (person.status === 'Shift Ended') {
+                                    return (
+                                      <Button size="sm" variant="secondary" onClick={() => handleContinueShift(person)}>
+                                        <RefreshCw className="mr-2 h-4 w-4" />
+                                        Continue Shift
+                                      </Button>
+                                    );
+                                  }
+
+                                  const clockInOutButton = () => {
+                                    if (person.status === 'Clocked Out' && person.timeEntries.length === 0) {
+                                      return <Button size="sm" onClick={() => handleTimeAction(person)}><Check className="mr-2 h-4 w-4" /> Check In</Button>;
+                                    }
+                                    
+                                    if (person.status === 'Clocked In' || person.status === 'On Break') {
+                                      const isClockedIn = person.status === 'Clocked In';
+                                      const canClockIn = person.timeEntries.length < 3 || (person.timeEntries.length === 3 && !person.timeEntries[2].clockOut);
+                                      return <Button variant={isClockedIn ? "outline" : "default"} size="sm" onClick={() => handleTimeAction(person)} disabled={!isClockedIn && !canClockIn}>{isClockedIn ? "Clock Out" : "Clock In"}</Button>;
+                                    }
+                                    return null;
+                                  };
+
+                                  return (
+                                    <>
+                                      {clockInOutButton()}
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <Button size="sm" variant="destructive"><Ban className="mr-2 h-4 w-4" /> End Shift</Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>End shift for {person.employee.name}?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              This will finalize their time entries for this shift. This action can be undone if necessary.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleEndShift(person)}>Confirm End Shift</AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    </>
+                                  );
+                                })()}
+                              </div>
                             </TableCell>
                         </>
                         )
@@ -653,5 +675,3 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
     </div>
   )
 }
-
-    
