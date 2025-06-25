@@ -23,20 +23,26 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
   const signatureRef = useRef<SignaturePadRef>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (user.role === 'Employee') {
-      router.push('/dashboard');
-    }
-  }, [user.role, router]);
-  
   const timesheet = mockTimesheets.find(t => t.id === params.id)
   const shift = mockShifts.find(s => s.id === timesheet?.shiftId)
 
+  useEffect(() => {
+    // Redirect if user is not authorized
+    if (!shift) return; // Guard for initial render
+
+    if (user.role === 'Employee') {
+      router.push('/dashboard');
+    } else if (user.role === 'Crew Chief' && shift.crewChief.id !== user.id) {
+      router.push('/timesheets');
+    }
+  }, [user, shift, router]);
+  
   if (!timesheet || !shift) {
     notFound()
   }
 
-  if (user.role === 'Employee') {
+  // Prevent rendering for unauthorized users while redirecting.
+  if (user.role === 'Employee' || (user.role === 'Crew Chief' && shift.crewChief.id !== user.id)) {
     return null; // Render nothing while redirecting
   }
 
