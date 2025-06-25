@@ -1,5 +1,8 @@
 "use client"
 
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { format } from "date-fns"
 import {
   Card,
   CardContent,
@@ -30,7 +33,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MoreHorizontal, PlusCircle } from "lucide-react"
 import { useUser } from "@/hooks/use-user"
-import { mockClients } from "@/lib/mock-data"
+import { mockClients, mockJobs, mockShifts } from "@/lib/mock-data"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +44,7 @@ import {
 
 export default function ClientsPage() {
   const { user } = useUser();
+  const router = useRouter();
   const canEdit = user.role === 'Manager/Admin';
 
   return (
@@ -106,36 +110,61 @@ export default function ClientsPage() {
                 <TableHead>Company Name</TableHead>
                 <TableHead>Contact Person</TableHead>
                 <TableHead className="hidden md:table-cell">Contact Email</TableHead>
-                <TableHead className="hidden md:table-cell">Address</TableHead>
+                <TableHead>Recent Shift</TableHead>
                 {canEdit && <TableHead><span className="sr-only">Actions</span></TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockClients.map(client => (
-                <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.name}</TableCell>
-                  <TableCell>{client.contactPerson}</TableCell>
-                  <TableCell className="hidden md:table-cell">{client.contactEmail}</TableCell>
-                  <TableCell className="hidden md:table-cell">{client.address}</TableCell>
-                  {canEdit && (
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
+              {mockClients.map(client => {
+                  const clientJobs = mockJobs.filter(j => j.clientId === client.id);
+                  const clientJobIds = clientJobs.map(j => j.id);
+                  const clientShifts = mockShifts
+                    .filter(s => clientJobIds.includes(s.jobId))
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                  const mostRecentShift = clientShifts[0];
+
+                  return (
+                    <TableRow 
+                      key={client.id}
+                      onClick={() => router.push(`/clients/${client.id}`)}
+                      className="cursor-pointer"
+                    >
+                      <TableCell className="font-medium">{client.name}</TableCell>
+                      <TableCell>{client.contactPerson}</TableCell>
+                      <TableCell className="hidden md:table-cell">{client.contactEmail}</TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        {mostRecentShift ? (
+                          <Button variant="link" asChild className="p-0 h-auto font-normal">
+                            <Link href={`/shifts/${mostRecentShift.id}`}>
+                              {format(new Date(mostRecentShift.date), 'MMM d, yyyy')}
+                            </Link>
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
+                        ) : (
+                          <span className="text-muted-foreground">No shifts</span>
+                        )}
+                      </TableCell>
+                      {canEdit && (
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => router.push(`/clients/${client.id}`)}>
+                                Edit / View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  )
+                })}
             </TableBody>
           </Table>
         </CardContent>
