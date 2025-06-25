@@ -219,6 +219,19 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
       };
     });
   };
+
+  const handleTimeInputChange = (person: AssignedPersonnel, timeEntryIndex: number, type: 'clockIn' | 'clockOut', value: string) => {
+    const updatedPerson = JSON.parse(JSON.stringify(person));
+    
+    // Ensure the time entry exists up to the index being modified
+    while (updatedPerson.timeEntries.length <= timeEntryIndex) {
+      updatedPerson.timeEntries.push({});
+    }
+
+    updatedPerson.timeEntries[timeEntryIndex][type] = value;
+    
+    handlePersonnelUpdate(updatedPerson);
+  };
   
   const handleNewAssignment = (placeholderId: string, employeeId: string) => {
     setNewAssignments(prev => ({ ...prev, [placeholderId]: employeeId }));
@@ -653,6 +666,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                                     type="time"
                                     value={person.timeEntries[index]?.clockIn || ''}
                                     disabled={!canEdit}
+                                    onChange={(e) => handleTimeInputChange(person, index, 'clockIn', e.target.value)}
                                     className="w-28"
                                 />
                                 </TableCell>
@@ -661,6 +675,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                                     type="time"
                                     value={person.timeEntries[index]?.clockOut || ''}
                                     disabled={!canEdit || !person.timeEntries[index]?.clockIn}
+                                    onChange={(e) => handleTimeInputChange(person, index, 'clockOut', e.target.value)}
                                     className="w-28"
                                 />
                                 </TableCell>
