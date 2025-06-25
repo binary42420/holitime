@@ -22,7 +22,7 @@ export const mockShifts: Shift[] = [
   {
     id: 'shft1',
     client: mockClients[0],
-    date: '2024-08-15',
+    date: '2024-08-15T12:00:00Z',
     startTime: '08:00',
     endTime: '17:00',
     location: 'Downtown Core Project',
@@ -38,7 +38,7 @@ export const mockShifts: Shift[] = [
   {
     id: 'shft2',
     client: mockClients[1],
-    date: '2024-08-16',
+    date: '2024-08-16T12:00:00Z',
     startTime: '10:00',
     endTime: '19:00',
     location: 'City Park Festival Setup',
@@ -52,7 +52,7 @@ export const mockShifts: Shift[] = [
   {
     id: 'shft3',
     client: mockClients[0],
-    date: '2024-08-10',
+    date: '2024-08-10T12:00:00Z',
     startTime: '09:00',
     endTime: '17:00',
     location: 'Suburban Office Complex',
@@ -65,8 +65,8 @@ export const mockShifts: Shift[] = [
 ];
 
 export const mockAnnouncements: Announcement[] = [
-  { id: 'ann1', title: 'Company Picnic Announcement', content: 'Join us for our annual company picnic on September 5th at City Park. Fun, food, and games for the whole family!', date: '2024-08-01' },
-  { id: 'ann2', title: 'New Safety Protocol for Forklifts', content: 'Effective immediately, all forklift operators must complete a new daily inspection checklist before operation. Please see your crew chief for details.', date: '2024-07-28' },
+  { id: 'ann1', title: 'Company Picnic Announcement', content: 'Join us for our annual company picnic on September 5th at City Park. Fun, food, and games for the whole family!', date: '2024-08-01T12:00:00Z' },
+  { id: 'ann2', title: 'New Safety Protocol for Forklifts', content: 'Effective immediately, all forklift operators must complete a new daily inspection checklist before operation. Please see your crew chief for details.', date: '2024-07-28T12:00:00Z' },
 ];
 
 export const mockDocuments: AppDocument[] = [
