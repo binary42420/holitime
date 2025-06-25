@@ -1,4 +1,4 @@
-import type { User, Client, Employee, Shift, Announcement, AppDocument, UserRole } from './types';
+import type { User, Client, Employee, Shift, Announcement, AppDocument, UserRole, Timesheet } from './types';
 
 export const mockUsers: Record<UserRole, User> = {
   'Employee': { id: 'emp1', name: 'Alex Johnson', email: 'alex.j@handson.com', avatar: '/avatars/01.png', role: 'Employee' },
@@ -23,45 +23,48 @@ export const mockShifts: Shift[] = [
   {
     id: 'shft1',
     client: mockClients[0],
-    date: '2024-08-15T12:00:00Z',
+    date: '2024-08-15T00:00:00.000Z',
     startTime: '08:00',
     endTime: '17:00',
     location: 'Downtown Core Project',
-    crewChief: mockEmployees[1],
+    crewChief: mockEmployees[4],
     assignedPersonnel: [
-      { employee: mockEmployees[0], checkedIn: false, timeEntries: [{ clockIn: '07:58', clockOut: '12:00' }, { clockIn: '12:30', clockOut: '17:02' }] },
-      { employee: mockEmployees[2], checkedIn: false, timeEntries: [{ clockIn: '08:01', clockOut: '17:00' }] },
-      { employee: mockEmployees[3], checkedIn: false, timeEntries: [] },
+      { employee: mockEmployees[0], roleOnShift: 'Forklift Operator', status: 'Shift Ended', timeEntries: [{ clockIn: '07:58', clockOut: '12:00' }, { clockIn: '12:30', clockOut: '17:02' }] },
+      { employee: mockEmployees[2], roleOnShift: 'General Laborer', status: 'Shift Ended', timeEntries: [{ clockIn: '08:01', clockOut: '17:00' }] },
+      { employee: mockEmployees[3], roleOnShift: 'General Laborer', status: 'Clocked Out', timeEntries: [] },
     ],
     status: 'Upcoming',
+    timesheetStatus: 'Awaiting Client Approval',
     notes: 'Morning safety meeting at 7:45 AM sharp. Hard hats required on site at all times.'
   },
   {
     id: 'shft2',
     client: mockClients[1],
-    date: '2024-08-16T12:00:00Z',
+    date: '2024-08-16T00:00:00.000Z',
     startTime: '10:00',
     endTime: '19:00',
     location: 'City Park Festival Setup',
     crewChief: mockEmployees[4],
     assignedPersonnel: [
-      { employee: mockEmployees[4], checkedIn: false, timeEntries: [] },
-      { employee: mockEmployees[0], checkedIn: false, timeEntries: [] }
+      { employee: mockEmployees[4], roleOnShift: 'Crew Chief', status: 'Clocked Out', timeEntries: [] },
+      { employee: mockEmployees[0], roleOnShift: 'General Laborer', status: 'Clocked Out', timeEntries: [] }
     ],
-    status: 'Upcoming'
+    status: 'Upcoming',
+    timesheetStatus: 'Pending Finalization',
   },
   {
     id: 'shft3',
     client: mockClients[0],
-    date: '2024-08-10T12:00:00Z',
+    date: '2024-08-10T00:00:00.000Z',
     startTime: '09:00',
     endTime: '17:00',
     location: 'Suburban Office Complex',
     crewChief: mockEmployees[1],
     assignedPersonnel: [
-      { employee: mockEmployees[0], checkedIn: false, timeEntries: [{ clockIn: '09:00', clockOut: '17:00' }] },
+      { employee: mockEmployees[0], roleOnShift: 'Rigger', status: 'Shift Ended', timeEntries: [{ clockIn: '09:00', clockOut: '17:00' }] },
     ],
-    status: 'Completed'
+    status: 'Completed',
+    timesheetStatus: 'Approved'
   },
 ];
 
@@ -76,3 +79,9 @@ export const mockDocuments: AppDocument[] = [
     { id: 'doc3', name: 'Company_Insurance_Policy.pdf', type: 'Insurance', category: 'Client', uploadDate: '2024-03-01', url: '#' },
     { id: 'doc4', name: 'Ben_Carter_OSHA30.pdf', type: 'Certification', category: 'Employee', uploadDate: '2023-09-10', url: '#' },
 ];
+
+export const mockTimesheets: Timesheet[] = [
+    { id: 'ts1', shiftId: 'shft1', status: 'Awaiting Client Approval' },
+    { id: 'ts2', shiftId: 'shft2', status: 'Pending Finalization' },
+    { id: 'ts3', shiftId: 'shft3', status: 'Approved', clientSignature: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==', approvedByClientAt: '2024-08-10T17:05:00Z', approvedByManagerAt: '2024-08-11T09:00:00Z'},
+]

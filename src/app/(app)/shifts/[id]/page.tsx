@@ -26,72 +26,116 @@ import { mockShifts } from "@/lib/mock-data"
 import { notFound } from "next/navigation"
 import { format } from 'date-fns'
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Building2, Calendar, Clock, LogOut, MapPin, User, Pencil } from "lucide-react"
+import type { AssignedPersonnel, TimesheetStatus } from "@/lib/types"
+import { ArrowLeft, Building2, Calendar, Check, Clock, LogOut, MapPin, User, Pencil, UserCheck, ClipboardCheck, Ban } from "lucide-react"
 import Link from "next/link"
 
 export default function ShiftDetailPage({ params }: { params: { id: string } }) {
   const { user } = useUser()
   const initialShift = mockShifts.find((s) => s.id === params.id)
 
-  const [assignedPersonnel, setAssignedPersonnel] = useState(initialShift?.assignedPersonnel || [])
-  const [notes, setNotes] = useState(initialShift?.notes || "")
+  const [shift, setShift] = useState(initialShift);
 
-  if (!initialShift) {
+  if (!shift) {
     notFound()
   }
 
-  const shift = { ...initialShift, assignedPersonnel, notes }
   const canEdit = user.role === 'Crew Chief' || user.role === 'Manager/Admin'
 
-  const handleInputChange = (employeeId: string, entryIndex: number, field: 'clockIn' | 'clockOut', value: string) => {
-    setAssignedPersonnel(assignedPersonnel.map(p => {
-      if (p.employee.id === employeeId) {
-        const newTimeEntries = p.timeEntries.map(entry => ({...entry}));
-        while (newTimeEntries.length <= entryIndex) {
-            newTimeEntries.push({});
+  const handlePersonnelUpdate = (updatedPersonnel: AssignedPersonnel) => {
+    setShift(currentShift => {
+      if (!currentShift) return currentShift;
+      return {
+        ...currentShift,
+        assignedPersonnel: currentShift.assignedPersonnel.map(p => 
+          p.employee.id === updatedPersonnel.employee.id ? updatedPersonnel : p
+        )
+      };
+    });
+  };
+
+  const handleTimeAction = (person: AssignedPersonnel) => {
+    const currentTime = format(new Date(), 'HH:mm');
+    let updatedPerson = JSON.parse(JSON.stringify(person));
+    
+    // Initial check-in
+    if (person.status === 'Clocked Out' && person.timeEntries.length === 0) {
+      updatedPerson.status = 'Clocked In';
+      updatedPerson.timeEntries.push({ clockIn: currentTime });
+    } else {
+      const lastEntry = updatedPerson.timeEntries[updatedPerson.timeEntries.length - 1];
+      const isClockedIn = lastEntry && lastEntry.clockIn && !lastEntry.clockOut;
+
+      if (isClockedIn) {
+        lastEntry.clockOut = currentTime;
+        updatedPerson.status = 'On Break';
+      } else {
+        if (updatedPerson.timeEntries.length < 3) {
+          updatedPerson.timeEntries.push({ clockIn: currentTime });
+          updatedPerson.status = 'Clocked In';
         }
-        newTimeEntries[entryIndex] = { ...newTimeEntries[entryIndex], [field]: value };
-        return { ...p, timeEntries: newTimeEntries };
       }
-      return p;
-    }));
+    }
+    handlePersonnelUpdate(updatedPerson);
+  };
+
+  const handleEndShift = (person: AssignedPersonnel) => {
+    let updatedPerson = JSON.parse(JSON.stringify(person));
+    const lastEntry = updatedPerson.timeEntries[updatedPerson.timeEntries.length - 1];
+    
+    if (updatedPerson.status === 'Clocked In' && lastEntry) {
+      lastEntry.clockOut = format(new Date(), 'HH:mm');
+    }
+    updatedPerson.status = 'Shift Ended';
+    handlePersonnelUpdate(updatedPerson);
   };
   
-  const handleClockToggle = (employeeId: string) => {
-    const currentTime = format(new Date(), 'HH:mm');
-    setAssignedPersonnel(
-      assignedPersonnel.map(p => {
-        if (p.employee.id === employeeId) {
-          const newTimeEntries = p.timeEntries.map(entry => ({...entry}));
-          const lastEntry = newTimeEntries[newTimeEntries.length - 1];
-          const isClockedIn = lastEntry && lastEntry.clockIn && !lastEntry.clockOut;
-
-          if (isClockedIn) {
-            lastEntry.clockOut = currentTime;
-            return { ...p, timeEntries: newTimeEntries, checkedIn: false };
-          } else {
-            if (newTimeEntries.length < 3) {
-              newTimeEntries.push({ clockIn: currentTime });
-              return { ...p, timeEntries: newTimeEntries, checkedIn: true };
-            }
-          }
+  const handleEndShiftAll = () => {
+    shift.assignedPersonnel.forEach(p => {
+        if (p.status === 'Clocked In') {
+            handleEndShift(p);
         }
-        return p;
-      })
-    );
+    });
   };
 
-  const handleClockOutAll = () => {
-    const currentTime = format(new Date(), 'HH:mm');
-    setAssignedPersonnel(assignedPersonnel.map(p => {
-      const newTimeEntries = p.timeEntries.map(entry => ({...entry}));
-      const lastEntry = newTimeEntries[newTimeEntries.length - 1];
-      if (lastEntry && lastEntry.clockIn && !lastEntry.clockOut) {
-          lastEntry.clockOut = currentTime;
-          return { ...p, timeEntries: newTimeEntries, checkedIn: false };
-      }
-      return p;
-    }));
+  const handleFinalizeTimesheet = () => {
+    setShift(currentShift => currentShift ? { ...currentShift, timesheetStatus: 'Awaiting Client Approval' } : currentShift);
+    // In a real app, this would also create/update the timesheet record in the database.
+  };
+
+  const getRowClass = (status: AssignedPersonnel['status']) => {
+    switch (status) {
+      case 'Clocked In': return 'bg-green-100 dark:bg-green-900/30';
+      case 'On Break': return 'bg-yellow-100 dark:bg-yellow-900/30';
+      case 'Shift Ended': return 'bg-blue-100 dark:bg-blue-900/30';
+      default: return '';
+    }
+  }
+
+  const getTimesheetStatusVariant = (status: TimesheetStatus) => {
+    switch (status) {
+      case 'Approved': return 'default';
+      case 'Awaiting Client Approval': return 'destructive';
+      case 'Awaiting Manager Approval': return 'secondary';
+      case 'Pending Finalization': return 'outline';
+      default: return 'secondary'
+    }
+  }
+
+  const renderActionButton = (person: AssignedPersonnel) => {
+    if (!canEdit || person.status === 'Shift Ended') return <div className="w-32" />;
+
+    if (person.status === 'Clocked Out' && person.timeEntries.length === 0) {
+      return <Button size="sm" onClick={() => handleTimeAction(person)} className="w-32"><Check className="mr-2 h-4 w-4" /> Check In</Button>;
+    }
+    
+    if (person.status === 'Clocked In' || person.status === 'On Break') {
+      const isClockedIn = person.status === 'Clocked In';
+      const canClockIn = person.timeEntries.length < 3 || (person.timeEntries.length === 3 && !person.timeEntries[2].clockOut);
+      return <Button variant={isClockedIn ? "outline" : "default"} size="sm" onClick={() => handleTimeAction(person)} disabled={!isClockedIn && !canClockIn} className="w-32">{isClockedIn ? "Clock Out" : "Clock In"}</Button>;
+    }
+
+    return <div className="w-32" />
   };
 
   return (
@@ -124,18 +168,18 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {assignedPersonnel.map((person) => {
-                    const isClockedIn = person.checkedIn;
-                    const canClockIn = person.timeEntries.length < 3;
-                    return (
-                    <TableRow key={person.employee.id} className={isClockedIn ? "bg-green-500/10" : ""}>
+                  {shift.assignedPersonnel.map((person) => (
+                    <TableRow key={person.employee.id} className={getRowClass(person.status)}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                            <Avatar className="h-9 w-9">
                             <AvatarImage src={person.employee.avatar} alt={person.employee.name} data-ai-hint="person face" />
                             <AvatarFallback>{person.employee.name.charAt(0)}</AvatarFallback>
                           </Avatar>
-                          <span className="font-medium">{person.employee.name}</span>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{person.employee.name}</span>
+                            <span className="text-xs text-muted-foreground">{person.roleOnShift}</span>
+                          </div>
                         </div>
                       </TableCell>
                       
@@ -145,7 +189,6 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                             <Input
                               type="time"
                               value={person.timeEntries[index]?.clockIn || ''}
-                              onChange={(e) => handleInputChange(person.employee.id, index, 'clockIn', e.target.value)}
                               disabled={!canEdit}
                               className="w-28"
                             />
@@ -154,7 +197,6 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                             <Input
                               type="time"
                               value={person.timeEntries[index]?.clockOut || ''}
-                              onChange={(e) => handleInputChange(person.employee.id, index, 'clockOut', e.target.value)}
                               disabled={!canEdit || !person.timeEntries[index]?.clockIn}
                               className="w-28"
                             />
@@ -163,26 +205,27 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                       ))}
 
                       <TableCell className="text-right">
-                        <Button 
-                          variant={isClockedIn ? "destructive" : "default"} 
-                          size="sm"
-                          onClick={() => handleClockToggle(person.employee.id)}
-                          disabled={!canEdit || (!isClockedIn && !canClockIn)}
-                          className="w-28"
-                        >
-                          {isClockedIn ? "Clock Out" : "Clock In"}
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          {renderActionButton(person)}
+                          {canEdit && person.status !== 'Shift Ended' && (
+                            <Button size="sm" variant="destructive" onClick={() => handleEndShift(person)} className="w-32"><Ban className="mr-2 h-4 w-4" /> End Shift</Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
-                  )})}
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
             {canEdit && (
               <CardFooter className="justify-end gap-2 border-t pt-6">
-                <Button variant="outline" onClick={handleClockOutAll}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Clock Out All
+                <Button variant="outline" onClick={handleEndShiftAll}>
+                  <Ban className="mr-2 h-4 w-4" />
+                  End All Shifts
+                </Button>
+                 <Button onClick={handleFinalizeTimesheet} disabled={shift.timesheetStatus !== 'Pending Finalization'}>
+                  <ClipboardCheck className="mr-2 h-4 w-4" />
+                  Finalize Timesheet
                 </Button>
                 <Button>Save Changes</Button>
               </CardFooter>
@@ -196,8 +239,8 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
             </CardHeader>
             <CardContent className="space-y-4">
               <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                value={shift.notes}
+                onChange={(e) => setShift({...shift, notes: e.target.value})}
                 placeholder="Add any important notes for the shift..."
               />
               <Button>Save Notes</Button>
@@ -211,7 +254,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
               <CardTitle className="flex justify-between items-center">
                 <span>Shift Details</span>
                 <div className="flex items-center gap-2">
-                  <Badge variant="secondary">{shift.status}</Badge>
+                   <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)}>{shift.timesheetStatus.replace(/ /g, '\u00A0')}</Badge>
                    {canEdit && (
                     <Button size="icon" variant="outline" className="h-8 w-8">
                       <Pencil className="h-4 w-4" />
@@ -247,7 +290,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
             <CardHeader>
               <CardTitle>Client Information</CardTitle>
                 <CardDescription>
-                  <Link href={`/clients/${shift.client.id}`} className="hover:underline">
+                  <Link href={`/clients/${shift.client.id}`} className="hover:underline text-primary">
                     {shift.client.name}
                   </Link>
                 </CardDescription>

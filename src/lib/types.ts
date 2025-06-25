@@ -10,7 +10,7 @@ export interface User {
 
 export interface Client {
   id: string;
-  name: string;
+  name:string;
   address: string;
   contactPerson: string;
   contactEmail: string;
@@ -26,6 +26,17 @@ export interface Employee {
   avatar: string;
 }
 
+export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended';
+
+export interface AssignedPersonnel {
+  employee: Employee;
+  roleOnShift: string;
+  status: AssignedPersonnelStatus;
+  timeEntries: { clockIn?: string; clockOut?: string }[];
+}
+
+export type TimesheetStatus = 'Pending Finalization' | 'Awaiting Client Approval' | 'Awaiting Manager Approval' | 'Approved' | 'Rejected';
+
 export interface Shift {
   id: string;
   client: Client;
@@ -34,12 +45,9 @@ export interface Shift {
   endTime: string;
   location: string;
   crewChief: Employee;
-  assignedPersonnel: {
-    employee: Employee;
-    checkedIn: boolean;
-    timeEntries: { clockIn?: string; clockOut?: string }[];
-  }[];
+  assignedPersonnel: AssignedPersonnel[];
   status: 'Upcoming' | 'In Progress' | 'Completed' | 'Cancelled';
+  timesheetStatus: TimesheetStatus;
   notes?: string;
 }
 
@@ -57,4 +65,13 @@ export interface AppDocument {
   category: 'Employee' | 'Client';
   uploadDate: string;
   url: string;
+}
+
+export interface Timesheet {
+    id: string;
+    shiftId: string;
+    status: TimesheetStatus;
+    clientSignature?: string; // a data URI
+    approvedByClientAt?: string;
+    approvedByManagerAt?: string;
 }

@@ -23,11 +23,23 @@ import { useUser } from "@/hooks/use-user"
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, Clock, FilePlus, UserPlus } from 'lucide-react'
 import { format } from 'date-fns'
+import type { TimesheetStatus } from "@/lib/types"
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const upcomingShifts = mockShifts.filter(shift => shift.status === 'Upcoming').slice(0, 3);
+  const upcomingShifts = mockShifts.filter(shift => new Date(shift.date) >= new Date()).slice(0, 3);
   const teamMembers = mockEmployees.slice(0, 5);
+
+   const getTimesheetStatusVariant = (status: TimesheetStatus) => {
+    switch (status) {
+      case 'Approved': return 'default';
+      case 'Awaiting Client Approval': return 'destructive';
+      case 'Awaiting Manager Approval': return 'secondary';
+      case 'Pending Finalization': return 'outline';
+      default: return 'secondary'
+    }
+  }
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -54,19 +66,19 @@ export default function DashboardPage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead className="hidden md:table-cell">Time</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
+                  <TableHead className="text-right">Timesheet</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {upcomingShifts.map((shift) => (
                   <TableRow key={shift.id}>
                     <TableCell>
-                      <div className="font-medium">{format(new Date(shift.date), 'EEE, MMM d')}</div>
+                      <Link href={`/shifts/${shift.id}`} className="font-medium hover:underline">{format(new Date(shift.date), 'EEE, MMM d')}</Link>
                     </TableCell>
                     <TableCell>{shift.client.name}</TableCell>
                     <TableCell className="hidden md:table-cell">{shift.startTime} - {shift.endTime}</TableCell>
                     <TableCell className="text-right">
-                       <Badge variant="secondary">{shift.status}</Badge>
+                       <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)}>{shift.timesheetStatus}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}

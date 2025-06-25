@@ -7,6 +7,7 @@ import {
   BrainCircuit,
   Building2,
   CalendarClock,
+  ClipboardCheck,
   FileText,
   Hand,
   LayoutDashboard,
@@ -29,6 +30,11 @@ import { Button } from '@/components/ui/button'
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
+  const isActive = (path: string) => {
+    if (path === '/dashboard') return pathname === path
+    return pathname.startsWith(path)
+  }
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon">
@@ -43,31 +49,37 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <SidebarContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/dashboard" tooltip="Dashboard" isActive={pathname === '/dashboard'}>
+              <SidebarMenuButton href="/dashboard" tooltip="Dashboard" isActive={isActive('/dashboard')}>
                 <LayoutDashboard />
                 Dashboard
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/shifts" tooltip="Shifts" isActive={pathname.startsWith('/shifts')}>
+              <SidebarMenuButton href="/shifts" tooltip="Shifts" isActive={isActive('/shifts')}>
                 <CalendarClock />
                 Shifts
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/clients" tooltip="Clients" isActive={pathname === '/clients'}>
+              <SidebarMenuButton href="/timesheets" tooltip="Timesheets" isActive={isActive('/timesheets')}>
+                <ClipboardCheck />
+                Timesheets
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/clients" tooltip="Clients" isActive={isActive('/clients')}>
                 <Building2 />
                 Clients
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/documents" tooltip="Documents" isActive={pathname === '/documents'}>
+              <SidebarMenuButton href="/documents" tooltip="Documents" isActive={isActive('/documents')}>
                 <FileText />
                 Documents
               </SidebarMenuButton>
             </SidebarMenuItem>
              <SidebarMenuItem>
-              <SidebarMenuButton href="/staffing" tooltip="AI Staffing" isActive={pathname === '/staffing'}>
+              <SidebarMenuButton href="/staffing" tooltip="AI Staffing" isActive={isActive('/staffing')}>
                 <BrainCircuit />
                 Smart Staffing
               </SidebarMenuButton>
@@ -86,7 +98,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
           <UserNav />
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto bg-muted/40">
           {children}
         </main>
       </div>

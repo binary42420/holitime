@@ -29,7 +29,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { useUser } from "@/hooks/use-user"
 import { mockShifts } from "@/lib/mock-data"
-import type { Shift } from "@/lib/types"
+import type { Shift, TimesheetStatus } from "@/lib/types"
 import { format } from "date-fns"
 
 export default function ShiftsPage() {
@@ -49,6 +49,16 @@ export default function ShiftsPage() {
         return 'outline'
       default:
         return 'secondary'
+    }
+  }
+
+  const getTimesheetStatusVariant = (status: TimesheetStatus) => {
+    switch (status) {
+      case 'Approved': return 'default';
+      case 'Awaiting Client Approval': return 'destructive';
+      case 'Awaiting Manager Approval': return 'secondary';
+      case 'Pending Finalization': return 'outline';
+      default: return 'secondary'
     }
   }
 
@@ -77,9 +87,8 @@ export default function ShiftsPage() {
               <TableRow>
                 <TableHead>Client</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead className="hidden md:table-cell">Time</TableHead>
                 <TableHead className="hidden md:table-cell">Crew Chief</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Timesheet Status</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -90,10 +99,9 @@ export default function ShiftsPage() {
                 <TableRow key={shift.id}>
                   <TableCell className="font-medium">{shift.client.name}</TableCell>
                   <TableCell>{format(new Date(shift.date), 'EEE, MMM d')}</TableCell>
-                  <TableCell className="hidden md:table-cell">{shift.startTime} - {shift.endTime}</TableCell>
                   <TableCell className="hidden md:table-cell">{shift.crewChief.name}</TableCell>
                   <TableCell>
-                    <Badge variant={getStatusVariant(shift.status)}>{shift.status}</Badge>
+                    <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)}>{shift.timesheetStatus}</Badge>
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
