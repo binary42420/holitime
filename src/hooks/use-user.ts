@@ -26,7 +26,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     setUserRole,
   }), [currentUser])
 
-  return React.createElement(UserContext.Provider, { value }, children);
+  return React.createElement(UserContext.Provider, { value }, children)
 }
 
 export const useUser = () => {
