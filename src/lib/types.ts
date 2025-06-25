@@ -47,7 +47,7 @@ export interface Shift {
   location: string;
   crewChief: Employee;
   assignedPersonnel: AssignedPersonnel[];
-  status: 'Upcoming' | 'In Progress' | 'Completed' | 'Cancelled';
+  status: 'Upcoming' | 'In Progress' | 'Completed' | 'Cancelled' | 'Pending Approval';
   timesheetStatus: TimesheetStatus;
   notes?: string;
 }

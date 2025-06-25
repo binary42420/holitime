@@ -110,7 +110,7 @@ export default function DashboardPage() {
                 </Button>
               </>
             )}
-            { (user.role === 'Crew Chief' || user.role === 'Manager/Admin') && (
+            { user.role === 'Manager/Admin' && (
               <Button asChild variant="outline" className="w-full justify-start">
                 <Link href="/shifts"><PlusCircle className="mr-2 h-4 w-4" /> Create New Shift</Link>
               </Button>

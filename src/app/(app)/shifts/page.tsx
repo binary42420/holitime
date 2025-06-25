@@ -89,7 +89,7 @@ export default function ShiftsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold font-headline">Shifts</h1>
-        {user.role !== 'Employee' && (
+        {user.role === 'Manager/Admin' && (
           <Button size="sm" className="gap-1">
             <PlusCircle className="h-4 w-4" />
             New Shift

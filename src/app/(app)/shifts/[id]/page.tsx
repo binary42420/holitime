@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, Fragment } from "react"
+import { useState, Fragment, useEffect } from "react"
 import {
   Card,
   CardContent,
@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useUser } from "@/hooks/use-user"
 import { mockShifts } from "@/lib/mock-data"
-import { notFound } from "next/navigation"
+import { notFound, useRouter } from "next/navigation"
 import { format } from 'date-fns'
 import { Badge } from "@/components/ui/badge"
 import type { AssignedPersonnel, TimesheetStatus } from "@/lib/types"
@@ -42,7 +42,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast"
 import { adjustTimesheet } from "@/ai/flows/adjust-timesheet"
-import type { AdjustTimesheetInput, AdjustTimesheetOutput } from "@/ai/flows/adjust-timesheet"
 
 
 // Helper function to round time
@@ -69,17 +68,34 @@ const roundTime = (date: Date, direction: 'up' | 'down') => {
 
 export default function ShiftDetailPage({ params }: { params: { id: string } }) {
   const { user } = useUser()
+  const router = useRouter()
   const initialShift = mockShifts.find((s) => s.id === params.id)
 
   const [shift, setShift] = useState(initialShift);
   const [isFinalizing, setIsFinalizing] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (!shift) return;
+    const isAssigned = shift.assignedPersonnel.some(p => p.employee.id === user.id);
+    if (user.role === 'Employee' && !isAssigned) {
+      router.push('/shifts');
+    }
+  }, [user, shift, router]);
+
   if (!shift) {
     notFound()
   }
+  
+  const isAssigned = shift.assignedPersonnel.some(p => p.employee.id === user.id);
+  if (user.role === 'Employee' && !isAssigned) {
+    return null; // Render nothing while redirecting
+  }
 
-  const canEdit = user.role === 'Crew Chief' || user.role === 'Manager/Admin'
+  const canEdit = user.role === 'Manager/Admin' || (user.role === 'Crew Chief' && shift.crewChief.id === user.id);
+  const personnelToDisplay = user.role === 'Employee' 
+    ? shift.assignedPersonnel.filter(p => p.employee.id === user.id) 
+    : shift.assignedPersonnel;
 
   const handlePersonnelUpdate = (updatedPersonnel: AssignedPersonnel) => {
     setShift(currentShift => {
@@ -175,7 +191,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
 
         const fullyUpdatedPersonnel = currentShift.assignedPersonnel.map(p => 
           adjustedPersonnelMap.has(p.employee.id) 
-            ? (adjustedPersonnelMap.get(p.employee.id) as AssignedPersonnel)
+            ? (adjustedPersonnelMap.get(p.employee.id)!)
             : p
         );
 
@@ -334,7 +350,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {shift.assignedPersonnel.map((person) => (
+                {personnelToDisplay.map((person) => (
                   <TableRow key={person.employee.id} className={getRowClass(person.status)}>
                     <TableCell>
                       <div className="flex items-center gap-3">
