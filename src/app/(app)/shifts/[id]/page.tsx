@@ -128,7 +128,7 @@ export default function ShiftDetailPage({ params }: { params: { id: string } }) 
                     const isClockedIn = person.checkedIn;
                     const canClockIn = person.timeEntries.length < 3;
                     return (
-                    <TableRow key={person.employee.id}>
+                    <TableRow key={person.employee.id} className={isClockedIn ? "bg-green-500/10" : ""}>
                       <TableCell>
                         <div className="flex items-center gap-3">
                            <Avatar className="h-9 w-9">
