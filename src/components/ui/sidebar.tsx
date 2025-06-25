@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -552,28 +553,36 @@ const SidebarMenuButton = React.forwardRef<
       tooltip,
       className,
       href,
+      children,
       ...props
     },
     ref
   ) => {
-    const Comp = asChild ? Slot : "button"
     const { isMobile, state } = useSidebar()
+
+    const isLink = !!href
+    const Comp = asChild ? Slot : isLink ? Link : "button"
+
+    const allProps: any = { ...props, children }
+    if (isLink) {
+      allProps.href = href
+      // `type` is a valid prop for a button, but not for a Link
+      delete allProps.type
+    }
 
     const button = (
       <Comp
-        ref={ref}
+        ref={ref as any}
         data-sidebar="menu-button"
         data-size={size}
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
-        {...props}
+        {...allProps}
       />
     )
 
-    const buttonWithLink = href ? (<Link href={href} asChild>{button}</Link>) : (button)
-
     if (!tooltip) {
-      return buttonWithLink
+      return button
     }
 
     if (typeof tooltip === "string") {
@@ -584,7 +593,7 @@ const SidebarMenuButton = React.forwardRef<
 
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{buttonWithLink}</TooltipTrigger>
+        <TooltipTrigger asChild>{button}</TooltipTrigger>
         <TooltipContent
           side="right"
           align="center"
