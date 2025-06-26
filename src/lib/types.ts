@@ -77,7 +77,12 @@ export interface Shift {
   startTime: string;
   endTime: string;
   location: string;
+  requestedWorkers?: number;
+  assignedCount?: number;
   crewChief: Employee;
+  crewChiefId?: string;
+  crewChiefName?: string;
+  crewChiefAvatar?: string;
   assignedPersonnel: AssignedPersonnel[];
   status: 'Upcoming' | 'In Progress' | 'Completed' | 'Cancelled' | 'Pending Approval';
   timesheetStatus: TimesheetStatus;

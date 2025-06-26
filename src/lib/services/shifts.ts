@@ -4,17 +4,23 @@ import type { Shift, AssignedPersonnel, TimesheetStatus } from '../types';
 export async function getAllShifts(): Promise<Shift[]> {
   try {
     const result = await query(`
-      SELECT 
+      SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
+        s.requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
         c.name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
-        t.id as timesheet_id, t.status as timesheet_status
+        t.id as timesheet_id, t.status as timesheet_status,
+        COUNT(ap.id) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN clients c ON j.client_id = c.id
       JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
+      LEFT JOIN assigned_personnel ap ON s.id = ap.shift_id
+      GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
+               s.requested_workers, j.id, j.name, j.client_id, c.name,
+               cc.id, cc.name, cc.avatar, t.id, t.status
       ORDER BY s.date DESC, s.start_time
     `);
 
@@ -35,6 +41,8 @@ export async function getAllShifts(): Promise<Shift[]> {
         startTime: row.start_time,
         endTime: row.end_time,
         location: row.location,
+        requestedWorkers: parseInt(row.requested_workers) || 0,
+        assignedCount: parseInt(row.assigned_count) || 0,
         crewChief: {
           id: row.crew_chief_id,
           name: row.crew_chief_name,
@@ -43,6 +51,9 @@ export async function getAllShifts(): Promise<Shift[]> {
           location: '',
           avatar: row.crew_chief_avatar || '',
         },
+        crewChiefId: row.crew_chief_id,
+        crewChiefName: row.crew_chief_name,
+        crewChiefAvatar: row.crew_chief_avatar || '',
         assignedPersonnel,
         status: row.status,
         timesheetStatus: row.timesheet_status || 'Pending Finalization',
