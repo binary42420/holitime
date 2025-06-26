@@ -71,3 +71,11 @@ export function useShift(id: string) {
 export function useAnnouncements() {
   return useApi<{ announcements: any[] }>('/api/announcements');
 }
+
+export function useTimesheets() {
+  return useApi<{ timesheets: any[] }>('/api/timesheets');
+}
+
+export function useClients() {
+  return useApi<{ clients: any[] }>('/api/clients');
+}

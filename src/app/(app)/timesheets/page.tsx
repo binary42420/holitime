@@ -22,7 +22,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useUser } from "@/hooks/use-user"
-import { mockTimesheets, mockShifts } from "@/lib/mock-data"
+import { useTimesheets } from "@/hooks/use-api"
 import { format } from "date-fns"
 import type { Timesheet, TimesheetStatus } from "@/lib/types"
 import { ArrowRight, Check, FileSignature, VenetianMask } from "lucide-react"
@@ -30,28 +30,37 @@ import { ArrowRight, Check, FileSignature, VenetianMask } from "lucide-react"
 export default function TimesheetsPage() {
   const { user } = useUser();
   const router = useRouter();
+  const { data: timesheetsData, loading, error } = useTimesheets();
 
   useEffect(() => {
-    if (user.role === 'Employee') {
+    if (user?.role === 'Employee') {
       router.push('/dashboard');
     }
-  }, [user.role, router]);
+  }, [user?.role, router]);
 
   const timesheetsToDisplay = useMemo(() => {
-    if (user.role === 'Manager/Admin') {
-      return mockTimesheets;
-    }
-    if (user.role === 'Crew Chief') {
-      const crewChiefShiftIds = mockShifts
-        .filter(shift => shift.crewChief.id === user.id)
-        .map(shift => shift.id);
-      return mockTimesheets.filter(ts => crewChiefShiftIds.includes(ts.shiftId));
-    }
-    return [];
-  }, [user.role, user.id]);
+    if (!timesheetsData?.timesheets) return [];
+    return timesheetsData.timesheets;
+  }, [timesheetsData]);
 
-  if (user.role === 'Employee') {
+  if (user?.role === 'Employee') {
     return null; // Render nothing while redirecting
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground">Loading timesheets...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-destructive">Error loading timesheets: {error}</div>
+      </div>
+    );
   }
 
   const getTimesheetStatusVariant = (status: TimesheetStatus) => {
@@ -64,11 +73,10 @@ export default function TimesheetsPage() {
     }
   }
 
-  const renderAction = (timesheet: Timesheet) => {
-    const shift = mockShifts.find(s => s.id === timesheet.shiftId);
-    if (!shift) return null;
+  const renderAction = (timesheet: any) => {
+    if (!timesheet.shift) return null;
 
-    if (user.role === 'Manager/Admin') {
+    if (user?.role === 'Manager/Admin') {
       if (timesheet.status === 'Awaiting Manager Approval') {
         return <Button size="sm"><Check className="mr-2 h-4 w-4" />Approve</Button>
       }
@@ -124,17 +132,14 @@ export default function TimesheetsPage() {
                             </TableRow>
                             </TableHeader>
                             <TableBody>
-                            {timesheetsToDisplay.filter(t => t.status === status).map(timesheet => {
-                                const shift = mockShifts.find(s => s.id === timesheet.shiftId);
-                                if (!shift) return null;
-                                return (
+                            {timesheetsToDisplay.filter(t => t.status === status).map(timesheet => (
                                     <TableRow key={timesheet.id}>
-                                        <TableCell className="font-medium">{shift.client.name}</TableCell>
-                                        <TableCell>{format(new Date(shift.date), 'EEE, MMM d, yyyy')}</TableCell>
-                                        <TableCell className="hidden md:table-cell">{shift.crewChief.name}</TableCell>
+                                        <TableCell className="font-medium">{timesheet.shift.clientName}</TableCell>
+                                        <TableCell>{format(new Date(timesheet.shift.date), 'EEE, MMM d, yyyy')}</TableCell>
+                                        <TableCell className="hidden md:table-cell">{timesheet.shift.crewChiefName}</TableCell>
                                         <TableCell className="text-right">{renderAction(timesheet)}</TableCell>
                                     </TableRow>
-                                )
+                                ))
                             })}
                             </TableBody>
                         </Table>

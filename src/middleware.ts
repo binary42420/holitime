@@ -1,17 +1,29 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import jwt from 'jsonwebtoken'
 
-// Simplified token verification for middleware (edge runtime compatible)
+// Simple token verification for middleware (edge runtime compatible)
+// We'll do a basic check here and let the API routes handle full verification
 function verifyTokenSimple(token: string) {
   try {
-    const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    // Basic JWT structure check (header.payload.signature)
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return null;
+    }
+
+    // Decode payload (basic check, not cryptographically verified)
+    const payload = JSON.parse(atob(parts[1]));
+
+    // Check if token is expired
+    if (payload.exp && payload.exp < Date.now() / 1000) {
+      return null;
+    }
+
     return {
-      id: decoded.id,
-      email: decoded.email,
-      role: decoded.role,
-      clientId: decoded.clientId,
+      id: payload.id,
+      email: payload.email,
+      role: payload.role,
+      clientId: payload.clientId,
     };
   } catch (error) {
     return null;

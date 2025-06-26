@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { format } from "date-fns"
@@ -33,7 +33,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { MoreHorizontal, PlusCircle } from "lucide-react"
 import { useUser } from "@/hooks/use-user"
-import { mockClients, mockJobs, mockShifts } from "@/lib/mock-data"
+import { useClients } from "@/hooks/use-api"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,8 +46,9 @@ import { useToast } from "@/hooks/use-toast"
 export default function ClientsPage() {
   const { user } = useUser()
   const router = useRouter()
-  const canEdit = user.role === 'Manager/Admin'
+  const canEdit = user?.role === 'Manager/Admin'
   const { toast } = useToast()
+  const { data: clientsData, loading, error } = useClients()
 
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [newClient, setNewClient] = useState({
@@ -142,16 +143,20 @@ export default function ClientsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockClients.map(client => {
-                  const clientJobs = mockJobs.filter(j => j.clientId === client.id);
-                  const clientJobIds = clientJobs.map(j => j.id);
-                  const clientShifts = mockShifts
-                    .filter(s => clientJobIds.includes(s.jobId))
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-                  const mostRecentShift = clientShifts[0];
-
-                  return (
-                    <TableRow 
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={canEdit ? 5 : 4} className="text-center py-8">
+                    Loading clients...
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={canEdit ? 5 : 4} className="text-center py-8 text-destructive">
+                    Error loading clients: {error}
+                  </TableCell>
+                </TableRow>
+              ) : (clientsData?.clients || []).map(client => (
+                    <TableRow
                       key={client.id}
                       onClick={() => router.push(`/clients/${client.id}`)}
                       className="cursor-pointer"
@@ -160,15 +165,7 @@ export default function ClientsPage() {
                       <TableCell>{client.contactPerson}</TableCell>
                       <TableCell className="hidden md:table-cell">{client.contactEmail}</TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        {mostRecentShift ? (
-                          <Button variant="link" asChild className="p-0 h-auto font-normal">
-                            <Link href={`/shifts/${mostRecentShift.id}`}>
-                              {format(new Date(mostRecentShift.date), 'MMM d, yyyy')}
-                            </Link>
-                          </Button>
-                        ) : (
-                          <span className="text-muted-foreground">No shifts</span>
-                        )}
+                        <span className="text-muted-foreground">-</span>
                       </TableCell>
                       {canEdit && (
                         <TableCell onClick={(e) => e.stopPropagation()}>
@@ -191,7 +188,7 @@ export default function ClientsPage() {
                       )}
                     </TableRow>
                   )
-                })}
+                ))}
             </TableBody>
           </Table>
         </CardContent>

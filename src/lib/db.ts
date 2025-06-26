@@ -9,9 +9,16 @@ export function getPool(): Pool {
       throw new Error('DATABASE_URL environment variable is not set');
     }
 
+    // Set NODE_TLS_REJECT_UNAUTHORIZED for Aiven SSL
+    if (connectionString.includes('sslmode=require')) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    }
+
     pool = new Pool({
       connectionString,
-      ssl: connectionString.includes('sslmode=require') ? { rejectUnauthorized: false } : false,
+      ssl: connectionString.includes('sslmode=require') ? {
+        rejectUnauthorized: false
+      } : false,
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,

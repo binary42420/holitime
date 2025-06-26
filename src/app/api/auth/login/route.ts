@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const { user, token } = result;
 
     // Set HTTP-only cookie with the JWT token
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     cookieStore.set('auth-token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
