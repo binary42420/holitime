@@ -27,6 +27,7 @@ import {
 import { UserNav } from '@/components/user-nav'
 import { Button } from '@/components/ui/button'
 import { useUser } from '@/hooks/use-user'
+import { AuthGuard } from '@/components/auth-guard'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -37,10 +38,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return pathname.startsWith(path)
   }
 
-  const isClient = user.role === 'Client';
+  const isClient = user?.role === 'Client';
 
   return (
-    <SidebarProvider>
+    <AuthGuard>
+      <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center gap-2">
@@ -64,7 +66,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 Shifts
               </SidebarMenuButton>
             </SidebarMenuItem>
-            {(user.role === 'Manager/Admin' || user.role === 'Crew Chief') && (
+            {(user?.role === 'Manager/Admin' || user?.role === 'Crew Chief') && (
               <SidebarMenuItem>
                 <SidebarMenuButton href="/timesheets" tooltip="Timesheets" isActive={isActive('/timesheets')}>
                   <ClipboardCheck />
@@ -113,5 +115,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
     </SidebarProvider>
+    </AuthGuard>
   )
 }

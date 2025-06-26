@@ -1,30 +1,97 @@
 "use client"
 
-import type { User, UserRole } from '@/lib/types'
-import { mockUsers } from '@/lib/mock-data'
-import React, { createContext, useContext, useState, useMemo } from 'react'
+import type { User } from '@/lib/types'
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface UserContextType {
-  user: User
-  setUserRole: (role: UserRole) => void
+  user: User | null
+  isLoading: boolean
+  login: (email: string, password: string) => Promise<boolean>
+  logout: () => Promise<void>
+  refreshUser: () => Promise<void>
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const [currentUser, setCurrentUser] = useState<User>(mockUsers['Employee'])
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
-  const setUserRole = (role: UserRole) => {
-    const newUser = mockUsers[role]
-    if (newUser) {
-      setCurrentUser(newUser)
+  // Check for existing authentication on mount
+  useEffect(() => {
+    checkAuth()
+  }, [])
+
+  const checkAuth = async () => {
+    try {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCurrentUser(data.user)
+      } else {
+        setCurrentUser(null)
+      }
+    } catch (error) {
+      console.error('Auth check failed:', error)
+      setCurrentUser(null)
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setCurrentUser(data.user)
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error('Login failed:', error)
+      return false
+    }
+  }
+
+  const logout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.error('Logout failed:', error)
+    } finally {
+      setCurrentUser(null)
+      router.push('/login')
+    }
+  }
+
+  const refreshUser = async () => {
+    await checkAuth()
   }
 
   const value = useMemo(() => ({
     user: currentUser,
-    setUserRole,
-  }), [currentUser])
+    isLoading,
+    login,
+    logout,
+    refreshUser,
+  }), [currentUser, isLoading])
 
   return React.createElement(UserContext.Provider, { value }, children)
 }

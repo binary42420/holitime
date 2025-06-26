@@ -1,31 +1,36 @@
 "use client"
 
 import { useUser } from "@/hooks/use-user"
-import type { UserRole } from "@/lib/types"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ChevronsUpDown } from "lucide-react"
+import { ChevronsUpDown, LogOut, User } from "lucide-react"
 
 export function UserNav() {
-  const { user, setUserRole } = useUser()
+  const { user, logout } = useUser()
+
+  if (!user) {
+    return null
+  }
+
+  const handleLogout = async () => {
+    await logout()
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 gap-2 px-2">
            <Avatar className="h-8 w-8">
-            <AvatarImage src={`https://i.pravatar.cc/32?u=${user.id}`} alt={user.name} />
+            <AvatarImage src={user.avatar} alt={user.name} />
             <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-start">
@@ -46,16 +51,20 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-            <DropdownMenuLabel>Switch Role (Demo)</DropdownMenuLabel>
-            <DropdownMenuRadioGroup value={user.role} onValueChange={(role) => setUserRole(role as UserRole)}>
-                <DropdownMenuRadioItem value="Employee">Employee</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="Crew Chief">Crew Chief</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="Manager/Admin">Manager/Admin</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="Client">Client</DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
+          <DropdownMenuItem>
+            <User className="mr-2 h-4 w-4" />
+            Profile
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout}>
+          <LogOut className="mr-2 h-4 w-4" />
+          Log out
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
           Log out
         </DropdownMenuItem>
       </DropdownMenuContent>

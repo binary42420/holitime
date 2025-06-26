@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { useUser } from "@/hooks/use-user"
-import { mockShifts, mockJobs, mockClients } from "@/lib/mock-data"
+import { useShifts } from "@/hooks/use-api"
 import type { Shift, TimesheetStatus } from "@/lib/types"
 import { format, isWithinInterval, subHours, addHours } from "date-fns"
 
@@ -39,11 +39,12 @@ export default function ShiftsPage() {
   const { user } = useUser()
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { data: shiftsData, loading, error } = useShifts()
 
   const shiftsToDisplay = useMemo(() => {
-    let filteredShifts = user.role === 'Employee' 
-      ? mockShifts.filter(shift => shift.assignedPersonnel.some(p => p.employee.id === user.id))
-      : mockShifts;
+    if (!shiftsData?.shifts) return []
+
+    let filteredShifts = shiftsData.shifts
 
     const statusFilter = searchParams.get('status')
     if (statusFilter) {
@@ -61,7 +62,7 @@ export default function ShiftsPage() {
     }
     
     return filteredShifts
-  }, [user.id, user.role, searchParams])
+  }, [shiftsData, searchParams])
 
 
   const getStatusVariant = (status: Shift['status']) => {
@@ -107,6 +108,15 @@ export default function ShiftsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-muted-foreground">Loading shifts...</div>
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-destructive">Error loading shifts: {error}</div>
+            </div>
+          ) : (
           <Table>
             <TableHeader>
               <TableRow>
