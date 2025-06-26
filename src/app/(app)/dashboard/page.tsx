@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/hooks/use-user"
-import { useShifts } from "@/hooks/use-api"
+import { useShifts, useAnnouncements } from "@/hooks/use-api"
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, FileClock, CalendarDays, PlusCircle } from 'lucide-react'
 import { format } from 'date-fns'
@@ -30,6 +30,7 @@ import type { TimesheetStatus } from "@/lib/types"
 export default function DashboardPage() {
   const { user } = useUser();
   const { data: shiftsData, loading } = useShifts();
+  const { data: announcementsData } = useAnnouncements();
 
   const shiftsForUser = useMemo(() => {
     if (!shiftsData?.shifts) return [];
@@ -94,7 +95,7 @@ export default function DashboardPage() {
                         <TableCell>{shift.clientName || 'N/A'}</TableCell>
                         <TableCell className="hidden md:table-cell">{shift.startTime} - {shift.endTime}</TableCell>
                         <TableCell className="text-right">
-                          <Link href={user.role === 'Employee' || shift.timesheetStatus === 'Pending Finalization' ? `/shifts/${shift.id}` : `/timesheets/${shift.timesheetId}/approve`}>
+                          <Link href={user?.role === 'Employee' || shift.timesheetStatus === 'Pending Finalization' ? `/shifts/${shift.id}` : `/timesheets/${shift.timesheetId}/approve`}>
                             <Badge variant={getTimesheetStatusVariant(shift.timesheetStatus)} className="cursor-pointer hover:opacity-90">{shift.timesheetStatus}</Badge>
                           </Link>
                         </TableCell>
@@ -113,12 +114,12 @@ export default function DashboardPage() {
             <CardDescription>Common tasks at your fingertips.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-             { (user.role === 'Employee' || user.role === 'Crew Chief' || user.role === 'Client') && (
+             { (user?.role === 'Employee' || user?.role === 'Crew Chief' || user?.role === 'Client') && (
               <Button asChild variant="outline" className="w-full justify-start">
                 <Link href="/shifts?status=Completed"><CheckCircle className="mr-2 h-4 w-4" /> View Completed Shifts</Link>
               </Button>
             )}
-            { user.role === 'Manager/Admin' && (
+            { user?.role === 'Manager/Admin' && (
               <>
                 <Button asChild variant="outline" className="w-full justify-start">
                   <Link href="/timesheets"><FileClock className="mr-2 h-4 w-4" /> Pending Timesheets</Link>
@@ -128,7 +129,7 @@ export default function DashboardPage() {
                 </Button>
               </>
             )}
-            { user.role === 'Manager/Admin' && (
+            { user?.role === 'Manager/Admin' && (
               <Button asChild variant="outline" className="w-full justify-start">
                 <Link href="/shifts"><PlusCircle className="mr-2 h-4 w-4" /> Create New Shift</Link>
               </Button>
@@ -136,7 +137,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {user.role !== 'Employee' && user.role !== 'Client' && (
+        {user?.role !== 'Employee' && user?.role !== 'Client' && (
           <Card>
             <CardHeader>
               <CardTitle>Team Overview</CardTitle>
@@ -164,13 +165,13 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        <Card className={(user.role === 'Employee' || user.role === 'Client') ? 'lg:col-span-2' : ''}>
+        <Card className={(user?.role === 'Employee' || user?.role === 'Client') ? 'lg:col-span-2' : ''}>
           <CardHeader>
             <CardTitle>Company Announcements</CardTitle>
             <CardDescription>Latest news and updates.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mockAnnouncements.map((announcement) => (
+            {(announcementsData?.announcements || []).map((announcement) => (
               <div key={announcement.id} className="flex items-start gap-4">
                 <CheckCircle className="h-5 w-5 text-primary mt-1" />
                 <div>

@@ -67,3 +67,7 @@ export function useShifts() {
 export function useShift(id: string) {
   return useApi<{ shift: any }>(`/api/shifts/${id}`, [id]);
 }
+
+export function useAnnouncements() {
+  return useApi<{ announcements: any[] }>('/api/announcements');
+}

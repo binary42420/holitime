@@ -65,9 +65,3 @@ export function UserNav() {
     </DropdownMenu>
   )
 }
-          Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}

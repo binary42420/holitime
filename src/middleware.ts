@@ -1,6 +1,22 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifyToken } from './lib/auth'
+import jwt from 'jsonwebtoken'
+
+// Simplified token verification for middleware (edge runtime compatible)
+function verifyTokenSimple(token: string) {
+  try {
+    const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    return {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+      clientId: decoded.clientId,
+    };
+  } catch (error) {
+    return null;
+  }
+}
 
 // Define protected routes and their required roles
 const protectedRoutes = {
@@ -46,7 +62,7 @@ export function middleware(request: NextRequest) {
   }
 
   // Verify token
-  const user = verifyToken(token)
+  const user = verifyTokenSimple(token)
   if (!user) {
     // Clear invalid token and redirect to login
     const response = pathname.startsWith('/api/')
