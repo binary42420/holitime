@@ -79,3 +79,15 @@ export function useTimesheets() {
 export function useClients() {
   return useApi<{ clients: any[] }>('/api/clients');
 }
+
+export function useJobs() {
+  return useApi<{ jobs: any[] }>('/api/jobs');
+}
+
+export function useJob(id: string) {
+  return useApi<{ job: any }>(`/api/jobs/${id}`, [id]);
+}
+
+export function useClientJobs(clientId: string) {
+  return useApi<{ jobs: any[] }>(`/api/clients/${clientId}/jobs`, [clientId]);
+}

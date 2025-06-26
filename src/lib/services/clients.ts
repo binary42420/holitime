@@ -4,9 +4,40 @@ import type { Client } from '../types';
 export async function getAllClients(): Promise<Client[]> {
   try {
     const result = await query(`
-      SELECT id, name, address, contact_person, contact_email, contact_phone, created_at, updated_at
-      FROM clients
-      ORDER BY name
+      SELECT
+        c.id, c.name, c.address, c.contact_person, c.contact_email, c.contact_phone,
+        -- Most recent completed shift
+        completed_shift.shift_id as completed_shift_id,
+        completed_shift.shift_date as completed_shift_date,
+        completed_shift.job_name as completed_job_name,
+        -- Most recent upcoming shift
+        upcoming_shift.shift_id as upcoming_shift_id,
+        upcoming_shift.shift_date as upcoming_shift_date,
+        upcoming_shift.job_name as upcoming_job_name
+      FROM clients c
+      LEFT JOIN (
+        SELECT DISTINCT ON (j.client_id)
+          j.client_id,
+          s.id as shift_id,
+          s.date as shift_date,
+          j.name as job_name
+        FROM shifts s
+        JOIN jobs j ON s.job_id = j.id
+        WHERE s.status = 'Completed'
+        ORDER BY j.client_id, s.date DESC, s.start_time DESC
+      ) completed_shift ON c.id = completed_shift.client_id
+      LEFT JOIN (
+        SELECT DISTINCT ON (j.client_id)
+          j.client_id,
+          s.id as shift_id,
+          s.date as shift_date,
+          j.name as job_name
+        FROM shifts s
+        JOIN jobs j ON s.job_id = j.id
+        WHERE s.status IN ('Upcoming', 'In Progress')
+        ORDER BY j.client_id, s.date ASC, s.start_time ASC
+      ) upcoming_shift ON c.id = upcoming_shift.client_id
+      ORDER BY c.name
     `);
 
     return result.rows.map(row => ({
@@ -18,6 +49,16 @@ export async function getAllClients(): Promise<Client[]> {
       contactPhone: row.contact_phone,
       authorizedCrewChiefIds: [], // Will be populated separately if needed
       contactUserIds: [], // Will be populated separately if needed
+      mostRecentCompletedShift: row.completed_shift_id ? {
+        id: row.completed_shift_id,
+        date: row.completed_shift_date,
+        jobName: row.completed_job_name,
+      } : undefined,
+      mostRecentUpcomingShift: row.upcoming_shift_id ? {
+        id: row.upcoming_shift_id,
+        date: row.upcoming_shift_date,
+        jobName: row.upcoming_job_name,
+      } : undefined,
     }));
   } catch (error) {
     console.error('Error getting all clients:', error);

@@ -37,12 +37,15 @@ const protectedRoutes = {
   '/timesheets': ['Crew Chief', 'Manager/Admin'],
   '/staffing': ['Manager/Admin'],
   '/clients': ['Manager/Admin'],
+  '/jobs': ['Manager/Admin', 'Crew Chief'],
   '/documents': ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'],
   '/api/shifts': ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'],
   '/api/timesheets': ['Crew Chief', 'Manager/Admin'],
   '/api/clients': ['Manager/Admin'],
+  '/api/jobs': ['Manager/Admin', 'Crew Chief'],
   '/api/employees': ['Manager/Admin'],
   '/api/documents': ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'],
+  '/api/announcements': ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'],
 }
 
 export function middleware(request: NextRequest) {

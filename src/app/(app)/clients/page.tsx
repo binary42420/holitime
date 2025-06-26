@@ -2,45 +2,15 @@
 
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import { format } from "date-fns"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-  SheetFooter,
-} from "@/components/ui/sheet"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { MoreHorizontal, PlusCircle } from "lucide-react"
+import Link from "next/link"
 import { useUser } from "@/hooks/use-user"
 import { useClients } from "@/hooks/use-api"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { Plus, Building2, Calendar, ExternalLink } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 export default function ClientsPage() {
@@ -50,86 +20,48 @@ export default function ClientsPage() {
   const { toast } = useToast()
   const { data: clientsData, loading, error } = useClients()
 
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [newClient, setNewClient] = useState({
-    name: '',
-    address: '',
-    contactPerson: '',
-    contactEmail: '',
-    contactPhone: '',
-  })
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground">Loading clients...</div>
+      </div>
+    )
+  }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setNewClient(prev => ({ ...prev, [id]: value }));
-  };
-
-  const handleCreateClient = () => {
-    // In a real app, you would send this data to an API
-    // For this demo, we'll just show a success message.
-    toast({
-      title: "Client Created",
-      description: `${newClient.name} has been successfully added to the system.`,
-    });
-    // Reset form and close sheet
-    setNewClient({ name: '', address: '', contactPerson: '', contactEmail: '', contactPhone: '' });
-    setIsSheetOpen(false);
-  };
+  if (error) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-destructive">Error loading clients: {error}</div>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold font-headline">Clients</h1>
+        <div>
+          <h1 className="text-3xl font-bold font-headline">Clients</h1>
+          <p className="text-muted-foreground">
+            Manage client companies and view their job history
+          </p>
+        </div>
         {canEdit && (
-          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetTrigger asChild>
-              <Button size="sm" className="gap-1">
-                <PlusCircle className="h-4 w-4" />
-                New Client
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Create New Client</SheetTitle>
-                <SheetDescription>
-                  Add a new client company to the system. Click save when you're done.
-                </SheetDescription>
-              </SheetHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">Company Name</Label>
-                  <Input id="name" value={newClient.name} onChange={handleInputChange} className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="address" className="text-right">Address</Label>
-                  <Input id="address" value={newClient.address} onChange={handleInputChange} className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="contactPerson" className="text-right">Contact Person</Label>
-                  <Input id="contactPerson" value={newClient.contactPerson} onChange={handleInputChange} className="col-span-3" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="contactEmail" className="text-right">Contact Email</Label>
-                  <Input id="contactEmail" type="email" value={newClient.contactEmail} onChange={handleInputChange} className="col-span-3" />
-                </div>
-                 <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="contactPhone" className="text-right">Contact Phone</Label>
-                  <Input id="contactPhone" type="tel" value={newClient.contactPhone} onChange={handleInputChange} className="col-span-3" />
-                </div>
-              </div>
-              <SheetFooter>
-                <Button variant="outline" onClick={() => setIsSheetOpen(false)}>Cancel</Button>
-                <Button onClick={handleCreateClient}>Save Client</Button>
-              </SheetFooter>
-            </SheetContent>
-          </Sheet>
+          <Button onClick={() => router.push('/clients/new')}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Client
+          </Button>
         )}
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Client List</CardTitle>
-          <CardDescription>Manage your client companies.</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5" />
+            Client Companies
+          </CardTitle>
+          <CardDescription>
+            Overview of all client companies with recent shift activity
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -137,58 +69,67 @@ export default function ClientsPage() {
               <TableRow>
                 <TableHead>Company Name</TableHead>
                 <TableHead>Contact Person</TableHead>
-                <TableHead className="hidden md:table-cell">Contact Email</TableHead>
-                <TableHead>Recent Shift</TableHead>
-                {canEdit && <TableHead><span className="sr-only">Actions</span></TableHead>}
+                <TableHead className="hidden md:table-cell">Email</TableHead>
+                <TableHead>Recent Completed</TableHead>
+                <TableHead>Upcoming Shift</TableHead>
+                {canEdit && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={canEdit ? 5 : 4} className="text-center py-8">
-                    Loading clients...
+              {(clientsData?.clients || []).map(client => (
+                <TableRow
+                  key={client.id}
+                  onClick={() => router.push(`/clients/${client.id}`)}
+                  className="cursor-pointer hover:bg-muted/50"
+                >
+                  <TableCell className="font-medium">{client.name}</TableCell>
+                  <TableCell>{client.contactPerson}</TableCell>
+                  <TableCell className="hidden md:table-cell">{client.contactEmail}</TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {client.mostRecentCompletedShift ? (
+                      <div className="flex flex-col gap-1">
+                        <Button variant="link" asChild className="p-0 h-auto font-normal justify-start">
+                          <Link href={`/shifts/${client.mostRecentCompletedShift.id}`}>
+                            <Calendar className="mr-1 h-3 w-3" />
+                            {format(new Date(client.mostRecentCompletedShift.date), 'MMM d, yyyy')}
+                          </Link>
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          {client.mostRecentCompletedShift.jobName}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">No completed shifts</span>
+                    )}
                   </TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan={canEdit ? 5 : 4} className="text-center py-8 text-destructive">
-                    Error loading clients: {error}
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    {client.mostRecentUpcomingShift ? (
+                      <div className="flex flex-col gap-1">
+                        <Button variant="link" asChild className="p-0 h-auto font-normal justify-start">
+                          <Link href={`/shifts/${client.mostRecentUpcomingShift.id}`}>
+                            <Calendar className="mr-1 h-3 w-3" />
+                            {format(new Date(client.mostRecentUpcomingShift.date), 'MMM d, yyyy')}
+                          </Link>
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          {client.mostRecentUpcomingShift.jobName}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">No upcoming shifts</span>
+                    )}
                   </TableCell>
+                  {canEdit && (
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link href={`/clients/${client.id}`}>
+                          <ExternalLink className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
-              ) : (clientsData?.clients || []).map(client => (
-                    <TableRow
-                      key={client.id}
-                      onClick={() => router.push(`/clients/${client.id}`)}
-                      className="cursor-pointer"
-                    >
-                      <TableCell className="font-medium">{client.name}</TableCell>
-                      <TableCell>{client.contactPerson}</TableCell>
-                      <TableCell className="hidden md:table-cell">{client.contactEmail}</TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        <span className="text-muted-foreground">-</span>
-                      </TableCell>
-                      {canEdit && (
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button aria-haspopup="true" size="icon" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Toggle menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={() => router.push(`/clients/${client.id}`)}>
-                                Edit / View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  )
-                ))}
+              ))}
             </TableBody>
           </Table>
         </CardContent>

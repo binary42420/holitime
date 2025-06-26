@@ -111,8 +111,9 @@ CREATE TABLE time_entries (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     assigned_personnel_id UUID NOT NULL REFERENCES assigned_personnel(id) ON DELETE CASCADE,
     entry_number INTEGER NOT NULL DEFAULT 1, -- 1, 2, 3 for multiple entries per day
-    clock_in TIME,
-    clock_out TIME,
+    clock_in TIMESTAMP WITH TIME ZONE,
+    clock_out TIMESTAMP WITH TIME ZONE,
+    is_active BOOLEAN DEFAULT false, -- true if currently clocked in
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(assigned_personnel_id, entry_number)
@@ -160,6 +161,24 @@ CREATE TABLE client_user_links (
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     UNIQUE(client_id, user_id)
+);
+
+-- Timesheets table (for approval workflow)
+CREATE TABLE timesheets (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    shift_id UUID NOT NULL REFERENCES shifts(id) ON DELETE CASCADE,
+    status VARCHAR(50) DEFAULT 'draft' CHECK (status IN ('draft', 'pending_client_approval', 'pending_manager_approval', 'completed', 'rejected')),
+    submitted_by UUID REFERENCES users(id),
+    submitted_at TIMESTAMP WITH TIME ZONE,
+    client_approved_by UUID REFERENCES users(id),
+    client_approved_at TIMESTAMP WITH TIME ZONE,
+    client_signature TEXT, -- Base64 encoded signature
+    manager_approved_by UUID REFERENCES users(id),
+    manager_approved_at TIMESTAMP WITH TIME ZONE,
+    manager_signature TEXT, -- Base64 encoded signature
+    rejection_reason TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create indexes for better performance

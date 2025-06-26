@@ -11,20 +11,35 @@ export interface User {
 
 export interface Client {
   id: string;
-  name:string;
+  name: string;
   address: string;
   contactPerson: string;
   contactEmail: string;
   contactPhone: string;
   authorizedCrewChiefIds?: string[];
   contactUserIds?: string[]; // To link a client to user accounts
+  mostRecentCompletedShift?: {
+    id: string;
+    date: string;
+    jobName: string;
+  };
+  mostRecentUpcomingShift?: {
+    id: string;
+    date: string;
+    jobName: string;
+  };
 }
 
 export interface Job {
   id: string;
   name: string;
+  description?: string;
   clientId: string;
-  description: string;
+  clientName?: string;
+  shiftCount?: number;
+  startDate?: string;
+  endDate?: string;
+  status?: 'Planning' | 'Active' | 'Completed';
   authorizedCrewChiefIds?: string[];
 }
 
