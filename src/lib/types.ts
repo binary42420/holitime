@@ -55,6 +55,8 @@ export interface Shift {
   id: string;
   timesheetId: string;
   jobId: string;
+  jobName?: string;
+  clientName?: string;
   authorizedCrewChiefIds: string[];
   date: string;
   startTime: string;

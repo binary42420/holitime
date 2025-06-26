@@ -132,16 +132,13 @@ export default function ShiftsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {shiftsToDisplay.map((shift) => {
-                const job = mockJobs.find(j => j.id === shift.jobId);
-                const client = job ? mockClients.find(c => c.id === job.clientId) : undefined;
-                return (
-                  <TableRow 
+              {shiftsToDisplay.map((shift) => (
+                  <TableRow
                     key={shift.id}
                     onClick={() => router.push(`/shifts/${shift.id}`)}
                     className="cursor-pointer"
                   >
-                    <TableCell className="font-medium">{client?.name || 'N/A'}</TableCell>
+                    <TableCell className="font-medium">{shift.clientName || 'N/A'}</TableCell>
                     <TableCell>{format(new Date(shift.date), 'EEE, MMM d')}</TableCell>
                     <TableCell className="hidden md:table-cell">{shift.crewChief.name}</TableCell>
                     <TableCell>
@@ -167,10 +164,10 @@ export default function ShiftsPage() {
                       </TableCell>
                     )}
                   </TableRow>
-                )
-              })}
+              ))}
             </TableBody>
           </Table>
+          )}
         </CardContent>
       </Card>
     </div>

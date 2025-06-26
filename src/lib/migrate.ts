@@ -128,14 +128,40 @@ export async function seedDatabase() {
     }
 
     // Create jobs
+    let jobIds: Record<string, string> = {};
     if (constructoId && eventMakersId) {
-      await query(`
+      const jobResult = await query(`
         INSERT INTO jobs (name, client_id, description)
         VALUES
           ('Downtown Core Project', $1, 'Major construction project in the city center.'),
           ('Suburban Office Complex', $1, 'Renovation of a 3-story office building.'),
           ('City Park Festival', $2, 'Annual music and arts festival setup and teardown.')
+        RETURNING id, name
       `, [constructoId, eventMakersId]);
+
+      jobResult.rows.forEach(row => {
+        jobIds[row.name] = row.id;
+      });
+    }
+
+    // Create some sample shifts
+    if (Object.keys(jobIds).length > 0) {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      await query(`
+        INSERT INTO shifts (job_id, crew_chief_id, date, start_time, end_time, location, status)
+        VALUES
+          ($1, $2, $3, '08:00', '16:00', 'Downtown Construction Site', 'Upcoming'),
+          ($4, $2, $5, '09:00', '17:00', 'Suburban Office Building', 'Upcoming')
+      `, [
+        jobIds['Downtown Core Project'],
+        userIds['maria.g@handson.com'],
+        tomorrow.toISOString().split('T')[0],
+        jobIds['Suburban Office Complex'],
+        today.toISOString().split('T')[0]
+      ]);
     }
 
     // Create announcements

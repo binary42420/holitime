@@ -20,8 +20,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { mockShifts, mockAnnouncements, mockEmployees, mockJobs, mockClients } from "@/lib/mock-data"
 import { useUser } from "@/hooks/use-user"
+import { useShifts } from "@/hooks/use-api"
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, FileClock, CalendarDays, PlusCircle } from 'lucide-react'
 import { format } from 'date-fns'
@@ -29,20 +29,16 @@ import type { TimesheetStatus } from "@/lib/types"
 
 export default function DashboardPage() {
   const { user } = useUser();
+  const { data: shiftsData, loading } = useShifts();
 
   const shiftsForUser = useMemo(() => {
-    let allShifts = mockShifts;
-    if (user.role === 'Client' && user.clientId) {
-        const clientJobIds = mockJobs.filter(j => j.clientId === user.clientId).map(j => j.id);
-        allShifts = mockShifts.filter(s => clientJobIds.includes(s.jobId));
-    } else if (user.role === 'Employee') {
-        allShifts = mockShifts.filter(s => s.assignedPersonnel.some(p => p.employee.id === user.id));
-    }
-    return allShifts;
-  }, [user]);
+    if (!shiftsData?.shifts) return [];
+    return shiftsData.shifts;
+  }, [shiftsData]);
 
   const upcomingShifts = shiftsForUser.filter(shift => new Date(shift.date) >= new Date()).slice(0, 3);
-  const teamMembers = mockEmployees.slice(0, 5);
+  // For now, we'll hide the team members section since we don't have an employees API yet
+  const teamMembers: any[] = [];
 
    const getTimesheetStatusVariant = (status: TimesheetStatus) => {
     switch (status) {
@@ -74,6 +70,11 @@ export default function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-muted-foreground">Loading shifts...</div>
+              </div>
+            ) : (
              <Table>
               <TableHeader>
                 <TableRow>
@@ -85,14 +86,12 @@ export default function DashboardPage() {
               </TableHeader>
               <TableBody>
                 {upcomingShifts.map((shift) => {
-                    const job = mockJobs.find(j => j.id === shift.jobId);
-                    const client = job ? mockClients.find(c => c.id === job.clientId) : undefined;
                     return (
                       <TableRow key={shift.id}>
                         <TableCell>
                           <Link href={`/shifts/${shift.id}`} className="font-medium hover:underline">{format(new Date(shift.date), 'EEE, MMM d')}</Link>
                         </TableCell>
-                        <TableCell>{client?.name || 'N/A'}</TableCell>
+                        <TableCell>{shift.clientName || 'N/A'}</TableCell>
                         <TableCell className="hidden md:table-cell">{shift.startTime} - {shift.endTime}</TableCell>
                         <TableCell className="text-right">
                           <Link href={user.role === 'Employee' || shift.timesheetStatus === 'Pending Finalization' ? `/shifts/${shift.id}` : `/timesheets/${shift.timesheetId}/approve`}>
@@ -104,6 +103,7 @@ export default function DashboardPage() {
                 })}
               </TableBody>
             </Table>
+            )}
           </CardContent>
         </Card>
 
