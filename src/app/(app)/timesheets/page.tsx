@@ -26,11 +26,42 @@ import { useTimesheets } from "@/hooks/use-api"
 import { format } from "date-fns"
 import type { Timesheet, TimesheetStatus } from "@/lib/types"
 import { ArrowRight, Check, FileSignature, VenetianMask } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 export default function TimesheetsPage() {
   const { user } = useUser();
   const router = useRouter();
-  const { data: timesheetsData, loading, error } = useTimesheets();
+  const { toast } = useToast();
+  const { data: timesheetsData, loading, error, refetch } = useTimesheets();
+
+  const handleApproveTimesheet = async (timesheetId: string) => {
+    try {
+      const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'approve' }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to approve timesheet')
+      }
+
+      toast({
+        title: "Timesheet Approved",
+        description: "The timesheet has been approved successfully.",
+      })
+
+      refetch()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve timesheet. Please try again.",
+        variant: "destructive",
+      })
+    }
+  };
 
   useEffect(() => {
     if (user?.role === 'Employee') {
@@ -78,7 +109,7 @@ export default function TimesheetsPage() {
 
     if (user?.role === 'Manager/Admin') {
       if (timesheet.status === 'Awaiting Manager Approval') {
-        return <Button size="sm"><Check className="mr-2 h-4 w-4" />Approve</Button>
+        return <Button size="sm" onClick={() => handleApproveTimesheet(timesheet.id)}><Check className="mr-2 h-4 w-4" />Approve</Button>
       }
       if (timesheet.status === 'Awaiting Client Approval') {
         return <Button size="sm" asChild><Link href={`/timesheets/${timesheet.id}/approve`}><FileSignature className="mr-2 h-4 w-4" />Collect Signature</Link></Button>

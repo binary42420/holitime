@@ -14,9 +14,9 @@ import { useToast } from '@/hooks/use-toast'
 import { ArrowLeft, Save } from 'lucide-react'
 
 interface JobShiftPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 interface User {
@@ -26,16 +26,17 @@ interface User {
 }
 
 export default function NewJobShiftPage({ params }: JobShiftPageProps) {
+  const { id } = use(params)
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   
-  const { data: jobData } = useApi<{ job: any }>(`/api/jobs/${params.id}`)
+  const { data: jobData } = useApi<{ job: any }>(`/api/jobs/${id}`)
   const { data: usersData } = useApi<{ users: User[] }>('/api/users')
-  
+
   const [formData, setFormData] = useState({
-    jobId: params.id,
+    jobId: id,
     date: '',
     startTime: '',
     endTime: '',
@@ -129,7 +130,7 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push(`/jobs/${params.id}`)}
+          onClick={() => router.push(`/jobs/${id}`)}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -241,7 +242,7 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push(`/jobs/${params.id}`)}
+                onClick={() => router.push(`/jobs/${id}`)}
                 disabled={loading}
               >
                 Cancel

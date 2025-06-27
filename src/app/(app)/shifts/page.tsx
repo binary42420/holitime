@@ -59,6 +59,80 @@ export default function ShiftsPage() {
 
   const canManage = user?.role === 'Manager/Admin' || user?.role === 'Crew Chief'
 
+  const handleDeleteShift = async (shiftId: string, shiftName: string) => {
+    if (!confirm(`Are you sure you want to delete the shift "${shiftName}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete shift')
+      }
+
+      toast({
+        title: "Shift Deleted",
+        description: "The shift has been deleted successfully.",
+      })
+
+      // Refresh the shifts data
+      refetch()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete shift. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDuplicateShift = async (shift: any) => {
+    try {
+      const duplicateData = {
+        jobId: shift.jobId,
+        date: shift.date,
+        startTime: shift.startTime,
+        endTime: shift.endTime,
+        requestedWorkers: shift.requestedWorkers,
+        crewChiefId: shift.crewChiefId,
+        location: shift.location,
+        description: shift.description,
+        requirements: shift.requirements,
+        notes: `Duplicate of shift from ${shift.date}`,
+      }
+
+      const response = await fetch('/api/shifts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(duplicateData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to duplicate shift')
+      }
+
+      const result = await response.json()
+
+      toast({
+        title: "Shift Duplicated",
+        description: "The shift has been duplicated successfully.",
+      })
+
+      router.push(`/shifts/${result.shift.id}/edit`)
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to duplicate shift. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const getDateCategory = (date: string) => {
     const shiftDate = new Date(date)
     if (isToday(shiftDate)) return 'today'
@@ -325,8 +399,15 @@ export default function ShiftsPage() {
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Shift
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDuplicateShift(shift)}>
+                            <Copy className="mr-2 h-4 w-4" />
+                            Duplicate Shift
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
+                          <DropdownMenuItem
+                            className="text-destructive"
+                            onClick={() => handleDeleteShift(shift.id, shift.jobName)}
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete Shift
                           </DropdownMenuItem>

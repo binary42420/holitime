@@ -12,6 +12,7 @@ import {
   Hand,
   LayoutDashboard,
   PanelLeft,
+  Settings,
 } from 'lucide-react'
 
 import {
@@ -93,6 +94,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton href="/staffing" tooltip="AI Staffing" isActive={isActive('/staffing')}>
                   <BrainCircuit />
                   Smart Staffing
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+            {user?.role === 'Manager/Admin' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton href="/admin" tooltip="Admin" isActive={isActive('/admin')}>
+                  <Settings />
+                  Admin
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}

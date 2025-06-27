@@ -3,8 +3,8 @@
 import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { notFound, useRouter } from "next/navigation"
-import { useUser } from "@/hooks/useUser"
-import { useApi } from "@/hooks/useApi"
+import { useUser } from "@/hooks/use-user"
+import { useApi } from "@/hooks/use-api"
 import { useToast } from "@/hooks/use-toast"
 import { format, differenceInMinutes } from 'date-fns'
 

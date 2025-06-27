@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/use-user'
 import { useApi } from '@/hooks/use-api'
@@ -13,12 +13,13 @@ import { useToast } from '@/hooks/use-toast'
 import { ArrowLeft, Save } from 'lucide-react'
 
 interface ClientJobPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export default function NewClientJobPage({ params }: ClientJobPageProps) {
+  const { id } = use(params)
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
