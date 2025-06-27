@@ -79,18 +79,38 @@ export async function getClientById(id: string): Promise<Client | null> {
     }
 
     const row = result.rows[0];
-    
+
     // Get authorized crew chiefs
     const crewChiefsResult = await query(`
       SELECT crew_chief_id FROM job_authorizations ja
       JOIN jobs j ON ja.job_id = j.id
       WHERE j.client_id = $1
     `, [id]);
-    
+
     // Get contact user IDs
     const contactUsersResult = await query(`
       SELECT user_id FROM client_user_links
       WHERE client_id = $1
+    `, [id]);
+
+    // Get most recent completed shift
+    const recentCompletedResult = await query(`
+      SELECT s.id, s.date, j.name as job_name
+      FROM shifts s
+      JOIN jobs j ON s.job_id = j.id
+      WHERE j.client_id = $1 AND s.status = 'Completed'
+      ORDER BY s.date DESC, s.start_time DESC
+      LIMIT 1
+    `, [id]);
+
+    // Get next upcoming shift
+    const upcomingResult = await query(`
+      SELECT s.id, s.date, j.name as job_name
+      FROM shifts s
+      JOIN jobs j ON s.job_id = j.id
+      WHERE j.client_id = $1 AND s.status = 'Upcoming' AND s.date >= CURRENT_DATE
+      ORDER BY s.date ASC, s.start_time ASC
+      LIMIT 1
     `, [id]);
 
     return {
@@ -102,6 +122,16 @@ export async function getClientById(id: string): Promise<Client | null> {
       contactPhone: row.contact_phone,
       authorizedCrewChiefIds: crewChiefsResult.rows.map(r => r.crew_chief_id),
       contactUserIds: contactUsersResult.rows.map(r => r.user_id),
+      mostRecentCompletedShift: recentCompletedResult.rows.length > 0 ? {
+        id: recentCompletedResult.rows[0].id,
+        date: recentCompletedResult.rows[0].date,
+        jobName: recentCompletedResult.rows[0].job_name,
+      } : undefined,
+      mostRecentUpcomingShift: upcomingResult.rows.length > 0 ? {
+        id: upcomingResult.rows[0].id,
+        date: upcomingResult.rows[0].date,
+        jobName: upcomingResult.rows[0].job_name,
+      } : undefined,
     };
   } catch (error) {
     console.error('Error getting client by ID:', error);
@@ -197,7 +227,7 @@ export async function updateClient(id: string, clientData: Partial<Omit<Client, 
 export async function deleteClient(id: string): Promise<boolean> {
   try {
     const result = await query('DELETE FROM clients WHERE id = $1', [id]);
-    return result.rowCount > 0;
+    return (result.rowCount ?? 0) > 0;
   } catch (error) {
     console.error('Error deleting client:', error);
     return false;

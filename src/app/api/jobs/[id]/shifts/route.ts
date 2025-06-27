@@ -4,7 +4,7 @@ import { query } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -31,7 +31,9 @@ export async function GET(
       GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
                j.name, c.name, cc.name, cc.avatar
       ORDER BY s.date ASC, s.start_time ASC
-    `, [params.id]);
+
+    const { id } = await params;
+    `, [id]);
 
     const shifts = result.rows.map(row => ({
       id: row.id,

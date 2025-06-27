@@ -4,7 +4,7 @@ import { query } from '@/lib/db';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -23,10 +23,12 @@ export async function POST(
       );
     }
 
+    const { id } = await params;
+
     // Check if shift exists
     const shiftResult = await query(`
       SELECT id, status FROM shifts WHERE id = $1
-    `, [params.id]);
+    `, [id]);
 
     if (shiftResult.rows.length === 0) {
       return NextResponse.json(

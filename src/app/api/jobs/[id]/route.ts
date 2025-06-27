@@ -4,7 +4,7 @@ import { getJobById, updateJob, deleteJob } from '@/lib/services/jobs';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -15,7 +15,8 @@ export async function GET(
       );
     }
 
-    const job = await getJobById(params.id);
+    const { id } = await params;
+    const job = await getJobById(id);
     if (!job) {
       return NextResponse.json(
         { error: 'Job not found' },
@@ -38,7 +39,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -60,7 +61,8 @@ export async function PUT(
     const body = await request.json();
     const { name, description, clientId } = body;
 
-    const job = await updateJob(params.id, {
+    const { id } = await params;
+    const job = await updateJob(id, {
       name,
       description,
       clientId,
@@ -88,7 +90,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -107,7 +109,8 @@ export async function DELETE(
       );
     }
 
-    const success = await deleteJob(params.id);
+    const { id } = await params;
+    const success = await deleteJob(id);
     if (!success) {
       return NextResponse.json(
         { error: 'Failed to delete job' },

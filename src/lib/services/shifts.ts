@@ -3,10 +3,18 @@ import type { Shift, AssignedPersonnel, TimesheetStatus } from '../types';
 
 export async function getAllShifts(): Promise<Shift[]> {
   try {
+    // First, try to add the column if it doesn't exist
+    try {
+      await query(`ALTER TABLE shifts ADD COLUMN IF NOT EXISTS requested_workers INTEGER DEFAULT 1;`);
+      await query(`UPDATE shifts SET requested_workers = 1 WHERE requested_workers IS NULL;`);
+    } catch (error) {
+      console.log('Column may already exist or permission issue:', error instanceof Error ? error.message : 'Unknown error');
+    }
+
     const result = await query(`
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-        s.requested_workers,
+        COALESCE(s.requested_workers, 1) as requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
         c.name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
@@ -41,7 +49,7 @@ export async function getAllShifts(): Promise<Shift[]> {
         startTime: row.start_time,
         endTime: row.end_time,
         location: row.location,
-        requestedWorkers: parseInt(row.requested_workers) || 0,
+        requestedWorkers: parseInt(row.requested_workers) || 1,
         assignedCount: parseInt(row.assigned_count) || 0,
         crewChief: {
           id: row.crew_chief_id,

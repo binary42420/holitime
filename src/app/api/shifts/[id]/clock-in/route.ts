@@ -4,7 +4,7 @@ import { query } from '@/lib/db';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -33,11 +33,13 @@ export async function POST(
       );
     }
 
+    const { id } = await params;
+
     // Get the assigned personnel record
     const assignedPersonnelResult = await query(`
-      SELECT id, employee_id FROM assigned_personnel 
+      SELECT id, employee_id FROM assigned_personnel
       WHERE id = $1 AND shift_id = $2
-    `, [workerId, params.id]);
+    `, [workerId, id]);
 
     if (assignedPersonnelResult.rows.length === 0) {
       return NextResponse.json(

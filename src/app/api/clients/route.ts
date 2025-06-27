@@ -56,9 +56,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { name, address, contactPerson, contactEmail, contactPhone } = body;
 
-    if (!name || !contactPerson || !contactEmail) {
+    if (!name) {
       return NextResponse.json(
-        { error: 'Name, contact person, and contact email are required' },
+        { error: 'Company name is required' },
         { status: 400 }
       );
     }

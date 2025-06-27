@@ -4,7 +4,7 @@ import { getClientById, updateClient, deleteClient } from '@/lib/services/client
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -15,7 +15,8 @@ export async function GET(
       );
     }
 
-    const client = await getClientById(params.id);
+    const { id } = await params;
+    const client = await getClientById(id);
     if (!client) {
       return NextResponse.json(
         { error: 'Client not found' },
@@ -38,7 +39,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -60,7 +61,8 @@ export async function PUT(
     const body = await request.json();
     const { name, address, contactPerson, contactEmail, contactPhone } = body;
 
-    const client = await updateClient(params.id, {
+    const { id } = await params;
+    const client = await updateClient(id, {
       name,
       address,
       contactPerson,
@@ -90,7 +92,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -109,7 +111,8 @@ export async function DELETE(
       );
     }
 
-    const success = await deleteClient(params.id);
+    const { id } = await params;
+    const success = await deleteClient(id);
     if (!success) {
       return NextResponse.json(
         { error: 'Failed to delete client' },

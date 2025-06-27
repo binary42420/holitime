@@ -4,7 +4,7 @@ import { query } from '@/lib/db';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -43,7 +43,7 @@ export async function GET(
       WHERE ap.shift_id = $1
       GROUP BY ap.id, ap.employee_id, ap.role_on_shift, ap.role_code, ap.status, u.name, u.avatar
       ORDER BY u.name ASC
-    `, [params.id]);
+    `, [await params.then(p => p.id)]);
 
     const assignedPersonnel = result.rows.map(row => {
       // Determine status based on time entries

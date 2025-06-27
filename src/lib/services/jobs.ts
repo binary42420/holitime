@@ -97,6 +97,7 @@ export async function getJobsByClientId(clientId: string): Promise<Job[]> {
       clientId: row.client_id,
       clientName: row.client_name,
       shiftCount: parseInt(row.shift_count) || 0,
+      recentShiftCount: parseInt(row.shift_count) || 0, // For compatibility with client details page
       startDate: row.start_date,
       endDate: row.end_date,
       status: row.status,

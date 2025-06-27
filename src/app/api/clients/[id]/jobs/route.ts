@@ -4,7 +4,7 @@ import { getJobsByClientId } from '@/lib/services/jobs';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -15,7 +15,8 @@ export async function GET(
       );
     }
 
-    const jobs = await getJobsByClientId(params.id);
+    const { id } = await params;
+    const jobs = await getJobsByClientId(id);
 
     return NextResponse.json({
       success: true,

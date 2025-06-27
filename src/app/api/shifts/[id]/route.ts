@@ -4,7 +4,7 @@ import { getShiftById } from '@/lib/services/shifts';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -15,7 +15,8 @@ export async function GET(
       );
     }
 
-    const shift = await getShiftById(params.id);
+    const { id } = await params;
+    const shift = await getShiftById(id);
     if (!shift) {
       return NextResponse.json(
         { error: 'Shift not found' },
