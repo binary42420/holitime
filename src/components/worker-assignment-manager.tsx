@@ -73,7 +73,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
 
         // Exclude employees already assigned to this shift
         const isAlreadyAssigned = assignedWorkers.some(worker =>
-          worker.employeeId === user.id || worker.userId === user.id
+          worker.employeeId === user.id || worker.userId === user.id && !worker.isPlaceholder
         )
 
         return !isAlreadyAssigned
@@ -88,18 +88,37 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
       // Convert assigned personnel to our format
       const assigned = assignedData.assignedPersonnel.map(person => ({
         id: person.id,
-        employeeId: person.employee?.id,
-        employeeName: person.employee?.name,
-        employeeAvatar: person.employee?.avatar,
+        employeeId: person.employeeId, // Fixed: use employeeId directly from API
+        employeeName: person.employeeName, // Fixed: use employeeName directly from API
+        employeeAvatar: person.employeeAvatar, // Fixed: use employeeAvatar directly from API
         roleCode: person.roleCode,
-        roleName: ROLE_DEFINITIONS[person.roleCode]?.name || person.roleCode,
-        status: person.status === 'Clocked In' ? 'clocked_in' : 
-                person.status === 'Clocked Out' ? 'clocked_out' : 
-                person.status === 'Shift Ended' ? 'shift_ended' : 'assigned',
-        isPlaceholder: person.isPlaceholder || false,
+        roleName: ROLE_DEFINITIONS[person.roleCode]?.name || person.roleOnShift || person.roleCode,
+        status: person.status === 'clocked_in' ? 'clocked_in' :
+                person.status === 'clocked_out' ? 'clocked_out' :
+                person.status === 'shift_ended' ? 'shift_ended' : 'assigned',
+        isPlaceholder: false, // Assigned workers are never placeholders
         timeEntries: person.timeEntries || []
       }))
       setAssignedWorkers(assigned)
+
+      // Auto-generate worker requirements based on assigned personnel
+      const roleGroups = assigned.reduce((acc, worker) => {
+        if (!acc[worker.roleCode]) {
+          acc[worker.roleCode] = {
+            roleCode: worker.roleCode,
+            roleName: worker.roleName,
+            count: 0,
+            color: ROLE_DEFINITIONS[worker.roleCode]?.color || 'bg-gray-100'
+          }
+        }
+        acc[worker.roleCode].count++
+        return acc
+      }, {} as Record<string, WorkerRequirement>)
+
+      const requirements = Object.values(roleGroups)
+      if (requirements.length > 0) {
+        setWorkerRequirements(requirements)
+      }
     }
   }, [assignedData])
 
@@ -434,7 +453,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
                               ))}
                             </SelectContent>
                           </Select>
-                        ) : (
+                        ) : worker.employeeName ? (
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
                               <AvatarImage src={worker.employeeAvatar} />
@@ -442,6 +461,8 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
                             </Avatar>
                             <span className="font-medium">{worker.employeeName}</span>
                           </div>
+                        ) : (
+                          <span className="text-muted-foreground">No employee assigned</span>
                         )}
                       </TableCell>
                       <TableCell>

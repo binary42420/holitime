@@ -203,7 +203,13 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                 {shifts.map((shift: any) => (
                   <TableRow 
                     key={shift.id}
-                    onClick={() => router.push(generateShiftUrl(job.clientName, job.name, shift.date))}
+                    onClick={() => {
+                      if (!shift.startTime) {
+                        console.error('Missing startTime for shift:', shift)
+                        return
+                      }
+                      router.push(generateShiftUrl(job.clientName, job.name, shift.date, shift.startTime))
+                    }}
                     className="cursor-pointer hover:bg-muted/50"
                   >
                     <TableCell className="font-medium">
@@ -230,7 +236,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                     </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={generateShiftUrl(job.clientName, job.name, shift.date)}>
+                        <Link href={shift.startTime ? generateShiftUrl(job.clientName, job.name, shift.date, shift.startTime) : '#'}>
                           View
                         </Link>
                       </Button>

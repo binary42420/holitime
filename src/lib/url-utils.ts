@@ -28,8 +28,8 @@ export function createDateSlug(date: string | Date): string {
  */
 export function createShiftIdentifier(startTime: string, sequence?: number): string {
   // Convert time format from "HH:MM" to "HHMM" and add sequence if provided
-  if (!startTime) {
-    throw new Error('startTime is required for createShiftIdentifier')
+  if (!startTime || startTime.trim() === '' || startTime === 'undefined') {
+    throw new Error(`startTime is required for createShiftIdentifier, received: "${startTime}" (type: ${typeof startTime})`)
   }
   const timeSlug = startTime.replace(':', '')
   return sequence ? `${timeSlug}-${sequence}` : timeSlug
@@ -120,7 +120,10 @@ export function createShiftBreadcrumbs(companySlug: string, jobSlug: string, dat
     { label: companyName, href: `/clients` },
     { label: jobName, href: `/jobs` },
     { label: formatDateForDisplay(date), href: `/shifts` },
-    { label: `${startTime}${sequence > 1 ? ` (#${sequence})` : ''}`, href: generateShiftUrl(companyName, jobName, date, startTime, sequence) }
+    {
+      label: `${startTime}${sequence > 1 ? ` (#${sequence})` : ''}`,
+      href: startTime ? generateShiftUrl(companyName, jobName, date, startTime, sequence) : '/shifts'
+    }
   ]
 }
 

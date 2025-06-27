@@ -124,7 +124,7 @@ export default function ShiftsPage() {
         description: "The shift has been duplicated successfully.",
       })
 
-      router.push(generateShiftEditUrl(result.shift.clientName, result.shift.jobName, result.shift.date))
+      router.push(generateShiftEditUrl(result.shift.clientName, result.shift.jobName, result.shift.date, result.shift.startTime))
     } catch (error) {
       toast({
         title: "Error",
