@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -14,6 +15,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { parseShiftUrl, generateShiftUrl } from "@/lib/url-utils"
+import WorkerTypeSelector from "@/components/worker-type-selector"
 
 const shiftSchema = z.object({
   date: z.string().min(1, "Date is required"),
@@ -25,20 +28,26 @@ const shiftSchema = z.object({
   description: z.string().optional(),
   requirements: z.string().optional(),
   notes: z.string().optional(),
+  workerRequirements: z.array(z.object({
+    roleCode: z.string(),
+    roleName: z.string(),
+    count: z.number(),
+    color: z.string()
+  })).optional(),
 })
 
 type ShiftFormData = z.infer<typeof shiftSchema>
 
 interface EditShiftPageProps {
-  params: Promise<{ company: string; job: string; date: string }>
+  params: Promise<{ company: string; job: string; date: string; shiftId: string }>
 }
 
 export default function EditShiftPage({ params }: EditShiftPageProps) {
-  const [resolvedParams, setResolvedParams] = useState<{ company: string; job: string; date: string } | null>(null)
+  const [resolvedParams, setResolvedParams] = useState<{ company: string; job: string; date: string; shiftId: string } | null>(null)
+  const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
+  
   // Resolve params first
   useEffect(() => {
     params.then(setResolvedParams)
@@ -48,15 +57,22 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
   const companySlug = resolvedParams?.company ? decodeURIComponent(resolvedParams.company) : null
   const jobSlug = resolvedParams?.job ? decodeURIComponent(resolvedParams.job) : null
   const dateSlug = resolvedParams?.date ? decodeURIComponent(resolvedParams.date) : null
+  const shiftIdSlug = resolvedParams?.shiftId ? decodeURIComponent(resolvedParams.shiftId) : null
+
+  // Parse the shift URL to get readable names and shift details
+  const urlData = companySlug && jobSlug && dateSlug && shiftIdSlug 
+    ? parseShiftUrl(companySlug, jobSlug, dateSlug, shiftIdSlug)
+    : null
 
   // Fetch shift data using the slug parameters
   const { data: shiftData, loading: shiftLoading, error: shiftError } = useApi<{ shift: any }>(
-    resolvedParams ? `/api/shifts/by-slug?company=${encodeURIComponent(companySlug!)}&job=${encodeURIComponent(jobSlug!)}&date=${encodeURIComponent(dateSlug!)}` : ''
+    resolvedParams ? `/api/shifts/by-slug?company=${encodeURIComponent(companySlug!)}&job=${encodeURIComponent(jobSlug!)}&date=${encodeURIComponent(dateSlug!)}&startTime=${encodeURIComponent(urlData?.startTime || '')}&sequence=${urlData?.sequence || 1}` : ''
   )
   
   const shift = shiftData?.shift
   const shiftId = shift?.id
 
+  // Fetch users for crew chief selection
   const { data: usersData } = useApi<{ users: any[] }>('/api/users')
   const users = usersData?.users || []
 
@@ -64,19 +80,29 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
     resolver: zodResolver(shiftSchema),
     defaultValues: {
       requestedWorkers: 1,
+      workerRequirements: [],
     },
   })
+
+  const [workerRequirements, setWorkerRequirements] = useState<any[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleWorkerRequirementsChange = (requirements: any[], totalCount: number) => {
+    setWorkerRequirements(requirements)
+    form.setValue('requestedWorkers', totalCount)
+    form.setValue('workerRequirements', requirements)
+  }
 
   // Populate form when shift data loads
   useEffect(() => {
     if (shift) {
       form.reset({
-        date: shift.date,
-        startTime: shift.startTime,
-        endTime: shift.endTime,
+        date: shift.date ? new Date(shift.date).toISOString().split('T')[0] : '',
+        startTime: shift.startTime || '',
+        endTime: shift.endTime || '',
         requestedWorkers: shift.requestedWorkers || 1,
-        crewChiefId: shift.crewChief?.id || '',
-        location: shift.location,
+        crewChiefId: shift.crewChiefId || '',
+        location: shift.location || '',
         description: shift.description || '',
         requirements: shift.requirements || '',
         notes: shift.notes || '',
@@ -89,12 +115,18 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
 
     setIsSubmitting(true)
     try {
+      // Handle "none" value for crew chief
+      const submitData = {
+        ...data,
+        crewChiefId: data.crewChiefId === 'none' ? '' : data.crewChiefId
+      }
+
       const response = await fetch(`/api/shifts/${shiftId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(submitData),
       })
 
       if (!response.ok) {
@@ -106,8 +138,10 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
         description: "The shift has been updated successfully.",
       })
 
-      // Navigate back to shift details with new URL structure
-      router.push(`/shifts/${companySlug}/${jobSlug}/${dateSlug}`)
+      // Navigate back to shift detail page
+      if (urlData) {
+        router.push(generateShiftUrl(urlData.companyName, urlData.jobName, urlData.date, urlData.startTime, urlData.sequence))
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -119,7 +153,7 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
     }
   }
 
-  if (!resolvedParams) {
+  if (!resolvedParams || !urlData) {
     return <div>Loading...</div>
   }
 
@@ -149,28 +183,39 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="sm" onClick={() => router.push(`/shifts/${companySlug}/${jobSlug}/${dateSlug}`)}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Shift
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Edit Shift</h1>
-          <p className="text-muted-foreground">{shift.jobName} • {shift.clientName}</p>
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => router.push(generateShiftUrl(urlData.companyName, urlData.jobName, urlData.date, urlData.startTime, urlData.sequence))}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Shift
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Edit Shift</h1>
+            <p className="text-muted-foreground">
+              {shift.clientName} • {shift.jobName} • {new Date(shift.date).toLocaleDateString()}
+              {urlData.sequence > 1 && <span className="ml-1">(#{urlData.sequence})</span>}
+            </p>
+          </div>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Shift Details</CardTitle>
-          <CardDescription>
-            Update the shift information below
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Shift Details</CardTitle>
+            <CardDescription>
+              Update the basic information for this shift
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="date">Date *</Label>
                 <Input
@@ -183,20 +228,6 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="location">Location *</Label>
-                <Input
-                  id="location"
-                  placeholder="Enter location"
-                  {...form.register("location")}
-                />
-                {form.formState.errors.location && (
-                  <p className="text-sm text-destructive">{form.formState.errors.location.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="startTime">Start Time *</Label>
                 <Input
@@ -224,46 +255,56 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="requestedWorkers">Requested Workers *</Label>
+                <Label htmlFor="location">Location *</Label>
                 <Input
-                  id="requestedWorkers"
-                  type="number"
-                  min="1"
-                  {...form.register("requestedWorkers", { valueAsNumber: true })}
+                  id="location"
+                  placeholder="Enter shift location"
+                  {...form.register("location")}
                 />
-                {form.formState.errors.requestedWorkers && (
-                  <p className="text-sm text-destructive">{form.formState.errors.requestedWorkers.message}</p>
+                {form.formState.errors.location && (
+                  <p className="text-sm text-destructive">{form.formState.errors.location.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="crewChiefId">Crew Chief</Label>
-                <Select
-                  value={form.watch("crewChiefId")}
-                  onValueChange={(value) => form.setValue("crewChiefId", value)}
-                >
+                <Select onValueChange={(value) => form.setValue("crewChiefId", value)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select crew chief..." />
+                    <SelectValue placeholder="Select crew chief" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No crew chief</SelectItem>
+                    <SelectItem value="none">No crew chief assigned</SelectItem>
                     {users
-                      .filter(user => user.role === 'Crew Chief' || user.role === 'Manager/Admin')
+                      .filter(user => user.id && user.id.trim() !== '')
                       .map((user) => (
-                        <SelectItem key={user.id} value={user.id}>
-                          {user.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem key={user.id} value={user.id}>
+                        {user.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
+          </CardContent>
+        </Card>
 
+        {/* Worker Requirements */}
+        <WorkerTypeSelector
+          value={workerRequirements}
+          onChange={handleWorkerRequirementsChange}
+        />
+
+        {/* Additional Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Additional Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                placeholder="Enter job description..."
+                placeholder="Describe the work to be performed"
                 {...form.register("description")}
                 rows={3}
               />
@@ -273,7 +314,7 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
               <Label htmlFor="requirements">Requirements</Label>
               <Textarea
                 id="requirements"
-                placeholder="Enter any special requirements..."
+                placeholder="Special requirements, certifications, or equipment needed"
                 {...form.register("requirements")}
                 rows={3}
               />
@@ -283,28 +324,29 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
               <Label htmlFor="notes">Notes</Label>
               <Textarea
                 id="notes"
-                placeholder="Enter any additional notes..."
+                placeholder="Additional notes or comments"
                 {...form.register("notes")}
                 rows={3}
               />
             </div>
+          </CardContent>
+        </Card>
 
-            <div className="flex justify-end gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.push(`/shifts/${companySlug}/${jobSlug}/${dateSlug}`)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                <Save className="mr-2 h-4 w-4" />
-                {isSubmitting ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+        {/* Submit Button */}
+        <div className="flex justify-end gap-4">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => router.push(generateShiftUrl(urlData.companyName, urlData.jobName, urlData.date, urlData.startTime, urlData.sequence))}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            <Save className="mr-2 h-4 w-4" />
+            {isSubmitting ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      </form>
     </div>
   )
 }

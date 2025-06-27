@@ -66,9 +66,22 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
 
   useEffect(() => {
     if (employeesData?.users) {
-      setAvailableEmployees(employeesData.users.filter(user => user.role !== 'Client'))
+      // Filter out clients and employees already assigned to this shift
+      const filteredEmployees = employeesData.users.filter(user => {
+        // Exclude clients
+        if (user.role === 'Client') return false
+
+        // Exclude employees already assigned to this shift
+        const isAlreadyAssigned = assignedWorkers.some(worker =>
+          worker.employeeId === user.id || worker.userId === user.id
+        )
+
+        return !isAlreadyAssigned
+      })
+
+      setAvailableEmployees(filteredEmployees)
     }
-  }, [employeesData])
+  }, [employeesData, assignedWorkers])
 
   useEffect(() => {
     if (assignedData?.assignedPersonnel) {
@@ -132,7 +145,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
     return completeList
   }
 
-  const updateWorkerRequirement = (roleCode: RoleCode, newCount: number) => {
+  const updateWorkerRequirement = async (roleCode: RoleCode, newCount: number) => {
     setWorkerRequirements(prev => {
       const updated = prev.map(req =>
         req.roleCode === roleCode ? { ...req, count: Math.max(0, newCount) } : req
@@ -148,7 +161,15 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
         })
       }
 
-      return updated.filter(req => req.count > 0)
+      const filteredUpdated = updated.filter(req => req.count > 0)
+
+      // Calculate new total requested workers
+      const newTotal = filteredUpdated.reduce((sum, req) => sum + req.count, 0)
+
+      // Update the shift's requested workers count
+      updateShiftRequestedWorkers(newTotal)
+
+      return filteredUpdated
     })
 
     // If reducing count, we might need to unassign some workers
@@ -166,12 +187,48 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
     }
   }
 
+  const updateShiftRequestedWorkers = async (newTotal: number) => {
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ requestedWorkers: newTotal }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update requested workers')
+      }
+
+      // Trigger refresh to update the shift data
+      onUpdate()
+    } catch (error) {
+      console.error('Error updating requested workers:', error)
+      toast({
+        title: "Warning",
+        description: "Worker count updated locally but failed to save to database.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const assignEmployee = async (workerIndex: number, employeeId: string) => {
     const completeWorkerList = generateCompleteWorkerList()
     const worker = completeWorkerList[workerIndex]
     const employee = availableEmployees.find(emp => emp.id === employeeId)
 
-    if (!employee || !worker) return
+    if (!employee || !worker) {
+      console.error('Missing employee or worker:', { employee, worker, employeeId, workerIndex })
+      return
+    }
+
+    console.log('Assigning employee:', {
+      employeeId,
+      roleCode: worker.roleCode,
+      roleOnShift: worker.roleName,
+      shiftId
+    })
 
     try {
       const response = await fetch(`/api/shifts/${shiftId}/assign`, {
@@ -187,8 +244,21 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
       })
 
       if (!response.ok) {
-        throw new Error('Failed to assign worker')
+        const errorData = await response.json()
+        console.error('Assignment failed:', errorData)
+
+        // Handle specific error cases
+        if (errorData.error?.includes('already assigned')) {
+          throw new Error(`${employee.name} is already assigned to this shift`)
+        } else if (errorData.error?.includes('not found')) {
+          throw new Error(`Employee record not found for ${employee.name}`)
+        } else {
+          throw new Error(errorData.error || 'Failed to assign worker')
+        }
       }
+
+      const result = await response.json()
+      console.log('Assignment successful:', result)
 
       toast({
         title: "Worker Assigned",
@@ -198,9 +268,10 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
       refetchAssigned()
       onUpdate()
     } catch (error) {
+      console.error('Assignment error:', error)
       toast({
         title: "Error",
-        description: "Failed to assign worker. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to assign worker. Please try again.",
         variant: "destructive",
       })
     }
@@ -348,7 +419,9 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
                               <SelectValue placeholder="Select employee..." />
                             </SelectTrigger>
                             <SelectContent>
-                              {availableEmployees.map((employee) => (
+                              {availableEmployees
+                                .filter(employee => employee.id && employee.id.trim() !== '')
+                                .map((employee) => (
                                 <SelectItem key={employee.id} value={employee.id}>
                                   <div className="flex items-center gap-2">
                                     <Avatar className="h-6 w-6">

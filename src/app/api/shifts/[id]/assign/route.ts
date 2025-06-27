@@ -10,7 +10,10 @@ export async function POST(
     const body = await request.json()
     const { employeeId, roleCode, roleOnShift } = body
 
+    console.log('Assignment request:', { shiftId, employeeId, roleCode, roleOnShift })
+
     if (!employeeId || !roleCode || !roleOnShift) {
+      console.error('Missing required fields:', { employeeId, roleCode, roleOnShift })
       return NextResponse.json(
         { error: 'Employee ID, role code, and role on shift are required' },
         { status: 400 }
@@ -25,7 +28,10 @@ export async function POST(
       [employeeId]
     )
 
+    console.log('Employee query result:', employeeQuery.rows)
+
     if (employeeQuery.rows.length === 0) {
+      console.error('Employee not found for user ID:', employeeId)
       return NextResponse.json(
         { error: 'Employee record not found for this user' },
         { status: 404 }
@@ -41,7 +47,10 @@ export async function POST(
       [shiftId, actualEmployeeId]
     )
 
+    console.log('Existing assignment check:', existingAssignment.rows)
+
     if (existingAssignment.rows.length > 0) {
+      console.error('Employee already assigned:', { shiftId, actualEmployeeId })
       return NextResponse.json(
         { error: 'Employee is already assigned to this shift' },
         { status: 400 }

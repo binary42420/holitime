@@ -16,6 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Save, Calendar, Users, Building2, Briefcase } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateShiftUrl } from "@/lib/url-utils"
+import WorkerTypeSelector from "@/components/worker-type-selector"
 
 const shiftSchema = z.object({
   jobId: z.string().min(1, "Job is required"),
@@ -28,6 +29,12 @@ const shiftSchema = z.object({
   description: z.string().optional(),
   requirements: z.string().optional(),
   notes: z.string().optional(),
+  workerRequirements: z.array(z.object({
+    roleCode: z.string(),
+    roleName: z.string(),
+    count: z.number(),
+    color: z.string()
+  })).optional(),
 })
 
 type ShiftFormData = z.infer<typeof shiftSchema>
@@ -51,8 +58,17 @@ export default function NewShiftPage() {
     resolver: zodResolver(shiftSchema),
     defaultValues: {
       requestedWorkers: 1,
+      workerRequirements: [],
     },
   })
+
+  const [workerRequirements, setWorkerRequirements] = useState<any[]>([])
+
+  const handleWorkerRequirementsChange = (requirements: any[], totalCount: number) => {
+    setWorkerRequirements(requirements)
+    form.setValue('requestedWorkers', totalCount)
+    form.setValue('workerRequirements', requirements)
+  }
 
   const onSubmit = async (data: ShiftFormData) => {
     setIsSubmitting(true)
@@ -123,7 +139,9 @@ export default function NewShiftPage() {
                     <SelectValue placeholder="Select a job" />
                   </SelectTrigger>
                   <SelectContent>
-                    {jobs.map((job) => (
+                    {jobs
+                      .filter(job => job.id && job.id.trim() !== '')
+                      .map((job) => (
                       <SelectItem key={job.id} value={job.id}>
                         <div className="flex items-center gap-2">
                           <Briefcase className="h-4 w-4" />
@@ -148,7 +166,9 @@ export default function NewShiftPage() {
                     <SelectValue placeholder="Select crew chief (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    {crewChiefs.map((chief) => (
+                    {crewChiefs
+                      .filter(chief => chief.id && chief.id.trim() !== '')
+                      .map((chief) => (
                       <SelectItem key={chief.id} value={chief.id}>
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4" />

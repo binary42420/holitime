@@ -11,13 +11,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import WorkerAssignmentManager from "@/components/worker-assignment-manager"
+import { parseShiftUrl, generateShiftEditUrl } from "@/lib/url-utils"
 
 interface ShiftDetailPageProps {
-  params: Promise<{ company: string; job: string; date: string }>
+  params: Promise<{ company: string; job: string; date: string; shiftId: string }>
 }
 
 export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
-  const [resolvedParams, setResolvedParams] = useState<{ company: string; job: string; date: string } | null>(null)
+  const [resolvedParams, setResolvedParams] = useState<{ company: string; job: string; date: string; shiftId: string } | null>(null)
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
@@ -31,10 +32,16 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
   const companySlug = resolvedParams?.company ? decodeURIComponent(resolvedParams.company) : null
   const jobSlug = resolvedParams?.job ? decodeURIComponent(resolvedParams.job) : null
   const dateSlug = resolvedParams?.date ? decodeURIComponent(resolvedParams.date) : null
+  const shiftIdSlug = resolvedParams?.shiftId ? decodeURIComponent(resolvedParams.shiftId) : null
+
+  // Parse the shift URL to get readable names and shift details
+  const urlData = companySlug && jobSlug && dateSlug && shiftIdSlug 
+    ? parseShiftUrl(companySlug, jobSlug, dateSlug, shiftIdSlug)
+    : null
 
   // Fetch shift data using the slug parameters
   const { data: shiftData, loading: shiftLoading, error: shiftError, refetch } = useApi<{ shift: any }>(
-    resolvedParams ? `/api/shifts/by-slug?company=${encodeURIComponent(companySlug!)}&job=${encodeURIComponent(jobSlug!)}&date=${encodeURIComponent(dateSlug!)}` : ''
+    resolvedParams ? `/api/shifts/by-slug?company=${encodeURIComponent(companySlug!)}&job=${encodeURIComponent(jobSlug!)}&date=${encodeURIComponent(dateSlug!)}&startTime=${encodeURIComponent(urlData?.startTime || '')}&sequence=${urlData?.sequence || 1}` : ''
   )
   
   const shift = shiftData?.shift
@@ -120,7 +127,7 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
     }
   }
 
-  if (!resolvedParams) {
+  if (!resolvedParams || !urlData) {
     return <div>Loading...</div>
   }
 
@@ -160,12 +167,19 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
           </Button>
           <div>
             <h1 className="text-2xl font-bold">{shift.jobName}</h1>
-            <p className="text-muted-foreground">{shift.clientName} • {new Date(shift.date).toLocaleDateString()}</p>
+            <p className="text-muted-foreground">
+              {shift.clientName} • {new Date(shift.date).toLocaleDateString()} • {shift.startTime}
+              {urlData.sequence > 1 && <span className="ml-1">(#{urlData.sequence})</span>}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {getStatusBadge(shift.status)}
-          <Button variant="outline" size="sm" onClick={() => router.push(`/shifts/${companySlug}/${jobSlug}/${dateSlug}/edit`)}>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => router.push(generateShiftEditUrl(urlData.companyName, urlData.jobName, urlData.date, urlData.startTime, urlData.sequence))}
+          >
             Edit Shift
           </Button>
         </div>
@@ -197,6 +211,12 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
               <span>Status:</span>
               {getStatusBadge(shift.status)}
             </div>
+            {urlData.sequence > 1 && (
+              <div className="flex justify-between items-center">
+                <span>Shift Number:</span>
+                <Badge variant="outline">#{urlData.sequence}</Badge>
+              </div>
+            )}
           </CardContent>
         </Card>
 

@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
     const companySlug = searchParams.get('company')
     const jobSlug = searchParams.get('job')
     const dateSlug = searchParams.get('date')
+    const startTime = searchParams.get('startTime')
+    const sequence = searchParams.get('sequence')
 
     if (!companySlug || !jobSlug || !dateSlug) {
       return NextResponse.json(
@@ -29,20 +31,47 @@ export async function GET(request: NextRequest) {
     const companyName = decodeURIComponent(companySlug).replace(/-/g, ' ')
     const jobName = decodeURIComponent(jobSlug).replace(/-/g, ' ')
     const shiftDate = decodeURIComponent(dateSlug)
+    const decodedStartTime = startTime ? decodeURIComponent(startTime) : null
+    const sequenceNumber = sequence ? parseInt(sequence) : 1
 
-    console.log('Looking for shift with:', { companyName, jobName, shiftDate })
+    console.log('Looking for shift with:', {
+      companyName,
+      jobName,
+      shiftDate,
+      startTime: decodedStartTime,
+      sequence: sequenceNumber
+    })
 
-    // Find the shift by company name, job name, and date using fuzzy matching
-    const result = await query(`
-      SELECT s.id, c.name as client_name, j.name as job_name, s.date
+    // Build query based on available parameters
+    let queryText = `
+      SELECT s.id, c.name as client_name, j.name as job_name, s.date, s.start_time
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN clients c ON j.client_id = c.id
       WHERE LOWER(REPLACE(c.name, '.', '')) LIKE LOWER($1)
         AND LOWER(REPLACE(j.name, '.', '')) LIKE LOWER($2)
         AND s.date = $3
-      LIMIT 1
-    `, [`%${companyName}%`, `%${jobName}%`, shiftDate])
+    `
+
+    const queryParams = [`%${companyName}%`, `%${jobName}%`, shiftDate]
+
+    // Add start time filter if provided
+    if (decodedStartTime) {
+      queryText += ` AND s.start_time = $${queryParams.length + 1}`
+      queryParams.push(decodedStartTime)
+    }
+
+    queryText += ` ORDER BY s.start_time, s.created_at`
+
+    // If we have a sequence number > 1, use OFFSET to get the nth shift
+    if (sequenceNumber > 1) {
+      queryText += ` OFFSET $${queryParams.length + 1}`
+      queryParams.push(sequenceNumber - 1)
+    }
+
+    queryText += ` LIMIT 1`
+
+    const result = await query(queryText, queryParams)
 
     console.log('Query result:', result.rows)
 

@@ -1,0 +1,67 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/middleware'
+import { query } from '@/lib/db'
+
+export async function GET(request: NextRequest) {
+  try {
+    const user = await getCurrentUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const companySlug = searchParams.get('company')
+
+    if (!companySlug) {
+      return NextResponse.json(
+        { error: 'Company parameter is required' },
+        { status: 400 }
+      )
+    }
+
+    // Convert URL-friendly slug back to searchable term
+    const companyName = decodeURIComponent(companySlug).replace(/-/g, ' ')
+
+    console.log('Looking for client with company name:', companyName)
+
+    // Find the client by company name using fuzzy matching
+    const result = await query(`
+      SELECT id, name, contact_person, email, phone, address, notes, created_at, updated_at
+      FROM clients
+      WHERE LOWER(REPLACE(name, '.', '')) LIKE LOWER($1)
+      LIMIT 1
+    `, [`%${companyName}%`])
+
+    console.log('Client query result:', result.rows)
+
+    if (result.rows.length === 0) {
+      return NextResponse.json(
+        { error: 'Client not found' },
+        { status: 404 }
+      )
+    }
+
+    const client = result.rows[0]
+
+    // Transform the data to match expected format
+    const transformedClient = {
+      id: client.id,
+      name: client.name,
+      contactPerson: client.contact_person,
+      email: client.email,
+      phone: client.phone,
+      address: client.address,
+      notes: client.notes,
+      createdAt: client.created_at,
+      updatedAt: client.updated_at
+    }
+
+    return NextResponse.json({ client: transformedClient })
+  } catch (error) {
+    console.error('Error fetching client by slug:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}

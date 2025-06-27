@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Plus, Building2, Calendar, ExternalLink } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { generateClientUrl } from "@/lib/url-utils"
 
 export default function ClientsPage() {
   const { user } = useUser()
@@ -79,7 +80,7 @@ export default function ClientsPage() {
               {(clientsData?.clients || []).map(client => (
                 <TableRow
                   key={client.id}
-                  onClick={() => router.push(`/clients/${client.id}`)}
+                  onClick={() => router.push(generateClientUrl(client.name))}
                   className="cursor-pointer hover:bg-muted/50"
                 >
                   <TableCell className="font-medium">{client.name}</TableCell>
