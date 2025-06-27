@@ -48,7 +48,6 @@ export default function DocumentsPage() {
   const router = useRouter()
   const { toast } = useToast()
 
-  // Mock data for now - will be replaced with real API
   const documents = [
     {
       id: "1",

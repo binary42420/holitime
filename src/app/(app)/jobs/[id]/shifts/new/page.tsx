@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@/hooks/useUser'
-import { useApi } from '@/hooks/useApi'
+import { useUser } from '@/hooks/use-user'
+import { useApi } from '@/hooks/use-api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

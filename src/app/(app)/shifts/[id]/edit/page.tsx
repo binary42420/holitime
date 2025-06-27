@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@/hooks/useUser'
-import { useApi } from '@/hooks/useApi'
+import { useUser } from '@/hooks/use-user'
+import { useApi } from '@/hooks/use-api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,9 +15,9 @@ import { ArrowLeft, Save, Trash2 } from 'lucide-react'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 
 interface EditShiftPageProps {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 interface User {
@@ -27,13 +27,14 @@ interface User {
 }
 
 export default function EditShiftPage({ params }: EditShiftPageProps) {
+  const { id } = use(params)
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
   
-  const { data: shiftData, error } = useApi<{ shift: any }>(`/api/shifts/${params.id}`)
+  const { data: shiftData, error } = useApi<{ shift: any }>(`/api/shifts/${id}`)
   const { data: usersData } = useApi<{ users: User[] }>('/api/users')
   
   const [formData, setFormData] = useState({
@@ -79,7 +80,7 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
     setLoading(true)
 
     try {
-      const response = await fetch(`/api/shifts/${params.id}`, {
+      const response = await fetch(`/api/shifts/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +102,7 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
         description: "Shift updated successfully",
       })
 
-      router.push(`/shifts/${params.id}`)
+      router.push(`/shifts/${id}`)
     } catch (error) {
       console.error('Error updating shift:', error)
       toast({
@@ -118,7 +119,7 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
     setDeleteLoading(true)
 
     try {
-      const response = await fetch(`/api/shifts/${params.id}`, {
+      const response = await fetch(`/api/shifts/${id}`, {
         method: 'DELETE',
       })
 
@@ -188,7 +189,7 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push(`/shifts/${params.id}`)}
+            onClick={() => router.push(`/shifts/${id}`)}
             className="flex items-center gap-2"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -324,7 +325,7 @@ export default function EditShiftPage({ params }: EditShiftPageProps) {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.push(`/shifts/${params.id}`)}
+                onClick={() => router.push(`/shifts/${id}`)}
                 disabled={loading}
               >
                 Cancel

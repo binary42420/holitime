@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { use } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import Link from "next/link"
@@ -14,17 +14,18 @@ import { ArrowLeft, Briefcase, Calendar, Users, Clock, MapPin, Plus } from "luci
 import { useToast } from "@/hooks/use-toast"
 
 interface JobDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function JobDetailPage({ params }: JobDetailPageProps) {
+  const { id } = use(params)
   const { user } = useUser()
   const router = useRouter()
   const canEdit = user?.role === 'Manager/Admin'
   const { toast } = useToast()
   
-  const { data: jobData, loading: jobLoading, error: jobError } = useJob(params.id)
-  const { data: shiftsData, loading: shiftsLoading, error: shiftsError } = useApi<{ shifts: any[] }>(`/api/jobs/${params.id}/shifts`)
+  const { data: jobData, loading: jobLoading, error: jobError } = useJob(id)
+  const { data: shiftsData, loading: shiftsLoading, error: shiftsError } = useApi<{ shifts: any[] }>(`/api/jobs/${id}/shifts`)
 
   if (jobLoading) {
     return (
@@ -87,7 +88,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
           </p>
         </div>
         {canEdit && (
-          <Button onClick={() => router.push(`/jobs/${params.id}/edit`)}>
+          <Button onClick={() => router.push(`/jobs/${id}/edit`)}>
             Edit Job
           </Button>
         )}
@@ -166,7 +167,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
               </CardDescription>
             </div>
             {canEdit && (
-              <Button onClick={() => router.push(`/jobs/${params.id}/shifts/new`)}>
+              <Button onClick={() => router.push(`/jobs/${id}/shifts/new`)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Schedule Shift
               </Button>

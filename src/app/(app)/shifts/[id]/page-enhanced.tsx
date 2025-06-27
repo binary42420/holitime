@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, use } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import Link from "next/link"
@@ -15,16 +15,17 @@ import { useToast } from "@/hooks/use-toast"
 import ShiftTimeManagement from "@/components/shift-time-management"
 
 interface ShiftDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
+  const { id } = use(params)
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
   
-  const { data: shiftData, loading: shiftLoading, error: shiftError, refetch } = useApi<{ shift: any }>(`/api/shifts/${params.id}`)
-  const { data: assignedData, loading: assignedLoading, refetch: refetchAssigned } = useApi<{ assignedPersonnel: any[] }>(`/api/shifts/${params.id}/assigned`)
+  const { data: shiftData, loading: shiftLoading, error: shiftError, refetch } = useApi<{ shift: any }>(`/api/shifts/${id}`)
+  const { data: assignedData, loading: assignedLoading, refetch: refetchAssigned } = useApi<{ assignedPersonnel: any[] }>(`/api/shifts/${id}/assigned`)
 
   const [notes, setNotes] = useState("")
 
@@ -41,7 +42,7 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
 
   const handleSaveNotes = async () => {
     try {
-      const response = await fetch(`/api/shifts/${params.id}/notes`, {
+      const response = await fetch(`/api/shifts/${id}/notes`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes }),
@@ -194,7 +195,7 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
 
       {/* Time Management Component */}
       <ShiftTimeManagement
-        shiftId={params.id}
+        shiftId={id}
         assignedPersonnel={assignedPersonnel.map(person => ({
           id: person.id,
           employeeId: person.employeeId,

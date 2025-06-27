@@ -15,24 +15,20 @@ export async function GET(
       );
     }
 
+    const { id } = await params;
+
     const result = await query(`
-      SELECT 
+      SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         j.name as job_name,
         c.name as client_name,
-        cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
-        COUNT(ap.id) as assigned_count
+        cc.name as crew_chief_name, cc.avatar as crew_chief_avatar
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN clients c ON j.client_id = c.id
-      JOIN users cc ON s.crew_chief_id = cc.id
-      LEFT JOIN assigned_personnel ap ON s.id = ap.shift_id
+      LEFT JOIN users cc ON s.crew_chief_id = cc.id
       WHERE s.job_id = $1
-      GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-               j.name, c.name, cc.name, cc.avatar
       ORDER BY s.date ASC, s.start_time ASC
-
-    const { id } = await params;
     `, [id]);
 
     const shifts = result.rows.map(row => ({

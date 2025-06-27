@@ -202,7 +202,6 @@ async function getTimeEntriesForAssignedPersonnel(assignedPersonnelId: string): 
 
     const timeEntries: { clockIn?: string; clockOut?: string }[] = [];
     
-    // Ensure we have at least 3 entries (as per the original mock data structure)
     for (let i = 0; i < 3; i++) {
       const entry = result.rows.find(row => row.entry_number === i + 1);
       timeEntries.push({
@@ -306,7 +305,6 @@ export async function createShift(shiftData: {
 
     const shiftId = result.rows[0].id;
 
-    // Get the created shift with all related data
     return await getShiftById(shiftId);
   } catch (error) {
     console.error('Error creating shift:', error);
@@ -324,7 +322,6 @@ export async function updateShift(shiftId: string, shiftData: {
   notes?: string;
 }): Promise<Shift | null> {
   try {
-    // Build dynamic update query
     const updates: string[] = [];
     const values: any[] = [];
     let paramCount = 1;
@@ -359,7 +356,6 @@ export async function updateShift(shiftId: string, shiftData: {
     }
 
     if (updates.length === 0) {
-      // No updates to make, return current shift
       return await getShiftById(shiftId);
     }
 
@@ -372,7 +368,7 @@ export async function updateShift(shiftId: string, shiftData: {
       WHERE id = $${paramCount}
     `, values);
 
-    // Return the updated shift
+
     return await getShiftById(shiftId);
   } catch (error) {
     console.error('Error updating shift:', error);

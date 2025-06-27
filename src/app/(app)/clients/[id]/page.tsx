@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, use } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import Link from "next/link"
@@ -14,17 +14,18 @@ import { ArrowLeft, Building2, Briefcase, Calendar, Users, Plus, ExternalLink } 
 import { useToast } from "@/hooks/use-toast"
 
 interface ClientDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function ClientDetailPage({ params }: ClientDetailPageProps) {
+  const { id } = use(params)
   const { user } = useUser()
   const router = useRouter()
   const canEdit = user?.role === 'Manager/Admin'
   const { toast } = useToast()
   
-  const { data: clientData, loading: clientLoading, error: clientError } = useApi<{ client: any }>(`/api/clients/${params.id}`)
-  const { data: jobsData, loading: jobsLoading, error: jobsError } = useClientJobs(params.id)
+  const { data: clientData, loading: clientLoading, error: clientError } = useApi<{ client: any }>(`/api/clients/${id}`)
+  const { data: jobsData, loading: jobsLoading, error: jobsError } = useClientJobs(id)
 
   if (clientLoading) {
     return (
