@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
 import { staffingSuggestions, type StaffingSuggestionsOutput } from "@/ai/flows/staffing-suggestions"
 import { useToast } from "@/hooks/use-toast"
-import { mockEmployees } from "@/lib/mock-data"
+import { useApi } from "@/hooks/use-api"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const formSchema = z.object({
@@ -33,6 +33,8 @@ export default function StaffingPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [suggestions, setSuggestions] = useState<StaffingSuggestionsOutput | null>(null)
   const { toast } = useToast()
+
+  const { data: usersData } = useApi<{ users: any[] }>('/api/users')
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,12 +48,13 @@ export default function StaffingPage() {
     setIsLoading(true)
     setSuggestions(null)
     try {
-      // Create a summary of mock employee data for the AI
+      // Create a summary of employee data for the AI
+      const employees = usersData?.users || [];
       const employeeData = {
           availability: "All employees are generally available unless specified otherwise.",
-          certifications: mockEmployees.map(e => `${e.name}: ${e.certifications.join(', ')}`).join('; '),
-          pastPerformance: mockEmployees.map(e => `${e.name}: ${e.performance}/5 rating`).join('; '),
-          locations: mockEmployees.map(e => `${e.name} is in ${e.location}`).join('; '),
+          certifications: employees.map((e: any) => `${e.name}: ${e.certifications?.join(', ') || 'No certifications'}`).join('; '),
+          pastPerformance: employees.map((e: any) => `${e.name}: ${e.performance || 4.0}/5 rating`).join('; '),
+          locations: employees.map((e: any) => `${e.name} is in ${e.location || 'Unknown location'}`).join('; '),
       }
 
       const result = await staffingSuggestions({

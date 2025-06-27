@@ -408,7 +408,7 @@ export async function deleteShift(shiftId: string): Promise<boolean> {
       DELETE FROM shifts WHERE id = $1
     `, [shiftId]);
 
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   } catch (error) {
     console.error('Error deleting shift:', error);
     return false;
