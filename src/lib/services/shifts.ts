@@ -273,3 +273,144 @@ export async function getShiftsByCrewChief(crewChiefId: string): Promise<Shift[]
     return [];
   }
 }
+
+export async function createShift(shiftData: {
+  jobId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  location?: string;
+  crewChiefId: string;
+  requestedWorkers: number;
+  notes?: string;
+}): Promise<Shift | null> {
+  try {
+    const result = await query(`
+      INSERT INTO shifts (job_id, date, start_time, end_time, location, crew_chief_id, requested_workers, notes, status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Scheduled')
+      RETURNING id
+    `, [
+      shiftData.jobId,
+      shiftData.date,
+      shiftData.startTime,
+      shiftData.endTime,
+      shiftData.location || '',
+      shiftData.crewChiefId,
+      shiftData.requestedWorkers,
+      shiftData.notes || ''
+    ]);
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const shiftId = result.rows[0].id;
+
+    // Get the created shift with all related data
+    return await getShiftById(shiftId);
+  } catch (error) {
+    console.error('Error creating shift:', error);
+    return null;
+  }
+}
+
+export async function updateShift(shiftId: string, shiftData: {
+  date?: string;
+  startTime?: string;
+  endTime?: string;
+  location?: string;
+  crewChiefId?: string;
+  requestedWorkers?: number;
+  notes?: string;
+}): Promise<Shift | null> {
+  try {
+    // Build dynamic update query
+    const updates: string[] = [];
+    const values: any[] = [];
+    let paramCount = 1;
+
+    if (shiftData.date !== undefined) {
+      updates.push(`date = $${paramCount++}`);
+      values.push(shiftData.date);
+    }
+    if (shiftData.startTime !== undefined) {
+      updates.push(`start_time = $${paramCount++}`);
+      values.push(shiftData.startTime);
+    }
+    if (shiftData.endTime !== undefined) {
+      updates.push(`end_time = $${paramCount++}`);
+      values.push(shiftData.endTime);
+    }
+    if (shiftData.location !== undefined) {
+      updates.push(`location = $${paramCount++}`);
+      values.push(shiftData.location);
+    }
+    if (shiftData.crewChiefId !== undefined) {
+      updates.push(`crew_chief_id = $${paramCount++}`);
+      values.push(shiftData.crewChiefId);
+    }
+    if (shiftData.requestedWorkers !== undefined) {
+      updates.push(`requested_workers = $${paramCount++}`);
+      values.push(shiftData.requestedWorkers);
+    }
+    if (shiftData.notes !== undefined) {
+      updates.push(`notes = $${paramCount++}`);
+      values.push(shiftData.notes);
+    }
+
+    if (updates.length === 0) {
+      // No updates to make, return current shift
+      return await getShiftById(shiftId);
+    }
+
+    updates.push(`updated_at = NOW()`);
+    values.push(shiftId);
+
+    await query(`
+      UPDATE shifts
+      SET ${updates.join(', ')}
+      WHERE id = $${paramCount}
+    `, values);
+
+    // Return the updated shift
+    return await getShiftById(shiftId);
+  } catch (error) {
+    console.error('Error updating shift:', error);
+    return null;
+  }
+}
+
+export async function deleteShift(shiftId: string): Promise<boolean> {
+  try {
+    // First check if shift has any timesheets or time entries
+    const timesheetCheck = await query(`
+      SELECT id FROM timesheets WHERE shift_id = $1
+    `, [shiftId]);
+
+    if (timesheetCheck.rows.length > 0) {
+      throw new Error('Cannot delete shift with existing timesheets');
+    }
+
+    // Delete assigned personnel and their time entries
+    await query(`
+      DELETE FROM time_entries
+      WHERE assigned_personnel_id IN (
+        SELECT id FROM assigned_personnel WHERE shift_id = $1
+      )
+    `, [shiftId]);
+
+    await query(`
+      DELETE FROM assigned_personnel WHERE shift_id = $1
+    `, [shiftId]);
+
+    // Delete the shift
+    const result = await query(`
+      DELETE FROM shifts WHERE id = $1
+    `, [shiftId]);
+
+    return result.rowCount > 0;
+  } catch (error) {
+    console.error('Error deleting shift:', error);
+    return false;
+  }
+}

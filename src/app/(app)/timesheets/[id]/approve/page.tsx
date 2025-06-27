@@ -3,8 +3,9 @@
 import { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { notFound, useRouter } from "next/navigation"
-import { useUser } from "@/hooks/use-user"
-import { mockShifts, mockTimesheets, mockJobs, mockClients } from "@/lib/mock-data"
+import { useUser } from "@/hooks/useUser"
+import { useApi } from "@/hooks/useApi"
+import { useToast } from "@/hooks/use-toast"
 import { format, differenceInMinutes } from 'date-fns'
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,31 +21,43 @@ import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, FileSignature, MapP
 export default function ApproveTimesheetPage({ params }: { params: { id: string } }) {
   const { user } = useUser()
   const router = useRouter();
+  const { toast } = useToast();
   const signatureRef = useRef<SignaturePadRef>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const timesheet = mockTimesheets.find(t => t.id === params.id)
-  const shift = mockShifts.find(s => s.id === timesheet?.shiftId)
-  const job = shift ? mockJobs.find(j => j.id === shift.jobId) : undefined;
-  const client = job ? mockClients.find(c => c.id === job.clientId) : undefined;
+  const { data: timesheetData, error, mutate } = useApi<{ timesheet: any }>(`/api/timesheets/${params.id}`);
+
+  const timesheet = timesheetData?.timesheet;
+  const shift = timesheet?.shift;
+  const job = shift?.job;
+  const client = shift?.client;
 
   useEffect(() => {
     // Redirect if user is not authorized
     if (!shift) return; // Guard for initial render
 
-    if (user.role === 'Employee') {
+    if (user?.role === 'Employee') {
       router.push('/dashboard');
-    } else if (user.role === 'Crew Chief' && shift.crewChief.id !== user.id) {
+    } else if (user?.role === 'Crew Chief' && shift.crewChief.id !== user.id) {
       router.push('/timesheets');
     }
   }, [user, shift, router]);
-  
-  if (!timesheet || !shift || !client) {
+
+  if (error) {
     notFound()
   }
 
+  if (!timesheetData || !timesheet || !shift || !client) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
+
   // Prevent rendering for unauthorized users while redirecting.
-  if (user.role === 'Employee' || (user.role === 'Crew Chief' && shift.crewChief.id !== user.id)) {
+  if (user?.role === 'Employee' || (user?.role === 'Crew Chief' && shift.crewChief.id !== user.id)) {
     return null; // Render nothing while redirecting
   }
 
@@ -62,23 +75,112 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
     return (totalMinutes / 60).toFixed(2);
   }
 
-  const handleSaveSignature = () => {
-    if (signatureRef.current && !signatureRef.current.isEmpty()) {
-      const signatureDataUrl = signatureRef.current.getTrimmedCanvas().toDataURL('image/png');
-      // In a real app, you would save this `signatureDataUrl` to your backend
-      // and update the timesheet status.
-      console.log("Signature saved:", signatureDataUrl);
-      timesheet.status = 'Awaiting Manager Approval'; // Mock update
-      timesheet.clientSignature = signatureDataUrl;
-      timesheet.approvedByClientAt = new Date().toISOString();
-      setIsDialogOpen(false);
-      router.push('/timesheets'); // a different page could be a confirmation page
-    } else {
-      alert("Please provide a signature.");
+  const handleApproval = async (approvalType: 'client' | 'manager') => {
+    if (!signatureRef.current || signatureRef.current.isEmpty()) {
+      toast({
+        title: "Error",
+        description: "Please provide a signature.",
+        variant: "destructive",
+      });
+      return;
     }
-  }
 
-  const isApproved = timesheet.status === 'Approved' || timesheet.status === 'Awaiting Manager Approval';
+    setLoading(true);
+    try {
+      const signatureDataUrl = signatureRef.current.getTrimmedCanvas().toDataURL('image/png');
+
+      const response = await fetch(`/api/timesheets/${params.id}/approve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          signature: signatureDataUrl,
+          approvalType,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to approve timesheet');
+      }
+
+      const result = await response.json();
+
+      toast({
+        title: "Success",
+        description: result.message,
+      });
+
+      // Refresh the data
+      mutate();
+      setIsDialogOpen(false);
+
+      // Redirect after a short delay
+      setTimeout(() => {
+        router.push('/timesheets');
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error approving timesheet:', error);
+      toast({
+        title: "Error",
+        description: "Failed to approve timesheet. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReject = async () => {
+    // TODO: Add rejection dialog with reason
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/timesheets/${params.id}/approve`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reason: 'Rejected by manager',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to reject timesheet');
+      }
+
+      const result = await response.json();
+
+      toast({
+        title: "Success",
+        description: result.message,
+      });
+
+      // Refresh the data
+      mutate();
+
+      // Redirect after a short delay
+      setTimeout(() => {
+        router.push('/timesheets');
+      }, 1000);
+
+    } catch (error) {
+      console.error('Error rejecting timesheet:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reject timesheet. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isClientApproved = timesheet.status === 'pending_manager_approval' || timesheet.status === 'completed';
+  const isManagerApproved = timesheet.status === 'completed';
+  const canClientApprove = timesheet.status === 'pending_client_approval' && (user?.role === 'Manager/Admin' || user?.role === 'Client');
+  const canManagerApprove = timesheet.status === 'pending_manager_approval' && user?.role === 'Manager/Admin';
 
   return (
     <div className="flex flex-col gap-6">
@@ -97,12 +199,26 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
                 Review and approve the hours for the shift on {format(new Date(shift.date), 'EEEE, MMMM d, yyyy')}.
                 </CardDescription>
             </div>
-            {isApproved && timesheet.clientSignature && (
-                 <div className="text-right">
-                    <p className="text-sm font-medium">Client Approved</p>
-                    <img src={timesheet.clientSignature} alt="Client Signature" className="h-16 w-32 bg-slate-100 rounded-md mt-1 p-2 border" />
+            <div className="flex gap-4">
+              {isClientApproved && timesheet.clientSignature && (
+                <div className="text-right">
+                  <p className="text-sm font-medium">Client Approved</p>
+                  <img src={timesheet.clientSignature} alt="Client Signature" className="h-16 w-32 bg-slate-100 rounded-md mt-1 p-2 border" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {timesheet.clientApprovedAt && format(new Date(timesheet.clientApprovedAt), 'MMM d, yyyy')}
+                  </p>
                 </div>
-            )}
+              )}
+              {isManagerApproved && timesheet.managerSignature && (
+                <div className="text-right">
+                  <p className="text-sm font-medium">Manager Approved</p>
+                  <img src={timesheet.managerSignature} alt="Manager Signature" className="h-16 w-32 bg-slate-100 rounded-md mt-1 p-2 border" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {timesheet.managerApprovedAt && format(new Date(timesheet.managerApprovedAt), 'MMM d, yyyy')}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -145,37 +261,84 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
             </Table>
         </CardContent>
         <CardFooter className="justify-end">
-            {!isApproved && (
+            <div className="flex gap-4 w-full">
+              {canClientApprove && (
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button disabled={loading}>
+                      <FileSignature className="mr-2 h-4 w-4" />
+                      Client Approval
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                      <DialogTitle>Client Signature</DialogTitle>
+                      <DialogDescription>
+                        Please sign below to confirm the hours are correct.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <SignaturePad ref={signatureRef} />
+                    </div>
+                    <DialogFooter>
+                      <Button variant="ghost" onClick={() => signatureRef.current?.clear()}>
+                        <RefreshCw className="mr-2 h-4 w-4" /> Clear
+                      </Button>
+                      <Button onClick={() => handleApproval('client')} disabled={loading}>
+                        <Save className="mr-2 h-4 w-4" />
+                        {loading ? 'Signing...' : 'Sign and Submit'}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
+
+              {canManagerApprove && (
+                <div className="flex gap-2">
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button><FileSignature className="mr-2 h-4 w-4" /> Review & Approve</Button>
+                      <Button disabled={loading}>
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Manager Approval
+                      </Button>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[500px]">
-                        <DialogHeader>
-                        <DialogTitle>Client Signature</DialogTitle>
+                      <DialogHeader>
+                        <DialogTitle>Manager Signature</DialogTitle>
                         <DialogDescription>
-                            Please sign below to confirm the hours are correct.
+                          Please sign below to provide final approval for this timesheet.
                         </DialogDescription>
-                        </DialogHeader>
-                        <div className="py-4">
-                            <SignaturePad ref={signatureRef} />
-                        </div>
-                        <DialogFooter>
-                            <Button variant="ghost" onClick={() => signatureRef.current?.clear()}><RefreshCw className="mr-2 h-4 w-4" /> Clear</Button>
-                            <Button onClick={handleSaveSignature}><Save className="mr-2 h-4 w-4" />Sign and Submit</Button>
-                        </DialogFooter>
+                      </DialogHeader>
+                      <div className="py-4">
+                        <SignaturePad ref={signatureRef} />
+                      </div>
+                      <DialogFooter>
+                        <Button variant="ghost" onClick={() => signatureRef.current?.clear()}>
+                          <RefreshCw className="mr-2 h-4 w-4" /> Clear
+                        </Button>
+                        <Button onClick={() => handleApproval('manager')} disabled={loading}>
+                          <Save className="mr-2 h-4 w-4" />
+                          {loading ? 'Approving...' : 'Final Approval'}
+                        </Button>
+                      </DialogFooter>
                     </DialogContent>
-                </Dialog>
-            )}
-            {isApproved && (
-                <Alert variant="default" className="border-green-600 bg-green-50 text-green-800">
-                    <CheckCircle className="h-4 w-4 !text-green-600" />
-                    <AlertTitle>Timesheet Approved by Client</AlertTitle>
-                    <AlertDescription>
-                        This timesheet was signed and approved on {format(new Date(timesheet.approvedByClientAt!), 'PPpp')}.
-                    </AlertDescription>
+                  </Dialog>
+                  <Button variant="destructive" onClick={handleReject} disabled={loading}>
+                    Reject
+                  </Button>
+                </div>
+              )}
+
+              {isManagerApproved && (
+                <Alert variant="default" className="border-green-600 bg-green-50 text-green-800 flex-1">
+                  <CheckCircle className="h-4 w-4 !text-green-600" />
+                  <AlertTitle>Timesheet Completed</AlertTitle>
+                  <AlertDescription>
+                    This timesheet has been fully approved and completed.
+                  </AlertDescription>
                 </Alert>
-            )}
+              )}
+            </div>
         </CardFooter>
       </Card>
     </div>
