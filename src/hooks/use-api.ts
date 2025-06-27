@@ -6,58 +6,56 @@ interface ApiState<T> {
   data: T | null;
   loading: boolean;
   error: string | null;
+  refetch: () => void;
 }
 
 export function useApi<T>(url: string, dependencies: any[] = []): ApiState<T> {
-  const [state, setState] = useState<ApiState<T>>({
+  const [state, setState] = useState<Omit<ApiState<T>, 'refetch'>>({
     data: null,
     loading: true,
     error: null,
   });
 
-  useEffect(() => {
-    let isCancelled = false;
+  const fetchData = async () => {
+    try {
+      setState(prev => ({ ...prev, loading: true, error: null }));
 
-    const fetchData = async () => {
-      try {
-        setState(prev => ({ ...prev, loading: true, error: null }));
-        
-        const response = await fetch(url, {
-          credentials: 'include',
-        });
+      const response = await fetch(url, {
+        credentials: 'include',
+      });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        
-        if (!isCancelled) {
-          setState({
-            data: result.success ? result : result,
-            loading: false,
-            error: null,
-          });
-        }
-      } catch (error) {
-        if (!isCancelled) {
-          setState({
-            data: null,
-            loading: false,
-            error: error instanceof Error ? error.message : 'An error occurred',
-          });
-        }
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
 
+      const result = await response.json();
+
+      setState({
+        data: result.success ? result : result,
+        loading: false,
+        error: null,
+      });
+    } catch (error) {
+      setState({
+        data: null,
+        loading: false,
+        error: error instanceof Error ? error.message : 'An error occurred',
+      });
+    }
+  };
+
+  useEffect(() => {
     fetchData();
-
-    return () => {
-      isCancelled = true;
-    };
   }, [url, ...dependencies]);
 
-  return state;
+  const refetch = () => {
+    fetchData();
+  };
+
+  return {
+    ...state,
+    refetch,
+  };
 }
 
 export function useShifts() {

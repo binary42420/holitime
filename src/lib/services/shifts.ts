@@ -79,8 +79,8 @@ export async function getAllShifts(): Promise<Shift[]> {
 export async function getShiftById(id: string): Promise<Shift | null> {
   try {
     const result = await query(`
-      SELECT 
-        s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
+      SELECT
+        s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes, s.requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
         c.name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
@@ -88,7 +88,7 @@ export async function getShiftById(id: string): Promise<Shift | null> {
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN clients c ON j.client_id = c.id
-      JOIN users cc ON s.crew_chief_id = cc.id
+      LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       WHERE s.id = $1
     `, [id]);
@@ -106,19 +106,21 @@ export async function getShiftById(id: string): Promise<Shift | null> {
       jobId: row.job_id,
       jobName: row.job_name,
       clientName: row.client_name,
-      authorizedCrewChiefIds: [row.crew_chief_id],
+      authorizedCrewChiefIds: row.crew_chief_id ? [row.crew_chief_id] : [],
       date: row.date,
       startTime: row.start_time,
       endTime: row.end_time,
       location: row.location,
-      crewChief: {
+      requestedWorkers: row.requested_workers,
+      crewChiefName: row.crew_chief_name || null,
+      crewChief: row.crew_chief_id ? {
         id: row.crew_chief_id,
         name: row.crew_chief_name,
         certifications: [],
         performance: 0,
         location: '',
         avatar: row.crew_chief_avatar || '',
-      },
+      } : null,
       assignedPersonnel,
       status: row.status,
       timesheetStatus: row.timesheet_status || 'Pending Finalization',

@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import ShiftTimeManagement from "@/components/shift-time-management"
+import WorkerAssignmentManager from "@/components/worker-assignment-manager"
 
 interface ShiftDetailPageProps {
   params: Promise<{ id: string }>
@@ -185,7 +185,7 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
             </div>
             <div className="flex justify-between items-center">
               <span>Crew Chief:</span>
-              <span className="font-medium">{shift.crewChiefName || 'Unassigned'}</span>
+              <span className="font-medium">{shift.crewChiefName || shift.crewChief?.name || 'Unassigned'}</span>
             </div>
           </CardContent>
         </Card>
@@ -213,10 +213,9 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
         </Card>
       )}
 
-      <ShiftTimeManagement 
-        shiftId={id} 
-        shift={shift} 
-        assignedPersonnel={assignedPersonnel}
+      <WorkerAssignmentManager
+        shiftId={id}
+        shift={shift}
         onUpdate={handleRefresh}
       />
 

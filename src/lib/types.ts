@@ -62,6 +62,7 @@ export interface AssignedPersonnel {
   roleCode: RoleCode;
   status: AssignedPersonnelStatus;
   timeEntries: { clockIn?: string; clockOut?: string }[];
+  isPlaceholder?: boolean;
 }
 
 export type TimesheetStatus = 'Pending Finalization' | 'Awaiting Client Approval' | 'Awaiting Manager Approval' | 'Approved' | 'Rejected';
@@ -79,7 +80,7 @@ export interface Shift {
   location: string;
   requestedWorkers?: number;
   assignedCount?: number;
-  crewChief: Employee;
+  crewChief: Employee | null;
   crewChiefId?: string;
   crewChiefName?: string;
   crewChiefAvatar?: string;
