@@ -6,18 +6,31 @@ export interface User {
   email: string;
   avatar: string;
   role: UserRole;
-  clientId?: string; // To link a client user to a client company
+
+  // Employee-specific fields (null for non-employees)
+  certifications?: string[];
+  performance?: number;
+  location?: string;
+
+  // Client company fields (null for non-clients)
+  companyName?: string;
+  companyAddress?: string;
+  contactPerson?: string;
+  contactEmail?: string;
+  contactPhone?: string;
 }
 
+// Client interface now represents a client user (role: 'Client')
+// Client company data is stored directly in the User interface
 export interface Client {
-  id: string;
-  name: string;
-  address: string;
-  contactPerson: string;
-  contactEmail: string;
-  contactPhone: string;
+  id: string; // This is now the user ID
+  name: string; // User name
+  companyName: string; // Company name
+  companyAddress?: string;
+  contactPerson?: string;
+  contactEmail?: string;
+  contactPhone?: string;
   authorizedCrewChiefIds?: string[];
-  contactUserIds?: string[]; // To link a client to user accounts
   mostRecentCompletedShift?: {
     id: string;
     date: string;
@@ -43,9 +56,11 @@ export interface Job {
   authorizedCrewChiefIds?: string[];
 }
 
+// Employee interface now represents an employee user (role: 'Employee' | 'Crew Chief')
+// Employee data is stored directly in the User interface
 export interface Employee {
-  id: string;
-  name: string;
+  id: string; // This is now the user ID
+  name: string; // User name
   certifications: string[];
   performance: number; // 1-5 scale
   location: string;

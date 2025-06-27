@@ -34,13 +34,13 @@ export async function GET(request: NextRequest) {
         t.id, t.status, t.client_signature, t.approved_by_client_at, t.approved_by_manager_at,
         s.id as shift_id, s.date, s.start_time, s.end_time, s.location,
         j.name as job_name,
-        c.name as client_name,
+        COALESCE(c.company_name, c.name) as client_name,
         cc.name as crew_chief_name
       FROM timesheets t
       JOIN shifts s ON t.shift_id = s.id
       JOIN jobs j ON s.job_id = j.id
-      JOIN clients c ON j.client_id = c.id
-      JOIN users cc ON s.crew_chief_id = cc.id
+      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      LEFT JOIN users cc ON s.crew_chief_id = cc.id
       ${whereClause}
       ORDER BY s.date DESC, s.start_time DESC
     `, params);

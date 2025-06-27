@@ -5,7 +5,7 @@ export async function getAllClients(): Promise<Client[]> {
   try {
     const result = await query(`
       SELECT
-        c.id, c.name, c.address, c.contact_person, c.contact_email, c.contact_phone,
+        u.id, u.name, u.company_name, u.company_address, u.contact_person, u.contact_email, u.contact_phone,
         -- Most recent completed shift
         completed_shift.shift_id as completed_shift_id,
         completed_shift.shift_date as completed_shift_date,
@@ -14,7 +14,7 @@ export async function getAllClients(): Promise<Client[]> {
         upcoming_shift.shift_id as upcoming_shift_id,
         upcoming_shift.shift_date as upcoming_shift_date,
         upcoming_shift.job_name as upcoming_job_name
-      FROM clients c
+      FROM users u
       LEFT JOIN (
         SELECT DISTINCT ON (j.client_id)
           j.client_id,
@@ -25,7 +25,7 @@ export async function getAllClients(): Promise<Client[]> {
         JOIN jobs j ON s.job_id = j.id
         WHERE s.status = 'Completed'
         ORDER BY j.client_id, s.date DESC, s.start_time DESC
-      ) completed_shift ON c.id = completed_shift.client_id
+      ) completed_shift ON u.id = completed_shift.client_id
       LEFT JOIN (
         SELECT DISTINCT ON (j.client_id)
           j.client_id,
@@ -36,19 +36,20 @@ export async function getAllClients(): Promise<Client[]> {
         JOIN jobs j ON s.job_id = j.id
         WHERE s.status IN ('Upcoming', 'In Progress')
         ORDER BY j.client_id, s.date ASC, s.start_time ASC
-      ) upcoming_shift ON c.id = upcoming_shift.client_id
-      ORDER BY c.name
+      ) upcoming_shift ON u.id = upcoming_shift.client_id
+      WHERE u.role = 'Client'
+      ORDER BY COALESCE(u.company_name, u.name)
     `);
 
     return result.rows.map(row => ({
       id: row.id,
       name: row.name,
-      address: row.address,
+      companyName: row.company_name || row.name,
+      companyAddress: row.company_address,
       contactPerson: row.contact_person,
       contactEmail: row.contact_email,
       contactPhone: row.contact_phone,
       authorizedCrewChiefIds: [], // Will be populated separately if needed
-      contactUserIds: [], // Will be populated separately if needed
       mostRecentCompletedShift: row.completed_shift_id ? {
         id: row.completed_shift_id,
         date: row.completed_shift_date,
@@ -69,9 +70,9 @@ export async function getAllClients(): Promise<Client[]> {
 export async function getClientById(id: string): Promise<Client | null> {
   try {
     const result = await query(`
-      SELECT id, name, address, contact_person, contact_email, contact_phone
-      FROM clients
-      WHERE id = $1
+      SELECT id, name, company_name, company_address, contact_person, contact_email, contact_phone
+      FROM users
+      WHERE id = $1 AND role = 'Client'
     `, [id]);
 
     if (result.rows.length === 0) {
@@ -87,11 +88,7 @@ export async function getClientById(id: string): Promise<Client | null> {
       WHERE j.client_id = $1
     `, [id]);
 
-    // Get contact user IDs
-    const contactUsersResult = await query(`
-      SELECT user_id FROM client_user_links
-      WHERE client_id = $1
-    `, [id]);
+    // Note: Contact user IDs are no longer needed since client is now a user
 
     // Get most recent completed shift
     const recentCompletedResult = await query(`
@@ -116,12 +113,12 @@ export async function getClientById(id: string): Promise<Client | null> {
     return {
       id: row.id,
       name: row.name,
-      address: row.address,
+      companyName: row.company_name || row.name,
+      companyAddress: row.company_address,
       contactPerson: row.contact_person,
       contactEmail: row.contact_email,
       contactPhone: row.contact_phone,
       authorizedCrewChiefIds: crewChiefsResult.rows.map(r => r.crew_chief_id),
-      contactUserIds: contactUsersResult.rows.map(r => r.user_id),
       mostRecentCompletedShift: recentCompletedResult.rows.length > 0 ? {
         id: recentCompletedResult.rows[0].id,
         date: recentCompletedResult.rows[0].date,
@@ -139,15 +136,18 @@ export async function getClientById(id: string): Promise<Client | null> {
   }
 }
 
-export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCrewChiefIds' | 'contactUserIds'>): Promise<Client | null> {
+export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCrewChiefIds'>): Promise<Client | null> {
   try {
     const result = await query(`
-      INSERT INTO clients (name, address, contact_person, contact_email, contact_phone)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, name, address, contact_person, contact_email, contact_phone
+      INSERT INTO users (name, email, password_hash, role, company_name, company_address, contact_person, contact_email, contact_phone)
+      VALUES ($1, $2, $3, 'Client', $4, $5, $6, $7, $8)
+      RETURNING id, name, company_name, company_address, contact_person, contact_email, contact_phone
     `, [
       clientData.name,
-      clientData.address,
+      clientData.contactEmail || `${clientData.name.toLowerCase().replace(/\s+/g, '')}@example.com`,
+      'temp_password_hash', // This should be set properly in a real implementation
+      clientData.companyName,
+      clientData.companyAddress,
       clientData.contactPerson,
       clientData.contactEmail,
       clientData.contactPhone
@@ -161,12 +161,12 @@ export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCr
     return {
       id: row.id,
       name: row.name,
-      address: row.address,
+      companyName: row.company_name,
+      companyAddress: row.company_address,
       contactPerson: row.contact_person,
       contactEmail: row.contact_email,
       contactPhone: row.contact_phone,
       authorizedCrewChiefIds: [],
-      contactUserIds: [],
     };
   } catch (error) {
     console.error('Error creating client:', error);
@@ -174,7 +174,7 @@ export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCr
   }
 }
 
-export async function updateClient(id: string, clientData: Partial<Omit<Client, 'id' | 'authorizedCrewChiefIds' | 'contactUserIds'>>): Promise<Client | null> {
+export async function updateClient(id: string, clientData: Partial<Omit<Client, 'id' | 'authorizedCrewChiefIds'>>): Promise<Client | null> {
   try {
     const fields = [];
     const values = [];
@@ -184,9 +184,13 @@ export async function updateClient(id: string, clientData: Partial<Omit<Client, 
       fields.push(`name = $${paramCount++}`);
       values.push(clientData.name);
     }
-    if (clientData.address !== undefined) {
-      fields.push(`address = $${paramCount++}`);
-      values.push(clientData.address);
+    if (clientData.companyName !== undefined) {
+      fields.push(`company_name = $${paramCount++}`);
+      values.push(clientData.companyName);
+    }
+    if (clientData.companyAddress !== undefined) {
+      fields.push(`company_address = $${paramCount++}`);
+      values.push(clientData.companyAddress);
     }
     if (clientData.contactPerson !== undefined) {
       fields.push(`contact_person = $${paramCount++}`);
@@ -207,10 +211,10 @@ export async function updateClient(id: string, clientData: Partial<Omit<Client, 
 
     values.push(id);
     const result = await query(`
-      UPDATE clients
+      UPDATE users
       SET ${fields.join(', ')}
-      WHERE id = $${paramCount}
-      RETURNING id, name, address, contact_person, contact_email, contact_phone
+      WHERE id = $${paramCount} AND role = 'Client'
+      RETURNING id, name, company_name, company_address, contact_person, contact_email, contact_phone
     `, values);
 
     if (result.rows.length === 0) {
@@ -226,7 +230,7 @@ export async function updateClient(id: string, clientData: Partial<Omit<Client, 
 
 export async function deleteClient(id: string): Promise<boolean> {
   try {
-    const result = await query('DELETE FROM clients WHERE id = $1', [id]);
+    const result = await query('DELETE FROM users WHERE id = $1 AND role = \'Client\'', [id]);
     return (result.rowCount ?? 0) > 0;
   } catch (error) {
     console.error('Error deleting client:', error);

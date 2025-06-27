@@ -6,7 +6,7 @@ export async function getAllJobs(): Promise<Job[]> {
     const result = await query(`
       SELECT 
         j.id, j.name, j.description, j.client_id,
-        c.name as client_name,
+        COALESCE(c.company_name, c.name) as client_name,
         COUNT(s.id) as shift_count,
         MIN(s.date) as start_date,
         MAX(s.date) as end_date,
@@ -16,9 +16,9 @@ export async function getAllJobs(): Promise<Job[]> {
           ELSE 'Planning'
         END as status
       FROM jobs j
-      JOIN clients c ON j.client_id = c.id
+      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       LEFT JOIN shifts s ON j.id = s.job_id
-      GROUP BY j.id, j.name, j.description, j.client_id, c.name
+      GROUP BY j.id, j.name, j.description, j.client_id, c.name, c.company_name
       ORDER BY j.created_at DESC
     `);
 
@@ -44,9 +44,9 @@ export async function getJobById(id: string): Promise<Job | null> {
     const result = await query(`
       SELECT 
         j.id, j.name, j.description, j.client_id,
-        c.name as client_name
+        COALESCE(c.company_name, c.name) as client_name
       FROM jobs j
-      JOIN clients c ON j.client_id = c.id
+      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       WHERE j.id = $1
     `, [id]);
 
@@ -73,20 +73,20 @@ export async function getJobsByClientId(clientId: string): Promise<Job[]> {
     const result = await query(`
       SELECT 
         j.id, j.name, j.description, j.client_id,
-        c.name as client_name,
+        COALESCE(c.company_name, c.name) as client_name,
         COUNT(s.id) as shift_count,
         MIN(s.date) as start_date,
         MAX(s.date) as end_date,
-        CASE 
+        CASE
           WHEN COUNT(CASE WHEN s.status = 'Completed' THEN 1 END) = COUNT(s.id) AND COUNT(s.id) > 0 THEN 'Completed'
           WHEN COUNT(CASE WHEN s.status IN ('In Progress', 'Upcoming') THEN 1 END) > 0 THEN 'Active'
           ELSE 'Planning'
         END as status
       FROM jobs j
-      JOIN clients c ON j.client_id = c.id
+      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       LEFT JOIN shifts s ON j.id = s.job_id
       WHERE j.client_id = $1
-      GROUP BY j.id, j.name, j.description, j.client_id, c.name
+      GROUP BY j.id, j.name, j.description, j.client_id, c.name, c.company_name
       ORDER BY j.created_at DESC
     `, [clientId]);
 

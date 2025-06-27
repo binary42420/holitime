@@ -16,18 +16,18 @@ export async function getAllShifts(): Promise<Shift[]> {
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         COALESCE(s.requested_workers, 1) as requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
-        c.name as client_name,
+        COALESCE(c.company_name, c.name) as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
         COUNT(ap.id) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN clients c ON j.client_id = c.id
-      JOIN users cc ON s.crew_chief_id = cc.id
+      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       LEFT JOIN assigned_personnel ap ON s.id = ap.shift_id
       GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-               s.requested_workers, j.id, j.name, j.client_id, c.name,
+               s.requested_workers, j.id, j.name, j.client_id, c.company_name, c.name,
                cc.id, cc.name, cc.avatar, t.id, t.status
       ORDER BY s.date DESC, s.start_time
     `);
@@ -82,12 +82,12 @@ export async function getShiftById(id: string): Promise<Shift | null> {
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes, s.requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
-        c.name as client_name,
+        COALESCE(c.company_name, c.name) as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN clients c ON j.client_id = c.id
+      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       WHERE s.id = $1
@@ -225,13 +225,13 @@ export async function getShiftsByCrewChief(crewChiefId: string): Promise<Shift[]
       SELECT 
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         j.id as job_id, j.name as job_name, j.client_id,
-        c.name as client_name,
+        COALESCE(c.company_name, c.name) as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN clients c ON j.client_id = c.id
-      JOIN users cc ON s.crew_chief_id = cc.id
+      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       WHERE s.crew_chief_id = $1
       ORDER BY s.date DESC, s.start_time
@@ -346,7 +346,8 @@ export async function updateShift(shiftId: string, shiftData: {
     }
     if (shiftData.crewChiefId !== undefined) {
       updates.push(`crew_chief_id = $${paramCount++}`);
-      values.push(shiftData.crewChiefId);
+      // Convert empty string to null for UUID column
+      values.push(shiftData.crewChiefId === '' ? null : shiftData.crewChiefId);
     }
     if (shiftData.requestedWorkers !== undefined) {
       updates.push(`requested_workers = $${paramCount++}`);

@@ -15,7 +15,9 @@ export async function runMigrations() {
 
     // List of migration files in order
     const migrations = [
-      '001_initial_schema.sql'
+      '001_initial_schema.sql',
+      '002_add_is_active_to_time_entries.sql',
+      '003_consolidate_user_tables.sql'
     ];
 
     for (const migration of migrations) {

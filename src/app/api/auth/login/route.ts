@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       path: '/',
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: {
         id: user.id,
@@ -48,6 +48,13 @@ export async function POST(request: NextRequest) {
         clientId: user.clientId,
       },
     });
+
+    // Add cache control headers to prevent caching of auth responses
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
   } catch (error) {
     console.error('Login error:', error);
     return NextResponse.json(

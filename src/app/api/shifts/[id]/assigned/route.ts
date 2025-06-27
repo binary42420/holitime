@@ -16,8 +16,13 @@ export async function GET(
     }
 
     // Get assigned personnel with their time entries
+    const shiftId = await params.then(p => p.id);
+
+
+
+    // First get the regular assigned personnel
     const result = await query(`
-      SELECT 
+      SELECT
         ap.id,
         ap.employee_id,
         ap.role_on_shift,
@@ -38,18 +43,32 @@ export async function GET(
           '[]'::json
         ) as time_entries
       FROM assigned_personnel ap
-      JOIN users u ON ap.employee_id = u.id
+      JOIN employees e ON ap.employee_id = e.id
+      JOIN users u ON e.user_id = u.id
       LEFT JOIN time_entries te ON ap.id = te.assigned_personnel_id
       WHERE ap.shift_id = $1
       GROUP BY ap.id, ap.employee_id, ap.role_on_shift, ap.role_code, ap.status, u.name, u.avatar
       ORDER BY u.name ASC
-    `, [await params.then(p => p.id)]);
+    `, [shiftId]);
+
+    // Get the crew chief from the shifts table
+    const crewChiefResult = await query(`
+      SELECT
+        s.crew_chief_id,
+        u.name as crew_chief_name,
+        u.avatar as crew_chief_avatar
+      FROM shifts s
+      LEFT JOIN users u ON s.crew_chief_id = u.id
+      WHERE s.id = $1 AND s.crew_chief_id IS NOT NULL
+    `, [shiftId]);
+
+
 
     const assignedPersonnel = result.rows.map(row => {
       // Determine status based on time entries
       const timeEntries = row.time_entries || [];
       let status = 'not_started';
-      
+
       // Check if any entry is currently active (clocked in)
       const hasActiveEntry = timeEntries.some((entry: any) => entry.isActive);
       if (hasActiveEntry) {
@@ -80,6 +99,24 @@ export async function GET(
         })),
       };
     });
+
+    // Add crew chief as a special assignment if one exists
+    if (crewChiefResult.rows.length > 0) {
+      const crewChief = crewChiefResult.rows[0];
+      assignedPersonnel.unshift({
+        id: `crew-chief-${crewChief.crew_chief_id}`, // Special ID to identify crew chief
+        employeeId: crewChief.crew_chief_id,
+        employeeName: crewChief.crew_chief_name,
+        employeeAvatar: crewChief.crew_chief_avatar,
+        roleOnShift: 'Crew Chief',
+        roleCode: 'CC',
+        status: 'not_started',
+        timeEntries: [],
+        isCrewChief: true // Flag to identify this as the crew chief assignment
+      });
+    }
+
+    console.log('Final assigned personnel response:', assignedPersonnel);
 
     return NextResponse.json({
       success: true,

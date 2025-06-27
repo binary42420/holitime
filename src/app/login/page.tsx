@@ -28,14 +28,15 @@ export default function LoginPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
+        credentials: 'include', // Important for cookie handling
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Redirect to dashboard on successful login
-        router.push('/dashboard');
-        router.refresh(); // Refresh to update auth state
+        // Clear any cached auth state and redirect
+        // Force a hard refresh to clear any stale state
+        window.location.href = '/dashboard';
       } else {
         setError(data.error || 'Login failed');
       }

@@ -39,21 +39,38 @@ export async function GET(request: NextRequest) {
       jobName,
       shiftDate,
       startTime: decodedStartTime,
-      sequence: sequenceNumber
+      sequence: sequenceNumber,
+      originalParams: { companySlug, jobSlug, dateSlug, startTime, sequence }
     })
 
-    // Build query based on available parameters
+    // Build query with more flexible matching
     let queryText = `
-      SELECT s.id, c.name as client_name, j.name as job_name, s.date, s.start_time
+      SELECT s.id, u.name as client_name, u.company_name, j.name as job_name, s.date, s.start_time
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN clients c ON j.client_id = c.id
-      WHERE LOWER(REPLACE(c.name, '.', '')) LIKE LOWER($1)
-        AND LOWER(REPLACE(j.name, '.', '')) LIKE LOWER($2)
-        AND s.date = $3
+      JOIN users u ON j.client_id = u.id AND u.role = 'Client'
+      WHERE (
+        LOWER(REPLACE(COALESCE(u.company_name, u.name), ' ', '-')) LIKE LOWER($1)
+        OR LOWER(REPLACE(COALESCE(u.company_name, u.name), '.', '')) LIKE LOWER($2)
+        OR LOWER(COALESCE(u.company_name, u.name)) LIKE LOWER($3)
+      )
+      AND (
+        LOWER(REPLACE(j.name, ' ', '-')) LIKE LOWER($4)
+        OR LOWER(REPLACE(j.name, '.', '')) LIKE LOWER($5)
+        OR LOWER(j.name) LIKE LOWER($6)
+      )
+      AND s.date = $7
     `
 
-    const queryParams = [`%${companyName}%`, `%${jobName}%`, shiftDate]
+    const queryParams = [
+      `%${companyName.replace(/ /g, '-')}%`,  // slug format
+      `%${companyName.replace(/\./g, '')}%`,  // no dots
+      `%${companyName}%`,                     // original format
+      `%${jobName.replace(/ /g, '-')}%`,      // slug format
+      `%${jobName.replace(/\./g, '')}%`,      // no dots
+      `%${jobName}%`,                         // original format
+      shiftDate
+    ]
 
     // Add start time filter if provided
     if (decodedStartTime) {
@@ -66,18 +83,80 @@ export async function GET(request: NextRequest) {
     // If we have a sequence number > 1, use OFFSET to get the nth shift
     if (sequenceNumber > 1) {
       queryText += ` OFFSET $${queryParams.length + 1}`
-      queryParams.push(sequenceNumber - 1)
+      queryParams.push((sequenceNumber - 1).toString())
     }
 
     queryText += ` LIMIT 1`
+
+    console.log('Executing query:', queryText)
+    console.log('Query params:', queryParams)
 
     const result = await query(queryText, queryParams)
 
     console.log('Query result:', result.rows)
 
     if (result.rows.length === 0) {
+      // Try a broader search without start time if no exact match found
+      if (decodedStartTime) {
+        console.log('No exact match found, trying without start time...')
+        
+        const broadQueryText = `
+          SELECT s.id, u.name as client_name, u.company_name, j.name as job_name, s.date, s.start_time
+          FROM shifts s
+          JOIN jobs j ON s.job_id = j.id
+          JOIN users u ON j.client_id = u.id AND u.role = 'Client'
+          WHERE (
+            LOWER(REPLACE(COALESCE(u.company_name, u.name), ' ', '-')) LIKE LOWER($1)
+            OR LOWER(REPLACE(COALESCE(u.company_name, u.name), '.', '')) LIKE LOWER($2)
+            OR LOWER(COALESCE(u.company_name, u.name)) LIKE LOWER($3)
+          )
+          AND (
+            LOWER(REPLACE(j.name, ' ', '-')) LIKE LOWER($4)
+            OR LOWER(REPLACE(j.name, '.', '')) LIKE LOWER($5)
+            OR LOWER(j.name) LIKE LOWER($6)
+          )
+          AND s.date = $7
+          ORDER BY s.start_time, s.created_at
+          LIMIT 1
+        `
+        
+        const broadParams = queryParams.slice(0, 7) // Remove start time param
+        const broadResult = await query(broadQueryText, broadParams)
+        
+        if (broadResult.rows.length > 0) {
+          const shiftId = broadResult.rows[0].id
+          const shift = await getShiftById(shiftId)
+          
+          if (shift) {
+            // Check if user has access to this shift
+            const hasAccess = 
+              user.role === 'Manager/Admin' ||
+              (user.role === 'Crew Chief' && shift.crewChief?.id === user.id) ||
+              (user.role === 'Employee' && shift.assignedPersonnel.some(person => person.employee.id === user.id))
+
+            if (hasAccess) {
+              return NextResponse.json({
+                success: true,
+                shift,
+              })
+            }
+          }
+        }
+      }
+      
       return NextResponse.json(
-        { error: 'Shift not found' },
+        { 
+          error: 'Shift not found',
+          debug: {
+            searchedFor: {
+              companyName,
+              jobName,
+              shiftDate,
+              startTime: decodedStartTime,
+              sequence: sequenceNumber
+            }
+          }
+        },
         { status: 404 }
       )
     }
@@ -113,7 +192,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error getting shift by slug:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     )
   }

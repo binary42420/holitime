@@ -67,20 +67,47 @@ export function parseShiftUrl(companySlug: string, jobSlug: string, dateSlug: st
   }
 
   if (shiftIdSlug) {
-    const shiftId = decodeURIComponent(shiftIdSlug)
-    const parts = shiftId.split('-')
-
-    // Parse time (HHMM format)
-    if (parts[0] && parts[0].length === 4) {
-      const hours = parts[0].substring(0, 2)
-      const minutes = parts[0].substring(2, 4)
-      result.startTime = `${hours}:${minutes}`
+    // First decode the URL component
+    const decodedShiftId = decodeURIComponent(shiftIdSlug)
+    
+    // Handle different time formats:
+    // 1. "2100:00-1" (with colon)
+    // 2. "2100-1" (without colon, HHMM format)
+    // 3. "21:00-1" (already formatted)
+    
+    let timeStr = ''
+    let sequenceStr = ''
+    
+    // Check if it contains a colon (already formatted time)
+    if (decodedShiftId.includes(':')) {
+      const parts = decodedShiftId.split('-')
+      timeStr = parts[0] // e.g., "21:00"
+      sequenceStr = parts[1] || '1'
+    } else {
+      // Split by dash to separate time and sequence
+      const parts = decodedShiftId.split('-')
+      const timePart = parts[0]
+      sequenceStr = parts[1] || '1'
+      
+      // Parse time based on length
+      if (timePart.length === 4) {
+        // HHMM format (e.g., "2100")
+        const hours = timePart.substring(0, 2)
+        const minutes = timePart.substring(2, 4)
+        timeStr = `${hours}:${minutes}`
+      } else if (timePart.length === 3) {
+        // HMM format (e.g., "900" for 9:00)
+        const hours = timePart.substring(0, 1)
+        const minutes = timePart.substring(1, 3)
+        timeStr = `${hours.padStart(2, '0')}:${minutes}`
+      } else {
+        // Assume it's already formatted or invalid
+        timeStr = timePart
+      }
     }
-
-    // Parse sequence number
-    if (parts[1]) {
-      result.sequence = parseInt(parts[1]) || 1
-    }
+    
+    result.startTime = timeStr
+    result.sequence = parseInt(sequenceStr) || 1
   }
 
   return result

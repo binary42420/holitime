@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
@@ -14,11 +14,11 @@ import WorkerAssignmentManager from "@/components/worker-assignment-manager"
 import { parseShiftUrl, generateShiftEditUrl } from "@/lib/url-utils"
 
 interface ShiftDetailPageProps {
-  params: Promise<{ company: string; job: string; date: string; shiftId: string }>
+  params: Promise<{ slug: string[] }>
 }
 
 export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
-  const [resolvedParams, setResolvedParams] = useState<{ company: string; job: string; date: string; shiftId: string } | null>(null)
+  const [resolvedParams, setResolvedParams] = useState<{ slug: string[] } | null>(null)
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
@@ -28,11 +28,11 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
     params.then(setResolvedParams)
   }, [params])
 
-  // Decode URL parameters
-  const companySlug = resolvedParams?.company ? decodeURIComponent(resolvedParams.company) : null
-  const jobSlug = resolvedParams?.job ? decodeURIComponent(resolvedParams.job) : null
-  const dateSlug = resolvedParams?.date ? decodeURIComponent(resolvedParams.date) : null
-  const shiftIdSlug = resolvedParams?.shiftId ? decodeURIComponent(resolvedParams.shiftId) : null
+  // Parse the slug array to extract shift details
+  const slug = resolvedParams?.slug || []
+  
+  // Expected format: [company, job, date, shiftId]
+  const [companySlug, jobSlug, dateSlug, shiftIdSlug] = slug
 
   // Parse the shift URL to get readable names and shift details
   const urlData = companySlug && jobSlug && dateSlug && shiftIdSlug 
@@ -41,7 +41,9 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
 
   // Fetch shift data using the slug parameters
   const { data: shiftData, loading: shiftLoading, error: shiftError, refetch } = useApi<{ shift: any }>(
-    resolvedParams ? `/api/shifts/by-slug?company=${encodeURIComponent(companySlug!)}&job=${encodeURIComponent(jobSlug!)}&date=${encodeURIComponent(dateSlug!)}&startTime=${encodeURIComponent(urlData?.startTime || '')}&sequence=${urlData?.sequence || 1}` : ''
+    resolvedParams && companySlug && jobSlug && dateSlug ? 
+      `/api/shifts/by-slug?company=${encodeURIComponent(companySlug)}&job=${encodeURIComponent(jobSlug)}&date=${encodeURIComponent(dateSlug)}&startTime=${encodeURIComponent(urlData?.startTime || '')}&sequence=${urlData?.sequence || 1}` 
+      : ''
   )
   
   const shift = shiftData?.shift
@@ -55,17 +57,6 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
   const [isSubmittingNotes, setIsSubmittingNotes] = useState(false)
 
   const assignedPersonnel = assignedData?.assignedPersonnel || []
-
-  // Debug logging
-  console.log('DEBUG: Shift detail page data:', {
-    shiftId,
-    assignedData,
-    assignedPersonnel,
-    assignedLoading,
-    assignedError,
-    assignedDataKeys: assignedData ? Object.keys(assignedData) : 'no data',
-    apiUrl: shiftId ? `/api/shifts/${shiftId}/assigned` : 'no url'
-  })
 
   const handleRefresh = () => {
     if (refetch) refetch()
@@ -136,12 +127,40 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
     }
   }
 
-  if (!resolvedParams || !urlData) {
-    return <div>Loading...</div>
+  // Show loading state
+  if (!resolvedParams || slug.length < 4) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h2 className="text-lg font-semibold mb-2">Invalid Shift URL</h2>
+              <p className="text-muted-foreground mb-4">
+                The shift URL format is incorrect. Please check the link and try again.
+              </p>
+              <Button onClick={() => router.push('/shifts')}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Shifts
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (shiftLoading) {
-    return <div>Loading shift details...</div>
+    return (
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <div className="text-muted-foreground">Loading shift details...</div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   if (shiftError || !shift) {
@@ -154,6 +173,13 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
               <p className="text-muted-foreground mb-4">
                 The shift you're looking for doesn't exist or you don't have permission to view it.
               </p>
+              <div className="text-sm text-muted-foreground mb-4">
+                <p>Searched for:</p>
+                <p>Company: {urlData?.companyName}</p>
+                <p>Job: {urlData?.jobName}</p>
+                <p>Date: {urlData?.date}</p>
+                <p>Time: {urlData?.startTime}</p>
+              </div>
               <Button onClick={() => router.push('/shifts')}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Shifts
@@ -178,19 +204,21 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
             <h1 className="text-2xl font-bold">{shift.jobName}</h1>
             <p className="text-muted-foreground">
               {shift.clientName} • {new Date(shift.date).toLocaleDateString()} • {shift.startTime}
-              {urlData.sequence > 1 && <span className="ml-1">(#{urlData.sequence})</span>}
+              {urlData && urlData.sequence > 1 && <span className="ml-1">(#{urlData.sequence})</span>}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
           {getStatusBadge(shift.status)}
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => router.push(generateShiftEditUrl(urlData.companyName, urlData.jobName, urlData.date, urlData.startTime, urlData.sequence))}
-          >
-            Edit Shift
-          </Button>
+          {urlData && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => router.push(generateShiftEditUrl(urlData.companyName, urlData.jobName, urlData.date, urlData.startTime, urlData.sequence))}
+            >
+              Edit Shift
+            </Button>
+          )}
         </div>
       </div>
 
@@ -220,7 +248,7 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
               <span>Status:</span>
               {getStatusBadge(shift.status)}
             </div>
-            {urlData.sequence > 1 && (
+            {urlData && urlData.sequence > 1 && (
               <div className="flex justify-between items-center">
                 <span>Shift Number:</span>
                 <Badge variant="outline">#{urlData.sequence}</Badge>
@@ -267,33 +295,6 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
           </CardContent>
         </Card>
       </div>
-
-      {/* Job Details */}
-      {shift.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Job Description
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">{shift.description}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Requirements */}
-      {shift.requirements && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Requirements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">{shift.requirements}</p>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Worker Assignment Manager */}
       {shiftId && (

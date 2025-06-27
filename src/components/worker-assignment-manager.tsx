@@ -1,21 +1,24 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { 
-  Users, 
-  Plus, 
-  Minus, 
+import {
+  Users,
+  Plus,
+  Minus,
   Clock,
   Play,
   Square,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  LogIn,
+  LogOut,
+  StopCircle
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useApi } from "@/hooks/use-api"
@@ -61,8 +64,59 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
   const [workerRequirements, setWorkerRequirements] = useState<WorkerRequirement[]>([])
   const [assignedWorkers, setAssignedWorkers] = useState<AssignedWorker[]>([])
   const [availableEmployees, setAvailableEmployees] = useState<any[]>([])
-  
+
   const { data: employeesData } = useApi<{ users: any[] }>('/api/users')
+
+  // Debounce timer for API updates
+  const updateTimerRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Debounced function to update shift requested workers
+  const debouncedUpdateShift = useCallback((newTotal: number) => {
+    // Clear any existing timer
+    if (updateTimerRef.current) {
+      clearTimeout(updateTimerRef.current)
+    }
+
+    // Set a new timer
+    updateTimerRef.current = setTimeout(async () => {
+      try {
+        console.log(`Debounced update: Updating shift ${shiftId} with new total workers: ${newTotal}`)
+
+        const response = await fetch(`/api/shifts/${shiftId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ requestedWorkers: newTotal }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to update requested workers')
+        }
+
+        console.log('Successfully updated shift requested workers')
+
+        // Don't trigger refresh immediately to avoid race conditions
+        // The local state is already updated, so no need to refetch
+      } catch (error) {
+        console.error('Error updating requested workers:', error)
+        toast({
+          title: "Warning",
+          description: "Worker count updated locally but failed to save to database.",
+          variant: "destructive",
+        })
+      }
+    }, 500) // 500ms debounce delay
+  }, [shiftId, onUpdate, toast])
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (updateTimerRef.current) {
+        clearTimeout(updateTimerRef.current)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (employeesData?.users) {
@@ -88,9 +142,9 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
       // Convert assigned personnel to our format
       const assigned = assignedPersonnel.map(person => ({
         id: person.id,
-        employeeId: person.employeeId, // Fixed: use employeeId directly from API
-        employeeName: person.employeeName, // Fixed: use employeeName directly from API
-        employeeAvatar: person.employeeAvatar, // Fixed: use employeeAvatar directly from API
+        employeeId: person.employeeId,
+        employeeName: person.employeeName,
+        employeeAvatar: person.employeeAvatar,
         roleCode: person.roleCode,
         roleName: ROLE_DEFINITIONS[person.roleCode]?.name || person.roleOnShift || person.roleCode,
         status: person.status === 'clocked_in' ? 'clocked_in' :
@@ -128,15 +182,35 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
 
   // Initialize default worker requirements based on shift data
   useEffect(() => {
-    if (shift && workerRequirements.length === 0) {
-      // For now, create a default structure. Later this could come from shift requirements
-      const defaultRequirements: WorkerRequirement[] = [
-        { roleCode: 'CC', roleName: 'Crew Chief', count: 1, color: ROLE_DEFINITIONS.CC.color },
-        { roleCode: 'SH', roleName: 'Stage Hand', count: Math.max(0, (shift.requestedWorkers || 1) - 1), color: ROLE_DEFINITIONS.SH.color },
-      ]
-      setWorkerRequirements(defaultRequirements)
+    console.log(`DEBUG: Worker requirements effect triggered`, {
+      shift: !!shift,
+      requestedWorkers: shift?.requestedWorkers,
+      currentRequirements: workerRequirements,
+      currentTotal: workerRequirements.reduce((sum, req) => sum + req.count, 0)
+    })
+
+    if (shift) {
+      // Always regenerate requirements when shift.requestedWorkers changes
+      const requestedWorkers = shift.requestedWorkers || 1
+
+      // Check if we need to update requirements
+      const currentTotal = workerRequirements.reduce((sum, req) => sum + req.count, 0)
+
+      if (workerRequirements.length === 0 || currentTotal !== requestedWorkers) {
+        console.log(`DEBUG: Updating worker requirements - requested: ${requestedWorkers}, current total: ${currentTotal}`)
+
+        // Create default structure based on requested workers
+        const defaultRequirements: WorkerRequirement[] = [
+          { roleCode: 'CC', roleName: 'Crew Chief', count: 1, color: ROLE_DEFINITIONS.CC.color },
+          { roleCode: 'SH', roleName: 'Stage Hand', count: Math.max(0, requestedWorkers - 1), color: ROLE_DEFINITIONS.SH.color },
+        ]
+        console.log(`DEBUG: Setting new requirements:`, defaultRequirements)
+        setWorkerRequirements(defaultRequirements)
+      } else {
+        console.log(`DEBUG: No update needed - totals match`)
+      }
     }
-  }, [shift, workerRequirements.length])
+  }, [shift, shift?.requestedWorkers, workerRequirements])
 
   // Generate complete worker list combining assigned workers and placeholders
   const generateCompleteWorkerList = () => {
@@ -174,32 +248,39 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
     return completeList
   }
 
-  const updateWorkerRequirement = async (roleCode: RoleCode, newCount: number) => {
-    setWorkerRequirements(prev => {
-      const updated = prev.map(req =>
-        req.roleCode === roleCode ? { ...req, count: Math.max(0, newCount) } : req
-      )
+  const updateWorkerRequirement = (roleCode: RoleCode, newCount: number) => {
+    console.log(`DEBUG: updateWorkerRequirement called: ${roleCode} to ${newCount}`)
 
-      // Add new role if it doesn't exist and count > 0
-      if (newCount > 0 && !prev.find(req => req.roleCode === roleCode)) {
-        updated.push({
-          roleCode,
-          roleName: ROLE_DEFINITIONS[roleCode].name,
-          count: newCount,
-          color: ROLE_DEFINITIONS[roleCode].color
-        })
-      }
+    // Calculate the updated requirements first
+    const updated = workerRequirements.map(req =>
+      req.roleCode === roleCode ? { ...req, count: Math.max(0, newCount) } : req
+    )
 
-      const filteredUpdated = updated.filter(req => req.count > 0)
+    // Add new role if it doesn't exist and count > 0
+    if (newCount > 0 && !workerRequirements.find(req => req.roleCode === roleCode)) {
+      updated.push({
+        roleCode,
+        roleName: ROLE_DEFINITIONS[roleCode].name,
+        count: newCount,
+        color: ROLE_DEFINITIONS[roleCode].color
+      })
+    }
 
-      // Calculate new total requested workers
-      const newTotal = filteredUpdated.reduce((sum, req) => sum + req.count, 0)
+    const filteredUpdated = updated.filter(req => req.count > 0)
 
-      // Update the shift's requested workers count
-      updateShiftRequestedWorkers(newTotal)
+    // Calculate new total requested workers
+    const newTotal = filteredUpdated.reduce((sum, req) => sum + req.count, 0)
 
-      return filteredUpdated
-    })
+    console.log(`DEBUG: New worker requirements:`, filteredUpdated)
+    console.log(`DEBUG: New total workers: ${newTotal}`)
+
+    // Update local state immediately
+    setWorkerRequirements(filteredUpdated)
+
+    // Use debounced function to update the database
+    console.log(`DEBUG: About to call debouncedUpdateShift with ${newTotal}`)
+    debouncedUpdateShift(newTotal)
+    console.log(`DEBUG: Called debouncedUpdateShift`)
 
     // If reducing count, we might need to unassign some workers
     if (newCount >= 0) {
@@ -216,31 +297,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
     }
   }
 
-  const updateShiftRequestedWorkers = async (newTotal: number) => {
-    try {
-      const response = await fetch(`/api/shifts/${shiftId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ requestedWorkers: newTotal }),
-      })
 
-      if (!response.ok) {
-        throw new Error('Failed to update requested workers')
-      }
-
-      // Trigger refresh to update the shift data
-      onUpdate()
-    } catch (error) {
-      console.error('Error updating requested workers:', error)
-      toast({
-        title: "Warning",
-        description: "Worker count updated locally but failed to save to database.",
-        variant: "destructive",
-      })
-    }
-  }
 
   const assignEmployee = async (workerIndex: number, employeeId: string) => {
     const completeWorkerList = generateCompleteWorkerList()
@@ -307,18 +364,40 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
 
   const unassignEmployee = async (assignmentId: string) => {
     try {
-      const response = await fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}`, {
-        method: 'DELETE',
-      })
+      // Check if this is a crew chief assignment (special ID format)
+      if (assignmentId.startsWith('crew-chief-')) {
+        // For crew chief, update the shift to remove crew chief
+        const response = await fetch(`/api/shifts/${shiftId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ crewChiefId: '' }),
+        })
 
-      if (!response.ok) {
-        throw new Error('Failed to unassign worker')
+        if (!response.ok) {
+          throw new Error('Failed to unassign crew chief')
+        }
+
+        toast({
+          title: "Crew Chief Unassigned",
+          description: "The crew chief has been unassigned from this shift",
+        })
+      } else {
+        // For regular workers, delete from assigned_personnel
+        const response = await fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}`, {
+          method: 'DELETE',
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to unassign worker')
+        }
+
+        toast({
+          title: "Worker Unassigned",
+          description: "Worker has been unassigned from this shift",
+        })
       }
-
-      toast({
-        title: "Worker Unassigned",
-        description: "Worker has been unassigned from this shift",
-      })
 
       onUpdate()
     } catch (error) {
@@ -328,6 +407,172 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
         variant: "destructive",
       })
     }
+  }
+
+  const clockInOut = async (assignmentId: string, employeeName: string, isClockingIn: boolean) => {
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}/clock`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: isClockingIn ? 'clock_in' : 'clock_out'
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${isClockingIn ? 'clock in' : 'clock out'} worker`)
+      }
+
+      toast({
+        title: `${isClockingIn ? 'Clocked In' : 'Clocked Out'}`,
+        description: `${employeeName} has been ${isClockingIn ? 'clocked in' : 'clocked out'}`,
+      })
+
+      onUpdate()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: `Failed to ${isClockingIn ? 'clock in' : 'clock out'} worker. Please try again.`,
+        variant: "destructive",
+      })
+    }
+  }
+
+  const endShiftForWorker = async (assignmentId: string, employeeName: string) => {
+    if (!confirm(`Are you sure you want to end the shift for ${employeeName}?`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}/end-shift`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to end shift for worker')
+      }
+
+      toast({
+        title: "Shift Ended",
+        description: `Shift has been ended for ${employeeName}`,
+      })
+
+      onUpdate()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to end shift for worker. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const endShiftForAllWorkers = async () => {
+    const activeWorkers = assignedWorkers.filter(worker =>
+      !worker.isPlaceholder && (worker.status === 'clocked_in' || worker.status === 'assigned')
+    )
+
+    if (activeWorkers.length === 0) {
+      toast({
+        title: "No Active Workers",
+        description: "There are no workers currently clocked in or assigned to end shifts for.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const workerNames = activeWorkers.map(w => w.employeeName).join(', ')
+    if (!confirm(`Are you sure you want to end the shift for all workers? This will clock out: ${workerNames}`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}/end-all-shifts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to end shifts for all workers')
+      }
+
+      toast({
+        title: "All Shifts Ended",
+        description: "Shifts have been ended for all workers",
+      })
+
+      onUpdate()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to end shifts for all workers. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const finalizeTimesheet = async () => {
+    if (!confirm('Are you sure you want to finalize the timesheet? This will change the status to pending client approval.')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}/finalize-timesheet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to finalize timesheet')
+      }
+
+      toast({
+        title: "Timesheet Finalized",
+        description: "Timesheet has been finalized and is pending client approval",
+      })
+
+      onUpdate()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to finalize timesheet. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Helper function to determine if worker is currently clocked in
+  const isWorkerClockedIn = (worker: AssignedWorker) => {
+    if (!worker.timeEntries || worker.timeEntries.length === 0) return false
+
+    // Check if there's an active time entry (clocked in but not clocked out)
+    // Since the database might not have is_active column, we check for entries with clockIn but no clockOut
+    return worker.timeEntries.some((entry: any) => entry.clockIn && !entry.clockOut)
+  }
+
+  // Helper function to determine if worker can clock in
+  const canWorkerClockIn = (worker: AssignedWorker) => {
+    return !worker.isPlaceholder && worker.status !== 'shift_ended' && !isWorkerClockedIn(worker)
+  }
+
+  // Helper function to determine if worker can clock out
+  const canWorkerClockOut = (worker: AssignedWorker) => {
+    return !worker.isPlaceholder && isWorkerClockedIn(worker)
+  }
+
+  // Helper function to check if all workers have ended their shifts
+  const allWorkersShiftEnded = () => {
+    const realWorkers = assignedWorkers.filter(worker => !worker.isPlaceholder)
+    return realWorkers.length > 0 && realWorkers.every(worker => worker.status === 'shift_ended')
   }
 
   const getStatusBadge = (status: string) => {
@@ -360,6 +605,11 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
         <CardDescription>
           Configure worker requirements and assign employees to this shift
         </CardDescription>
+        <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
+          Debug: Raw assigned personnel: {assignedPersonnel?.length || 0} |
+          Processed assigned workers: {assignedWorkers.length} |
+          Worker requirements: {workerRequirements.length}
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Worker Requirements Configuration */}
@@ -416,6 +666,9 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
             <TableBody>
               {(() => {
                 const completeWorkerList = generateCompleteWorkerList()
+                console.log('Table rendering - completeWorkerList:', completeWorkerList)
+                console.log('Table rendering - assignedWorkers state:', assignedWorkers)
+                console.log('Table rendering - workerRequirements state:', workerRequirements)
 
                 if (completeWorkerList.length === 0) {
                   return (
@@ -486,13 +739,52 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
                       </TableCell>
                       <TableCell className="text-right">
                         {worker.id && !worker.isPlaceholder ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => unassignEmployee(worker.id!)}
-                          >
-                            Unassign
-                          </Button>
+                          <div className="flex items-center gap-2 justify-end">
+                            {/* Clock In/Out Button */}
+                            {canWorkerClockIn(worker) ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => clockInOut(worker.id!, worker.employeeName!, true)}
+                                className="text-green-600 border-green-600 hover:bg-green-50"
+                              >
+                                <LogIn className="h-4 w-4 mr-1" />
+                                Clock In
+                              </Button>
+                            ) : canWorkerClockOut(worker) ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => clockInOut(worker.id!, worker.employeeName!, false)}
+                                className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                              >
+                                <LogOut className="h-4 w-4 mr-1" />
+                                Clock Out
+                              </Button>
+                            ) : null}
+
+                            {/* End Shift Button */}
+                            {worker.status !== 'shift_ended' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => endShiftForWorker(worker.id!, worker.employeeName!)}
+                                className="text-red-600 border-red-600 hover:bg-red-50"
+                              >
+                                <StopCircle className="h-4 w-4 mr-1" />
+                                End Shift
+                              </Button>
+                            )}
+
+                            {/* Unassign Button */}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => unassignEmployee(worker.id!)}
+                            >
+                              Unassign
+                            </Button>
+                          </div>
                         ) : null}
                       </TableCell>
                     </TableRow>
@@ -501,6 +793,28 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
               })()}
             </TableBody>
           </Table>
+
+          {/* Bulk Actions */}
+          <div className="flex items-center gap-4 pt-4 border-t">
+            <Button
+              variant="outline"
+              onClick={endShiftForAllWorkers}
+              className="text-red-600 border-red-600 hover:bg-red-50"
+            >
+              <StopCircle className="h-4 w-4 mr-2" />
+              End Shift for All Workers
+            </Button>
+
+            {allWorkersShiftEnded() && (
+              <Button
+                onClick={finalizeTimesheet}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Finalize Timesheet
+              </Button>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

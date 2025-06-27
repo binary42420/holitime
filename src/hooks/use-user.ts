@@ -28,13 +28,20 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const response = await fetch('/api/auth/me', {
         credentials: 'include',
+        cache: 'no-store', // Prevent caching of auth checks
       })
 
       if (response.ok) {
         const data = await response.json()
         setCurrentUser(data.user)
       } else {
+        // Clear user state on any auth failure
         setCurrentUser(null)
+
+        // If it's a 401, the token is invalid/expired
+        if (response.status === 401) {
+          console.log('Authentication expired, clearing state')
+        }
       }
     } catch (error) {
       console.error('Auth check failed:', error)
@@ -76,8 +83,12 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error('Logout failed:', error)
     } finally {
+      // Clear user state immediately
       setCurrentUser(null)
-      router.push('/login')
+
+      // Clear any cached data and force a hard redirect
+      // This prevents stale authentication state
+      window.location.href = '/login'
     }
   }
 
