@@ -1,9 +1,7 @@
 "use client"
 
-import React, { useState, use } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { format } from "date-fns"
-import Link from "next/link"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,36 +13,60 @@ import { useToast } from "@/hooks/use-toast"
 import WorkerAssignmentManager from "@/components/worker-assignment-manager"
 
 interface ShiftDetailPageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ company: string; job: string; date: string }>
 }
 
 export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
-  const { id } = use(params)
+  const [resolvedParams, setResolvedParams] = useState<{ company: string; job: string; date: string } | null>(null)
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
   
-  const { data: shiftData, loading: shiftLoading, error: shiftError, refetch } = useApi<{ shift: any }>(`/api/shifts/${id}`)
-  const { data: assignedData, loading: assignedLoading, refetch: refetchAssigned } = useApi<{ assignedPersonnel: any[] }>(`/api/shifts/${id}/assigned`)
+  // Resolve params first
+  useEffect(() => {
+    params.then(setResolvedParams)
+  }, [params])
+
+  // Decode URL parameters
+  const companySlug = resolvedParams?.company ? decodeURIComponent(resolvedParams.company) : null
+  const jobSlug = resolvedParams?.job ? decodeURIComponent(resolvedParams.job) : null
+  const dateSlug = resolvedParams?.date ? decodeURIComponent(resolvedParams.date) : null
+
+  // Fetch shift data using the slug parameters
+  const { data: shiftData, loading: shiftLoading, error: shiftError, refetch } = useApi<{ shift: any }>(
+    resolvedParams ? `/api/shifts/by-slug?company=${encodeURIComponent(companySlug!)}&job=${encodeURIComponent(jobSlug!)}&date=${encodeURIComponent(dateSlug!)}` : ''
+  )
+  
+  const shift = shiftData?.shift
+  const shiftId = shift?.id
+
+  const { data: assignedData, loading: assignedLoading, refetch: refetchAssigned } = useApi<{ assignedPersonnel: any[] }>(
+    shiftId ? `/api/shifts/${shiftId}/assigned` : ''
+  )
 
   const [notes, setNotes] = useState("")
   const [isSubmittingNotes, setIsSubmittingNotes] = useState(false)
 
-  const shift = shiftData?.shift
   const assignedPersonnel = assignedData?.assignedPersonnel || []
 
   const handleRefresh = () => {
-    refetch()
-    refetchAssigned()
+    if (refetch) refetch()
+    if (refetchAssigned) refetchAssigned()
   }
 
-  const handleNotesSubmit = async () => {
-    if (!notes.trim()) return
+  useEffect(() => {
+    if (shift?.notes) {
+      setNotes(shift.notes)
+    }
+  }, [shift?.notes])
 
+  const handleNotesSubmit = async () => {
+    if (!shiftId) return
+    
     setIsSubmittingNotes(true)
     try {
-      const response = await fetch(`/api/shifts/${id}/notes`, {
-        method: 'POST',
+      const response = await fetch(`/api/shifts/${shiftId}`, {
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -52,20 +74,19 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to add notes')
+        throw new Error('Failed to update notes')
       }
 
       toast({
-        title: "Notes Added",
-        description: "Your notes have been added to the shift.",
+        title: "Notes Updated",
+        description: "Shift notes have been saved successfully.",
       })
 
-      setNotes("")
-      refetch()
+      handleRefresh()
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to add notes. Please try again.",
+        description: "Failed to update notes. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -75,10 +96,11 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      'Scheduled': 'outline',
+      'Upcoming': 'outline',
       'In Progress': 'default',
       'Completed': 'secondary',
-      'Cancelled': 'destructive'
+      'Cancelled': 'destructive',
+      'Pending Approval': 'outline'
     }
     return <Badge variant={variants[status] || 'outline'}>{status}</Badge>
   }
@@ -88,7 +110,7 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
     const crewChiefCount = shift?.crewChief || shift?.crewChiefName ? 1 : 0
     const totalAssigned = assignedCount + crewChiefCount
     const requested = shift?.requestedWorkers || 0
-
+    
     if (totalAssigned >= requested) {
       return <Badge variant="secondary" className="text-green-700 bg-green-100">Fully Staffed</Badge>
     } else if (totalAssigned > 0) {
@@ -98,69 +120,82 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
     }
   }
 
+  if (!resolvedParams) {
+    return <div>Loading...</div>
+  }
+
   if (shiftLoading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Loading shift...</div>
-      </div>
-    )
+    return <div>Loading shift details...</div>
   }
 
   if (shiftError || !shift) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-destructive">Error loading shift: {shiftError}</div>
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <h2 className="text-lg font-semibold mb-2">Shift Not Found</h2>
+              <p className="text-muted-foreground mb-4">
+                The shift you're looking for doesn't exist or you don't have permission to view it.
+              </p>
+              <Button onClick={() => router.push('/shifts')}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Shifts
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.back()}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">
-            Shift Details
-          </h1>
-          <div className="text-muted-foreground">
-            {format(new Date(shift.date), 'EEEE, MMMM d, yyyy')} • {getStatusBadge(shift.status)}
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="sm" onClick={() => router.push('/shifts')}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Shifts
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">{shift.jobName}</h1>
+            <p className="text-muted-foreground">{shift.clientName} • {new Date(shift.date).toLocaleDateString()}</p>
           </div>
         </div>
-        <Button variant="outline" onClick={handleRefresh}>
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          {getStatusBadge(shift.status)}
+          <Button variant="outline" size="sm" onClick={() => router.push(`/shifts/${companySlug}/${jobSlug}/${dateSlug}/edit`)}>
+            Edit Shift
+          </Button>
+        </div>
       </div>
 
+      {/* Shift Details */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Job Information
+              <Calendar className="h-5 w-5" />
+              Shift Information
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-              <div>
-                <div className="font-medium">{shift.jobName}</div>
-                <div className="text-sm text-muted-foreground">{shift.clientName}</div>
-              </div>
+            <div className="flex justify-between items-center">
+              <span>Date:</span>
+              <span className="font-medium">{new Date(shift.date).toLocaleDateString()}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span>{shift.location}</span>
+            <div className="flex justify-between items-center">
+              <span>Time:</span>
+              <span className="font-medium">{shift.startTime} - {shift.endTime}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <span>{format(new Date(shift.date), 'EEEE, MMMM d, yyyy')}</span>
+            <div className="flex justify-between items-center">
+              <span>Location:</span>
+              <span className="font-medium">{shift.location}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>{shift.startTime} - {shift.endTime}</span>
+            <div className="flex justify-between items-center">
+              <span>Status:</span>
+              {getStatusBadge(shift.status)}
             </div>
           </CardContent>
         </Card>
@@ -169,7 +204,7 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              Staffing
+              Staffing Overview
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -195,10 +230,14 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
         </Card>
       </div>
 
+      {/* Job Details */}
       {shift.description && (
         <Card>
           <CardHeader>
-            <CardTitle>Description</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Job Description
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">{shift.description}</p>
@@ -206,6 +245,7 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
         </Card>
       )}
 
+      {/* Requirements */}
       {shift.requirements && (
         <Card>
           <CardHeader>
@@ -217,60 +257,38 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
         </Card>
       )}
 
-      <WorkerAssignmentManager
-        shiftId={id}
-        shift={shift}
-        onUpdate={handleRefresh}
-      />
+      {/* Worker Assignment Manager */}
+      {shiftId && (
+        <WorkerAssignmentManager 
+          shiftId={shiftId} 
+          shift={shift} 
+          onUpdate={handleRefresh}
+        />
+      )}
 
+      {/* Notes */}
       <Card>
         <CardHeader>
-          <CardTitle>Add Notes</CardTitle>
+          <CardTitle>Notes</CardTitle>
           <CardDescription>
-            Add notes or updates about this shift
+            Add any additional notes or comments about this shift
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <Textarea
-            placeholder="Enter your notes here..."
+            placeholder="Enter shift notes..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={4}
           />
           <Button 
             onClick={handleNotesSubmit}
-            disabled={!notes.trim() || isSubmittingNotes}
+            disabled={isSubmittingNotes}
           >
-            {isSubmittingNotes ? 'Adding...' : 'Add Notes'}
+            {isSubmittingNotes ? "Saving..." : "Save Notes"}
           </Button>
         </CardContent>
       </Card>
-
-      {shift.notes && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Previous Notes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground whitespace-pre-wrap">{shift.notes}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="flex gap-4">
-        {(user?.role === 'Manager/Admin' || user?.role === 'Crew Chief') && (
-          <Button asChild>
-            <Link href={`/shifts/${id}/edit`}>
-              Edit Shift
-            </Link>
-          </Button>
-        )}
-        <Button variant="outline" asChild>
-          <Link href="/shifts">
-            Back to Shifts
-          </Link>
-        </Button>
-      </div>
     </div>
   )
 }
