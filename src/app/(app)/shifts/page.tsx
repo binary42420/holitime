@@ -43,6 +43,7 @@ import {
   UserX
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { generateShiftUrl, generateShiftEditUrl } from "@/lib/url-utils"
 
 export default function ShiftsPage() {
   const { user } = useUser()
@@ -123,7 +124,7 @@ export default function ShiftsPage() {
         description: "The shift has been duplicated successfully.",
       })
 
-      router.push(`/shifts/${result.shift.id}/edit`)
+      router.push(generateShiftEditUrl(result.shift.clientName, result.shift.jobName, result.shift.date))
     } catch (error) {
       toast({
         title: "Error",
@@ -328,7 +329,7 @@ export default function ShiftsPage() {
               {filteredShifts.map((shift) => (
                 <TableRow
                   key={shift.id}
-                  onClick={() => router.push(`/shifts/${shift.id}`)}
+                  onClick={() => router.push(generateShiftUrl(shift.clientName, shift.jobName, shift.date))}
                   className="cursor-pointer hover:bg-muted/50"
                 >
                   <TableCell>
@@ -391,11 +392,11 @@ export default function ShiftsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => router.push(`/shifts/${shift.id}`)}>
+                          <DropdownMenuItem onClick={() => router.push(generateShiftUrl(shift.clientName, shift.jobName, shift.date))}>
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => router.push(`/shifts/${shift.id}/edit`)}>
+                          <DropdownMenuItem onClick={() => router.push(generateShiftEditUrl(shift.clientName, shift.jobName, shift.date))}>
                             <Edit className="mr-2 h-4 w-4" />
                             Edit Shift
                           </DropdownMenuItem>

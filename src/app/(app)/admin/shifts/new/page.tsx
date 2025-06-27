@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Save, Calendar, Users, Building2, Briefcase } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { generateShiftUrl } from "@/lib/url-utils"
 
 const shiftSchema = z.object({
   jobId: z.string().min(1, "Job is required"),
@@ -75,7 +76,7 @@ export default function NewShiftPage() {
         description: "The shift has been scheduled successfully.",
       })
 
-      router.push(`/shifts/${result.shift.id}`)
+      router.push(generateShiftUrl(result.shift.clientName, result.shift.jobName, result.shift.date))
     } catch (error) {
       toast({
         title: "Error",

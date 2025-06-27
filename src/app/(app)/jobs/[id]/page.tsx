@@ -3,6 +3,7 @@
 import React, { use } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
+import { generateShiftUrl } from "@/lib/url-utils"
 import Link from "next/link"
 import { useUser } from "@/hooks/use-user"
 import { useJob, useApi } from "@/hooks/use-api"
@@ -202,7 +203,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                 {shifts.map((shift: any) => (
                   <TableRow 
                     key={shift.id}
-                    onClick={() => router.push(`/shifts/${shift.id}`)}
+                    onClick={() => router.push(generateShiftUrl(job.clientName, job.name, shift.date))}
                     className="cursor-pointer hover:bg-muted/50"
                   >
                     <TableCell className="font-medium">
@@ -229,7 +230,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                     </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/shifts/${shift.id}`}>
+                        <Link href={generateShiftUrl(job.clientName, job.name, shift.date)}>
                           View
                         </Link>
                       </Button>
