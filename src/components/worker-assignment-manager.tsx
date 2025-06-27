@@ -43,6 +43,7 @@ interface AssignedWorker {
 interface WorkerAssignmentManagerProps {
   shiftId: string
   shift: any
+  assignedPersonnel: any[]
   onUpdate: () => void
 }
 
@@ -55,14 +56,13 @@ const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string; bgColor:
   'GL': { name: 'General Labor', color: 'text-gray-700', bgColor: 'bg-gray-100' },
 }
 
-export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: WorkerAssignmentManagerProps) {
+export default function WorkerAssignmentManager({ shiftId, shift, assignedPersonnel, onUpdate }: WorkerAssignmentManagerProps) {
   const { toast } = useToast()
   const [workerRequirements, setWorkerRequirements] = useState<WorkerRequirement[]>([])
   const [assignedWorkers, setAssignedWorkers] = useState<AssignedWorker[]>([])
   const [availableEmployees, setAvailableEmployees] = useState<any[]>([])
   
   const { data: employeesData } = useApi<{ users: any[] }>('/api/users')
-  const { data: assignedData, refetch: refetchAssigned } = useApi<{ assignedPersonnel: any[] }>(`/api/shifts/${shiftId}/assigned`)
 
   useEffect(() => {
     if (employeesData?.users) {
@@ -84,9 +84,9 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
   }, [employeesData, assignedWorkers])
 
   useEffect(() => {
-    if (assignedData?.assignedPersonnel) {
+    if (assignedPersonnel && assignedPersonnel.length > 0) {
       // Convert assigned personnel to our format
-      const assigned = assignedData.assignedPersonnel.map(person => ({
+      const assigned = assignedPersonnel.map(person => ({
         id: person.id,
         employeeId: person.employeeId, // Fixed: use employeeId directly from API
         employeeName: person.employeeName, // Fixed: use employeeName directly from API
@@ -99,6 +99,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
         isPlaceholder: false, // Assigned workers are never placeholders
         timeEntries: person.timeEntries || []
       }))
+
       setAssignedWorkers(assigned)
 
       // Auto-generate worker requirements based on assigned personnel
@@ -119,8 +120,11 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
       if (requirements.length > 0) {
         setWorkerRequirements(requirements)
       }
+    } else {
+      // Clear assigned workers if no personnel data
+      setAssignedWorkers([])
     }
-  }, [assignedData])
+  }, [assignedPersonnel])
 
   // Initialize default worker requirements based on shift data
   useEffect(() => {
@@ -138,28 +142,34 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
   const generateCompleteWorkerList = () => {
     const completeList: AssignedWorker[] = []
 
-    workerRequirements.forEach(requirement => {
-      // Get existing assigned workers for this role
-      const existingWorkers = assignedWorkers.filter(w =>
-        w.roleCode === requirement.roleCode && !w.isPlaceholder
-      )
+    // If we have worker requirements, use them to organize the list
+    if (workerRequirements.length > 0) {
+      workerRequirements.forEach(requirement => {
+        // Get existing assigned workers for this role
+        const existingWorkers = assignedWorkers.filter(w =>
+          w.roleCode === requirement.roleCode && !w.isPlaceholder
+        )
 
-      // Add existing assigned workers
-      completeList.push(...existingWorkers)
+        // Add existing assigned workers
+        completeList.push(...existingWorkers)
 
-      // Calculate how many placeholder slots we need
-      const placeholdersNeeded = Math.max(0, requirement.count - existingWorkers.length)
+        // Calculate how many placeholder slots we need
+        const placeholdersNeeded = Math.max(0, requirement.count - existingWorkers.length)
 
-      // Add placeholder slots
-      for (let i = 0; i < placeholdersNeeded; i++) {
-        completeList.push({
-          roleCode: requirement.roleCode,
-          roleName: requirement.roleName,
-          status: 'not_assigned',
-          isPlaceholder: true
-        })
-      }
-    })
+        // Add placeholder slots
+        for (let i = 0; i < placeholdersNeeded; i++) {
+          completeList.push({
+            roleCode: requirement.roleCode,
+            roleName: requirement.roleName,
+            status: 'not_assigned',
+            isPlaceholder: true
+          })
+        }
+      })
+    } else if (assignedWorkers.length > 0) {
+      // If no worker requirements but we have assigned workers, show them
+      completeList.push(...assignedWorkers.filter(w => !w.isPlaceholder))
+    }
 
     return completeList
   }
@@ -284,7 +294,6 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
         description: `${employee.name} has been assigned as ${worker.roleName}`,
       })
 
-      refetchAssigned()
       onUpdate()
     } catch (error) {
       console.error('Assignment error:', error)
@@ -311,7 +320,6 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
         description: "Worker has been unassigned from this shift",
       })
 
-      refetchAssigned()
       onUpdate()
     } catch (error) {
       toast({

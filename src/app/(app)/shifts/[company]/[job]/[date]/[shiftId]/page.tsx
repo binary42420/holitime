@@ -279,9 +279,10 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
 
       {/* Worker Assignment Manager */}
       {shiftId && (
-        <WorkerAssignmentManager 
-          shiftId={shiftId} 
-          shift={shift} 
+        <WorkerAssignmentManager
+          shiftId={shiftId}
+          shift={shift}
+          assignedPersonnel={assignedPersonnel}
           onUpdate={handleRefresh}
         />
       )}
