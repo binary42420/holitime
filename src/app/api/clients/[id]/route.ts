@@ -59,15 +59,16 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, address, contactPerson, contactEmail, contactPhone } = body;
+    const { name, address, contactPerson, email, phone, notes } = body;
 
     const { id } = await params;
     const client = await updateClient(id, {
       name,
-      address,
+      companyName: name, // Map name to companyName for consistency
+      companyAddress: address, // Map address to companyAddress
       contactPerson,
-      contactEmail,
-      contactPhone,
+      contactEmail: email, // Map email to contactEmail
+      contactPhone: phone, // Map phone to contactPhone
     });
 
     if (!client) {

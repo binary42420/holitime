@@ -48,7 +48,11 @@ export async function GET(request: NextRequest) {
       id: client.id,
       name: client.name,
       companyName: client.company_name || client.name,
+      companyAddress: client.company_address,
       contactPerson: client.contact_person,
+      contactEmail: client.contact_email,
+      contactPhone: client.contact_phone,
+      // Add backward compatibility fields for the frontend
       email: client.contact_email,
       phone: client.contact_phone,
       address: client.company_address,

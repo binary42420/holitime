@@ -30,6 +30,11 @@ export interface Client {
   contactPerson?: string;
   contactEmail?: string;
   contactPhone?: string;
+  // Backward compatibility fields for frontend
+  address?: string; // Maps to companyAddress
+  email?: string; // Maps to contactEmail
+  phone?: string; // Maps to contactPhone
+  notes?: string; // Optional notes field
   authorizedCrewChiefIds?: string[];
   mostRecentCompletedShift?: {
     id: string;

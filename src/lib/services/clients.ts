@@ -49,6 +49,10 @@ export async function getAllClients(): Promise<Client[]> {
       contactPerson: row.contact_person,
       contactEmail: row.contact_email,
       contactPhone: row.contact_phone,
+      // Add backward compatibility fields for the frontend
+      address: row.company_address, // Map companyAddress to address for frontend
+      email: row.contact_email, // Map contactEmail to email for frontend
+      phone: row.contact_phone, // Map contactPhone to phone for frontend
       authorizedCrewChiefIds: [], // Will be populated separately if needed
       mostRecentCompletedShift: row.completed_shift_id ? {
         id: row.completed_shift_id,
@@ -118,6 +122,10 @@ export async function getClientById(id: string): Promise<Client | null> {
       contactPerson: row.contact_person,
       contactEmail: row.contact_email,
       contactPhone: row.contact_phone,
+      // Add backward compatibility fields for the frontend
+      address: row.company_address, // Map companyAddress to address for frontend
+      email: row.contact_email, // Map contactEmail to email for frontend
+      phone: row.contact_phone, // Map contactPhone to phone for frontend
       authorizedCrewChiefIds: crewChiefsResult.rows.map(r => r.crew_chief_id),
       mostRecentCompletedShift: recentCompletedResult.rows.length > 0 ? {
         id: recentCompletedResult.rows[0].id,
@@ -166,6 +174,10 @@ export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCr
       contactPerson: row.contact_person,
       contactEmail: row.contact_email,
       contactPhone: row.contact_phone,
+      // Add backward compatibility fields for the frontend
+      address: row.company_address,
+      email: row.contact_email,
+      phone: row.contact_phone,
       authorizedCrewChiefIds: [],
     };
   } catch (error) {

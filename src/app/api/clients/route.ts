@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, address, contactPerson, contactEmail, contactPhone } = body;
+    const { name, address, contactPerson, email, phone } = body;
 
     if (!name) {
       return NextResponse.json(
@@ -65,10 +65,11 @@ export async function POST(request: NextRequest) {
 
     const client = await createClient({
       name,
-      address,
+      companyName: name,
+      companyAddress: address,
       contactPerson,
-      contactEmail,
-      contactPhone,
+      contactEmail: email,
+      contactPhone: phone,
     });
 
     if (!client) {

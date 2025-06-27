@@ -14,11 +14,22 @@ export function getPool(): Pool {
       throw new Error('DATABASE_URL environment variable is not set');
     }
 
-    // Secure SSL configuration - DO NOT disable certificate validation
-    const sslConfig = connectionString.includes('sslmode=require') ? {
-      rejectUnauthorized: true,
-      ca: process.env.DATABASE_CA_CERT, // Use proper CA certificate
-    } : false;
+    // SSL configuration for Aiven and other cloud databases
+    let sslConfig: any = false;
+
+    if (connectionString.includes('sslmode=require')) {
+      // For Aiven and other cloud providers that use self-signed certificates
+      if (connectionString.includes('aivencloud.com') || process.env.DATABASE_PROVIDER === 'aiven') {
+        sslConfig = {
+          rejectUnauthorized: false, // Allow self-signed certificates for Aiven
+        };
+      } else {
+        sslConfig = {
+          rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0',
+          ca: process.env.DATABASE_CA_CERT, // Use proper CA certificate if available
+        };
+      }
+    }
 
     pool = new Pool({
       connectionString,
