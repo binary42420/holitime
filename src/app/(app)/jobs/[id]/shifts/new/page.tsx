@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { ArrowLeft, Save } from 'lucide-react'
+import { generateShiftUrl } from "@/lib/url-utils"
 
 interface JobShiftPageProps {
   params: Promise<{
@@ -85,7 +86,7 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
         description: "Shift created successfully",
       })
 
-      router.push(`/shifts/${result.shift.id}`)
+      router.push(generateShiftUrl(result.shift.clientName, result.shift.jobName, result.shift.date))
     } catch (error) {
       console.error('Error creating shift:', error)
       toast({

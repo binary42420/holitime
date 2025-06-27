@@ -99,29 +99,45 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
         { roleCode: 'SH', roleName: 'Stage Hand', count: Math.max(0, (shift.requestedWorkers || 1) - 1), color: ROLE_DEFINITIONS.SH.color },
       ]
       setWorkerRequirements(defaultRequirements)
-      
-      // Create placeholder workers for each requirement
-      const placeholders: AssignedWorker[] = []
-      defaultRequirements.forEach(req => {
-        for (let i = 0; i < req.count; i++) {
-          placeholders.push({
-            roleCode: req.roleCode,
-            roleName: req.roleName,
-            status: 'not_assigned',
-            isPlaceholder: true
-          })
-        }
-      })
-      setAssignedWorkers(prev => [...prev, ...placeholders])
     }
   }, [shift, workerRequirements.length])
 
+  // Generate complete worker list combining assigned workers and placeholders
+  const generateCompleteWorkerList = () => {
+    const completeList: AssignedWorker[] = []
+
+    workerRequirements.forEach(requirement => {
+      // Get existing assigned workers for this role
+      const existingWorkers = assignedWorkers.filter(w =>
+        w.roleCode === requirement.roleCode && !w.isPlaceholder
+      )
+
+      // Add existing assigned workers
+      completeList.push(...existingWorkers)
+
+      // Calculate how many placeholder slots we need
+      const placeholdersNeeded = Math.max(0, requirement.count - existingWorkers.length)
+
+      // Add placeholder slots
+      for (let i = 0; i < placeholdersNeeded; i++) {
+        completeList.push({
+          roleCode: requirement.roleCode,
+          roleName: requirement.roleName,
+          status: 'not_assigned',
+          isPlaceholder: true
+        })
+      }
+    })
+
+    return completeList
+  }
+
   const updateWorkerRequirement = (roleCode: RoleCode, newCount: number) => {
     setWorkerRequirements(prev => {
-      const updated = prev.map(req => 
+      const updated = prev.map(req =>
         req.roleCode === roleCode ? { ...req, count: Math.max(0, newCount) } : req
       )
-      
+
       // Add new role if it doesn't exist and count > 0
       if (newCount > 0 && !prev.find(req => req.roleCode === roleCode)) {
         updated.push({
@@ -131,52 +147,31 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
           color: ROLE_DEFINITIONS[roleCode].color
         })
       }
-      
+
       return updated.filter(req => req.count > 0)
     })
 
-    // Update assigned workers to match requirements
-    setAssignedWorkers(prev => {
-      const currentRoleWorkers = prev.filter(w => w.roleCode === roleCode)
-      const currentCount = currentRoleWorkers.length
-      
-      if (newCount > currentCount) {
-        // Add placeholder workers
-        const newWorkers: AssignedWorker[] = []
-        for (let i = 0; i < newCount - currentCount; i++) {
-          newWorkers.push({
-            roleCode,
-            roleName: ROLE_DEFINITIONS[roleCode].name,
-            status: 'not_assigned',
-            isPlaceholder: true
-          })
-        }
-        return [...prev, ...newWorkers]
-      } else if (newCount < currentCount) {
-        // Remove excess workers (prioritize removing unassigned placeholders)
-        const toRemove = currentCount - newCount
-        const unassignedPlaceholders = currentRoleWorkers.filter(w => w.isPlaceholder && w.status === 'not_assigned')
-        const assignedWorkers = currentRoleWorkers.filter(w => !w.isPlaceholder || w.status !== 'not_assigned')
-        
-        let workersToKeep = [...assignedWorkers]
-        if (workersToKeep.length < newCount) {
-          workersToKeep = [...workersToKeep, ...unassignedPlaceholders.slice(0, newCount - workersToKeep.length)]
-        } else {
-          workersToKeep = workersToKeep.slice(0, newCount)
-        }
-        
-        return prev.filter(w => w.roleCode !== roleCode).concat(workersToKeep)
+    // If reducing count, we might need to unassign some workers
+    if (newCount >= 0) {
+      const currentAssignedWorkers = assignedWorkers.filter(w =>
+        w.roleCode === roleCode && !w.isPlaceholder
+      )
+
+      // If we have more assigned workers than the new count allows, we should warn the user
+      if (currentAssignedWorkers.length > newCount) {
+        // For now, we'll allow this but the UI will show the excess workers
+        // In a production app, you might want to show a confirmation dialog
+        console.warn(`Reducing ${roleCode} count to ${newCount} but ${currentAssignedWorkers.length} workers are already assigned`)
       }
-      
-      return prev
-    })
+    }
   }
 
   const assignEmployee = async (workerIndex: number, employeeId: string) => {
-    const worker = assignedWorkers[workerIndex]
+    const completeWorkerList = generateCompleteWorkerList()
+    const worker = completeWorkerList[workerIndex]
     const employee = availableEmployees.find(emp => emp.id === employeeId)
-    
-    if (!employee) return
+
+    if (!employee || !worker) return
 
     try {
       const response = await fetch(`/api/shifts/${shiftId}/assign`, {
@@ -321,17 +316,23 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
               </TableRow>
             </TableHeader>
             <TableBody>
-              {assignedWorkers.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Configure worker requirements above to create assignment slots
-                  </TableCell>
-                </TableRow>
-              ) : (
-                assignedWorkers.map((worker, index) => {
+              {(() => {
+                const completeWorkerList = generateCompleteWorkerList()
+
+                if (completeWorkerList.length === 0) {
+                  return (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                        Configure worker requirements above to create assignment slots
+                      </TableCell>
+                    </TableRow>
+                  )
+                }
+
+                return completeWorkerList.map((worker, index) => {
                   const roleDef = ROLE_DEFINITIONS[worker.roleCode]
                   return (
-                    <TableRow key={`${worker.roleCode}-${index}`} className={roleDef.bgColor}>
+                    <TableRow key={`${worker.roleCode}-${index}-${worker.id || 'placeholder'}`} className={roleDef.bgColor}>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline" className={roleDef.color}>
@@ -395,7 +396,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
                     </TableRow>
                   )
                 })
-              )}
+              })()}
             </TableBody>
           </Table>
         </div>

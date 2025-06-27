@@ -30,17 +30,21 @@ export async function GET(request: NextRequest) {
     const jobName = decodeURIComponent(jobSlug).replace(/-/g, ' ')
     const shiftDate = decodeURIComponent(dateSlug)
 
-    // Find the shift by company name, job name, and date
+    console.log('Looking for shift with:', { companyName, jobName, shiftDate })
+
+    // Find the shift by company name, job name, and date using fuzzy matching
     const result = await query(`
-      SELECT s.id
+      SELECT s.id, c.name as client_name, j.name as job_name, s.date
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN clients c ON j.client_id = c.id
-      WHERE LOWER(c.name) = LOWER($1)
-        AND LOWER(j.name) = LOWER($2)
+      WHERE LOWER(REPLACE(c.name, '.', '')) LIKE LOWER($1)
+        AND LOWER(REPLACE(j.name, '.', '')) LIKE LOWER($2)
         AND s.date = $3
       LIMIT 1
-    `, [companyName, jobName, shiftDate])
+    `, [`%${companyName}%`, `%${jobName}%`, shiftDate])
+
+    console.log('Query result:', result.rows)
 
     if (result.rows.length === 0) {
       return NextResponse.json(
