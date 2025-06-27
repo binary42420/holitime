@@ -279,14 +279,14 @@ export async function createShift(shiftData: {
   startTime: string;
   endTime: string;
   location?: string;
-  crewChiefId: string;
+  crewChiefId?: string;
   requestedWorkers: number;
   notes?: string;
 }): Promise<Shift | null> {
   try {
     const result = await query(`
       INSERT INTO shifts (job_id, date, start_time, end_time, location, crew_chief_id, requested_workers, notes, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Scheduled')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'Upcoming')
       RETURNING id
     `, [
       shiftData.jobId,
@@ -294,7 +294,7 @@ export async function createShift(shiftData: {
       shiftData.startTime,
       shiftData.endTime,
       shiftData.location || '',
-      shiftData.crewChiefId,
+      shiftData.crewChiefId || null,
       shiftData.requestedWorkers,
       shiftData.notes || ''
     ]);

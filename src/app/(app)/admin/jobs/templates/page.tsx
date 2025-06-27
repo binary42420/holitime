@@ -14,7 +14,7 @@ import {
   Copy,
   Edit,
   Trash2,
-  FileTemplate,
+  FileText,
   Building2,
   MapPin,
   Users
@@ -130,7 +130,7 @@ export default function JobTemplatesPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileTemplate className="h-5 w-5" />
+            <FileText className="h-5 w-5" />
             Available Templates
           </CardTitle>
           <CardDescription>
@@ -152,7 +152,7 @@ export default function JobTemplatesPage() {
 
           {filteredTemplates.length === 0 ? (
             <div className="text-center py-8">
-              <FileTemplate className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Templates Found</h3>
               <p className="text-muted-foreground">
                 {searchTerm ? 'No templates match your search criteria.' : 'No job templates available.'}

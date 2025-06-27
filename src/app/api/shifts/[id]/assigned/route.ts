@@ -32,7 +32,7 @@ export async function GET(
               'entryNumber', te.entry_number,
               'clockIn', te.clock_in,
               'clockOut', te.clock_out,
-              'isActive', te.is_active
+              'isActive', (te.clock_in IS NOT NULL AND te.clock_out IS NULL)
             ) ORDER BY te.entry_number
           ) FILTER (WHERE te.id IS NOT NULL),
           '[]'::json

@@ -83,9 +83,11 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
         </Button>
         <div className="flex-1">
           <h1 className="text-3xl font-bold font-headline">{job.name}</h1>
-          <p className="text-muted-foreground">
-            Job for {job.clientName} • {getJobStatusBadge(job.status)}
-          </p>
+          <div className="text-muted-foreground flex items-center gap-2">
+            <span>Job for {job.clientName}</span>
+            <span>•</span>
+            {getJobStatusBadge(job.status)}
+          </div>
         </div>
         {canEdit && (
           <Button onClick={() => router.push(`/jobs/${id}/edit`)}>

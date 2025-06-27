@@ -66,9 +66,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { jobId, date, startTime, endTime, location, crewChiefId, requestedWorkers, notes } = body;
 
-    if (!jobId || !date || !startTime || !endTime || !crewChiefId) {
+    if (!jobId || !date || !startTime || !endTime) {
       return NextResponse.json(
-        { error: 'Job, date, start time, end time, and crew chief are required' },
+        { error: 'Job, date, start time, and end time are required' },
         { status: 400 }
       );
     }

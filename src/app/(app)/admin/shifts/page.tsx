@@ -48,10 +48,11 @@ export default function AdminShiftsPage() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      'Scheduled': 'outline',
+      'Upcoming': 'outline',
       'In Progress': 'default',
       'Completed': 'secondary',
-      'Cancelled': 'destructive'
+      'Cancelled': 'destructive',
+      'Pending Approval': 'secondary'
     }
     return <Badge variant={variants[status] || 'outline'}>{status}</Badge>
   }
@@ -67,7 +68,7 @@ export default function AdminShiftsPage() {
   }
 
   const activeShifts = shifts.filter(shift => shift.status === 'In Progress').length
-  const upcomingShifts = shifts.filter(shift => shift.status === 'Scheduled').length
+  const upcomingShifts = shifts.filter(shift => shift.status === 'Upcoming').length
   const understaffedShifts = shifts.filter(shift => 
     shift.assignedWorkers < shift.requestedWorkers && shift.status !== 'Completed'
   ).length
