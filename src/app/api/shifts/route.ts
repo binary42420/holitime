@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/middleware';
-import { getAllShifts, getShiftsByCrewChief } from '@/lib/services/shifts';
+import { getAllShifts, getShiftsByCrewChief, createShift } from '@/lib/services/shifts';
 
 export async function GET(request: NextRequest) {
   try {
