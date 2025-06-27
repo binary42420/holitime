@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     // Find the client by company name using fuzzy matching
     const result = await query(`
-      SELECT id, name, contact_person, email, phone, address, notes, created_at, updated_at
+      SELECT id, name, contact_person, contact_email, contact_phone, address, created_at, updated_at
       FROM clients
       WHERE LOWER(REPLACE(name, '.', '')) LIKE LOWER($1)
       LIMIT 1
@@ -48,10 +48,10 @@ export async function GET(request: NextRequest) {
       id: client.id,
       name: client.name,
       contactPerson: client.contact_person,
-      email: client.email,
-      phone: client.phone,
+      email: client.contact_email,
+      phone: client.contact_phone,
       address: client.address,
-      notes: client.notes,
+      notes: null, // notes column doesn't exist in schema
       createdAt: client.created_at,
       updatedAt: client.updated_at
     }

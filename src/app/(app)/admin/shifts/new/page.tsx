@@ -92,7 +92,7 @@ export default function NewShiftPage() {
         description: "The shift has been scheduled successfully.",
       })
 
-      router.push(generateShiftUrl(result.shift.clientName, result.shift.jobName, result.shift.date))
+      router.push(generateShiftUrl(result.shift.clientName, result.shift.jobName, result.shift.date, result.shift.startTime))
     } catch (error) {
       toast({
         title: "Error",

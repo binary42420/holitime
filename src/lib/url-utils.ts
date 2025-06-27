@@ -28,6 +28,9 @@ export function createDateSlug(date: string | Date): string {
  */
 export function createShiftIdentifier(startTime: string, sequence?: number): string {
   // Convert time format from "HH:MM" to "HHMM" and add sequence if provided
+  if (!startTime) {
+    throw new Error('startTime is required for createShiftIdentifier')
+  }
   const timeSlug = startTime.replace(':', '')
   return sequence ? `${timeSlug}-${sequence}` : timeSlug
 }
