@@ -6,6 +6,7 @@ export interface User {
   email: string;
   avatar: string;
   role: UserRole;
+  clientId?: string | null; // For client users, this is their own ID; for employees, it's null
 
   // Employee-specific fields (null for non-employees)
   certifications?: string[];

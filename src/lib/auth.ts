@@ -67,14 +67,14 @@ export function verifyToken(token: string): User | null {
 export async function getUserByEmail(email: string): Promise<AuthUser | null> {
   try {
     const result = await query(
-      'SELECT id, email, password_hash, name, role, avatar, client_id, is_active FROM users WHERE email = $1 AND is_active = true',
+      'SELECT id, email, password_hash, name, role, avatar, is_active FROM users WHERE email = $1 AND is_active = true',
       [email]
     );
-    
+
     if (result.rows.length === 0) {
       return null;
     }
-    
+
     const row = result.rows[0];
     return {
       id: row.id,
@@ -83,7 +83,7 @@ export async function getUserByEmail(email: string): Promise<AuthUser | null> {
       name: row.name,
       role: row.role,
       avatar: row.avatar || '',
-      clientId: row.client_id,
+      clientId: row.role === 'Client' ? row.id : null, // For clients, use their own ID
     };
   } catch (error) {
     console.error('Error getting user by email:', error);
@@ -95,14 +95,14 @@ export async function getUserByEmail(email: string): Promise<AuthUser | null> {
 export async function getUserById(id: string): Promise<User | null> {
   try {
     const result = await query(
-      'SELECT id, email, name, role, avatar, client_id FROM users WHERE id = $1 AND is_active = true',
+      'SELECT id, email, name, role, avatar FROM users WHERE id = $1 AND is_active = true',
       [id]
     );
-    
+
     if (result.rows.length === 0) {
       return null;
     }
-    
+
     const row = result.rows[0];
     return {
       id: row.id,
@@ -110,7 +110,7 @@ export async function getUserById(id: string): Promise<User | null> {
       name: row.name,
       role: row.role,
       avatar: row.avatar || '',
-      clientId: row.client_id,
+      clientId: row.role === 'Client' ? row.id : null, // For clients, use their own ID
     };
   } catch (error) {
     console.error('Error getting user by ID:', error);
@@ -122,25 +122,24 @@ export async function getUserById(id: string): Promise<User | null> {
 export async function createUser(userData: RegisterData): Promise<User | null> {
   try {
     const hashedPassword = await hashPassword(userData.password);
-    
+
     const result = await query(
-      `INSERT INTO users (email, password_hash, name, role, client_id, avatar) 
-       VALUES ($1, $2, $3, $4, $5, $6) 
-       RETURNING id, email, name, role, avatar, client_id`,
+      `INSERT INTO users (email, password_hash, name, role, avatar)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING id, email, name, role, avatar`,
       [
         userData.email,
         hashedPassword,
         userData.name,
         userData.role,
-        userData.clientId || null,
         `https://i.pravatar.cc/32?u=${userData.email}` // Generate avatar URL
       ]
     );
-    
+
     if (result.rows.length === 0) {
       return null;
     }
-    
+
     const row = result.rows[0];
     return {
       id: row.id,
@@ -148,7 +147,7 @@ export async function createUser(userData: RegisterData): Promise<User | null> {
       name: row.name,
       role: row.role,
       avatar: row.avatar,
-      clientId: row.client_id,
+      clientId: row.role === 'Client' ? row.id : null, // For clients, use their own ID
     };
   } catch (error) {
     console.error('Error creating user:', error);

@@ -20,14 +20,19 @@ export async function GET(
     const result = await query(`
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
+        s.requested_workers,
         j.name as job_name,
-        c.name as client_name,
-        cc.name as crew_chief_name, cc.avatar as crew_chief_avatar
+        COALESCE(c.company_name, c.name) as client_name,
+        cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
+        COUNT(ap.id) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN clients c ON j.client_id = c.id
+      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
+      LEFT JOIN assigned_personnel ap ON s.id = ap.shift_id
       WHERE s.job_id = $1
+      GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
+               s.requested_workers, j.name, c.company_name, c.name, cc.name, cc.avatar
       ORDER BY s.date ASC, s.start_time ASC
     `, [id]);
 
@@ -39,12 +44,14 @@ export async function GET(
       location: row.location,
       status: row.status,
       notes: row.notes,
+      requestedWorkers: row.requested_workers || 1,
       jobName: row.job_name,
       clientName: row.client_name,
-      crewChief: {
+      crewChief: row.crew_chief_name ? {
         name: row.crew_chief_name,
         avatar: row.crew_chief_avatar,
-      },
+      } : null,
+      assignedCount: parseInt(row.assigned_count) || 0,
       assignedPersonnel: Array(parseInt(row.assigned_count) || 0).fill({}), // Simplified for count
     }));
 
