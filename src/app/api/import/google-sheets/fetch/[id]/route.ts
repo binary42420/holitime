@@ -23,15 +23,20 @@ export async function GET(
       )
     }
 
-    if (!process.env.GOOGLE_API_KEY) {
+    // Check if we have an API key configured
+    const hasApiKey = !!process.env.GOOGLE_API_KEY
+    if (!hasApiKey) {
       console.error('Google Sheets Fetch: GOOGLE_API_KEY environment variable not set')
       return NextResponse.json(
-        { error: 'Google API key not configured' },
+        {
+          error: 'Google API key not configured. Please configure GOOGLE_API_KEY environment variable or use OAuth method.',
+          suggestion: 'Try using the OAuth method by connecting to Google Drive first.'
+        },
         { status: 500 }
       )
     }
 
-    console.log('Google Sheets Fetch: Using API key with length:', process.env.GOOGLE_API_KEY.length)
+    console.log('Google Sheets Fetch: Using API key with length:', process.env.GOOGLE_API_KEY!.length)
 
     console.log('Fetching Google Sheets data for ID:', googleSheetsId)
 

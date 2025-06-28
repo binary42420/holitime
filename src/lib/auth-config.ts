@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
       }
     }),
 
-    // Google OAuth Provider with comprehensive scopes
+    // Google OAuth Provider - basic scopes for user authentication only
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID,
@@ -48,28 +48,6 @@ export const authOptions: NextAuthOptions = {
         authorization: {
           params: {
             scope: [
-              // Google Drive scopes - full access
-              'https://www.googleapis.com/auth/drive',
-              'https://www.googleapis.com/auth/drive.file',
-              'https://www.googleapis.com/auth/drive.readonly',
-              'https://www.googleapis.com/auth/drive.metadata',
-              'https://www.googleapis.com/auth/drive.metadata.readonly',
-              'https://www.googleapis.com/auth/drive.photos.readonly',
-              'https://www.googleapis.com/auth/drive.scripts',
-
-              // Google Sheets scopes - full access
-              'https://www.googleapis.com/auth/spreadsheets',
-              'https://www.googleapis.com/auth/spreadsheets.readonly',
-
-              // Google Docs scopes - for document access
-              'https://www.googleapis.com/auth/documents',
-              'https://www.googleapis.com/auth/documents.readonly',
-
-              // Google Apps Script scopes
-              'https://www.googleapis.com/auth/script.projects',
-              'https://www.googleapis.com/auth/script.projects.readonly',
-
-              // User profile and email (required by NextAuth)
               'https://www.googleapis.com/auth/userinfo.email',
               'https://www.googleapis.com/auth/userinfo.profile',
               'openid',
@@ -88,17 +66,6 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       try {
         if (account?.provider === 'google') {
-          // Log OAuth details for debugging
-          console.log('Google OAuth Sign-in Details:', {
-            provider: account.provider,
-            type: account.type,
-            scope: account.scope,
-            access_token: account.access_token ? 'present' : 'missing',
-            refresh_token: account.refresh_token ? 'present' : 'missing',
-            expires_at: account.expires_at,
-            token_type: account.token_type
-          });
-
           // Check if user exists in our database
           const existingUser = await getUserByEmail(user.email!);
 
@@ -125,25 +92,8 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    async jwt({ token, user, account }) {
+    async jwt({ token, user }) {
       try {
-        // Persist the OAuth access_token and other details to the token right after signin
-        if (account) {
-          token.accessToken = account.access_token;
-          token.refreshToken = account.refresh_token;
-          token.expiresAt = account.expires_at;
-          token.scope = account.scope;
-
-          // Log token details for debugging
-          console.log('JWT Callback - OAuth Token Details:', {
-            provider: account.provider,
-            scope: account.scope,
-            access_token: account.access_token ? 'present' : 'missing',
-            refresh_token: account.refresh_token ? 'present' : 'missing',
-            expires_at: account.expires_at
-          });
-        }
-
         if (user) {
           // Get user data from our database
           const dbUser = await getUserByEmail(user.email!);
@@ -166,12 +116,6 @@ export const authOptions: NextAuthOptions = {
           session.user.id = token.id as string;
           session.user.role = token.role as string;
           session.user.clientId = token.clientId as string;
-
-          // Include OAuth tokens in session for Google Drive access
-          (session as any).accessToken = token.accessToken;
-          (session as any).refreshToken = token.refreshToken;
-          (session as any).scope = token.scope;
-          (session as any).expiresAt = token.expiresAt;
         }
         return session;
       } catch (error) {
