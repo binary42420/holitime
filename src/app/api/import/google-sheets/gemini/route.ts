@@ -72,7 +72,7 @@ Be prepared to handle various spreadsheet layouts:
 - "CC" → CC
 - "SH" → SH
 - "FO" → FO
-- ALL OTHER VALUES IN THE JT COLUMN SHOULD BE MAPPED TO "GL"
+- " " or any other → "GL"
 
 ### 3. DATA PROCESSING LOGIC
 
