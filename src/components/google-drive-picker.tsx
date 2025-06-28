@@ -33,15 +33,20 @@ export default function GoogleDrivePicker({ accessToken, onFileSelect }: GoogleD
         Authorization: `Bearer ${accessToken}`,
       },
     })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch files");
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+          throw new Error(errorData.error || `HTTP ${res.status}: Failed to fetch files`);
+        }
         return res.json();
       })
       .then((data) => {
+        console.log('Google Drive Picker: Received files:', data.files?.length || 0);
         setFiles(data.files || []);
       })
       .catch((err) => {
-        setError(err.message);
+        console.error('Google Drive Picker: Error fetching files:', err);
+        setError(err.message || 'Failed to fetch Google Drive files');
       })
       .finally(() => {
         setLoading(false);

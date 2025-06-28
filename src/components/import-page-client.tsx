@@ -15,6 +15,7 @@ import { Loader2, FileSpreadsheet, Upload } from "lucide-react";
 import GoogleDrivePicker from "./google-drive-picker";
 import CSVImport from "./csv-import";
 import GoogleSheetsGeminiProcessor from "./google-sheets-gemini-processor";
+import GoogleSheetsIdInput from "./google-sheets-id-input";
 
 interface DriveFile {
   id: string;
@@ -167,15 +168,15 @@ export default function ImportPageClient() {
         </TabsList>
 
         <TabsContent value="csv" className="mt-6">
-          <CSVImport />
+          <CSVImport externalCSVData={generatedCSV} />
         </TabsContent>
 
         <TabsContent value="google-drive" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Import from Google Drive</CardTitle>
+              <CardTitle>Import from Google Sheets</CardTitle>
               <CardDescription>
-                Select a Google Sheets file to import data from your Google Drive
+                Import data from Google Sheets using AI-powered data extraction
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -185,36 +186,68 @@ export default function ImportPageClient() {
                 </Alert>
               )}
 
-              {!accessToken ? (
-                <Button
-                  onClick={handleGoogleAuth}
-                  disabled={loading}
-                  className="w-full"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Connecting to Google Drive...
-                    </>
-                  ) : (
-                    "Connect Google Drive"
-                  )}
-                </Button>
-              ) : (
-                <GoogleDrivePicker
-                  accessToken={accessToken}
-                  onFileSelect={handleFileSelect}
-                />
+              {selectedFile ? null : (
+                <div className="space-y-6">
+                  {/* Direct Google Sheets ID Input */}
+                  <GoogleSheetsIdInput onFileSelected={handleFileSelect} />
+
+                  {/* Divider */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">Or</span>
+                    </div>
+                  </div>
+
+                  {/* Google Drive Connection */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-medium">Browse Google Drive</h3>
+                    {!accessToken ? (
+                      <Button
+                        onClick={handleGoogleAuth}
+                        disabled={loading}
+                        className="w-full"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Connecting to Google Drive...
+                          </>
+                        ) : (
+                          "Connect Google Drive"
+                        )}
+                      </Button>
+                    ) : (
+                      <GoogleDrivePicker
+                        accessToken={accessToken}
+                        onFileSelect={handleFileSelect}
+                      />
+                    )}
+                  </div>
+                </div>
               )}
 
               {selectedFile && (
-                <div className="mt-4 space-y-4">
+                <div className="space-y-4">
                   <div className="p-4 bg-muted rounded-lg">
-                    <h4 className="font-medium mb-2">Selected File:</h4>
-                    <p>{selectedFile.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Last modified: {new Date(selectedFile.modifiedTime).toLocaleString()}
-                    </p>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h4 className="font-medium mb-2">Selected File:</h4>
+                        <p>{selectedFile.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Last modified: {new Date(selectedFile.modifiedTime).toLocaleString()}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedFile(null)}
+                      >
+                        Change File
+                      </Button>
+                    </div>
                   </div>
 
                   <GoogleSheetsGeminiProcessor

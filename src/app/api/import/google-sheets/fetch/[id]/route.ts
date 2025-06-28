@@ -33,15 +33,31 @@ export async function GET(
     console.log('Fetching Google Sheets data for ID:', googleSheetsId)
 
     // First, get the spreadsheet metadata to find all sheets
-    const metadataResponse = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsId}?key=${process.env.GOOGLE_API_KEY}`
-    )
+    const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsId}?key=${process.env.GOOGLE_API_KEY}`
+    console.log('Fetching metadata from:', metadataUrl)
+
+    const metadataResponse = await fetch(metadataUrl)
 
     if (!metadataResponse.ok) {
       const errorText = await metadataResponse.text()
-      console.error('Google Sheets API Error (metadata):', errorText)
+      console.error('Google Sheets API Error (metadata):', {
+        status: metadataResponse.status,
+        statusText: metadataResponse.statusText,
+        error: errorText
+      })
+
+      let errorMessage = 'Failed to fetch spreadsheet metadata.'
+
+      if (metadataResponse.status === 403) {
+        errorMessage = 'Access denied to Google Sheets. Make sure the sheet is publicly accessible (anyone with the link can view) and the API key has proper permissions.'
+      } else if (metadataResponse.status === 404) {
+        errorMessage = 'Google Sheets document not found. Please check the ID and make sure the sheet exists.'
+      } else if (metadataResponse.status === 400) {
+        errorMessage = 'Invalid Google Sheets ID format. Please check the ID and try again.'
+      }
+
       return NextResponse.json(
-        { error: 'Failed to fetch spreadsheet metadata. Make sure the sheet is publicly accessible.' },
+        { error: errorMessage },
         { status: 400 }
       )
     }
@@ -64,13 +80,14 @@ export async function GET(
       
       try {
         // Fetch the data for this sheet
-        const dataResponse = await fetch(
-          `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsId}/values/${encodeURIComponent(sheetTitle)}?key=${process.env.GOOGLE_API_KEY}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`
-        )
+        const dataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsId}/values/${encodeURIComponent(sheetTitle)}?key=${process.env.GOOGLE_API_KEY}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`
+        console.log(`Fetching data for sheet "${sheetTitle}" from:`, dataUrl)
+
+        const dataResponse = await fetch(dataUrl)
 
         if (dataResponse.ok) {
           const sheetData = await dataResponse.json()
-          
+
           sheetsData.sheets.push({
             title: sheetTitle,
             sheetId: sheetId,
@@ -78,15 +95,19 @@ export async function GET(
             rowCount: sheet.properties.gridProperties?.rowCount || 0,
             columnCount: sheet.properties.gridProperties?.columnCount || 0
           })
-          
+
           console.log(`Fetched data for sheet "${sheetTitle}": ${sheetData.values?.length || 0} rows`)
         } else {
-          console.warn(`Failed to fetch data for sheet "${sheetTitle}"`)
+          const errorText = await dataResponse.text()
+          console.warn(`Failed to fetch data for sheet "${sheetTitle}":`, {
+            status: dataResponse.status,
+            error: errorText
+          })
           sheetsData.sheets.push({
             title: sheetTitle,
             sheetId: sheetId,
             data: [],
-            error: 'Failed to fetch sheet data',
+            error: `Failed to fetch sheet data: ${dataResponse.status} ${dataResponse.statusText}`,
             rowCount: 0,
             columnCount: 0
           })

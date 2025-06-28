@@ -23,10 +23,11 @@ const SPREADSHEET_MIME_TYPES = [
   'text/csv', // CSV files
 ];
 
-// Required scopes for Google Drive access
+// Required scopes for Google Drive and Sheets access
 const SCOPES = [
   'https://www.googleapis.com/auth/drive.readonly',
   'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/spreadsheets.readonly',
 ];
 
 /**
@@ -96,9 +97,19 @@ export async function listSpreadsheetFiles(accessToken: string): Promise<DriveFi
       webViewLink: file.webViewLink!,
       thumbnailLink: file.thumbnailLink || undefined,
     })) || [];
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error listing Drive files:', error);
-    throw new Error('Failed to list Drive files');
+
+    // Provide more specific error messages
+    if (error.code === 401 || error.message?.includes('invalid_grant')) {
+      throw new Error('Google Drive access token has expired. Please reconnect.');
+    } else if (error.code === 403) {
+      throw new Error('Insufficient permissions to access Google Drive files.');
+    } else if (error.code === 429) {
+      throw new Error('Too many requests to Google Drive API. Please try again later.');
+    } else {
+      throw new Error(error.message || 'Failed to access Google Drive files');
+    }
   }
 }
 

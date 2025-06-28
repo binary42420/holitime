@@ -284,8 +284,8 @@ Begin your response with "CSV_DATA:" followed by the CSV content, then "SUMMARY_
     const responseText = geminiResult.candidates[0].content.parts[0].text
     
     // Parse the response to extract CSV and summary
-    const csvMatch = responseText.match(/CSV_DATA:(.*?)(?=SUMMARY_REPORT:|$)/s)
-    const summaryMatch = responseText.match(/SUMMARY_REPORT:(.*?)$/s)
+    const csvMatch = responseText.match(/CSV_DATA:([\s\S]*?)(?=SUMMARY_REPORT:|$)/)
+    const summaryMatch = responseText.match(/SUMMARY_REPORT:([\s\S]*?)$/)
     
     if (!csvMatch) {
       return NextResponse.json(

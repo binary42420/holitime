@@ -53,6 +53,52 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
   const [importSummary, setImportSummary] = useState<ImportSummary | null>(null)
   const [currentStep, setCurrentStep] = useState<'upload' | 'preview' | 'complete'>('upload')
 
+  // Handle external CSV data from Gemini
+  React.useEffect(() => {
+    if (externalCSVData && !parsedData) {
+      processExternalCSV(externalCSVData)
+    }
+  }, [externalCSVData, parsedData])
+
+  const processExternalCSV = async (csvData: string) => {
+    try {
+      // Create a File object from the CSV string
+      const blob = new Blob([csvData], { type: 'text/csv' })
+      const file = new File([blob], 'gemini-generated.csv', { type: 'text/csv' })
+
+      // Process it through the same parsing logic
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/import/csv/parse', {
+        method: 'POST',
+        body: formData
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to parse CSV')
+      }
+
+      setParsedData(result)
+      setEditedData(result.data)
+      setCurrentStep('preview')
+
+      toast({
+        title: 'Gemini CSV Loaded',
+        description: `Processed ${result.summary.totalRows} rows from Gemini AI`
+      })
+
+    } catch (error) {
+      toast({
+        title: 'Failed to Load Gemini CSV',
+        description: error instanceof Error ? error.message : 'Failed to process generated CSV',
+        variant: 'destructive'
+      })
+    }
+  }
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0]
     if (selectedFile) {
@@ -222,6 +268,16 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
           Download Template
         </Button>
       </div>
+
+      {/* Gemini Data Available Notice */}
+      {externalCSVData && currentStep === 'upload' && (
+        <Alert>
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>
+            Gemini AI has generated CSV data from your Google Sheets. The data will be automatically loaded for preview.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Progress Steps */}
       <div className="flex items-center space-x-4">
