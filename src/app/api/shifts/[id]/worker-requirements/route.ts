@@ -1,8 +1,37 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/middleware';
-import { updateWorkerRequirements } from '@/lib/services/worker-requirements';
+import { getWorkerRequirements, updateWorkerRequirements } from '@/lib/services/worker-requirements';
 import { getShiftById } from '@/lib/services/shifts';
 import type { WorkerRequirement } from '@/lib/types';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await getCurrentUser(request);
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+    const workerRequirements = await getWorkerRequirements(id);
+
+    return NextResponse.json({
+      success: true,
+      workerRequirements,
+    });
+  } catch (error) {
+    console.error('Error getting worker requirements:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
 
 export async function PUT(
   request: NextRequest,

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import WorkerAssignmentManager from "@/components/worker-assignment-manager"
+import ComprehensiveTimesheetManager from "@/components/comprehensive-timesheet-manager"
 import { parseShiftUrl, generateShiftEditUrl } from "@/lib/url-utils"
 
 interface ShiftDetailPageProps {
@@ -295,11 +295,10 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
         </Card>
       )}
 
-      {/* Worker Assignment Manager */}
+      {/* Comprehensive Timesheet Manager */}
       {shiftId && (
-        <WorkerAssignmentManager
+        <ComprehensiveTimesheetManager
           shiftId={shiftId}
-          shift={shift}
           assignedPersonnel={assignedPersonnel}
           onUpdate={handleRefresh}
         />

@@ -20,10 +20,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const { searchParams } = new URL(request.url);
+    const shiftId = searchParams.get('shiftId');
+
     let whereClause = '';
     let params: any[] = [];
 
-    if (user.role === 'Crew Chief') {
+    if (shiftId) {
+      // Filter by specific shift ID
+      whereClause = 'WHERE t.shift_id = $1';
+      params = [shiftId];
+
+      // Additional permission check for crew chiefs
+      if (user.role === 'Crew Chief') {
+        whereClause += ' AND s.crew_chief_id = $2';
+        params.push(user.id);
+      }
+    } else if (user.role === 'Crew Chief') {
       // Crew chiefs can only see timesheets for their shifts
       whereClause = 'WHERE s.crew_chief_id = $1';
       params = [user.id];
