@@ -11,9 +11,10 @@ import { Loader2, FileSpreadsheet, ExternalLink, AlertCircle, Info } from 'lucid
 
 interface GoogleSheetsIdInputProps {
   onFileSelected: (file: any) => void
+  accessToken?: string | null
 }
 
-export default function GoogleSheetsIdInput({ onFileSelected }: GoogleSheetsIdInputProps) {
+export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: GoogleSheetsIdInputProps) {
   const { toast } = useToast()
   const [sheetsId, setSheetsId] = useState('')
   const [isValidating, setIsValidating] = useState(false)
@@ -51,21 +52,58 @@ export default function GoogleSheetsIdInput({ onFileSelected }: GoogleSheetsIdIn
     try {
       console.log('Validating Google Sheets ID:', extractedId)
 
-      // First, try to fetch the sheets metadata to validate access
-      const response = await fetch(`/api/import/google-sheets/fetch/${extractedId}`)
-      
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to access Google Sheets')
+      let result: any = null
+      let sheetsData: any = null
+
+      // First, try the API key method (for public sheets)
+      try {
+        console.log('Trying API key method...')
+        const response = await fetch(`/api/import/google-sheets/fetch/${extractedId}`)
+
+        if (response.ok) {
+          result = await response.json()
+          if (result.success && result.data) {
+            sheetsData = result.data
+            console.log('API key method successful')
+          }
+        } else {
+          const errorData = await response.json()
+          console.log('API key method failed:', errorData.error)
+        }
+      } catch (error) {
+        console.log('API key method error:', error)
       }
 
-      const result = await response.json()
-      
-      if (!result.success || !result.data) {
-        throw new Error('Invalid response from Google Sheets API')
+      // If API key method failed and we have an access token, try OAuth method
+      if (!sheetsData && accessToken) {
+        try {
+          console.log('Trying OAuth method...')
+          const response = await fetch(`/api/import/google-sheets/fetch-with-oauth/${extractedId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ accessToken })
+          })
+
+          if (response.ok) {
+            result = await response.json()
+            if (result.success && result.data) {
+              sheetsData = result.data
+              console.log('OAuth method successful')
+            }
+          } else {
+            const errorData = await response.json()
+            console.log('OAuth method failed:', errorData.error)
+          }
+        } catch (error) {
+          console.log('OAuth method error:', error)
+        }
       }
 
-      const sheetsData = result.data
+      if (!sheetsData) {
+        throw new Error('Failed to access Google Sheets. Make sure the sheet is publicly accessible or you have proper permissions.')
+      }
 
       // Create a file object similar to Google Drive picker
       const mockFile = {
@@ -126,8 +164,18 @@ export default function GoogleSheetsIdInput({ onFileSelected }: GoogleSheetsIdIn
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            <strong>Requirements:</strong> The Google Sheets document must be publicly accessible 
-            (anyone with the link can view) for this feature to work.
+            {accessToken ? (
+              <>
+                <strong>Two access methods:</strong> Enter a Google Sheets ID/URL.
+                If the sheet is publicly accessible, it will be accessed directly.
+                Otherwise, your Google Drive permissions will be used.
+              </>
+            ) : (
+              <>
+                <strong>Requirements:</strong> The Google Sheets document must be publicly accessible
+                (anyone with the link can view) for this feature to work.
+              </>
+            )}
           </AlertDescription>
         </Alert>
 

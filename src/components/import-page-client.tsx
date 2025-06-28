@@ -32,6 +32,7 @@ export default function ImportPageClient() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatedCSV, setGeneratedCSV] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   const handleGoogleAuth = async () => {
     setLoading(true);
@@ -146,6 +147,57 @@ export default function ImportPageClient() {
     setGeneratedCSV(csvData);
   }, []);
 
+  const debugToken = async () => {
+    if (!accessToken) return;
+
+    try {
+      const response = await fetch('/api/debug/token-info', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ accessToken })
+      });
+
+      const result = await response.json();
+      setDebugInfo(result);
+      console.log('Token debug info:', result);
+    } catch (error) {
+      console.error('Error debugging token:', error);
+    }
+  };
+
+  const debugGoogleDrive = async () => {
+    if (!accessToken) return;
+
+    try {
+      console.log('Starting comprehensive Google Drive debug...');
+      const response = await fetch('/api/debug/google-drive-detailed', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ accessToken })
+      });
+
+      const result = await response.json();
+      console.log('=== COMPREHENSIVE GOOGLE DRIVE DEBUG RESULTS ===');
+      console.log('Summary:', result.summary);
+      console.log('Detailed Results:', result.debugResults);
+
+      // Show results in UI
+      setDebugInfo({
+        ...debugInfo,
+        driveDebug: result
+      });
+
+      alert(`Debug Complete!\nPassed: ${result.summary?.passedTests || 0}/${result.summary?.totalTests || 0} tests\nCheck console for detailed results.`);
+    } catch (error) {
+      console.error('Error debugging Google Drive:', error);
+      alert('Debug failed. Check console for details.');
+    }
+  };
+
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
@@ -189,7 +241,10 @@ export default function ImportPageClient() {
               {selectedFile ? null : (
                 <div className="space-y-6">
                   {/* Direct Google Sheets ID Input */}
-                  <GoogleSheetsIdInput onFileSelected={handleFileSelect} />
+                  <GoogleSheetsIdInput
+                    onFileSelected={handleFileSelect}
+                    accessToken={accessToken}
+                  />
 
                   {/* Divider */}
                   <div className="relative">
@@ -220,10 +275,44 @@ export default function ImportPageClient() {
                         )}
                       </Button>
                     ) : (
-                      <GoogleDrivePicker
-                        accessToken={accessToken}
-                        onFileSelect={handleFileSelect}
-                      />
+                      <div className="space-y-4">
+                        <GoogleDrivePicker
+                          accessToken={accessToken}
+                          onFileSelect={handleFileSelect}
+                        />
+
+                        {/* Debug Section */}
+                        <div className="pt-4 border-t">
+                          <div className="space-y-2">
+                            <div className="flex gap-2 items-center">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={debugToken}
+                              >
+                                Debug Token
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={debugGoogleDrive}
+                              >
+                                Debug Drive API
+                              </Button>
+                            </div>
+                            {debugInfo && (
+                              <div className="text-xs text-muted-foreground space-y-1">
+                                <div>Scopes: {debugInfo.scopes?.join(', ') || 'none'}</div>
+                                {debugInfo.driveDebug && (
+                                  <div>
+                                    Drive Tests: {debugInfo.driveDebug.summary?.passedTests || 0}/{debugInfo.driveDebug.summary?.totalTests || 0} passed
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>

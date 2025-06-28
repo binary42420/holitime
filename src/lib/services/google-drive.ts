@@ -26,7 +26,6 @@ const SPREADSHEET_MIME_TYPES = [
 // Required scopes for Google Drive and Sheets access
 const SCOPES = [
   'https://www.googleapis.com/auth/drive.readonly',
-  'https://www.googleapis.com/auth/drive.file',
   'https://www.googleapis.com/auth/spreadsheets.readonly',
 ];
 
@@ -48,9 +47,11 @@ function createOAuth2Client() {
  */
 export function generateAuthUrl(userId: string): DriveAuthUrl {
   const oauth2Client = createOAuth2Client();
-  
+
   const state = Buffer.from(JSON.stringify({ userId, timestamp: Date.now() })).toString('base64');
-  
+
+  console.log('Google Drive Auth: Generating URL with scopes:', SCOPES);
+
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES,
@@ -58,6 +59,7 @@ export function generateAuthUrl(userId: string): DriveAuthUrl {
     prompt: 'consent', // Force consent to get refresh token
   });
 
+  console.log('Google Drive Auth: Generated URL:', authUrl);
   return { authUrl, state };
 }
 
@@ -66,8 +68,16 @@ export function generateAuthUrl(userId: string): DriveAuthUrl {
  */
 export async function exchangeCodeForTokens(code: string): Promise<any> {
   const oauth2Client = createOAuth2Client();
-  
+
+  console.log('Google Drive Auth: Exchanging code for tokens');
   const { tokens } = await oauth2Client.getToken(code);
+  console.log('Google Drive Auth: Received tokens:', {
+    access_token: tokens.access_token ? `${tokens.access_token.substring(0, 20)}...` : 'none',
+    refresh_token: tokens.refresh_token ? 'present' : 'none',
+    scope: tokens.scope,
+    token_type: tokens.token_type,
+    expiry_date: tokens.expiry_date
+  });
   return tokens;
 }
 
@@ -75,20 +85,42 @@ export async function exchangeCodeForTokens(code: string): Promise<any> {
  * List spreadsheet files from Google Drive
  */
 export async function listSpreadsheetFiles(accessToken: string): Promise<DriveFile[]> {
+  console.log('Google Drive Service: Starting file listing with token:', accessToken.substring(0, 20) + '...');
+
   const oauth2Client = createOAuth2Client();
   oauth2Client.setCredentials({ access_token: accessToken });
 
   const drive = google.drive({ version: 'v3', auth: oauth2Client });
 
   try {
+    // First, let's try a simple test call to verify the token works
+    console.log('Google Drive Service: Testing token with about endpoint...');
+    try {
+      const aboutResponse = await drive.about.get({ fields: 'user' });
+      console.log('Google Drive Service: Token test successful, user:', aboutResponse.data.user?.emailAddress);
+    } catch (aboutError: any) {
+      console.error('Google Drive Service: Token test failed:', aboutError);
+      throw aboutError;
+    }
+
+    // Now try to list files
+    const query = `(${SPREADSHEET_MIME_TYPES.map(type => `mimeType='${type}'`).join(' or ')}) and trashed=false`;
+    console.log('Google Drive Service: Using query:', query);
+
     const response = await drive.files.list({
-      q: `(${SPREADSHEET_MIME_TYPES.map(type => `mimeType='${type}'`).join(' or ')}) and trashed=false`,
+      q: query,
       fields: 'files(id,name,mimeType,size,modifiedTime,webViewLink,thumbnailLink)',
       orderBy: 'modifiedTime desc',
       pageSize: 50,
     });
 
-    return response.data.files?.map(file => ({
+    console.log('Google Drive Service: Raw API response:', {
+      filesCount: response.data.files?.length || 0,
+      status: response.status,
+      statusText: response.statusText
+    });
+
+    const files = response.data.files?.map(file => ({
       id: file.id!,
       name: file.name!,
       mimeType: file.mimeType!,
@@ -97,18 +129,28 @@ export async function listSpreadsheetFiles(accessToken: string): Promise<DriveFi
       webViewLink: file.webViewLink!,
       thumbnailLink: file.thumbnailLink || undefined,
     })) || [];
+
+    console.log('Google Drive Service: Successfully retrieved', files.length, 'files');
+    return files;
   } catch (error: any) {
-    console.error('Error listing Drive files:', error);
+    console.error('Google Drive Service: Detailed error:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      errors: error.errors,
+      response: error.response?.data,
+      stack: error.stack
+    });
 
     // Provide more specific error messages
     if (error.code === 401 || error.message?.includes('invalid_grant')) {
       throw new Error('Google Drive access token has expired. Please reconnect.');
     } else if (error.code === 403) {
-      throw new Error('Insufficient permissions to access Google Drive files.');
+      throw new Error(`Insufficient permissions to access Google Drive files. Details: ${error.message}`);
     } else if (error.code === 429) {
       throw new Error('Too many requests to Google Drive API. Please try again later.');
     } else {
-      throw new Error(error.message || 'Failed to access Google Drive files');
+      throw new Error(`Failed to access Google Drive files: ${error.message || 'Unknown error'}`);
     }
   }
 }
