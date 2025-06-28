@@ -45,10 +45,10 @@ export async function GET(
     const row = timesheetResult.rows[0];
 
     // Check permissions
-    const hasAccess = 
+    const hasAccess =
       user.role === 'Manager/Admin' ||
       (user.role === 'Crew Chief' && row.crew_chief_id === user.id) ||
-      (user.role === 'Client' && row.client_id === user.client_id);
+      (user.role === 'Client' && row.client_id === user.clientId);
 
     if (!hasAccess) {
       return NextResponse.json(

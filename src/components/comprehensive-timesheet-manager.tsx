@@ -54,6 +54,10 @@ interface ComprehensiveTimesheetManagerProps {
   onUpdate: () => void;
 }
 
+type WorkerSlot =
+  | { type: 'assigned'; worker: AssignedWorker }
+  | { type: 'empty'; roleCode: RoleCode }
+
 const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string; bgColor: string; borderColor: string }> = {
   'CC': { 
     name: 'Crew Chief', 
@@ -458,10 +462,10 @@ export default function ComprehensiveTimesheetManager({
     return assignedPersonnel.filter(worker => worker.roleCode === roleCode)
   }
 
-  const generateWorkerSlots = (roleCode: RoleCode) => {
+  const generateWorkerSlots = (roleCode: RoleCode): WorkerSlot[] => {
     const requiredCount = getRequiredCount(roleCode)
     const assignedWorkers = getAssignedWorkers(roleCode)
-    const slots = []
+    const slots: WorkerSlot[] = []
 
     // Add assigned workers
     assignedWorkers.forEach(worker => {
@@ -590,7 +594,7 @@ export default function ComprehensiveTimesheetManager({
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={slot.worker.employeeAvatar} />
                                 <AvatarFallback>
-                                  {slot.worker.employeeName.split(' ').map(n => n[0]).join('')}
+                                  {slot.worker.employeeName.split(' ').map((n: string) => n[0]).join('')}
                                 </AvatarFallback>
                               </Avatar>
                               <div>

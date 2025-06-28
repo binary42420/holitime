@@ -148,8 +148,7 @@ export async function GET(
           roleOnShift: 'Crew Chief',
           roleCode: 'CC',
           status,
-          timeEntries,
-          isPlaceholder: false
+          timeEntries
         });
       }
     }
