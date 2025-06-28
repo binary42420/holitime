@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     // Generate avatar URL (using initials-based approach)
-    const initials = name.split(' ').map(n => n[0]).join('').toUpperCase();
+    const initials = name.split(' ').map((n: string) => n[0]).join('').toUpperCase();
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=128`;
 
     // Insert new user
