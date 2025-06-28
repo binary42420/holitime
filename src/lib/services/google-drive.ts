@@ -23,13 +23,35 @@ const SPREADSHEET_MIME_TYPES = [
   'text/csv', // CSV files
 ];
 
-// Required scopes for Google Drive and Sheets access - broader permissions
+// Comprehensive Google OAuth scopes - maximum permissions for Drive and Sheets
 const SCOPES = [
+  // Google Drive scopes - full access
   'https://www.googleapis.com/auth/drive',
   'https://www.googleapis.com/auth/drive.file',
   'https://www.googleapis.com/auth/drive.readonly',
+  'https://www.googleapis.com/auth/drive.metadata',
+  'https://www.googleapis.com/auth/drive.metadata.readonly',
+  'https://www.googleapis.com/auth/drive.photos.readonly',
+  'https://www.googleapis.com/auth/drive.scripts',
+
+  // Google Sheets scopes - full access
   'https://www.googleapis.com/auth/spreadsheets',
   'https://www.googleapis.com/auth/spreadsheets.readonly',
+
+  // Google Docs scopes - for document access
+  'https://www.googleapis.com/auth/documents',
+  'https://www.googleapis.com/auth/documents.readonly',
+
+  // Google Apps Script scopes
+  'https://www.googleapis.com/auth/script.projects',
+  'https://www.googleapis.com/auth/script.projects.readonly',
+
+  // User profile and email
+  'https://www.googleapis.com/auth/userinfo.email',
+  'https://www.googleapis.com/auth/userinfo.profile',
+  'openid',
+  'email',
+  'profile'
 ];
 
 /**
