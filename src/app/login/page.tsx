@@ -140,12 +140,12 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="text-sm font-medium mb-2">Demo Accounts:</p>
+            <p className="text-sm font-medium mb-2">Accounts:</p>
             <div className="text-xs space-y-1">
-              <div><strong>Employee:</strong> alex.j@handson.com</div>
-              <div><strong>Crew Chief:</strong> maria.g@handson.com</div>
-              <div><strong>Manager:</strong> sam.c@handson.com</div>
-              <div><strong>Client:</strong> jsmith@constructo.com</div>
+              <div><strong>Employee:</strong> employee@handson.com</div>
+              <div><strong>Crew Chief:</strong>cc@handson.com</div>
+              <div><strong>Manager:</strong> manager@handson.com</div>
+              <div><strong>Client:</strong> client@clientco.com</div>
               <div className="mt-2"><strong>Password:</strong> password123</div>
             </div>
           </div>
