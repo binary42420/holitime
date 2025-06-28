@@ -4,7 +4,6 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  BrainCircuit,
   Building2,
   CalendarClock,
   ClipboardCheck,
@@ -13,6 +12,7 @@ import {
   LayoutDashboard,
   PanelLeft,
   Settings,
+  Upload,
 } from 'lucide-react'
 
 import {
@@ -91,9 +91,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
             {!isClient && (
                <SidebarMenuItem>
-                <SidebarMenuButton href="/staffing" tooltip="AI Staffing" isActive={isActive('/staffing')}>
-                  <BrainCircuit />
-                  Smart Staffing
+                <SidebarMenuButton href="/staffing" tooltip="Data Import" isActive={isActive('/staffing')}>
+                  <Upload />
+                  Data Import
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
