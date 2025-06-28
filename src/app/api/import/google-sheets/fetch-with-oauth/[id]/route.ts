@@ -42,12 +42,27 @@ export async function POST(
     }
 
     console.log('Fetching Google Sheets data with OAuth for ID:', googleSheetsId)
+    console.log('Access token length:', accessToken.length)
 
     // Set up OAuth client with access token
     const oauth2Client = createOAuth2Client()
     oauth2Client.setCredentials({ access_token: accessToken })
 
     const sheets = google.sheets({ version: 'v4', auth: oauth2Client })
+
+    // Test the OAuth token first with a simple API call
+    try {
+      console.log('Testing OAuth token with Drive API...')
+      const drive = google.drive({ version: 'v3', auth: oauth2Client })
+      const aboutResponse = await drive.about.get({ fields: 'user' })
+      console.log('OAuth token test successful, user:', aboutResponse.data.user?.emailAddress)
+    } catch (tokenError: any) {
+      console.error('OAuth token test failed:', tokenError.message)
+      return NextResponse.json(
+        { error: `OAuth token validation failed: ${tokenError.message}` },
+        { status: 401 }
+      )
+    }
 
     try {
       // Get spreadsheet metadata

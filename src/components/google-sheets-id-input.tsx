@@ -21,6 +21,15 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
   const [error, setError] = useState<string | null>(null)
   const [debugResults, setDebugResults] = useState<any>(null)
 
+  // Debug: Log when accessToken changes
+  React.useEffect(() => {
+    console.log('GoogleSheetsIdInput: accessToken changed:', {
+      hasToken: !!accessToken,
+      tokenLength: accessToken?.length || 0,
+      tokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : 'none'
+    })
+  }, [accessToken])
+
   const extractSheetsId = (input: string): string | null => {
     // Remove whitespace
     const trimmed = input.trim()
@@ -41,7 +50,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
 
   const validateAndProcessSheets = async () => {
     const extractedId = extractSheetsId(sheetsId)
-    
+
     if (!extractedId) {
       setError('Please enter a valid Google Sheets ID or URL')
       return
@@ -52,6 +61,8 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
 
     try {
       console.log('Validating Google Sheets ID:', extractedId)
+      console.log('Access token available:', !!accessToken)
+      console.log('Access token length:', accessToken?.length || 0)
 
       let result: any = null
       let sheetsData: any = null
@@ -83,10 +94,11 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
         }
       }
 
-      // If OAuth method failed or no access token, try the API key method (for public sheets)
-      if (!sheetsData) {
+      // Only try API key method if OAuth failed AND we don't have an access token
+      // (Skip API key method if we have OAuth access since it's failing with 403)
+      if (!sheetsData && !accessToken) {
         try {
-          console.log('Trying API key method...')
+          console.log('Trying API key method (no OAuth token available)...')
           const response = await fetch(`/api/import/google-sheets/fetch/${extractedId}`)
 
           if (response.ok) {
@@ -106,7 +118,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
 
       if (!sheetsData) {
         if (accessToken) {
-          throw new Error('Failed to access Google Sheets. Please check that the sheet ID is correct and you have permission to access it.')
+          throw new Error('Failed to access Google Sheets using your Google Drive authentication. Please check that the sheet ID is correct and you have permission to access it. The sheet may be private or the ID may be incorrect.')
         } else {
           throw new Error('Failed to access Google Sheets. Make sure the sheet is publicly accessible (anyone with link can view) or connect to Google Drive for authenticated access.')
         }
