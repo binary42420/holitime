@@ -1,36 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
 import { generateAuthUrl } from '@/lib/services/google-drive';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-config';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    // Verify user is authenticated
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Only managers can import data
-    if (user.role !== 'Manager/Admin') {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
-    }
+    // Generate OAuth URL with user ID from session
+    const { authUrl, state } = generateAuthUrl(session.user.id);
 
-    const { authUrl, state } = generateAuthUrl(user.id);
-
-    return NextResponse.json({
-      success: true,
-      authUrl,
-      state,
-    });
+    return NextResponse.json({ authUrl, state });
   } catch (error) {
-    console.error('Error generating Google Drive auth URL:', error);
+    console.error('Error generating auth URL:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to generate auth URL' },
       { status: 500 }
     );
   }

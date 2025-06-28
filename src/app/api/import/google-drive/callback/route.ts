@@ -1,64 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exchangeCodeForTokens } from '@/lib/services/google-drive';
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const code = searchParams.get('code');
-    const state = searchParams.get('state');
-    const error = searchParams.get('error');
+    const { code } = await request.json();
 
-    if (error) {
-      console.error('Google OAuth error:', error);
-      return NextResponse.redirect(
-        new URL('/staffing?error=oauth_error', request.url)
-      );
+    if (!code) {
+      return NextResponse.json({ error: 'Missing authorization code' }, { status: 400 });
     }
 
-    if (!code || !state) {
-      return NextResponse.redirect(
-        new URL('/staffing?error=missing_params', request.url)
-      );
-    }
+    const tokens = await exchangeCodeForTokens(code);
 
-    try {
-      // Decode state to get user info
-      const stateData = JSON.parse(Buffer.from(state, 'base64').toString());
-      
-      // Exchange code for tokens
-      const tokens = await exchangeCodeForTokens(code);
-      
-      // Store tokens in session/cookie (simplified for demo)
-      const response = NextResponse.redirect(new URL('/staffing?success=true', request.url));
-      
-      // Set secure cookie with access token (in production, use proper session management)
-      response.cookies.set('google_drive_token', tokens.access_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: tokens.expires_in || 3600, // 1 hour default
-      });
-
-      if (tokens.refresh_token) {
-        response.cookies.set('google_drive_refresh_token', tokens.refresh_token, {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          maxAge: 30 * 24 * 60 * 60, // 30 days
-        });
-      }
-
-      return response;
-    } catch (tokenError) {
-      console.error('Error exchanging code for tokens:', tokenError);
-      return NextResponse.redirect(
-        new URL('/staffing?error=token_exchange_failed', request.url)
-      );
-    }
+    return NextResponse.json({ accessToken: tokens.access_token, refreshToken: tokens.refresh_token });
   } catch (error) {
-    console.error('Error in Google Drive callback:', error);
-    return NextResponse.redirect(
-      new URL('/staffing?error=callback_error', request.url)
-    );
+    console.error('Error handling OAuth callback:', error);
+    return NextResponse.json({ error: 'Failed to handle OAuth callback' }, { status: 500 });
   }
 }

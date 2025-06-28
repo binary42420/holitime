@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { query } from './db';
 import type { User } from './types';
 
@@ -22,9 +23,9 @@ export interface RegisterData {
   clientId?: string;
 }
 
-// Simple password verification (no hashing)
-export function verifyPassword(password: string, storedPassword: string): boolean {
-  return password === storedPassword;
+// Verify password using bcrypt
+export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+  return await bcrypt.compare(password, hashedPassword);
 }
 
 // Generate JWT token
@@ -72,11 +73,11 @@ export async function getUserByEmail(email: string): Promise<AuthUser | null> {
     return {
       id: row.id,
       email: row.email,
-      password: row.password_hash, // Use password instead of password_hash
+      password: row.password_hash,
       name: row.name,
       role: row.role,
       avatar: row.avatar || '',
-      clientId: row.role === 'Client' ? row.id : null, // For clients, use their own ID
+      clientId: row.role === 'Client' ? row.id : null,
     };
   } catch (error) {
     console.error('Error getting user by email:', error);
@@ -103,7 +104,7 @@ export async function getUserById(id: string): Promise<User | null> {
       name: row.name,
       role: row.role,
       avatar: row.avatar || '',
-      clientId: row.role === 'Client' ? row.id : null, // For clients, use their own ID
+      clientId: row.role === 'Client' ? row.id : null,
     };
   } catch (error) {
     console.error('Error getting user by ID:', error);
@@ -114,17 +115,17 @@ export async function getUserById(id: string): Promise<User | null> {
 // Create new user
 export async function createUser(userData: RegisterData): Promise<User | null> {
   try {
-    // Store password directly without hashing
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
     const result = await query(
       `INSERT INTO users (email, password_hash, name, role, avatar)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, email, name, role, avatar`,
       [
         userData.email,
-        userData.password, // Store password directly
+        hashedPassword,
         userData.name,
         userData.role,
-        `https://i.pravatar.cc/32?u=${userData.email}` // Generate avatar URL
+        `https://i.pravatar.cc/32?u=${userData.email}`
       ]
     );
 
@@ -139,7 +140,7 @@ export async function createUser(userData: RegisterData): Promise<User | null> {
       name: row.name,
       role: row.role,
       avatar: row.avatar,
-      clientId: row.role === 'Client' ? row.id : null, // For clients, use their own ID
+      clientId: row.role === 'Client' ? row.id : null,
     };
   } catch (error) {
     console.error('Error creating user:', error);
@@ -155,7 +156,7 @@ export async function authenticateUser(credentials: LoginCredentials): Promise<{
       return null;
     }
 
-    const isValidPassword = verifyPassword(credentials.password, authUser.password);
+    const isValidPassword = await verifyPassword(credentials.password, authUser.password);
     if (!isValidPassword) {
       return null;
     }

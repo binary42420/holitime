@@ -23,6 +23,9 @@ const nextConfig = {
 
     return config;
   },
+  // Disable static generation to avoid build-time URL issues
+  trailingSlash: false,
+
   // Optimize for production
   experimental: {
     // optimizeCss: true, // Disabled due to critters module issue

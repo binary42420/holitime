@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
+// Force dynamic rendering to avoid build-time URL issues
+export const dynamic = 'force-dynamic'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useUser } from '@/hooks/use-user'
 import { useApi } from '@/hooks/use-api'

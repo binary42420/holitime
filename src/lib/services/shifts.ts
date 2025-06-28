@@ -1,5 +1,6 @@
 import { query } from '../db';
 import type { Shift, AssignedPersonnel, TimesheetStatus } from '../types';
+import { getWorkerRequirements } from './worker-requirements';
 
 export async function getAllShifts(): Promise<Shift[]> {
   try {
@@ -99,6 +100,7 @@ export async function getShiftById(id: string): Promise<Shift | null> {
 
     const row = result.rows[0];
     const assignedPersonnel = await getAssignedPersonnelForShift(row.id);
+    const workerRequirements = await getWorkerRequirements(row.id);
 
     return {
       id: row.id,
@@ -112,6 +114,7 @@ export async function getShiftById(id: string): Promise<Shift | null> {
       endTime: row.end_time,
       location: row.location,
       requestedWorkers: row.requested_workers,
+      workerRequirements,
       crewChiefName: row.crew_chief_name || null,
       crewChief: row.crew_chief_id ? {
         id: row.crew_chief_id,

@@ -88,6 +88,11 @@ export interface AssignedPersonnel {
 
 export type TimesheetStatus = 'Pending Finalization' | 'Awaiting Client Approval' | 'Awaiting Manager Approval' | 'Approved' | 'Rejected';
 
+export interface WorkerRequirement {
+  roleCode: RoleCode;
+  requiredCount: number;
+}
+
 export interface Shift {
   id: string;
   timesheetId: string;
@@ -101,6 +106,7 @@ export interface Shift {
   location: string;
   requestedWorkers?: number;
   assignedCount?: number;
+  workerRequirements?: WorkerRequirement[];
   crewChief: Employee | null;
   crewChiefId?: string;
   crewChiefName?: string;

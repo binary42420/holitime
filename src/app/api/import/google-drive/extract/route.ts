@@ -1,81 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { downloadFile, getFileMetadata } from '@/lib/services/google-drive';
-import { extractSpreadsheetData } from '@/lib/services/gemini-ai';
+import { downloadFile } from '@/lib/services/google-drive';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-config';
+import * as XLSX from 'xlsx';
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    // Verify user is authenticated
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Only managers can import data
-    if (user.role !== 'Manager/Admin') {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
+    // Get access token from Authorization header
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Missing access token' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { fileId } = body;
+    const accessToken = authHeader.substring(7); // Remove 'Bearer ' prefix
+    const { fileId } = await request.json();
 
     if (!fileId) {
-      return NextResponse.json(
-        { error: 'File ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing file ID' }, { status: 400 });
     }
 
-    // Get access token from cookie
-    const accessToken = request.cookies.get('google_drive_token')?.value;
-    if (!accessToken) {
-      return NextResponse.json(
-        { error: 'Google Drive not authenticated' },
-        { status: 401 }
-      );
-    }
+    // Download the file
+    const fileBuffer = await downloadFile(fileId, accessToken);
 
-    // Get file metadata
-    const fileMetadata = await getFileMetadata(fileId, accessToken);
+    // Parse Excel file
+    const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
     
-    // Download file content
-    const fileContent = await downloadFile(fileId, accessToken);
-    
-    // Extract data using Gemini AI
-    const extractedData = await extractSpreadsheetData(
-      fileContent,
-      fileMetadata.name,
-      fileMetadata.mimeType
+    // Convert to JSON
+    const data = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+    // Validate the template format
+    const headers = data[0] as string[];
+    const expectedHeaders = [
+      'Date',
+      'Start Time',
+      'End Time',
+      'Hours',
+      'Employee',
+      'Role',
+      'Client',
+      'Project',
+      'Notes'
+    ];
+
+    // Check if all expected headers are present
+    const missingHeaders = expectedHeaders.filter(
+      header => !headers.includes(header)
     );
 
-    return NextResponse.json({
-      success: true,
-      data: extractedData,
-      fileInfo: {
-        id: fileMetadata.id,
-        name: fileMetadata.name,
-        mimeType: fileMetadata.mimeType,
-        size: fileMetadata.size,
-      },
-    });
-  } catch (error) {
-    console.error('Error extracting data from file:', error);
-    
-    // Check if it's an authentication error
-    if (error instanceof Error && error.message.includes('invalid_grant')) {
-      return NextResponse.json(
-        { error: 'Google Drive authentication expired' },
-        { status: 401 }
-      );
+    if (missingHeaders.length > 0) {
+      return NextResponse.json({
+        error: 'Invalid template format',
+        missingHeaders,
+        template: {
+          headers: expectedHeaders,
+          example: expectedHeaders.map(header => {
+            switch (header) {
+              case 'Date': return '2024-01-01';
+              case 'Start Time': return '09:00';
+              case 'End Time': return '17:00';
+              case 'Hours': return '8';
+              case 'Employee': return 'John Doe';
+              case 'Role': return 'Employee';
+              case 'Client': return 'ABC Corp';
+              case 'Project': return 'Project X';
+              case 'Notes': return 'Regular shift';
+              default: return '';
+            }
+          })
+        }
+      }, { status: 400 });
     }
 
+    // Return the parsed data
+    return NextResponse.json({
+      headers,
+      rows: data.slice(1), // Exclude headers
+      preview: data.slice(1, 6) // First 5 rows for preview
+    });
+  } catch (error) {
+    console.error('Error extracting file data:', error);
     return NextResponse.json(
-      { error: `Failed to extract data: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { error: 'Failed to extract file data' },
       { status: 500 }
     );
   }

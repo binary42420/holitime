@@ -1,0 +1,74 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+
+interface DriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  modifiedTime: string;
+  webViewLink: string;
+  thumbnailLink?: string;
+}
+
+interface GoogleDrivePickerProps {
+  accessToken: string;
+  onFileSelect: (file: DriveFile) => void;
+}
+
+export default function GoogleDrivePicker({ accessToken, onFileSelect }: GoogleDrivePickerProps) {
+  const [files, setFiles] = useState<DriveFile[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    setLoading(true);
+    setError(null);
+
+    fetch("/api/import/google-drive/files", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch files");
+        return res.json();
+      })
+      .then((data) => {
+        setFiles(data.files || []);
+      })
+      .catch((err) => {
+        setError(err.message);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [accessToken]);
+
+  if (loading) return <div>Loading files...</div>;
+  if (error) return <div className="text-red-600">Error: {error}</div>;
+
+  return (
+    <div>
+      <h3 className="mb-2 font-semibold">Select a Google Sheets file to import</h3>
+      <ul className="space-y-2 max-h-64 overflow-y-auto">
+        {files.map((file) => (
+          <li key={file.id} className="flex items-center space-x-4 p-2 border rounded hover:bg-gray-100 cursor-pointer" onClick={() => onFileSelect(file)}>
+            {file.thumbnailLink ? (
+              <img src={file.thumbnailLink} alt={file.name} className="w-8 h-8 object-cover rounded" />
+            ) : (
+              <div className="w-8 h-8 bg-gray-300 rounded flex items-center justify-center text-sm font-bold text-gray-600">S</div>
+            )}
+            <div>
+              <div className="font-medium">{file.name}</div>
+              <div className="text-xs text-gray-500">{new Date(file.modifiedTime).toLocaleString()}</div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

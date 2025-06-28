@@ -83,8 +83,24 @@ export function parseShiftUrl(companySlug: string, jobSlug: string, dateSlug: st
     // Check if it contains a colon (already formatted time)
     if (decodedShiftId.includes(':')) {
       const parts = decodedShiftId.split('-')
-      timeStr = parts[0] // e.g., "21:00"
+      let rawTime = parts[0] // e.g., "21:00" or "1000:00"
       sequenceStr = parts[1] || '1'
+
+      // Handle malformed times like "1000:00" -> "10:00"
+      if (rawTime.length > 5) {
+        // Extract just the time part before the colon
+        const timePart = rawTime.split(':')[0]
+        if (timePart.length === 4) {
+          // HHMM format like "1000"
+          const hours = timePart.substring(0, 2)
+          const minutes = timePart.substring(2, 4)
+          timeStr = `${hours}:${minutes}`
+        } else {
+          timeStr = rawTime
+        }
+      } else {
+        timeStr = rawTime
+      }
     } else {
       // Split by dash to separate time and sequence
       const parts = decodedShiftId.split('-')

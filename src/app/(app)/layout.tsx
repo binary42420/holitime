@@ -1,6 +1,9 @@
 "use client"
 
 import React from 'react'
+
+// Force dynamic rendering to avoid build-time URL issues
+export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
