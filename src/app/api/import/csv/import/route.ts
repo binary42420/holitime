@@ -14,31 +14,32 @@ interface ImportSummary {
 }
 
 async function createOrUpdateClient(clientName: string, contactName?: string, contactPhone?: string) {
-  // Check if client exists
+  // Check if client exists (clients are stored as users with role 'Client')
   const existingClient = await query(
-    'SELECT id FROM clients WHERE LOWER(name) = LOWER($1)',
-    [clientName]
+    'SELECT id FROM users WHERE role = $1 AND (LOWER(company_name) = LOWER($2) OR LOWER(name) = LOWER($2))',
+    ['Client', clientName]
   )
 
   if (existingClient.rows.length > 0) {
     const clientId = existingClient.rows[0].id
-    
+
     // Update contact info if provided
     if (contactName || contactPhone) {
       await query(
-        'UPDATE clients SET contact_name = COALESCE($2, contact_name), contact_phone = COALESCE($3, contact_phone), updated_at = NOW() WHERE id = $1',
+        'UPDATE users SET contact_person = COALESCE($2, contact_person), contact_phone = COALESCE($3, contact_phone), updated_at = NOW() WHERE id = $1',
         [clientId, contactName || null, contactPhone || null]
       )
       return { id: clientId, created: false }
     }
-    
+
     return { id: clientId, created: false }
   }
 
-  // Create new client
+  // Create new client user
+  const email = `${clientName.toLowerCase().replace(/\s+/g, '.')}@client.temp`
   const result = await query(
-    'INSERT INTO clients (name, contact_name, contact_phone) VALUES ($1, $2, $3) RETURNING id',
-    [clientName, contactName || null, contactPhone || null]
+    'INSERT INTO users (name, email, password_hash, role, company_name, contact_person, contact_phone, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING id',
+    [clientName, email, 'temp_password_change_required', 'Client', clientName, contactName || null, contactPhone || null]
   )
 
   return { id: result.rows[0].id, created: true }
@@ -57,8 +58,8 @@ async function createOrUpdateJob(clientId: string, jobName: string, jobStartDate
 
   // Create new job
   const result = await query(
-    'INSERT INTO jobs (client_id, name, start_date, status) VALUES ($1, $2, $3, $4) RETURNING id',
-    [clientId, jobName, jobStartDate || null, 'Active']
+    'INSERT INTO jobs (client_id, name, description, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id',
+    [clientId, jobName, jobStartDate ? `Start Date: ${jobStartDate}` : null]
   )
 
   return { id: result.rows[0].id, created: true }
@@ -77,7 +78,7 @@ async function createOrUpdateShift(jobId: string, shiftDate: string, startTime: 
 
   // Create new shift
   const result = await query(
-    'INSERT INTO shifts (job_id, date, start_time, end_time, status, requested_workers) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
+    'INSERT INTO shifts (job_id, date, start_time, end_time, status, requested_workers, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id',
     [jobId, shiftDate, startTime, endTime, 'Upcoming', 1]
   )
 
@@ -87,41 +88,41 @@ async function createOrUpdateShift(jobId: string, shiftDate: string, startTime: 
 async function createOrUpdateUser(employeeName: string, employeeEmail?: string, employeePhone?: string) {
   // Try to find existing user by email first, then by name
   let existingUser
-  
+
   if (employeeEmail) {
     existingUser = await query(
-      'SELECT id FROM users WHERE LOWER(email) = LOWER($1)',
-      [employeeEmail]
+      'SELECT id FROM users WHERE LOWER(email) = LOWER($1) AND role IN ($2, $3, $4)',
+      [employeeEmail, 'Employee', 'Crew Chief', 'Manager/Admin']
     )
   }
-  
+
   if (!existingUser?.rows.length) {
     existingUser = await query(
-      'SELECT id FROM users WHERE LOWER(name) = LOWER($1)',
-      [employeeName]
+      'SELECT id FROM users WHERE LOWER(name) = LOWER($1) AND role IN ($2, $3, $4)',
+      [employeeName, 'Employee', 'Crew Chief', 'Manager/Admin']
     )
   }
 
   if (existingUser?.rows.length > 0) {
     const userId = existingUser.rows[0].id
-    
+
     // Update user info if provided
     if (employeeEmail || employeePhone) {
       await query(
-        'UPDATE users SET email = COALESCE($2, email), phone = COALESCE($3, phone), updated_at = NOW() WHERE id = $1',
+        'UPDATE users SET email = COALESCE($2, email), contact_phone = COALESCE($3, contact_phone), updated_at = NOW() WHERE id = $1',
         [userId, employeeEmail || null, employeePhone || null]
       )
       return { id: userId, created: false }
     }
-    
+
     return { id: userId, created: false }
   }
 
   // Create new user
   const email = employeeEmail || `${employeeName.toLowerCase().replace(/\s+/g, '.')}@temp.local`
   const result = await query(
-    'INSERT INTO users (name, email, phone, role) VALUES ($1, $2, $3, $4) RETURNING id',
-    [employeeName, email, employeePhone || null, 'Employee']
+    'INSERT INTO users (name, email, password_hash, contact_phone, role, created_at, updated_at, is_active) VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), true) RETURNING id',
+    [employeeName, email, 'temp_password_change_required', employeePhone || null, 'Employee']
   )
 
   return { id: result.rows[0].id, created: true }
@@ -149,7 +150,7 @@ async function createAssignment(shiftId: string, employeeId: string, workerType:
   }
 
   const result = await query(
-    'INSERT INTO assigned_personnel (shift_id, employee_id, role_on_shift, role_code, status) VALUES ($1, $2, $3, $4, $5) RETURNING id',
+    'INSERT INTO assigned_personnel (shift_id, employee_id, role_on_shift, role_code, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING id',
     [shiftId, employeeId, roleNames[workerType] || workerType, workerType, 'Clocked Out']
   )
 
@@ -171,10 +172,13 @@ async function createTimeEntries(assignmentId: string, clockTimes: Array<{clockI
 
     if (existingEntry.rows.length > 0) continue
 
-    // Create time entry
+    // Create time entry - convert HH:MM to timestamp
+    const clockInTimestamp = clockIn ? `1970-01-01 ${clockIn}:00` : null
+    const clockOutTimestamp = clockOut ? `1970-01-01 ${clockOut}:00` : null
+
     await query(
-      'INSERT INTO time_entries (assigned_personnel_id, entry_number, clock_in, clock_out, is_active) VALUES ($1, $2, $3, $4, $5)',
-      [assignmentId, i + 1, clockIn, clockOut || null, !clockOut]
+      'INSERT INTO time_entries (assigned_personnel_id, entry_number, clock_in, clock_out, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())',
+      [assignmentId, i + 1, clockInTimestamp, clockOutTimestamp, !clockOut]
     )
     
     created++
@@ -194,13 +198,15 @@ export async function POST(request: NextRequest) {
     }
 
     const { data }: { data: CSVRow[] } = await request.json()
-    
+
     if (!data || !Array.isArray(data)) {
       return NextResponse.json(
         { error: 'Invalid data provided' },
         { status: 400 }
       )
     }
+
+    console.log('CSV Import: Starting import process with', data.length, 'rows')
 
     const summary: ImportSummary = {
       clients: { created: 0, updated: 0 },
@@ -215,8 +221,16 @@ export async function POST(request: NextRequest) {
     // Process each row
     for (const row of data) {
       try {
+        console.log(`CSV Import: Processing row ${row._rowNumber}:`, {
+          client: row.client_name,
+          job: row.job_name,
+          employee: row.employee_name,
+          shift_date: row.shift_date
+        })
+
         // Skip rows with validation errors
         if (row._errors && row._errors.length > 0) {
+          console.log(`CSV Import: Skipping row ${row._rowNumber} due to validation errors:`, row._errors)
           summary.errors.push({
             rowNumber: row._rowNumber,
             error: `Validation errors: ${row._errors.join(', ')}`
@@ -225,11 +239,13 @@ export async function POST(request: NextRequest) {
         }
 
         // Create/update client
+        console.log(`CSV Import: Creating/updating client: ${row.client_name}`)
         const clientResult = await createOrUpdateClient(
           row.client_name,
           row.contact_name,
           row.contact_phone
         )
+        console.log(`CSV Import: Client result:`, clientResult)
         if (clientResult.created) summary.clients.created++
         else summary.clients.updated++
 
@@ -288,6 +304,8 @@ export async function POST(request: NextRequest) {
         })
       }
     }
+
+    console.log('CSV Import: Final summary:', summary)
 
     return NextResponse.json({
       success: true,

@@ -103,7 +103,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
             {!isClient && (
                <SidebarMenuItem>
-                <SidebarMenuButton href="/staffing" tooltip="Data Import" isActive={isActive('/staffing')}>
+                <SidebarMenuButton href="/import" tooltip="Data Import" isActive={isActive('/import')}>
                   <Upload />
                   Data Import
                 </SidebarMenuButton>

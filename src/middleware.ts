@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export default withAuth(
-  function middleware(request: NextRequest) {
+  function middleware(_request: NextRequest) {
     // Add custom middleware logic here if needed
     return NextResponse.next();
   },
@@ -24,7 +24,8 @@ export const config = {
      * - Public routes (login, api/auth)
      * - Static files (_next/static, _next/image, favicon.ico)
      * - Import page (which uses client-side Google auth)
+     * - Google Drive OAuth callback
      */
-    '/((?!login|api/auth|_next/static|_next/image|favicon.ico|import).*)',
+    '/((?!login|api/auth|_next/static|_next/image|favicon.ico|import|google-drive-callback).*)',
   ],
 };

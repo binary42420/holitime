@@ -86,11 +86,11 @@ export default function ClientDetailPage({ params }: ClientDetailPageProps) {
           Back to Clients
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">{client.name}</h1>
+          <h1 className="text-3xl font-bold font-headline">{client.companyName || client.name}</h1>
           <p className="text-muted-foreground">{client.address}</p>
         </div>
         {canEdit && (
-          <Button onClick={() => router.push(generateClientEditUrl(urlData.companyName))}>
+          <Button onClick={() => router.push(generateClientEditUrl(client.companyName || client.name))}>
             Edit Client
           </Button>
         )}

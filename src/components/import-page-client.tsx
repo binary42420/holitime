@@ -37,29 +37,46 @@ export default function ImportPageClient() {
     try {
       // Get auth URL from our backend
       const authResponse = await fetch("/api/import/google-drive/auth");
+
+      if (!authResponse.ok) {
+        const errorData = await authResponse.json();
+        throw new Error(errorData.error || 'Failed to get authorization URL');
+      }
+
       const { authUrl } = await authResponse.json();
 
       // Open Google OAuth in a popup
-      const width = 500;
-      const height = 600;
+      const width = 600;
+      const height = 700;
       const left = window.screenX + (window.outerWidth - width) / 2;
       const top = window.screenY + (window.outerHeight - height) / 2;
       const popup = window.open(
         authUrl,
         "GoogleAuth",
-        `width=${width},height=${height},left=${left},top=${top}`
+        `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
       );
+
+      if (!popup) {
+        throw new Error("Popup blocked. Please allow popups for this site and try again.");
+      }
 
       // Listen for the OAuth callback
       const handleCallback = async (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return;
+
+        if (event.data?.type === "GOOGLE_AUTH_ERROR") {
+          window.removeEventListener("message", handleCallback);
+          popup?.close();
+          throw new Error(event.data.error || "Google authentication failed");
+        }
+
         if (event.data?.type !== "GOOGLE_AUTH_SUCCESS") return;
 
         window.removeEventListener("message", handleCallback);
         popup?.close();
 
         const { code } = event.data;
-        
+
         // Exchange code for tokens
         const tokenResponse = await fetch("/api/import/google-drive/callback", {
           method: "POST",
@@ -68,17 +85,26 @@ export default function ImportPageClient() {
         });
 
         if (!tokenResponse.ok) {
-          throw new Error("Failed to exchange auth code");
+          const errorData = await tokenResponse.json();
+          throw new Error(errorData.error || "Failed to exchange auth code");
         }
 
         const { accessToken } = await tokenResponse.json();
         setAccessToken(accessToken);
       };
 
+      // Handle popup being closed manually
+      const checkClosed = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(checkClosed);
+          window.removeEventListener("message", handleCallback);
+          setLoading(false);
+        }
+      }, 1000);
+
       window.addEventListener("message", handleCallback);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to authenticate with Google");
-    } finally {
       setLoading(false);
     }
   };

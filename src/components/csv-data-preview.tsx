@@ -145,10 +145,10 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
 
   const renderEditableCell = (row: CSVRow, field: keyof CSVRow) => {
     if (editingRow === null || editingData === null) {
-      return <span className="text-sm">{row[field] || '-'}</span>
+      return <span className="text-sm">{String(row[field] || '-')}</span>
     }
 
-    const value = editingData[field] || ''
+    const value = String(editingData[field] || '')
 
     if (field === 'worker_type') {
       return (
@@ -190,7 +190,7 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
 
     return (
       <span className={`text-sm ${hasError ? 'text-red-600' : ''}`}>
-        {value || '-'}
+        {String(value || '-')}
       </span>
     )
   }
@@ -223,8 +223,10 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
                 <TableHead>Client</TableHead>
                 <TableHead>Job</TableHead>
                 <TableHead>Shift Date</TableHead>
+                <TableHead>Shift Time</TableHead>
                 <TableHead>Employee</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Clock In/Out</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-24">Actions</TableHead>
               </TableRow>
@@ -243,8 +245,25 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
                     <TableCell>{renderCell(row, 'client_name', index)}</TableCell>
                     <TableCell>{renderCell(row, 'job_name', index)}</TableCell>
                     <TableCell>{renderCell(row, 'shift_date', index)}</TableCell>
+                    <TableCell className="text-xs">
+                      {row.shift_start_time} - {row.shift_end_time}
+                    </TableCell>
                     <TableCell>{renderCell(row, 'employee_name', index)}</TableCell>
                     <TableCell>{renderCell(row, 'worker_type', index)}</TableCell>
+                    <TableCell className="text-xs">
+                      <div className="space-y-1">
+                        {row.clock_in_1 && (
+                          <div>{row.clock_in_1} - {row.clock_out_1 || 'Active'}</div>
+                        )}
+                        {row.clock_in_2 && (
+                          <div>{row.clock_in_2} - {row.clock_out_2 || 'Active'}</div>
+                        )}
+                        {row.clock_in_3 && (
+                          <div>{row.clock_in_3} - {row.clock_out_3 || 'Active'}</div>
+                        )}
+                        {!row.clock_in_1 && <span className="text-muted-foreground">No times</span>}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       {hasErrors ? (
                         <Badge variant="destructive" className="text-xs">

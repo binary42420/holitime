@@ -34,11 +34,11 @@ const SCOPES = [
  */
 function createOAuth2Client() {
   // Use production URL for OAuth callback
-  const baseUrl = 'https://holitime-369017734615.us-central1.run.app';
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://holitime-369017734615.us-central1.run.app';
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${baseUrl}/api/import/google-drive/callback`
+    `${baseUrl}/google-drive-callback`
   );
 }
 

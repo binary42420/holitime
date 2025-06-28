@@ -24,13 +24,24 @@ export async function GET(request: NextRequest) {
 
     console.log('Looking for client with company name:', companyName)
 
-    // Find the client by company name using fuzzy matching
+    // Find the client by company name using multiple matching strategies
     const result = await query(`
       SELECT id, name, company_name, contact_person, contact_email, contact_phone, company_address, created_at, updated_at
       FROM users
-      WHERE role = 'Client' AND LOWER(REPLACE(COALESCE(company_name, name), '.', '')) LIKE LOWER($1)
+      WHERE role = 'Client' AND (
+        LOWER(COALESCE(company_name, name)) = LOWER($1) OR
+        LOWER(COALESCE(company_name, name)) LIKE LOWER($2) OR
+        LOWER(REPLACE(COALESCE(company_name, name), '.', '')) LIKE LOWER($3) OR
+        LOWER(REPLACE(COALESCE(company_name, name), ' ', '-')) LIKE LOWER($4)
+      )
+      ORDER BY
+        CASE
+          WHEN LOWER(COALESCE(company_name, name)) = LOWER($1) THEN 1
+          WHEN LOWER(COALESCE(company_name, name)) LIKE LOWER($2) THEN 2
+          ELSE 3
+        END
       LIMIT 1
-    `, [`%${companyName}%`])
+    `, [companyName, `%${companyName}%`, `%${companyName.replace(/\./g, '')}%`, `%${companyName.replace(/ /g, '-')}%`])
 
     console.log('Client query result:', result.rows)
 

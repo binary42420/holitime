@@ -80,10 +80,10 @@ export default function ClientsPage() {
               {(clientsData?.clients || []).map(client => (
                 <TableRow
                   key={client.id}
-                  onClick={() => router.push(generateClientUrl(client.name))}
+                  onClick={() => router.push(generateClientUrl(client.companyName || client.name))}
                   className="cursor-pointer hover:bg-muted/50"
                 >
-                  <TableCell className="font-medium">{client.name}</TableCell>
+                  <TableCell className="font-medium">{client.companyName || client.name}</TableCell>
                   <TableCell>{client.contactPerson}</TableCell>
                   <TableCell className="hidden md:table-cell">{client.contactEmail}</TableCell>
                   <TableCell onClick={(e) => e.stopPropagation()}>
@@ -123,7 +123,7 @@ export default function ClientsPage() {
                   {canEdit && (
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={generateClientUrl(client.name)}>
+                        <Link href={generateClientUrl(client.companyName || client.name)}>
                           <ExternalLink className="h-4 w-4" />
                         </Link>
                       </Button>
