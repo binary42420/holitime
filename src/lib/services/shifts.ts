@@ -1,5 +1,5 @@
 import { query } from '../db';
-import type { Shift, AssignedPersonnel } from '../types';
+import type { Shift, AssignedPersonnel, TimesheetStatus } from '../types';
 
 export async function getAllShifts(): Promise<Shift[]> {
   try {
@@ -83,11 +83,13 @@ export async function getShiftById(id: string): Promise<Shift | null> {
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes, s.requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
         COALESCE(c.company_name, c.name) as client_name,
-        cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar
+        cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
+        t.id as timesheet_id, t.status as timesheet_status
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
+      LEFT JOIN timesheets t ON s.id = t.shift_id
       WHERE s.id = $1
     `, [id]);
 
@@ -100,7 +102,7 @@ export async function getShiftById(id: string): Promise<Shift | null> {
 
     return {
       id: row.id,
-      timesheetId: '',
+      timesheetId: row.timesheet_id || '',
       jobId: row.job_id,
       jobName: row.job_name,
       clientName: row.client_name,
@@ -121,7 +123,7 @@ export async function getShiftById(id: string): Promise<Shift | null> {
       } : null,
       assignedPersonnel,
       status: row.status,
-      timesheetStatus: 'Pending Finalization',
+      timesheetStatus: row.timesheet_status || 'Pending Finalization',
       notes: row.notes,
     };
   } catch (error) {
@@ -219,7 +221,7 @@ async function getTimeEntriesForAssignedPersonnel(assignedPersonnelId: string): 
 export async function getShiftsByCrewChief(crewChiefId: string): Promise<Shift[]> {
   try {
     const result = await query(`
-      SELECT 
+      SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         j.id as job_id, j.name as job_name, j.client_id,
         COALESCE(c.company_name, c.name) as client_name,
@@ -378,15 +380,6 @@ export async function updateShift(shiftId: string, shiftData: {
 
 export async function deleteShift(shiftId: string): Promise<boolean> {
   try {
-    // First check if shift has any timesheets or time entries
-    const timesheetCheck = await query(`
-      SELECT id FROM timesheets WHERE shift_id = $1
-    `, [shiftId]);
-
-    if (timesheetCheck.rows.length > 0) {
-      throw new Error('Cannot delete shift with existing timesheets');
-    }
-
     // Delete assigned personnel and their time entries
     await query(`
       DELETE FROM time_entries

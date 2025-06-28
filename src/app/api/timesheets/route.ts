@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     const result = await query(`
       SELECT 
-        t.id, t.status, t.client_signature, t.approved_by_client_at, t.approved_by_manager_at,
+        t.id, t.status, t.client_signature, t.client_approved_at, t.manager_approved_at,
         s.id as shift_id, s.date, s.start_time, s.end_time, s.location,
         j.name as job_name,
         COALESCE(c.company_name, c.name) as client_name,
@@ -50,8 +50,8 @@ export async function GET(request: NextRequest) {
       shiftId: row.shift_id,
       status: row.status,
       clientSignature: row.client_signature,
-      approvedByClientAt: row.approved_by_client_at,
-      approvedByManagerAt: row.approved_by_manager_at,
+      approvedByClientAt: row.client_approved_at,
+      approvedByManagerAt: row.manager_approved_at,
       shift: {
         id: row.shift_id,
         date: row.date,

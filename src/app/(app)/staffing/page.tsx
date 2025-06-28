@@ -1,10 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-import { Loader2, UserCheck } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Loader2, Upload, FileSpreadsheet, Download, CheckCircle, AlertCircle, Google } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -15,71 +12,70 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Progress } from "@/components/ui/progress"
-// import { staffingSuggestions, type StaffingSuggestionsOutput } from "@/ai/flows/staffing-suggestions"
+import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { useApi } from "@/hooks/use-api"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-const formSchema = z.object({
-  jobRequirements: z.string().min(10, "Please provide detailed job requirements."),
-  numSuggestions: z.coerce.number().min(1).max(10),
-})
+interface DriveFile {
+  id: string;
+  name: string;
+  mimeType: string;
+  size?: string;
+  modifiedTime: string;
+  webViewLink: string;
+  thumbnailLink?: string;
+}
 
-export default function StaffingPage() {
+interface ImportResults {
+  clients: { created: number; updated: number; errors: number };
+  jobs: { created: number; updated: number; errors: number };
+  shifts: { created: number; updated: number; errors: number };
+  assignments: { created: number; errors: number };
+}
+
+export default function ImportPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [suggestions, setSuggestions] = useState<any | null>(null)
+  const [files, setFiles] = useState<DriveFile[]>([])
+  const [selectedFile, setSelectedFile] = useState<DriveFile | null>(null)
+  const [extractedData, setExtractedData] = useState<any>(null)
+  const [importResults, setImportResults] = useState<ImportResults | null>(null)
+  const [step, setStep] = useState<'auth' | 'select' | 'preview' | 'import' | 'complete'>('auth')
   const { toast } = useToast()
 
-  const { data: usersData } = useApi<{ users: any[] }>('/api/users')
+  // Check authentication status on mount
+  useEffect(() => {
+    checkAuthStatus()
+  }, [])
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      jobRequirements: "Need 2 certified forklift operators for a warehouse loading shift. Must have at least 1 year of experience and be available for an 8-hour shift starting at 8 AM. Location is Downtown warehouse.",
-      numSuggestions: 3,
-    },
-  })
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true)
-    setSuggestions(null)
+  const checkAuthStatus = async () => {
     try {
-      // Create a summary of employee data for the AI
-      const employees = usersData?.users || [];
-      const employeeData = {
-          availability: "All employees are generally available unless specified otherwise.",
-          certifications: employees.map((e: any) => `${e.name}: ${e.certifications?.join(', ') || 'No certifications'}`).join('; '),
-          pastPerformance: employees.map((e: any) => `${e.name}: ${e.performance || 4.0}/5 rating`).join('; '),
-          locations: employees.map((e: any) => `${e.name} is in ${e.location || 'Unknown location'}`).join('; '),
+      const response = await fetch('/api/import/google-drive/files')
+      if (response.ok) {
+        setIsAuthenticated(true)
+        setStep('select')
+        loadFiles()
       }
-
-      // Temporarily disabled AI functionality for deployment
-      // const result = await staffingSuggestions({
-      //   ...values,
-      //   employeeAvailability: employeeData.availability,
-      //   employeeCertifications: employeeData.certifications,
-      //   employeePastPerformance: employeeData.pastPerformance,
-      //   employeeLocations: employeeData.locations,
-      // })
-
-      // Mock result for now
-      const result = {
-        suggestions: [
-          { name: "John Doe", role: "Crew Chief", score: 95, reason: "Experienced leader with excellent track record" },
-          { name: "Jane Smith", role: "Stage Hand", score: 88, reason: "Reliable worker with relevant certifications" }
-        ]
-      }
-
-      setSuggestions(result)
     } catch (error) {
-      console.error("Error fetching staffing suggestions:", error)
+      console.log('Not authenticated with Google Drive')
+    }
+  }
+
+  const authenticateWithGoogle = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/import/google-drive/auth')
+      const data = await response.json()
+
+      if (data.success) {
+        window.location.href = data.authUrl
+      } else {
+        throw new Error('Failed to get auth URL')
+      }
+    } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch staffing suggestions. Please try again.",
+        description: "Failed to authenticate with Google Drive",
         variant: "destructive",
       })
     } finally {
@@ -87,88 +83,190 @@ export default function StaffingPage() {
     }
   }
 
+  const loadFiles = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/import/google-drive/files')
+      const data = await response.json()
+
+      if (data.success) {
+        setFiles(data.files)
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load files from Google Drive",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const extractData = async (file: DriveFile) => {
+    try {
+      setIsLoading(true)
+      setSelectedFile(file)
+
+      const response = await fetch('/api/import/google-drive/extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileId: file.id }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setExtractedData(data.data)
+        setStep('preview')
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to extract data from file",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const importData = async () => {
+    try {
+      setIsLoading(true)
+
+      const response = await fetch('/api/import/google-drive/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ extractedData }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        setImportResults(data.results)
+        setStep('complete')
+        toast({
+          title: "Success",
+          description: "Data imported successfully!",
+        })
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to import data",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const formatFileSize = (bytes?: string) => {
+    if (!bytes) return 'Unknown size'
+    const size = parseInt(bytes)
+    if (size < 1024) return `${size} B`
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`
+  }
+
+  const getMimeTypeIcon = (mimeType: string) => {
+    if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) {
+      return <FileSpreadsheet className="h-8 w-8 text-green-600" />
+    }
+    return <FileSpreadsheet className="h-8 w-8 text-blue-600" />
+  }
+
   return (
-    <div className="grid gap-6 md:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle>Smart Staffing Suggestions</CardTitle>
-          <CardDescription>
-            Use AI to find the best-qualified personnel for your open shifts.
-          </CardDescription>
-        </CardHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="job-requirements">Job Requirements</Label>
-              <Textarea
-                id="job-requirements"
-                placeholder="Describe the skills, certifications, and experience needed..."
-                className="min-h-[120px]"
-                {...form.register("jobRequirements")}
-              />
-              {form.formState.errors.jobRequirements && <p className="text-sm text-destructive">{form.formState.errors.jobRequirements.message}</p>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="num-suggestions">Number of Suggestions</Label>
-              <Input
-                id="num-suggestions"
-                type="number"
-                min="1"
-                max="10"
-                {...form.register("numSuggestions")}
-              />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Data Import</h1>
+          <p className="text-muted-foreground">
+            Import client and shift data from Google Sheets and Excel files
+          </p>
+        </div>
+      </div>
+
+      {/* Step 1: Authentication */}
+      {step === 'auth' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Google className="h-6 w-6" />
+              Connect to Google Drive
+            </CardTitle>
+            <CardDescription>
+              Authenticate with Google Drive to access your spreadsheet files
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <Google className="h-16 w-16 mx-auto mb-4 text-blue-600" />
+              <p className="text-muted-foreground mb-6">
+                Connect your Google Drive account to import client and shift data from spreadsheets
+              </p>
+              <Button onClick={authenticateWithGoogle} disabled={isLoading}>
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Google className="mr-2 h-4 w-4" />
+                Connect Google Drive
+              </Button>
             </div>
           </CardContent>
-          <CardFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Get Suggestions
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
-      
-      <div className="space-y-6">
-        {isLoading && (
-          <Card className="flex flex-col items-center justify-center h-96">
-            <CardContent className="text-center">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="mt-4 text-muted-foreground">Finding the best candidates...</p>
-            </CardContent>
-          </Card>
-        )}
-        {suggestions && (
-           <Card>
-            <CardHeader>
-              <CardTitle>Top Recommendations</CardTitle>
-              <CardDescription>Here are the best matches for your shift.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {suggestions.suggestions.map((suggestion: any) => (
-                <div key={suggestion.employeeId} className="p-4 border rounded-lg bg-background/50">
-                  <div className="flex items-center justify-between">
+        </Card>
+      )}
+
+      {/* Step 2: File Selection */}
+      {step === 'select' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Select Spreadsheet File</CardTitle>
+            <CardDescription>
+              Choose a Google Sheets or Excel file to import data from
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="text-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading files...</p>
+              </div>
+            ) : files.length === 0 ? (
+              <div className="text-center py-8">
+                <FileSpreadsheet className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">No spreadsheet files found in your Google Drive</p>
+              </div>
+            ) : (
+              <div className="grid gap-4">
+                {files.map((file) => (
+                  <div
+                    key={file.id}
+                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                    onClick={() => extractData(file)}
+                  >
                     <div className="flex items-center gap-3">
-                       <Avatar className="h-10 w-10">
-                          <AvatarImage src={`https://i.pravatar.cc/40?u=${suggestion.employeeId}`} alt={suggestion.name} data-ai-hint="person" />
-                          <AvatarFallback>{suggestion.name.charAt(0)}</AvatarFallback>
-                        </Avatar>
+                      {getMimeTypeIcon(file.mimeType)}
                       <div>
-                        <p className="font-bold">{suggestion.name}</p>
-                         <div className="flex items-center gap-2">
-                          <Label className="text-xs text-muted-foreground">Match Score</Label>
-                          <Progress value={suggestion.matchScore * 10} className="w-24 h-2" />
-                        </div>
+                        <p className="font-medium">{file.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatFileSize(file.size)} • Modified {new Date(file.modifiedTime).toLocaleDateString()}
+                        </p>
                       </div>
                     </div>
-                     <Button size="sm" variant="outline"><UserCheck className="mr-2 h-4 w-4" /> Assign</Button>
+                    <Button variant="outline" size="sm">
+                      <Upload className="mr-2 h-4 w-4" />
+                      Import
+                    </Button>
                   </div>
-                   <p className="text-sm text-muted-foreground mt-3 pt-3 border-t">{suggestion.reason}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </div>
-  )
-}
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
