@@ -116,9 +116,11 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
 
     // Clock time validation
     for (let i = 1; i <= 3; i++) {
-      const clockIn = row[`clock_in_${i}` as keyof CSVRow]
-      const clockOut = row[`clock_out_${i}` as keyof CSVRow]
-      
+      const clockInKey = `clock_in_${i}` as keyof CSVRow
+      const clockOutKey = `clock_out_${i}` as keyof CSVRow
+      const clockIn = row[clockInKey] as string
+      const clockOut = row[clockOutKey] as string
+
       if (clockIn && !timeRegex.test(clockIn)) {
         errors.push(`Clock in ${i} must be in HH:MM format (24-hour)`)
       }
