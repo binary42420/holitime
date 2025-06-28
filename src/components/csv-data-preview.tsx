@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Textarea } from '@/components/ui/textarea'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { AlertCircle, Edit, Save, X } from 'lucide-react'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { Checkbox } from '@/components/ui/checkbox'
+import { AlertCircle, Edit, Save, X, Check } from 'lucide-react'
 import { CSVRow } from '@/app/api/import/csv/parse/route'
 
 interface CSVDataPreviewProps {
@@ -45,6 +46,9 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
   const [editingRow, setEditingRow] = useState<number | null>(null)
   const [editingData, setEditingData] = useState<CSVRow | null>(null)
   const [showErrorsOnly, setShowErrorsOnly] = useState(false)
+  const [editingErrorRow, setEditingErrorRow] = useState<number | null>(null)
+  const [editingErrorData, setEditingErrorData] = useState<CSVRow | null>(null)
+  const [approvedErrors, setApprovedErrors] = useState<Set<string>>(new Set())
 
   const filteredData = showErrorsOnly 
     ? data.filter(row => row._errors && row._errors.length > 0)
@@ -59,6 +63,42 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
   const cancelEdit = () => {
     setEditingRow(null)
     setEditingData(null)
+  }
+
+  const startErrorEdit = (rowNumber: number) => {
+    const row = data.find(r => r._rowNumber === rowNumber)
+    if (row) {
+      setEditingErrorRow(rowNumber)
+      setEditingErrorData({ ...row })
+    }
+  }
+
+  const cancelErrorEdit = () => {
+    setEditingErrorRow(null)
+    setEditingErrorData(null)
+  }
+
+  const saveErrorEdit = () => {
+    if (editingErrorData && editingErrorRow !== null) {
+      const validatedRow = validateEditedRow(editingErrorData)
+      const updatedData = data.map(row =>
+        row._rowNumber === editingErrorRow ? validatedRow : row
+      )
+      onDataChange(updatedData)
+      setEditingErrorRow(null)
+      setEditingErrorData(null)
+    }
+  }
+
+  const toggleErrorApproval = (rowNumber: number, errorIndex: number) => {
+    const errorKey = `${rowNumber}-${errorIndex}`
+    const newApprovedErrors = new Set(approvedErrors)
+    if (newApprovedErrors.has(errorKey)) {
+      newApprovedErrors.delete(errorKey)
+    } else {
+      newApprovedErrors.add(errorKey)
+    }
+    setApprovedErrors(newApprovedErrors)
   }
 
   const saveEdit = () => {
@@ -216,21 +256,22 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[600px] w-full">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16">Row</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Job</TableHead>
-                <TableHead>Shift Date</TableHead>
-                <TableHead>Shift Time</TableHead>
-                <TableHead>Employee</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Clock In/Out</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-24">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="min-w-[1200px]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-16">Row</TableHead>
+                  <TableHead className="min-w-[120px]">Client</TableHead>
+                  <TableHead className="min-w-[120px]">Job</TableHead>
+                  <TableHead className="min-w-[100px]">Shift Date</TableHead>
+                  <TableHead className="min-w-[140px]">Shift Time</TableHead>
+                  <TableHead className="min-w-[120px]">Employee</TableHead>
+                  <TableHead className="min-w-[80px]">Type</TableHead>
+                  <TableHead className="min-w-[200px]">Clock In/Out</TableHead>
+                  <TableHead className="min-w-[80px]">Status</TableHead>
+                  <TableHead className="w-24">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {filteredData.map((row, index) => {
                 const actualRowIndex = data.findIndex(r => r._rowNumber === row._rowNumber)
@@ -294,22 +335,135 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
               })}
             </TableBody>
           </Table>
+          </div>
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
 
-        {/* Error Details */}
+        {/* Enhanced Error Details */}
         {filteredData.some(row => row._errors && row._errors.length > 0) && (
-          <div className="mt-4 space-y-2">
-            <h4 className="font-medium text-sm">Validation Errors:</h4>
-            {filteredData
-              .filter(row => row._errors && row._errors.length > 0)
-              .map(row => (
-                <Alert key={row._rowNumber} className="py-2">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-sm">
-                    <strong>Row {row._rowNumber}:</strong> {row._errors!.join(', ')}
-                  </AlertDescription>
-                </Alert>
-              ))}
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-lg">Validation Errors</h4>
+              <Badge variant="destructive">
+                {filteredData.filter(row => row._errors && row._errors.length > 0).length} rows with errors
+              </Badge>
+            </div>
+
+            <div className="space-y-4">
+              {filteredData
+                .filter(row => row._errors && row._errors.length > 0)
+                .map(row => {
+                  const isEditingThisRow = editingErrorRow === row._rowNumber
+                  const currentData = isEditingThisRow ? editingErrorData : row
+
+                  return (
+                    <Card key={row._rowNumber} className="border-red-200">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base text-red-700">
+                            Row {row._rowNumber} - {row._errors!.length} Error{row._errors!.length > 1 ? 's' : ''}
+                          </CardTitle>
+                          <div className="flex gap-2">
+                            {!isEditingThisRow ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => startErrorEdit(row._rowNumber)}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Edit
+                              </Button>
+                            ) : (
+                              <>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={saveErrorEdit}
+                                >
+                                  <Save className="h-4 w-4 mr-1" />
+                                  Save
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={cancelErrorEdit}
+                                >
+                                  <X className="h-4 w-4 mr-1" />
+                                  Cancel
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Error List with Approval Checkboxes */}
+                        <div className="space-y-2">
+                          <h5 className="font-medium text-sm text-red-600">Validation Issues:</h5>
+                          {row._errors!.map((error, errorIndex) => {
+                            const errorKey = `${row._rowNumber}-${errorIndex}`
+                            const isApproved = approvedErrors.has(errorKey)
+
+                            return (
+                              <div key={errorIndex} className="flex items-center space-x-2 p-2 bg-red-50 rounded">
+                                <Checkbox
+                                  id={errorKey}
+                                  checked={isApproved}
+                                  onCheckedChange={() => toggleErrorApproval(row._rowNumber, errorIndex)}
+                                />
+                                <label htmlFor={errorKey} className="text-sm flex-1 cursor-pointer">
+                                  {error}
+                                </label>
+                                {isApproved && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    <Check className="h-3 w-3 mr-1" />
+                                    Approved
+                                  </Badge>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+
+                        {/* Row Data Display/Edit */}
+                        <div className="space-y-3">
+                          <h5 className="font-medium text-sm">Row Data:</h5>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {Object.entries(currentData || {})
+                              .filter(([key]) => !key.startsWith('_'))
+                              .map(([key, value]) => (
+                                <div key={key} className="space-y-1">
+                                  <label className="text-xs font-medium text-gray-600 capitalize">
+                                    {key.replace(/_/g, ' ')}
+                                  </label>
+                                  {isEditingThisRow ? (
+                                    <Input
+                                      value={value as string}
+                                      onChange={(e) => {
+                                        if (editingErrorData) {
+                                          setEditingErrorData({
+                                            ...editingErrorData,
+                                            [key]: e.target.value
+                                          })
+                                        }
+                                      }}
+                                      className="text-sm"
+                                      placeholder={`Enter ${key.replace(/_/g, ' ')}`}
+                                    />
+                                  ) : (
+                                    <div className="text-sm p-2 bg-gray-50 rounded border min-h-[36px] flex items-center">
+                                      {value || <span className="text-gray-400 italic">Empty</span>}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+            </div>
           </div>
         )}
       </CardContent>
