@@ -43,8 +43,7 @@ export async function GET(
           '[]'::json
         ) as time_entries
       FROM assigned_personnel ap
-      JOIN employees e ON ap.employee_id = e.id
-      JOIN users u ON e.user_id = u.id
+      JOIN users u ON ap.employee_id = u.id
       LEFT JOIN time_entries te ON ap.id = te.assigned_personnel_id
       WHERE ap.shift_id = $1
       GROUP BY ap.id, ap.employee_id, ap.role_on_shift, ap.role_code, ap.status, u.name, u.avatar

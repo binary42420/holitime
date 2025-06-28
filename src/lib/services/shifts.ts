@@ -1,5 +1,5 @@
 import { query } from '../db';
-import type { Shift, AssignedPersonnel, TimesheetStatus } from '../types';
+import type { Shift, AssignedPersonnel } from '../types';
 
 export async function getAllShifts(): Promise<Shift[]> {
   try {
@@ -100,7 +100,7 @@ export async function getShiftById(id: string): Promise<Shift | null> {
 
     return {
       id: row.id,
-      timesheetId: row.timesheet_id || '',
+      timesheetId: '',
       jobId: row.job_id,
       jobName: row.job_name,
       clientName: row.client_name,
@@ -121,7 +121,7 @@ export async function getShiftById(id: string): Promise<Shift | null> {
       } : null,
       assignedPersonnel,
       status: row.status,
-      timesheetStatus: row.timesheet_status || 'Pending Finalization',
+      timesheetStatus: 'Pending Finalization',
       notes: row.notes,
     };
   } catch (error) {
@@ -133,12 +133,11 @@ export async function getShiftById(id: string): Promise<Shift | null> {
 async function getAssignedPersonnelForShift(shiftId: string): Promise<AssignedPersonnel[]> {
   try {
     const result = await query(`
-      SELECT 
+      SELECT
         ap.id as assigned_id, ap.role_on_shift, ap.role_code, ap.status, ap.is_placeholder,
-        e.id as employee_id, u.name as employee_name, e.certifications, e.performance, e.location, u.avatar
+        u.id as employee_id, u.name as employee_name, u.certifications, u.performance, u.location, u.avatar
       FROM assigned_personnel ap
-      LEFT JOIN employees e ON ap.employee_id = e.id
-      LEFT JOIN users u ON e.user_id = u.id
+      LEFT JOIN users u ON ap.employee_id = u.id
       WHERE ap.shift_id = $1
       ORDER BY ap.role_code, u.name
     `, [shiftId]);

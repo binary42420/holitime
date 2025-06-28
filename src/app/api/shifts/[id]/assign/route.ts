@@ -22,24 +22,24 @@ export async function POST(
 
     const pool = getPool()
 
-    // Find the employee record for this user
-    const employeeQuery = await pool.query(
-      'SELECT e.id, u.name FROM employees e JOIN users u ON e.user_id = u.id WHERE u.id = $1',
-      [employeeId]
+    // Find the user record (employees are stored in users table)
+    const userQuery = await pool.query(
+      'SELECT id, name, role FROM users WHERE id = $1 AND role IN ($2, $3)',
+      [employeeId, 'Employee', 'Crew Chief']
     )
 
-    console.log('Employee query result:', employeeQuery.rows)
+    console.log('User query result:', userQuery.rows)
 
-    if (employeeQuery.rows.length === 0) {
-      console.error('Employee not found for user ID:', employeeId)
+    if (userQuery.rows.length === 0) {
+      console.error('Employee user not found for user ID:', employeeId)
       return NextResponse.json(
-        { error: 'Employee record not found for this user' },
+        { error: 'Employee user not found' },
         { status: 404 }
       )
     }
 
-    const employee = employeeQuery.rows[0]
-    const actualEmployeeId = employee.id
+    const user = userQuery.rows[0]
+    const actualEmployeeId = user.id
 
     // Check if the employee is already assigned to this shift
     const existingAssignment = await pool.query(
