@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from './auth';
 import type { User } from './types';
+import { getServerSession } from 'next-auth';
+import { authOptions } from './auth-config';
 
 export interface AuthenticatedRequest extends NextRequest {
   user?: User;
@@ -61,7 +63,20 @@ export function withRole(roles: string[], handler: (req: AuthenticatedRequest) =
 // Helper function to get user from request (for use in API routes)
 export async function getCurrentUser(req: NextRequest): Promise<User | null> {
   try {
-    // Try to get user from middleware headers first
+    // First try to get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (session?.user) {
+      return {
+        id: session.user.id,
+        email: session.user.email!,
+        name: session.user.name!,
+        role: session.user.role as any,
+        avatar: session.user.image || `https://i.pravatar.cc/32?u=${session.user.email}`,
+        clientId: session.user.clientId || null,
+      };
+    }
+
+    // Try to get user from middleware headers
     const userId = req.headers.get('x-user-id');
     const userRole = req.headers.get('x-user-role');
     const userEmail = req.headers.get('x-user-email');

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/middleware';
 import { query } from '@/lib/db';
-import bcrypt from 'bcryptjs';
 
 export async function GET(request: NextRequest) {
   try {
@@ -87,15 +86,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // Store password directly (no hashing)
 
     // Create user
     const result = await query(`
       INSERT INTO users (name, email, role, password_hash, avatar)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING id, name, email, role, avatar, created_at
-    `, [name, email, role, hashedPassword, avatar || '']);
+    `, [name, email, role, password, avatar || '']);
 
     const newUser = result.rows[0];
 

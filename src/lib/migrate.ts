@@ -68,10 +68,7 @@ export async function seedDatabase() {
       return;
     }
 
-    // Import auth functions
-    const { hashPassword } = await import('./auth');
-
-    // Create initial users
+    // Create initial users (no password hashing)
     const users = [
       { email: 'alex.j@handson.com', password: 'password123', name: 'Alex Johnson', role: 'Employee' },
       { email: 'maria.g@handson.com', password: 'password123', name: 'Maria Garcia', role: 'Crew Chief' },
@@ -82,14 +79,13 @@ export async function seedDatabase() {
     const userIds: Record<string, string> = {};
 
     for (const userData of users) {
-      const hashedPassword = await hashPassword(userData.password);
       const result = await query(`
         INSERT INTO users (email, password_hash, name, role, avatar)
         VALUES ($1, $2, $3, $4, $5)
         RETURNING id
       `, [
         userData.email,
-        hashedPassword,
+        userData.password, // Store password directly (no hashing)
         userData.name,
         userData.role,
         `https://i.pravatar.cc/32?u=${userData.email}`

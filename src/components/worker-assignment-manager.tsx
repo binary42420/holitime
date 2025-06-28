@@ -127,7 +127,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
 
         // Exclude employees already assigned to this shift
         const isAlreadyAssigned = assignedWorkers.some(worker =>
-          worker.employeeId === user.id || worker.userId === user.id && !worker.isPlaceholder
+          worker.employeeId === user.id && !worker.isPlaceholder
         )
 
         return !isAlreadyAssigned
@@ -146,10 +146,11 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
         employeeName: person.employeeName,
         employeeAvatar: person.employeeAvatar,
         roleCode: person.roleCode,
-        roleName: ROLE_DEFINITIONS[person.roleCode]?.name || person.roleOnShift || person.roleCode,
-        status: person.status === 'clocked_in' ? 'clocked_in' :
+        roleName: ROLE_DEFINITIONS[person.roleCode as RoleCode]?.name || person.roleOnShift || person.roleCode,
+        status: (person.status === 'clocked_in' ? 'clocked_in' :
                 person.status === 'clocked_out' ? 'clocked_out' :
-                person.status === 'shift_ended' ? 'shift_ended' : 'assigned',
+                person.status === 'shift_ended' ? 'shift_ended' :
+                person.status === 'not_assigned' ? 'not_assigned' : 'assigned') as AssignedWorker['status'],
         isPlaceholder: false, // Assigned workers are never placeholders
         timeEntries: person.timeEntries || []
       }))
@@ -163,7 +164,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, assignedPerson
             roleCode: worker.roleCode,
             roleName: worker.roleName,
             count: 0,
-            color: ROLE_DEFINITIONS[worker.roleCode]?.color || 'bg-gray-100'
+            color: ROLE_DEFINITIONS[worker.roleCode as RoleCode]?.color || 'bg-gray-100'
           }
         }
         acc[worker.roleCode].count++

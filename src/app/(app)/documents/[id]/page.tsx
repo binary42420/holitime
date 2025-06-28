@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, use } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { useUser } from "@/hooks/use-user"
@@ -27,17 +27,18 @@ import { useToast } from "@/hooks/use-toast"
 import PDFViewer from "@/components/pdf-viewer"
 
 interface DocumentDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function DocumentDetailPage({ params }: DocumentDetailPageProps) {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  
+  const { id } = use(params)
+
   // Mock document data - in a real app, this would come from an API
-  const document = {
-    id: params.id,
+  const documentData = {
+    id: id,
     name: "Equipment Inspection Form",
     description: "Daily equipment safety checklist and inspection form",
     category: "Safety",
@@ -104,12 +105,12 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
   }
 
   const handleDownload = () => {
-    const link = document.createElement('a')
-    link.href = document.fileUrl
-    link.download = document.name
-    document.body.appendChild(link)
+    const link = window.document.createElement('a')
+    link.href = documentData.fileUrl
+    link.download = documentData.name
+    window.document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
+    window.document.body.removeChild(link)
   }
 
   return (
@@ -120,11 +121,11 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
           Back to Documents
         </Button>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">{document.name}</h1>
-          <p className="text-muted-foreground">{document.description}</p>
+          <h1 className="text-3xl font-bold font-headline">{documentData.name}</h1>
+          <p className="text-muted-foreground">{documentData.description}</p>
         </div>
         <div className="flex gap-2">
-          {document.permissions.canShare && (
+          {documentData.permissions.canShare && (
             <Button variant="outline" onClick={handleShare}>
               <Share2 className="mr-2 h-4 w-4" />
               Share
@@ -134,7 +135,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
             <Download className="mr-2 h-4 w-4" />
             Download
           </Button>
-          {document.permissions.canEdit && (
+          {documentData.permissions.canEdit && (
             <Button onClick={() => setActiveTab("edit")}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Form
@@ -152,14 +153,14 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
             <CardContent className="space-y-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Status</label>
-                <div className="mt-1">{getStatusBadge(document.status)}</div>
+                <div className="mt-1">{getStatusBadge(documentData.status)}</div>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Category</label>
                 <div className="mt-1 flex items-center gap-1">
                   <Tag className="h-4 w-4 text-muted-foreground" />
-                  <span>{document.category}</span>
+                  <span>{documentData.category}</span>
                 </div>
               </div>
 
@@ -167,7 +168,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
                 <label className="text-sm font-medium text-muted-foreground">Type</label>
                 <div className="mt-1 flex items-center gap-1">
                   <FileText className="h-4 w-4 text-muted-foreground" />
-                  <span>{document.type}</span>
+                  <span>{documentData.type}</span>
                 </div>
               </div>
 
@@ -175,18 +176,18 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
                 <label className="text-sm font-medium text-muted-foreground">Owner</label>
                 <div className="mt-1 flex items-center gap-1">
                   <User className="h-4 w-4 text-muted-foreground" />
-                  <span>{document.ownerName}</span>
+                  <span>{documentData.ownerName}</span>
                 </div>
               </div>
 
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Size</label>
-                <div className="mt-1">{document.size}</div>
+                <div className="mt-1">{documentData.size}</div>
               </div>
 
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Version</label>
-                <div className="mt-1">{document.version}</div>
+                <div className="mt-1">{documentData.version}</div>
               </div>
 
               <div>
@@ -194,7 +195,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
                 <div className="mt-1 flex items-center gap-1">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    {format(new Date(document.createdAt), 'MMM d, yyyy')}
+                    {format(new Date(documentData.createdAt), 'MMM d, yyyy')}
                   </span>
                 </div>
               </div>
@@ -204,7 +205,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
                 <div className="mt-1 flex items-center gap-1">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    {format(new Date(document.updatedAt), 'MMM d, yyyy')}
+                    {format(new Date(documentData.updatedAt), 'MMM d, yyyy')}
                   </span>
                 </div>
               </div>
@@ -212,7 +213,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Tags</label>
                 <div className="mt-1 flex flex-wrap gap-1">
-                  {document.tags.map(tag => (
+                  {documentData.tags.map(tag => (
                     <Badge key={tag} variant="outline" className="text-xs">
                       {tag}
                     </Badge>
@@ -230,7 +231,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
                 <Eye className="h-4 w-4" />
                 View Document
               </TabsTrigger>
-              {document.permissions.canEdit && (
+              {documentData.permissions.canEdit && (
                 <TabsTrigger value="edit" className="flex items-center gap-2">
                   <PenTool className="h-4 w-4" />
                   Fill Form
@@ -240,17 +241,17 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
 
             <TabsContent value="view" className="mt-4">
               <PDFViewer
-                documentUrl={document.fileUrl}
-                documentName={document.name}
+                documentUrl={documentData.fileUrl}
+                documentName={documentData.name}
                 canEdit={false}
               />
             </TabsContent>
 
-            {document.permissions.canEdit && (
+            {documentData.permissions.canEdit && (
               <TabsContent value="edit" className="mt-4">
                 <PDFViewer
-                  documentUrl={document.fileUrl}
-                  documentName={document.name}
+                  documentUrl={documentData.fileUrl}
+                  documentName={documentData.name}
                   canEdit={true}
                   onSave={handleSaveForm}
                 />

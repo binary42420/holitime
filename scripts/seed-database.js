@@ -1,7 +1,6 @@
 const { config } = require('dotenv');
 const path = require('path');
 const { Pool } = require('pg');
-const bcrypt = require('bcrypt');
 
 // Load environment variables
 config({ path: path.join(__dirname, '..', '.env.local') });
@@ -17,15 +16,15 @@ async function seedDatabase() {
   try {
     console.log('🌱 Starting database seeding...');
     
-    // Create sample users
-    const passwordHash = await bcrypt.hash('password123', 10);
-    
+    // Create sample users (no password hashing)
+    const password = 'password123';
+
     // Insert admin user
     const adminResult = await pool.query(`
       INSERT INTO users (email, password_hash, name, role)
       VALUES ($1, $2, $3, $4)
       RETURNING id
-    `, ['sam.c@handson.com', passwordHash, 'Sam C', 'Manager/Admin']);
+    `, ['sam.c@handson.com', password, 'Sam C', 'Manager/Admin']);
     const adminId = adminResult.rows[0].id;
     console.log('✅ Admin user created:', adminId);
 

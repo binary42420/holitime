@@ -1,4 +1,3 @@
-import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { query } from './db';
 import type { User } from './types';
@@ -7,7 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
 const JWT_EXPIRES_IN = '7d';
 
 export interface AuthUser extends User {
-  password_hash?: string;
+  password?: string;
 }
 
 export interface LoginCredentials {
@@ -23,15 +22,9 @@ export interface RegisterData {
   clientId?: string;
 }
 
-// Hash password
-export async function hashPassword(password: string): Promise<string> {
-  const saltRounds = 12;
-  return await bcrypt.hash(password, saltRounds);
-}
-
-// Verify password
-export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return await bcrypt.compare(password, hash);
+// Simple password verification (no hashing)
+export function verifyPassword(password: string, storedPassword: string): boolean {
+  return password === storedPassword;
 }
 
 // Generate JWT token
@@ -79,7 +72,7 @@ export async function getUserByEmail(email: string): Promise<AuthUser | null> {
     return {
       id: row.id,
       email: row.email,
-      password_hash: row.password_hash,
+      password: row.password_hash, // Use password instead of password_hash
       name: row.name,
       role: row.role,
       avatar: row.avatar || '',
@@ -121,15 +114,14 @@ export async function getUserById(id: string): Promise<User | null> {
 // Create new user
 export async function createUser(userData: RegisterData): Promise<User | null> {
   try {
-    const hashedPassword = await hashPassword(userData.password);
-
+    // Store password directly without hashing
     const result = await query(
       `INSERT INTO users (email, password_hash, name, role, avatar)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, email, name, role, avatar`,
       [
         userData.email,
-        hashedPassword,
+        userData.password, // Store password directly
         userData.name,
         userData.role,
         `https://i.pravatar.cc/32?u=${userData.email}` // Generate avatar URL
@@ -159,25 +151,25 @@ export async function createUser(userData: RegisterData): Promise<User | null> {
 export async function authenticateUser(credentials: LoginCredentials): Promise<{ user: User; token: string } | null> {
   try {
     const authUser = await getUserByEmail(credentials.email);
-    if (!authUser || !authUser.password_hash) {
+    if (!authUser || !authUser.password) {
       return null;
     }
-    
-    const isValidPassword = await verifyPassword(credentials.password, authUser.password_hash);
+
+    const isValidPassword = verifyPassword(credentials.password, authUser.password);
     if (!isValidPassword) {
       return null;
     }
-    
+
     // Update last login
     await query(
       'UPDATE users SET last_login = NOW() WHERE id = $1',
       [authUser.id]
     );
-    
-    // Remove password hash from user object
-    const { password_hash, ...user } = authUser;
+
+    // Remove password from user object
+    const { password, ...user } = authUser;
     const token = generateToken(user);
-    
+
     return { user, token };
   } catch (error) {
     console.error('Error authenticating user:', error);

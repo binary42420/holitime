@@ -25,9 +25,9 @@ export async function GET(
     }
 
     // Check if user has access to this shift
-    const hasAccess = 
+    const hasAccess =
       user.role === 'Manager/Admin' ||
-      (user.role === 'Crew Chief' && shift.crewChief.id === user.id) ||
+      (user.role === 'Crew Chief' && shift.crewChief?.id === user.id) ||
       (user.role === 'Employee' && shift.assignedPersonnel.some(person => person.employee.id === user.id));
 
     if (!hasAccess) {

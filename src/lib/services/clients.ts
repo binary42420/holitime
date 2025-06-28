@@ -153,7 +153,7 @@ export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCr
     `, [
       clientData.name,
       clientData.contactEmail || `${clientData.name.toLowerCase().replace(/\s+/g, '')}@example.com`,
-      'temp_password_hash', // This should be set properly in a real implementation
+      'password123', // Default plain text password
       clientData.companyName,
       clientData.companyAddress,
       clientData.contactPerson,

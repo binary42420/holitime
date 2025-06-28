@@ -111,8 +111,7 @@ export async function GET(
         roleOnShift: 'Crew Chief',
         roleCode: 'CC',
         status: 'not_started',
-        timeEntries: [],
-        isCrewChief: true // Flag to identify this as the crew chief assignment
+        timeEntries: []
       });
     }
 

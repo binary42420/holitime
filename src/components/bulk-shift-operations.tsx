@@ -160,7 +160,7 @@ export default function BulkShiftOperations({
         <Checkbox
           checked={allSelected}
           ref={(el) => {
-            if (el) el.indeterminate = someSelected
+            if (el) (el as any).indeterminate = someSelected
           }}
           onCheckedChange={handleSelectAll}
         />
@@ -178,7 +178,7 @@ export default function BulkShiftOperations({
           <Checkbox
             checked={allSelected}
             ref={(el) => {
-              if (el) el.indeterminate = someSelected
+              if (el) (el as any).indeterminate = someSelected
             }}
             onCheckedChange={handleSelectAll}
           />

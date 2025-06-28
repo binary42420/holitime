@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, use } from "react"
 import Link from "next/link"
 import { notFound, useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
@@ -18,15 +18,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, FileSignature, MapPin, User, Pencil, Save, RefreshCw } from "lucide-react"
 
-export default function ApproveTimesheetPage({ params }: { params: { id: string } }) {
+export default function ApproveTimesheetPage({ params }: { params: Promise<{ id: string }> }) {
   const { user } = useUser()
   const router = useRouter();
   const { toast } = useToast();
   const signatureRef = useRef<SignaturePadRef>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { id } = use(params);
 
-  const { data: timesheetData, error, mutate } = useApi<{ timesheet: any }>(`/api/timesheets/${params.id}`);
+  const { data: timesheetData, error } = useApi<{ timesheet: any }>(`/api/timesheets/${id}`);
 
   const timesheet = timesheetData?.timesheet;
   const shift = timesheet?.shift;
@@ -89,7 +90,7 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
     try {
       const signatureDataUrl = signatureRef.current.getTrimmedCanvas().toDataURL('image/png');
 
-      const response = await fetch(`/api/timesheets/${params.id}/approve`, {
+      const response = await fetch(`/api/timesheets/${id}/approve`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -111,8 +112,7 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
         description: result.message,
       });
 
-      // Refresh the data
-      mutate();
+      // Close dialog
       setIsDialogOpen(false);
 
       // Redirect after a short delay
@@ -136,7 +136,7 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
     // TODO: Add rejection dialog with reason
     setLoading(true);
     try {
-      const response = await fetch(`/api/timesheets/${params.id}/approve`, {
+      const response = await fetch(`/api/timesheets/${id}/approve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -157,8 +157,7 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
         description: result.message,
       });
 
-      // Refresh the data
-      mutate();
+      // Data will be refreshed on page reload
 
       // Redirect after a short delay
       setTimeout(() => {
@@ -248,12 +247,12 @@ export default function ApproveTimesheetPage({ params }: { params: { id: string 
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {shift.assignedPersonnel.filter(p => p.timeEntries.length > 0).map(person => (
+                {shift.assignedPersonnel.filter((p: any) => p.timeEntries.length > 0).map((person: any) => (
                     <TableRow key={person.employee.id}>
                         <TableCell className="font-medium">{person.employee.name}</TableCell>
                         <TableCell>{person.roleOnShift}</TableCell>
-                        <TableCell>{person.timeEntries.map(t => t.clockIn).join(', ')}</TableCell>
-                        <TableCell>{person.timeEntries.map(t => t.clockOut).join(', ')}</TableCell>
+                        <TableCell>{person.timeEntries.map((t: any) => t.clockIn).join(', ')}</TableCell>
+                        <TableCell>{person.timeEntries.map((t: any) => t.clockOut).join(', ')}</TableCell>
                         <TableCell className="text-right font-mono">{calculateTotalHours(person.timeEntries)}</TableCell>
                     </TableRow>
                 ))}

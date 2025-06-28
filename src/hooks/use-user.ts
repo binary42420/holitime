@@ -3,6 +3,7 @@
 import type { User } from '@/lib/types'
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 interface UserContextType {
   user: User | null
@@ -18,14 +19,30 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const { data: session, status } = useSession()
 
-  // Check for existing authentication on mount
+  // Check for existing authentication on mount and when session changes
   useEffect(() => {
     checkAuth()
-  }, [])
+  }, [session, status])
 
   const checkAuth = async () => {
     try {
+      // First check if we have a NextAuth session
+      if (session?.user) {
+        setCurrentUser({
+          id: session.user.id,
+          email: session.user.email!,
+          name: session.user.name!,
+          role: session.user.role as any, // Type assertion for NextAuth role
+          avatar: session.user.image || `https://i.pravatar.cc/32?u=${session.user.email}`,
+          clientId: session.user.clientId || null,
+        })
+        setIsLoading(false)
+        return
+      }
+
+      // If no NextAuth session, check for custom JWT token
       const response = await fetch('/api/auth/me', {
         credentials: 'include',
         cache: 'no-store', // Prevent caching of auth checks

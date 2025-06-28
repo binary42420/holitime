@@ -367,7 +367,7 @@ export default function ShiftsPage() {
                       <Avatar className="h-6 w-6">
                         <AvatarImage src={shift.crewChiefAvatar} />
                         <AvatarFallback className="text-xs">
-                          {shift.crewChiefName?.split(' ').map(n => n[0]).join('')}
+                          {shift.crewChiefName?.split(' ').map((n: string) => n[0]).join('')}
                         </AvatarFallback>
                       </Avatar>
                       <span className="text-sm">{shift.crewChiefName}</span>

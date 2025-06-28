@@ -150,7 +150,7 @@ export async function updateEmployee(id: string, employeeData: Partial<Omit<Empl
 export async function deleteEmployee(id: string): Promise<boolean> {
   try {
     const result = await query('DELETE FROM employees WHERE id = $1', [id]);
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   } catch (error) {
     console.error('Error deleting employee:', error);
     return false;

@@ -1,10 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { verifyToken, refreshUserData } from '@/lib/auth';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth-config';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get token from cookie
+    // First try NextAuth session
+    const session = await getServerSession(authOptions);
+
+    if (session?.user) {
+      // User is authenticated via NextAuth
+      return NextResponse.json({
+        success: true,
+        user: {
+          id: session.user.id,
+          email: session.user.email,
+          name: session.user.name,
+          role: session.user.role,
+          avatar: session.user.image,
+          clientId: session.user.clientId,
+        },
+      });
+    }
+
+    // Fallback to custom JWT token
     const cookieStore = await cookies();
     const token = cookieStore.get('auth-token')?.value;
 

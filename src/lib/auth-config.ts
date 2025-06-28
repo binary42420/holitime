@@ -86,7 +86,7 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           token.id = dbUser.id;
           token.role = dbUser.role;
-          token.clientId = dbUser.clientId;
+          token.clientId = dbUser.clientId || undefined;
         }
       }
       return token;

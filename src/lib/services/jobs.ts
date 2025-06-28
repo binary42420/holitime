@@ -171,7 +171,7 @@ export async function updateJob(id: string, jobData: Partial<Omit<Job, 'id' | 'c
 export async function deleteJob(id: string): Promise<boolean> {
   try {
     const result = await query('DELETE FROM jobs WHERE id = $1', [id]);
-    return result.rowCount > 0;
+    return (result.rowCount || 0) > 0;
   } catch (error) {
     console.error('Error deleting job:', error);
     return false;

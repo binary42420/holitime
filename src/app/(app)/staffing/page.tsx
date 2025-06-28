@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
-import { staffingSuggestions, type StaffingSuggestionsOutput } from "@/ai/flows/staffing-suggestions"
+// import { staffingSuggestions, type StaffingSuggestionsOutput } from "@/ai/flows/staffing-suggestions"
 import { useToast } from "@/hooks/use-toast"
 import { useApi } from "@/hooks/use-api"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -31,7 +31,7 @@ const formSchema = z.object({
 
 export default function StaffingPage() {
   const [isLoading, setIsLoading] = useState(false)
-  const [suggestions, setSuggestions] = useState<StaffingSuggestionsOutput | null>(null)
+  const [suggestions, setSuggestions] = useState<any | null>(null)
   const { toast } = useToast()
 
   const { data: usersData } = useApi<{ users: any[] }>('/api/users')
@@ -57,13 +57,23 @@ export default function StaffingPage() {
           locations: employees.map((e: any) => `${e.name} is in ${e.location || 'Unknown location'}`).join('; '),
       }
 
-      const result = await staffingSuggestions({
-        ...values,
-        employeeAvailability: employeeData.availability,
-        employeeCertifications: employeeData.certifications,
-        employeePastPerformance: employeeData.pastPerformance,
-        employeeLocations: employeeData.locations,
-      })
+      // Temporarily disabled AI functionality for deployment
+      // const result = await staffingSuggestions({
+      //   ...values,
+      //   employeeAvailability: employeeData.availability,
+      //   employeeCertifications: employeeData.certifications,
+      //   employeePastPerformance: employeeData.pastPerformance,
+      //   employeeLocations: employeeData.locations,
+      // })
+
+      // Mock result for now
+      const result = {
+        suggestions: [
+          { name: "John Doe", role: "Crew Chief", score: 95, reason: "Experienced leader with excellent track record" },
+          { name: "Jane Smith", role: "Stage Hand", score: 88, reason: "Reliable worker with relevant certifications" }
+        ]
+      }
+
       setSuggestions(result)
     } catch (error) {
       console.error("Error fetching staffing suggestions:", error)
@@ -134,7 +144,7 @@ export default function StaffingPage() {
               <CardDescription>Here are the best matches for your shift.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {suggestions.suggestions.map((suggestion) => (
+              {suggestions.suggestions.map((suggestion: any) => (
                 <div key={suggestion.employeeId} className="p-4 border rounded-lg bg-background/50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">

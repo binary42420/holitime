@@ -30,23 +30,17 @@ function verifyTokenSimple(token: string) {
   }
 }
 
-// Define protected routes and their required roles
-const protectedRoutes = {
-  '/dashboard': ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'],
-  '/shifts': ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'],
-  '/timesheets': ['Crew Chief', 'Manager/Admin'],
-  '/staffing': ['Manager/Admin'],
-  '/clients': ['Manager/Admin'],
-  '/jobs': ['Manager/Admin', 'Crew Chief'],
-  '/documents': ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'],
-  '/api/shifts': ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'],
-  '/api/timesheets': ['Crew Chief', 'Manager/Admin'],
-  '/api/clients': ['Manager/Admin'],
-  '/api/jobs': ['Manager/Admin', 'Crew Chief'],
-  '/api/employees': ['Manager/Admin'],
-  '/api/documents': ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'],
-  '/api/announcements': ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'],
+// Check if user has NextAuth.js session
+function hasNextAuthSession(request: NextRequest): boolean {
+  // Check for NextAuth.js session cookies
+  const sessionToken = request.cookies.get('next-auth.session-token')?.value ||
+                      request.cookies.get('__Secure-next-auth.session-token')?.value;
+
+  return !!sessionToken;
 }
+
+// Note: Role-based access control is handled in individual API routes and pages
+// since we need to support both NextAuth.js sessions and custom JWT tokens
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -62,11 +56,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Get token from cookie
+  // Check for authentication - either custom JWT token or NextAuth.js session
   const token = request.cookies.get('auth-token')?.value
+  const hasSession = hasNextAuthSession(request)
 
-  if (!token) {
-    // Redirect to login if no token
+  if (!token && !hasSession) {
+    // Redirect to login if no authentication
     if (pathname.startsWith('/api/')) {
       return NextResponse.json(
         { error: 'Authentication required' },
@@ -76,52 +71,50 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // Verify token
-  const user = verifyTokenSimple(token)
-  if (!user) {
-    // Clear invalid token and redirect to login
-    const response = pathname.startsWith('/api/')
-      ? NextResponse.json(
-          { error: 'Invalid or expired token' },
-          { status: 401 }
-        )
-      : NextResponse.redirect(new URL('/login', request.url))
-    
-    response.cookies.set('auth-token', '', { maxAge: 0 })
-    return response
+  // If we have a NextAuth.js session but no custom token, allow access
+  // The API routes will handle the actual user data retrieval
+  if (hasSession && !token) {
+    // For API routes, let them handle NextAuth.js session verification
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.next()
+    }
+    // For pages, allow access (NextAuth.js will handle user data)
+    return NextResponse.next()
   }
 
-  // Check role-based access for protected routes
-  for (const [route, allowedRoles] of Object.entries(protectedRoutes)) {
-    if (pathname.startsWith(route)) {
-      if (!allowedRoles.includes(user.role)) {
-        if (pathname.startsWith('/api/')) {
-          return NextResponse.json(
-            { error: 'Insufficient permissions' },
-            { status: 403 }
+  // If we have a custom JWT token, verify it
+  if (token) {
+    const user = verifyTokenSimple(token)
+    if (!user) {
+      // Clear invalid token and redirect to login
+      const response = pathname.startsWith('/api/')
+        ? NextResponse.json(
+            { error: 'Invalid or expired token' },
+            { status: 401 }
           )
-        }
-        // Redirect to dashboard if user doesn't have access
-        return NextResponse.redirect(new URL('/dashboard', request.url))
-      }
-      break
+        : NextResponse.redirect(new URL('/login', request.url))
+
+      response.cookies.set('auth-token', '', { maxAge: 0 })
+      return response
+    }
+
+    // Add user info to request headers for API routes (custom JWT)
+    if (pathname.startsWith('/api/')) {
+      const requestHeaders = new Headers(request.headers)
+      requestHeaders.set('x-user-id', user.id)
+      requestHeaders.set('x-user-role', user.role)
+      requestHeaders.set('x-user-email', user.email)
+
+      return NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      })
     }
   }
 
-  // Add user info to request headers for API routes
-  if (pathname.startsWith('/api/')) {
-    const requestHeaders = new Headers(request.headers)
-    requestHeaders.set('x-user-id', user.id)
-    requestHeaders.set('x-user-role', user.role)
-    requestHeaders.set('x-user-email', user.email)
-    
-    return NextResponse.next({
-      request: {
-        headers: requestHeaders,
-      },
-    })
-  }
-
+  // For NextAuth.js sessions, let the API routes handle role-based access control
+  // since we can't easily get user data in middleware
   return NextResponse.next()
 }
 

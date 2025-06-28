@@ -17,8 +17,8 @@ export const mockEmployees: Employee[] = [
 ];
 
 export const mockClients: Client[] = [
-  { id: 'cli1', name: 'Constructo Corp.', address: '123 Main St, Buildville', contactPerson: 'John Smith', contactEmail: 'jsmith@constructo.com', contactPhone: '555-1234', contactUserIds: ['cli-user1'] },
-  { id: 'cli2', name: 'EventMakers Inc.', address: '456 Market Ave, EventCity', contactPerson: 'Jane Doe', contactEmail: 'jdoe@eventmakers.com', contactPhone: '555-5678', authorizedCrewChiefIds: ['emp2'] },
+  { id: 'cli1', name: 'Constructo Corp.', companyName: 'Constructo Corp.', address: '123 Main St, Buildville', contactPerson: 'John Smith', contactEmail: 'jsmith@constructo.com', contactPhone: '555-1234' },
+  { id: 'cli2', name: 'EventMakers Inc.', companyName: 'EventMakers Inc.', address: '456 Market Ave, EventCity', contactPerson: 'Jane Doe', contactEmail: 'jdoe@eventmakers.com', contactPhone: '555-5678', authorizedCrewChiefIds: ['emp2'] },
 ];
 
 export const mockJobs: Job[] = [

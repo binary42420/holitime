@@ -123,7 +123,7 @@ export default function ClientsPage() {
                   {canEdit && (
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={`/clients/${client.id}`}>
+                        <Link href={generateClientUrl(client.name)}>
                           <ExternalLink className="h-4 w-4" />
                         </Link>
                       </Button>

@@ -116,18 +116,18 @@ export default function TimesheetsPage() {
       }
     }
 
-    if (user.role === 'Crew Chief' && timesheet.status === 'Awaiting Client Approval') {
+    if (user?.role === 'Crew Chief' && timesheet.status === 'Awaiting Client Approval') {
        return <Button size="sm" asChild><Link href={`/timesheets/${timesheet.id}/approve`}><FileSignature className="mr-2 h-4 w-4" />Collect Signature</Link></Button>
     }
     
     // This is a demo feature allowing client view without separate login
-    if (user.role === 'Manager/Admin' && timesheet.status === 'Approved') {
+    if (user?.role === 'Manager/Admin' && timesheet.status === 'Approved') {
         return <Button size="sm" variant="outline" asChild><Link href={`/timesheets/${timesheet.id}/approve`}><VenetianMask className="mr-2 h-4 w-4" />View as Client</Link></Button>
     }
 
     return (
         <Button size="sm" variant="outline" asChild>
-            <Link href={`/shifts/${shift.id}`}>View Shift <ArrowRight className="ml-2 h-4 w-4" /></Link>
+            <Link href={`/shifts/${timesheet.shift.id}`}>View Shift <ArrowRight className="ml-2 h-4 w-4" /></Link>
         </Button>
     )
   }
@@ -170,8 +170,7 @@ export default function TimesheetsPage() {
                                         <TableCell className="hidden md:table-cell">{timesheet.shift.crewChiefName}</TableCell>
                                         <TableCell className="text-right">{renderAction(timesheet)}</TableCell>
                                     </TableRow>
-                                ))
-                            })}
+                                ))}
                             </TableBody>
                         </Table>
                     </CardContent>

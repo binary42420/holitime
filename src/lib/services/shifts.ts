@@ -83,13 +83,11 @@ export async function getShiftById(id: string): Promise<Shift | null> {
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes, s.requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
         COALESCE(c.company_name, c.name) as client_name,
-        cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
-        t.id as timesheet_id, t.status as timesheet_status
+        cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
-      LEFT JOIN timesheets t ON s.id = t.shift_id
       WHERE s.id = $1
     `, [id]);
 

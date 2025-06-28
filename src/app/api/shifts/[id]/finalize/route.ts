@@ -23,6 +23,8 @@ export async function POST(
       );
     }
 
+    const { id: shiftId } = await params;
+
     const { id } = await params;
 
     // Check if shift exists
@@ -42,7 +44,7 @@ export async function POST(
     // Check if timesheet already exists
     const existingTimesheetResult = await query(`
       SELECT id FROM timesheets WHERE shift_id = $1
-    `, [params.id]);
+    `, [shiftId]);
 
     let timesheetId;
 
@@ -63,17 +65,17 @@ export async function POST(
         INSERT INTO timesheets (shift_id, status, submitted_by, submitted_at)
         VALUES ($1, 'pending_client_approval', $2, NOW())
         RETURNING id
-      `, [params.id, user.id]);
+      `, [shiftId, user.id]);
       
       timesheetId = newTimesheetResult.rows[0].id;
     }
 
     // Update shift status
     await query(`
-      UPDATE shifts 
+      UPDATE shifts
       SET status = 'Pending Approval', updated_at = NOW()
       WHERE id = $1
-    `, [params.id]);
+    `, [shiftId]);
 
     return NextResponse.json({
       success: true,
