@@ -87,15 +87,16 @@ Be prepared to handle various spreadsheet layouts:
 
 **Data Validation:**
 - Ensure dates are valid and logical (shift dates after job start dates)
-- Validate email formats (contains @ and domain)
-- Check time logic (end times after start times)
+-if email is missing or invalid, warn but dont invalidate the row of shift data 
+- Check time logic (end times after start times unless its an overnight shift going into the next day)
 - Verify worker types match allowed codes
 - the shift start date and shift start time are generally both combined in 1 cell, you'll need to split the date and time to the corresponding columns
 **Missing Data Handling:**
 - Leave fields empty rather than inserting "N/A" or placeholders
 - Infer missing data where logical (e.g., job start date from first shift date)
 - Flag required fields that are completely missing
-
+- if worker type cant be determined, input it as SH for Stage Hand
+- if an employee row has no clock in / clock out entries, still extract that row just without any in or out times
 ## OUTPUT REQUIREMENTS
 
 ### 4. CSV FORMAT SPECIFICATION
@@ -104,16 +105,17 @@ Generate a CSV with exactly these 18 columns in this order:
 client_name,contact_name,contact_phone,job_name,job_start_date,shift_date,shift_start_time,shift_end_time,employee_name,employee_email,employee_phone,worker_type,clock_in_1,clock_out_1,clock_in_2,clock_out_2,clock_in_3,clock_out_3
 
 **Row Structure:**
+
 - one job per google sheet (all shifts within each seperate sheet will always be for the same overall job, each new sheet is always a new job)
 - One row per employee per shift assignment
-- If an employee works multiple shifts, create separate rows
-- If multiple employees work the same shift, create separate rows for each
+- If an employee works multiple shifts, create separate rows for each shift for the same employee
+- If multiple employees work the same shift, create separate rows for each employee
 
 **Data Format Requirements:**
 - Dates: YYYY-MM-DD (e.g., 2024-01-15)
 - Times: HH:MM in 24-hour format (e.g., 08:00, 17:30)
 - Worker types: Exact codes (CC, SH, FO, RFO, RG, GL)
-- Empty fields: Leave completely blank, no quotes or spaces
+- Empty fields: Leave completely blank, no quotes or spaces unless they can be inferred
 
 ### 5. SUMMARY REPORT
 Provide a detailed analysis including:
@@ -126,8 +128,6 @@ Provide a detailed analysis including:
 **Data Quality Assessment:**
 - Rows with complete data vs. missing information
 - Date/time format issues encountered
-- Unrecognized worker types or roles
-- Invalid email addresses or phone numbers
 
 **Processing Summary:**
 - Total CSV rows generated
@@ -240,7 +240,7 @@ Begin your response with "CSV_DATA:" followed by the CSV content, then "SUMMARY_
           temperature: 0.4,
           topK: 1,
           topP: 1,
-          maxOutputTokens: 12000,
+          maxOutputTokens: 20000,
         },
         safetySettings: [
           {
