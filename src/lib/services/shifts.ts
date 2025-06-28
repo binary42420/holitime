@@ -20,7 +20,7 @@ export async function getAllShifts(): Promise<Shift[]> {
         COALESCE(c.company_name, c.name) as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
-        COUNT(ap.id) as assigned_count
+        COUNT(CASE WHEN ap.is_placeholder = false THEN ap.id END) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN users c ON j.client_id = c.id AND c.role = 'Client'
