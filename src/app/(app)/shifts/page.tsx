@@ -53,8 +53,9 @@ export default function ShiftsPage() {
 
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [dateFilter, setDateFilter] = useState("all")
+  const [dateFilter, setDateFilter] = useState("today") // Default to today
   const [clientFilter, setClientFilter] = useState("all")
+  const [showFilters, setShowFilters] = useState(false) // Collapsible filters
 
   const shifts = shiftsData?.shifts || []
 
@@ -218,9 +219,9 @@ export default function ShiftsPage() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Shifts</h1>
+          <h1 className="text-3xl font-bold font-headline">Today's Shifts</h1>
           <p className="text-muted-foreground">
-            Manage work shifts and assignments
+            {dateFilter === "today" ? "Today's scheduled shifts and assignments" : "Manage work shifts and assignments"}
           </p>
         </div>
         {canManage && (
@@ -231,85 +232,124 @@ export default function ShiftsPage() {
         )}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search shifts..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
+      {/* Quick Filters */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <Button
+            variant={dateFilter === "today" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDateFilter("today")}
+          >
+            Today
+          </Button>
+          <Button
+            variant={dateFilter === "tomorrow" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDateFilter("tomorrow")}
+          >
+            Tomorrow
+          </Button>
+          <Button
+            variant={dateFilter === "this_week" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDateFilter("this_week")}
+          >
+            This Week
+          </Button>
+          <Button
+            variant={dateFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDateFilter("all")}
+          >
+            All Shifts
+          </Button>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowFilters(!showFilters)}
+          className="ml-auto"
+        >
+          <Filter className="mr-2 h-4 w-4" />
+          {showFilters ? "Hide Filters" : "More Filters"}
+        </Button>
+      </div>
+
+      {/* Advanced Filters (Collapsible) */}
+      {showFilters && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Advanced Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search shifts..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Upcoming">Upcoming</SelectItem>
+                  <SelectItem value="In Progress">In Progress</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                  <SelectItem value="Pending Approval">Pending Approval</SelectItem>
+                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Clients" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Clients</SelectItem>
+                  {uniqueClients.map(client => (
+                    <SelectItem key={client} value={client}>{client}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm("")
+                  setStatusFilter("all")
+                  setDateFilter("today")
+                  setClientFilter("all")
+                }}
+              >
+                Reset Filters
+              </Button>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="Upcoming">Upcoming</SelectItem>
-                <SelectItem value="In Progress">In Progress</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-                <SelectItem value="Pending Approval">Pending Approval</SelectItem>
-                <SelectItem value="Cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Dates" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Dates</SelectItem>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="tomorrow">Tomorrow</SelectItem>
-                <SelectItem value="this_week">This Week</SelectItem>
-                <SelectItem value="yesterday">Yesterday</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Clients" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Clients</SelectItem>
-                {uniqueClients.map(client => (
-                  <SelectItem key={client} value={client}>{client}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm("")
-                setStatusFilter("all")
-                setDateFilter("all")
-                setClientFilter("all")
-              }}
-            >
-              Clear Filters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Shifts Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CalendarIcon className="h-5 w-5" />
-            All Shifts
+            {dateFilter === "today" ? "Today's Shifts" :
+             dateFilter === "tomorrow" ? "Tomorrow's Shifts" :
+             dateFilter === "this_week" ? "This Week's Shifts" :
+             dateFilter === "yesterday" ? "Yesterday's Shifts" : "All Shifts"}
           </CardTitle>
           <CardDescription>
-            {filteredShifts.length} of {shifts.length} shifts
+            {filteredShifts.length} {dateFilter === "today" ? "shifts today" :
+             dateFilter === "tomorrow" ? "shifts tomorrow" :
+             dateFilter === "this_week" ? "shifts this week" :
+             `of ${shifts.length} shifts`}
           </CardDescription>
         </CardHeader>
         <CardContent>

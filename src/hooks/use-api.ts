@@ -82,6 +82,10 @@ export function useJobs() {
   return useApi<{ jobs: any[] }>('/api/jobs');
 }
 
+export function useRecentJobs() {
+  return useApi<{ jobs: any[] }>('/api/jobs/recent');
+}
+
 export function useJob(id: string) {
   return useApi<{ job: any }>(`/api/jobs/${id}`, [id]);
 }

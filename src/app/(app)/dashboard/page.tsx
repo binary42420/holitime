@@ -102,7 +102,7 @@ export default function DashboardPage() {
               </CardDescription>
             </div>
             <Button asChild variant="outline" size="sm">
-              <Link href="/shifts">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Link href="/shifts">View All Shifts <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
           </CardHeader>
           <CardContent>
@@ -235,13 +235,13 @@ export default function DashboardPage() {
                   <Link href="/timesheets"><FileClock className="mr-2 h-4 w-4" /> Pending Timesheets</Link>
                 </Button>
                 <Button asChild variant="outline" className="w-full justify-start">
-                  <Link href="/shifts?range=today"><CalendarDays className="mr-2 h-4 w-4" /> Today's Shifts</Link>
+                  <Link href="/jobs"><CalendarDays className="mr-2 h-4 w-4" /> Active Jobs</Link>
                 </Button>
               </>
             )}
             { user?.role === 'Manager/Admin' && (
               <Button asChild variant="outline" className="w-full justify-start">
-                <Link href="/shifts"><PlusCircle className="mr-2 h-4 w-4" /> Create New Shift</Link>
+                <Link href="/admin/jobs/new"><PlusCircle className="mr-2 h-4 w-4" /> Create New Job</Link>
               </Button>
             )}
           </CardContent>
