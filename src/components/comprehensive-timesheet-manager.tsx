@@ -110,9 +110,29 @@ export default function ComprehensiveTimesheetManager({
 
   // Fetch available employees for assignment
   const { data: usersData } = useApi<{ users: any[] }>('/api/users')
-  const availableEmployees = usersData?.users?.filter(user => 
+  const availableEmployees = usersData?.users?.filter(user =>
     user.role === 'Employee' || user.role === 'Crew Chief'
   ) || []
+
+  // Filter employees by role eligibility
+  const getEligibleEmployees = (roleCode: RoleCode) => {
+    return availableEmployees.filter(employee => {
+      switch (roleCode) {
+        case 'CC':
+          return employee.crewChiefEligible || employee.role === 'Crew Chief' || employee.role === 'Manager/Admin'
+        case 'FO':
+        case 'RFO':
+          return employee.forkOperatorEligible
+        case 'SH':
+        case 'RG':
+        case 'GL':
+          // All employees are eligible for these roles
+          return true
+        default:
+          return true
+      }
+    })
+  }
 
   useEffect(() => {
     if (requirementsData?.workerRequirements) {
@@ -593,13 +613,26 @@ export default function ComprehensiveTimesheetManager({
                               <SelectValue placeholder="Select worker..." />
                             </SelectTrigger>
                             <SelectContent>
-                              {availableEmployees
+                              {getEligibleEmployees(roleCode)
                                 .filter(emp => !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
                                 .map(employee => (
                                   <SelectItem key={employee.id} value={employee.id}>
                                     {employee.name}
+                                    {roleCode === 'CC' && employee.crewChiefEligible && (
+                                      <span className="ml-2 text-xs text-muted-foreground">(CC Eligible)</span>
+                                    )}
+                                    {(roleCode === 'FO' || roleCode === 'RFO') && employee.forkOperatorEligible && (
+                                      <span className="ml-2 text-xs text-muted-foreground">(FO Eligible)</span>
+                                    )}
                                   </SelectItem>
                                 ))}
+                              {getEligibleEmployees(roleCode)
+                                .filter(emp => !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
+                                .length === 0 && (
+                                <SelectItem value="no-workers" disabled>
+                                  No eligible workers available
+                                </SelectItem>
+                              )}
                             </SelectContent>
                           </Select>
                         )}

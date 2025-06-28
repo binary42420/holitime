@@ -16,6 +16,7 @@ import {
   PanelLeft,
   Settings,
   Upload,
+  Users,
 } from 'lucide-react'
 
 import {
@@ -83,6 +84,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton href="/clients" tooltip="Clients" isActive={isActive('/clients')}>
                   <Building2 />
                   Clients
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+            {user?.role === 'Manager/Admin' && (
+              <SidebarMenuItem>
+                <SidebarMenuButton href="/employees" tooltip="Employees" isActive={isActive('/employees')}>
+                  <Users />
+                  Employees
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
