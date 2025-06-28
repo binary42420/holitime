@@ -42,12 +42,22 @@ export async function getAllJobs(): Promise<Job[]> {
 export async function getJobById(id: string): Promise<Job | null> {
   try {
     const result = await query(`
-      SELECT 
+      SELECT
         j.id, j.name, j.description, j.client_id,
-        COALESCE(c.company_name, c.name) as client_name
+        COALESCE(c.company_name, c.name) as client_name,
+        COUNT(s.id) as shift_count,
+        MIN(s.date) as start_date,
+        MAX(s.date) as end_date,
+        CASE
+          WHEN COUNT(CASE WHEN s.status = 'Completed' THEN 1 END) = COUNT(s.id) AND COUNT(s.id) > 0 THEN 'Completed'
+          WHEN COUNT(CASE WHEN s.status IN ('In Progress', 'Upcoming') THEN 1 END) > 0 THEN 'Active'
+          ELSE 'Planning'
+        END as status
       FROM jobs j
       JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      LEFT JOIN shifts s ON j.id = s.job_id
       WHERE j.id = $1
+      GROUP BY j.id, j.name, j.description, j.client_id, c.name, c.company_name
     `, [id]);
 
     if (result.rows.length === 0) {
@@ -61,6 +71,10 @@ export async function getJobById(id: string): Promise<Job | null> {
       description: row.description,
       clientId: row.client_id,
       clientName: row.client_name,
+      shiftCount: parseInt(row.shift_count) || 0,
+      startDate: row.start_date,
+      endDate: row.end_date,
+      status: row.status,
     };
   } catch (error) {
     console.error('Error getting job by ID:', error);

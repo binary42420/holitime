@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     // Get jobs with their most recent activity (shifts)
     const result = await query(`
-      SELECT DISTINCT
+      SELECT
         j.id,
         j.name,
         j.description,
@@ -22,48 +22,20 @@ export async function GET(request: NextRequest) {
         j.created_at,
         j.updated_at,
         COALESCE(c.name, c.company_name) as client_name,
-        -- Get shift count
-        COALESCE(shift_counts.shift_count, 0) as shift_count,
-        -- Get most recent shift date
-        COALESCE(recent_shifts.most_recent_shift, j.created_at) as last_activity,
-        -- Get upcoming shift count
-        COALESCE(upcoming_shifts.upcoming_count, 0) as upcoming_shifts,
-        -- Get active shift count (today)
-        COALESCE(active_shifts.active_count, 0) as active_shifts,
-        -- Check if there's a recent shift to determine activity type
-        recent_shifts.most_recent_shift
+        COUNT(s.id) as shift_count,
+        COALESCE(MAX(s.date), j.created_at) as last_activity,
+        COUNT(CASE WHEN s.date >= CURRENT_DATE THEN 1 END) as upcoming_shifts,
+        COUNT(CASE WHEN s.date = CURRENT_DATE THEN 1 END) as active_shifts,
+        MAX(s.date) as most_recent_shift,
+        CASE
+          WHEN COUNT(CASE WHEN s.status = 'Completed' THEN 1 END) = COUNT(s.id) AND COUNT(s.id) > 0 THEN 'Completed'
+          WHEN COUNT(CASE WHEN s.status IN ('In Progress', 'Upcoming') THEN 1 END) > 0 THEN 'Active'
+          ELSE 'Planning'
+        END as status
       FROM jobs j
-      LEFT JOIN users c ON j.client_id = c.id
-      LEFT JOIN (
-        SELECT
-          job_id,
-          COUNT(*) as shift_count
-        FROM shifts
-        GROUP BY job_id
-      ) shift_counts ON j.id = shift_counts.job_id
-      LEFT JOIN (
-        SELECT
-          job_id,
-          MAX(date) as most_recent_shift
-        FROM shifts
-        GROUP BY job_id
-      ) recent_shifts ON j.id = recent_shifts.job_id
-      LEFT JOIN (
-        SELECT
-          job_id,
-          COUNT(*) as upcoming_count
-        FROM shifts
-        WHERE date >= CURRENT_DATE
-        GROUP BY job_id
-      ) upcoming_shifts ON j.id = upcoming_shifts.job_id
-      LEFT JOIN (
-        SELECT
-          job_id,
-          COUNT(*) as active_count
-        FROM shifts
-        WHERE date = CURRENT_DATE
-        GROUP BY job_id
-      ) active_shifts ON j.id = active_shifts.job_id
+      LEFT JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      LEFT JOIN shifts s ON j.id = s.job_id
+      GROUP BY j.id, j.name, j.description, j.client_id, j.created_at, j.updated_at, c.name, c.company_name
       ORDER BY last_activity DESC, j.created_at DESC
       LIMIT 50
     `);
