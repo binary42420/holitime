@@ -52,12 +52,11 @@ Be prepared to handle various spreadsheet layouts:
 - "HANDS ON JOB #:", "Job" → job_name
 - "(there is no labeled start and end date for the job. this should be determined by the first shift start date, SEPERATELY BY EACH SHEET, EACH SHEET INDICATES A DIFFERENT JOB. EACH SEPERATE GOOGLE SPREADSHEET CONTAIN DATA FOR 1 SINGLE CLIENT COMPANY, EACH SHEET BEING A DIFFERENT JOB FOR THAT 1 CLIENT, AND MULTIPLE SHIFTS ARE CONTAINED ON EACH SHEET ALL PERTAINING TO THE SAME JOB FOR THE SAME CLIENT)" → job_start_date
 - "DATE/TIME:" (COMBINED WITH SHIFT START TIME) → shift_date
-- "DATE/TIME:", "Begin", "Clock In", "Start" → shift_start_time
-- "End Time", "Finish", "Clock Out", "End" → shift_end_time
-- "Employee", "Worker", "Staff", "Name" → employee_name
-- "Email", "E-mail", "Email Address" → employee_email
-- "Phone", "Mobile", "Cell", "Contact" → employee_phone
-- "Role", "Position", "Type", "Job Title" → worker_type
+- "DATE/TIME:"  → shift_start_time
+- "NAME", "Worker", "Staff", "Name" → employee_name
+- "Email Adresss:", "Email", "Email Address" → employee_email
+- "CONTACT INFO:", "phone" → employee_phone
+- "JT", "Position","Job Title" → worker_type
 
 **Date Format Recognition:**
 - MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD
@@ -105,6 +104,7 @@ Generate a CSV with exactly these 18 columns in this order:
 client_name,contact_name,contact_phone,job_name,job_start_date,shift_date,shift_start_time,shift_end_time,employee_name,employee_email,employee_phone,worker_type,clock_in_1,clock_out_1,clock_in_2,clock_out_2,clock_in_3,clock_out_3
 
 **Row Structure:**
+- one job per google sheet (all shifts within each seperate sheet will always be for the same overall job, each new sheet is always a new job)
 - One row per employee per shift assignment
 - If an employee works multiple shifts, create separate rows
 - If multiple employees work the same shift, create separate rows for each
@@ -197,9 +197,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!process.env.GOOGLE_API_KEY) {
+    if (!process.env.GOOGLE_AI_API_KEY) {
       return NextResponse.json(
-        { error: 'Gemini API not configured' },
+        { error: 'Gemini API not configured. Please set GOOGLE_AI_API_KEY environment variable.' },
         { status: 500 }
       )
     }
@@ -225,7 +225,7 @@ Please analyze this data and provide:
 Begin your response with "CSV_DATA:" followed by the CSV content, then "SUMMARY_REPORT:" followed by the analysis.`
 
     // Call Gemini API
-    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GOOGLE_API_KEY}`, {
+    const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -237,10 +237,10 @@ Begin your response with "CSV_DATA:" followed by the CSV content, then "SUMMARY_
           }]
         }],
         generationConfig: {
-          temperature: 0.1,
+          temperature: 0.4,
           topK: 1,
           topP: 1,
-          maxOutputTokens: 8192,
+          maxOutputTokens: 12000,
         },
         safetySettings: [
           {

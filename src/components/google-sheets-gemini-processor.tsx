@@ -12,6 +12,7 @@ import { Loader2, FileSpreadsheet, Download, AlertCircle, CheckCircle, Sparkles 
 interface GoogleSheetsGeminiProcessorProps {
   selectedFile: any
   onCSVGenerated: (csvData: string) => void
+  accessToken?: string
 }
 
 interface GeminiResponse {
@@ -20,7 +21,7 @@ interface GeminiResponse {
   originalResponse: string
 }
 
-export default function GoogleSheetsGeminiProcessor({ selectedFile, onCSVGenerated }: GoogleSheetsGeminiProcessorProps) {
+export default function GoogleSheetsGeminiProcessor({ selectedFile, onCSVGenerated, accessToken }: GoogleSheetsGeminiProcessorProps) {
   const { toast } = useToast()
   const [isProcessing, setIsProcessing] = useState(false)
   const [geminiResult, setGeminiResult] = useState<GeminiResponse | null>(null)
@@ -37,14 +38,31 @@ export default function GoogleSheetsGeminiProcessor({ selectedFile, onCSVGenerat
       console.log('Processing Google Sheets with Gemini:', selectedFile.id)
 
       // First, get the sheets data from Google Sheets API
-      const sheetsResponse = await fetch(`/api/import/google-sheets/fetch/${selectedFile.id}`)
+      // Use OAuth method if access token is available, otherwise fall back to API key method
+      let sheetsResponse: Response
+      let sheetsData: any
+
+      if (accessToken) {
+        console.log('Using OAuth method for data extraction...')
+        sheetsResponse = await fetch(`/api/import/google-sheets/fetch-with-oauth/${selectedFile.id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ accessToken })
+        })
+      } else {
+        console.log('Using API key method for data extraction...')
+        sheetsResponse = await fetch(`/api/import/google-sheets/fetch/${selectedFile.id}`)
+      }
 
       if (!sheetsResponse.ok) {
         const errorData = await sheetsResponse.json()
         throw new Error(errorData.error || 'Failed to fetch Google Sheets data')
       }
 
-      const sheetsData = await sheetsResponse.json()
+      const sheetsResult = await sheetsResponse.json()
+      sheetsData = sheetsResult.data || sheetsResult
 
       // Then process with Gemini
       const geminiResponse = await fetch('/api/import/google-sheets/gemini', {

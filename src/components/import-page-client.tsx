@@ -342,6 +342,7 @@ export default function ImportPageClient() {
                   <GoogleSheetsGeminiProcessor
                     selectedFile={selectedFile}
                     onCSVGenerated={handleCSVGenerated}
+                    accessToken={accessToken || undefined}
                   />
                 </div>
               )}
