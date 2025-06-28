@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, FileSpreadsheet, Upload } from "lucide-react";
 import GoogleDrivePicker from "./google-drive-picker";
 import CSVImport from "./csv-import";
+import GoogleSheetsGeminiProcessor from "./google-sheets-gemini-processor";
 
 interface DriveFile {
   id: string;
@@ -29,6 +30,7 @@ export default function ImportPageClient() {
   const [selectedFile, setSelectedFile] = useState<DriveFile | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [generatedCSV, setGeneratedCSV] = useState<string | null>(null);
 
   const handleGoogleAuth = async () => {
     setLoading(true);
@@ -139,6 +141,10 @@ export default function ImportPageClient() {
     }
   }, [accessToken]);
 
+  const handleCSVGenerated = useCallback((csvData: string) => {
+    setGeneratedCSV(csvData);
+  }, []);
+
   return (
     <div className="container mx-auto py-6">
       <div className="mb-6">
@@ -202,12 +208,19 @@ export default function ImportPageClient() {
               )}
 
               {selectedFile && (
-                <div className="mt-4 p-4 bg-muted rounded-lg">
-                  <h4 className="font-medium mb-2">Selected File:</h4>
-                  <p>{selectedFile.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    Last modified: {new Date(selectedFile.modifiedTime).toLocaleString()}
-                  </p>
+                <div className="mt-4 space-y-4">
+                  <div className="p-4 bg-muted rounded-lg">
+                    <h4 className="font-medium mb-2">Selected File:</h4>
+                    <p>{selectedFile.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Last modified: {new Date(selectedFile.modifiedTime).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <GoogleSheetsGeminiProcessor
+                    selectedFile={selectedFile}
+                    onCSVGenerated={handleCSVGenerated}
+                  />
                 </div>
               )}
             </CardContent>

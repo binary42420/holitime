@@ -39,7 +39,11 @@ interface ImportSummary {
   errors: Array<{ rowNumber: number; error: string }>
 }
 
-export default function CSVImport() {
+interface CSVImportProps {
+  externalCSVData?: string | null
+}
+
+export default function CSVImport({ externalCSVData }: CSVImportProps) {
   const { toast } = useToast()
   const [file, setFile] = useState<File | null>(null)
   const [isUploading, setIsUploading] = useState(false)
