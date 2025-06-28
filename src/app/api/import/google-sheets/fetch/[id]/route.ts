@@ -24,15 +24,46 @@ export async function GET(
     }
 
     if (!process.env.GOOGLE_API_KEY) {
+      console.error('Google Sheets Fetch: GOOGLE_API_KEY environment variable not set')
       return NextResponse.json(
         { error: 'Google API key not configured' },
         { status: 500 }
       )
     }
 
+    console.log('Google Sheets Fetch: Using API key with length:', process.env.GOOGLE_API_KEY.length)
+
     console.log('Fetching Google Sheets data for ID:', googleSheetsId)
 
-    // First, get the spreadsheet metadata to find all sheets
+    // Test with a known public sheet first to verify API key works
+    const testSheetId = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms' // Google's sample sheet
+    if (googleSheetsId !== testSheetId) {
+      console.log('Testing API key with known public sheet first...')
+      try {
+        const testUrl = `https://sheets.googleapis.com/v4/spreadsheets/${testSheetId}?key=${process.env.GOOGLE_API_KEY}&fields=properties.title`
+        const testResponse = await fetch(testUrl)
+        if (!testResponse.ok) {
+          const testError = await testResponse.text()
+          console.error('API key test failed:', {
+            status: testResponse.status,
+            error: testError
+          })
+          return NextResponse.json(
+            { error: `Google API key test failed: ${testResponse.status} ${testResponse.statusText}. Please check API key configuration.` },
+            { status: 500 }
+          )
+        }
+        console.log('API key test successful')
+      } catch (testError) {
+        console.error('API key test error:', testError)
+        return NextResponse.json(
+          { error: 'Failed to test Google API key' },
+          { status: 500 }
+        )
+      }
+    }
+
+    // Now try to get the spreadsheet metadata to find all sheets
     const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsId}?key=${process.env.GOOGLE_API_KEY}`
     console.log('Fetching metadata from:', metadataUrl)
 

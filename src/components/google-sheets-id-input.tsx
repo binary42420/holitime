@@ -19,6 +19,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
   const [sheetsId, setSheetsId] = useState('')
   const [isValidating, setIsValidating] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [debugResults, setDebugResults] = useState<any>(null)
 
   const extractSheetsId = (input: string): string | null => {
     // Remove whitespace
@@ -55,29 +56,10 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
       let result: any = null
       let sheetsData: any = null
 
-      // First, try the API key method (for public sheets)
-      try {
-        console.log('Trying API key method...')
-        const response = await fetch(`/api/import/google-sheets/fetch/${extractedId}`)
-
-        if (response.ok) {
-          result = await response.json()
-          if (result.success && result.data) {
-            sheetsData = result.data
-            console.log('API key method successful')
-          }
-        } else {
-          const errorData = await response.json()
-          console.log('API key method failed:', errorData.error)
-        }
-      } catch (error) {
-        console.log('API key method error:', error)
-      }
-
-      // If API key method failed and we have an access token, try OAuth method
-      if (!sheetsData && accessToken) {
+      // If we have an access token, try OAuth method first (more reliable)
+      if (accessToken) {
         try {
-          console.log('Trying OAuth method...')
+          console.log('Trying OAuth method first...')
           const response = await fetch(`/api/import/google-sheets/fetch-with-oauth/${extractedId}`, {
             method: 'POST',
             headers: {
@@ -101,8 +83,33 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
         }
       }
 
+      // If OAuth method failed or no access token, try the API key method (for public sheets)
       if (!sheetsData) {
-        throw new Error('Failed to access Google Sheets. Make sure the sheet is publicly accessible or you have proper permissions.')
+        try {
+          console.log('Trying API key method...')
+          const response = await fetch(`/api/import/google-sheets/fetch/${extractedId}`)
+
+          if (response.ok) {
+            result = await response.json()
+            if (result.success && result.data) {
+              sheetsData = result.data
+              console.log('API key method successful')
+            }
+          } else {
+            const errorData = await response.json()
+            console.log('API key method failed:', errorData.error)
+          }
+        } catch (error) {
+          console.log('API key method error:', error)
+        }
+      }
+
+      if (!sheetsData) {
+        if (accessToken) {
+          throw new Error('Failed to access Google Sheets. Please check that the sheet ID is correct and you have permission to access it.')
+        } else {
+          throw new Error('Failed to access Google Sheets. Make sure the sheet is publicly accessible (anyone with link can view) or connect to Google Drive for authenticated access.')
+        }
       }
 
       // Create a file object similar to Google Drive picker
@@ -146,6 +153,46 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     validateAndProcessSheets()
+  }
+
+  const debugSheets = async () => {
+    const extractedId = extractSheetsId(sheetsId)
+
+    if (!extractedId) {
+      setError('Please enter a valid Google Sheets ID or URL')
+      return
+    }
+
+    try {
+      console.log('Starting Google Sheets debug for ID:', extractedId)
+      const response = await fetch('/api/debug/google-sheets-test', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ sheetsId: extractedId })
+      })
+
+      const result = await response.json()
+      setDebugResults(result)
+
+      console.log('=== GOOGLE SHEETS DEBUG RESULTS ===')
+      console.log('Summary:', result.summary)
+      console.log('Detailed Results:', result.debugResults)
+      console.log('Recommendations:', result.recommendations)
+
+      toast({
+        title: 'Debug Complete',
+        description: `${result.summary?.passedTests || 0}/${result.summary?.totalTests || 0} tests passed. Check console for details.`
+      })
+    } catch (error) {
+      console.error('Error debugging Google Sheets:', error)
+      toast({
+        title: 'Debug Failed',
+        description: 'Failed to run debug tests. Check console for details.',
+        variant: 'destructive'
+      })
+    }
   }
 
   return (
@@ -198,23 +245,34 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
             </div>
           </div>
 
-          <Button 
-            type="submit" 
-            disabled={!sheetsId.trim() || isValidating}
-            className="w-full"
-          >
-            {isValidating ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Validating Google Sheets...
-              </>
-            ) : (
-              <>
-                <FileSpreadsheet className="mr-2 h-4 w-4" />
-                Load Google Sheets
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              type="submit"
+              disabled={!sheetsId.trim() || isValidating}
+              className="flex-1"
+            >
+              {isValidating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Validating Google Sheets...
+                </>
+              ) : (
+                <>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Load Google Sheets
+                </>
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!sheetsId.trim()}
+              onClick={debugSheets}
+            >
+              Debug
+            </Button>
+          </div>
         </form>
 
         {/* Error Display */}
@@ -222,6 +280,30 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Debug Results */}
+        {debugResults && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-2">
+                <div>
+                  <strong>Debug Results:</strong> {debugResults.summary?.passedTests || 0}/{debugResults.summary?.totalTests || 0} tests passed
+                </div>
+                {debugResults.recommendations && debugResults.recommendations.length > 0 && (
+                  <div>
+                    <strong>Recommendations:</strong>
+                    <ul className="list-disc list-inside mt-1 space-y-1">
+                      {debugResults.recommendations.map((rec: string, index: number) => (
+                        <li key={index} className="text-sm">{rec}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </AlertDescription>
           </Alert>
         )}
 

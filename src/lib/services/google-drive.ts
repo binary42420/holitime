@@ -23,9 +23,12 @@ const SPREADSHEET_MIME_TYPES = [
   'text/csv', // CSV files
 ];
 
-// Required scopes for Google Drive and Sheets access
+// Required scopes for Google Drive and Sheets access - broader permissions
 const SCOPES = [
+  'https://www.googleapis.com/auth/drive',
+  'https://www.googleapis.com/auth/drive.file',
   'https://www.googleapis.com/auth/drive.readonly',
+  'https://www.googleapis.com/auth/spreadsheets',
   'https://www.googleapis.com/auth/spreadsheets.readonly',
 ];
 
