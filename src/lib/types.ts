@@ -13,6 +13,10 @@ export interface User {
   performance?: number;
   location?: string;
 
+  // Employee permission fields
+  crewChiefEligible?: boolean;
+  forkOperatorEligible?: boolean;
+
   // Client company fields (null for non-clients)
   companyName?: string;
   companyAddress?: string;

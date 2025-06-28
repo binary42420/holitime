@@ -71,13 +71,13 @@ export async function GET(
       // Check if any entry is currently active (clocked in)
       const hasActiveEntry = timeEntries.some((entry: any) => entry.isActive);
       if (hasActiveEntry) {
-        status = 'clocked_in';
+        status = 'Clocked In';
       } else if (timeEntries.length > 0) {
         // Check if shift has been ended
-        if (row.status === 'Shift Ended') {
-          status = 'shift_ended';
+        if (row.status === 'Shift Ended' || row.status === 'shift_ended') {
+          status = 'Shift Ended';
         } else {
-          status = 'clocked_out';
+          status = 'Clocked Out';
         }
       }
 
@@ -99,19 +99,58 @@ export async function GET(
       };
     });
 
-    // Add crew chief as a special assignment if one exists
+    // Add crew chief as a special assignment if one exists and not already in assigned personnel
     if (crewChiefResult.rows.length > 0) {
       const crewChief = crewChiefResult.rows[0];
-      assignedPersonnel.unshift({
-        id: `crew-chief-${crewChief.crew_chief_id}`, // Special ID to identify crew chief
-        employeeId: crewChief.crew_chief_id,
-        employeeName: crewChief.crew_chief_name,
-        employeeAvatar: crewChief.crew_chief_avatar,
-        roleOnShift: 'Crew Chief',
-        roleCode: 'CC',
-        status: 'not_started',
-        timeEntries: []
-      });
+
+      // Check if crew chief is already in assigned personnel
+      const existingCrewChief = assignedPersonnel.find(ap => ap.employeeId === crewChief.crew_chief_id);
+
+      if (!existingCrewChief) {
+        // Get crew chief's time entries
+        const crewChiefTimeEntries = await query(`
+          SELECT
+            te.id,
+            te.entry_number,
+            te.clock_in,
+            te.clock_out,
+            (te.clock_in IS NOT NULL AND te.clock_out IS NULL) as is_active
+          FROM time_entries te
+          JOIN assigned_personnel ap ON te.assigned_personnel_id = ap.id
+          WHERE ap.shift_id = $1 AND ap.employee_id = $2
+          ORDER BY te.entry_number
+        `, [shiftId, crewChief.crew_chief_id]);
+
+        const timeEntries = crewChiefTimeEntries.rows.map(entry => ({
+          id: entry.id,
+          entryNumber: entry.entry_number,
+          clockIn: entry.clock_in,
+          clockOut: entry.clock_out,
+          isActive: entry.is_active,
+        }));
+
+        // Determine status based on time entries
+        let status = 'Clocked Out';
+        const hasActiveEntry = timeEntries.some(entry => entry.isActive);
+        if (hasActiveEntry) {
+          status = 'Clocked In';
+        } else if (timeEntries.length > 0) {
+          status = 'Clocked Out';
+        } else {
+          status = 'Clocked Out';
+        }
+
+        assignedPersonnel.unshift({
+          id: `crew-chief-${crewChief.crew_chief_id}`, // Special ID to identify crew chief
+          employeeId: crewChief.crew_chief_id,
+          employeeName: crewChief.crew_chief_name,
+          employeeAvatar: crewChief.crew_chief_avatar,
+          roleOnShift: 'Crew Chief',
+          roleCode: 'CC',
+          status,
+          timeEntries
+        });
+      }
     }
 
     console.log('Final assigned personnel response:', assignedPersonnel);

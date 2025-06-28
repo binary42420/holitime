@@ -44,7 +44,7 @@ interface AssignedWorker {
   employeeAvatar: string;
   roleOnShift: string;
   roleCode: string;
-  status: 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended';
+  status: 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended' | 'shift_ended' | 'not_started';
   timeEntries: TimeEntry[];
 }
 
@@ -297,7 +297,7 @@ export default function ComprehensiveTimesheetManager({
   }
 
   const endAllShifts = async () => {
-    const activeWorkers = assignedPersonnel.filter(w => w.status !== 'Shift Ended')
+    const activeWorkers = assignedPersonnel.filter(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended')
     if (activeWorkers.length === 0) {
       toast({
         title: "No Active Workers",
@@ -335,7 +335,7 @@ export default function ComprehensiveTimesheetManager({
   }
 
   const finalizeTimesheet = async () => {
-    const activeWorkers = assignedPersonnel.filter(w => w.status !== 'Shift Ended')
+    const activeWorkers = assignedPersonnel.filter(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended')
     if (activeWorkers.length > 0) {
       toast({
         title: "Cannot Finalize",
@@ -458,13 +458,13 @@ export default function ComprehensiveTimesheetManager({
   }
 
   const getClockButtonText = (worker: AssignedWorker): string => {
-    if (worker.status === 'Shift Ended') return 'Shift Ended'
+    if (worker.status === 'Shift Ended' || worker.status === 'shift_ended') return 'Shift Ended'
     if (worker.status === 'Clocked In') return 'Clock Out'
     return 'Clock In'
   }
 
   const getClockButtonAction = (worker: AssignedWorker): 'clock_in' | 'clock_out' | null => {
-    if (worker.status === 'Shift Ended') return null
+    if (worker.status === 'Shift Ended' || worker.status === 'shift_ended') return null
     if (worker.status === 'Clocked In') return 'clock_out'
     return 'clock_in'
   }
@@ -686,15 +686,15 @@ export default function ComprehensiveTimesheetManager({
 
                         <TableCell>
                           <Badge
-                            variant={worker.status === 'Shift Ended' ? 'secondary' :
+                            variant={(worker.status === 'Shift Ended' || worker.status === 'shift_ended') ? 'secondary' :
                                    worker.status === 'Clocked In' ? 'default' : 'outline'}
                             className={
                               worker.status === 'Clocked In' ? 'bg-green-100 text-green-800' :
-                              worker.status === 'Shift Ended' ? 'bg-gray-100 text-gray-800' :
+                              (worker.status === 'Shift Ended' || worker.status === 'shift_ended') ? 'bg-gray-100 text-gray-800' :
                               'bg-yellow-100 text-yellow-800'
                             }
                           >
-                            {worker.status}
+                            {worker.status === 'shift_ended' ? 'Shift Ended' : worker.status}
                           </Badge>
                         </TableCell>
 
@@ -713,7 +713,7 @@ export default function ComprehensiveTimesheetManager({
                               </Button>
                             )}
 
-                            {worker.status !== 'Shift Ended' && (
+                            {worker.status !== 'Shift Ended' && worker.status !== 'shift_ended' && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button
@@ -760,7 +760,7 @@ export default function ComprehensiveTimesheetManager({
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="outline"
-                      disabled={isProcessing || assignedPersonnel.filter(w => w.status !== 'Shift Ended').length === 0}
+                      disabled={isProcessing || assignedPersonnel.filter(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended').length === 0}
                     >
                       <Users className="h-4 w-4 mr-2" />
                       End All Shifts
@@ -779,7 +779,7 @@ export default function ComprehensiveTimesheetManager({
                           <strong>Affected workers:</strong>
                           <ul className="mt-1">
                             {assignedPersonnel
-                              .filter(w => w.status !== 'Shift Ended')
+                              .filter(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended')
                               .map(w => (
                                 <li key={w.id} className="text-sm">• {w.employeeName} ({w.roleOnShift})</li>
                               ))}
@@ -811,72 +811,7 @@ export default function ComprehensiveTimesheetManager({
                 </Button>
                 <Button
                   onClick={finalizeTimesheet}
-                  disabled={isProcessing || assignedPersonnel.some(w => w.status !== 'Shift Ended')}
-                  className="bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Finalize Timesheet
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
-  )
-}
-
-            {/* Bulk Operations */}
-            <div className="flex items-center justify-between mt-6 pt-4 border-t">
-              <div className="flex items-center gap-4">
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      disabled={isProcessing || assignedPersonnel.filter(w => w.status !== 'Shift Ended').length === 0}
-                    >
-                      <Users className="h-4 w-4 mr-2" />
-                      End All Shifts
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>End All Shifts</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to end shifts for all active workers? This will:
-                        <ul className="list-disc list-inside mt-2 space-y-1">
-                          <li>Clock out all currently clocked-in workers</li>
-                          <li>Mark all worker statuses as 'Shift Ended'</li>
-                        </ul>
-                        <div className="mt-3 p-3 bg-muted rounded">
-                          <strong>Affected workers:</strong>
-                          <ul className="mt-1">
-                            {assignedPersonnel
-                              .filter(w => w.status !== 'Shift Ended')
-                              .map(w => (
-                                <li key={w.id} className="text-sm">• {w.employeeName} ({w.roleOnShift})</li>
-                              ))}
-                          </ul>
-                        </div>
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={endAllShifts}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        End All Shifts
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Button
-                  onClick={finalizeTimesheet}
-                  disabled={isProcessing || assignedPersonnel.some(w => w.status !== 'Shift Ended')}
+                  disabled={isProcessing || assignedPersonnel.some(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended')}
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <FileText className="h-4 w-4 mr-2" />
