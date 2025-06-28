@@ -183,18 +183,16 @@ export default function WorkerAssignmentDisplay({
       const employee = availableEmployees.find(emp => emp.id === employeeId)
       if (!employee) return
 
-      // Check for time conflicts if this is a Manager/Admin
-      if (employee.role === 'Manager/Admin') {
-        const conflictCheck = await checkTimeConflicts(employeeId)
-        if (conflictCheck.hasConflicts && conflictCheck.conflicts.length > 0) {
-          const conflict = conflictCheck.conflicts[0]
-          toast({
-            title: "Time Conflict",
-            description: `${employee.name} is already assigned to ${conflict.clientName} - ${conflict.jobName} from ${conflict.startTime} to ${conflict.endTime} on the same day`,
-            variant: "destructive",
-          })
-          return
-        }
+      // Check for time conflicts for all users
+      const conflictCheck = await checkTimeConflicts(employeeId)
+      if (conflictCheck.hasConflicts && conflictCheck.conflicts.length > 0) {
+        const conflict = conflictCheck.conflicts[0]
+        toast({
+          title: "Time Conflict",
+          description: `${employee.name} is already assigned to ${conflict.clientName} - ${conflict.jobName} from ${conflict.startTime} to ${conflict.endTime} on the same day`,
+          variant: "destructive",
+        })
+        return
       }
 
       const response = await fetch(`/api/shifts/${shiftId}/assign`, {

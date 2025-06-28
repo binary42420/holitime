@@ -10,8 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, FileSpreadsheet, Upload } from "lucide-react";
 import GoogleDrivePicker from "./google-drive-picker";
+import CSVImport from "./csv-import";
 
 interface DriveFile {
   id: string;
@@ -112,52 +114,80 @@ export default function ImportPageClient() {
   }, [accessToken]);
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Import from Google Drive</CardTitle>
-        <CardDescription>
-          Select a Google Sheets file to import data from your Google Drive
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+    <div className="container mx-auto py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold">Import Data</h1>
+        <p className="text-muted-foreground">
+          Import clients, jobs, shifts, employees, and time entries into the system
+        </p>
+      </div>
 
-        {!accessToken ? (
-          <Button
-            onClick={handleGoogleAuth}
-            disabled={loading}
-            className="w-full"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Connecting to Google Drive...
-              </>
-            ) : (
-              "Connect Google Drive"
-            )}
-          </Button>
-        ) : (
-          <GoogleDrivePicker
-            accessToken={accessToken}
-            onFileSelect={handleFileSelect}
-          />
-        )}
+      <Tabs defaultValue="csv" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="csv" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            CSV Import
+          </TabsTrigger>
+          <TabsTrigger value="google-drive" className="flex items-center gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            Google Drive
+          </TabsTrigger>
+        </TabsList>
 
-        {selectedFile && (
-          <div className="mt-4 p-4 bg-muted rounded-lg">
-            <h4 className="font-medium mb-2">Selected File:</h4>
-            <p>{selectedFile.name}</p>
-            <p className="text-sm text-muted-foreground">
-              Last modified: {new Date(selectedFile.modifiedTime).toLocaleString()}
-            </p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        <TabsContent value="csv" className="mt-6">
+          <CSVImport />
+        </TabsContent>
+
+        <TabsContent value="google-drive" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Import from Google Drive</CardTitle>
+              <CardDescription>
+                Select a Google Sheets file to import data from your Google Drive
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {error && (
+                <Alert variant="destructive" className="mb-4">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {!accessToken ? (
+                <Button
+                  onClick={handleGoogleAuth}
+                  disabled={loading}
+                  className="w-full"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Connecting to Google Drive...
+                    </>
+                  ) : (
+                    "Connect Google Drive"
+                  )}
+                </Button>
+              ) : (
+                <GoogleDrivePicker
+                  accessToken={accessToken}
+                  onFileSelect={handleFileSelect}
+                />
+              )}
+
+              {selectedFile && (
+                <div className="mt-4 p-4 bg-muted rounded-lg">
+                  <h4 className="font-medium mb-2">Selected File:</h4>
+                  <p>{selectedFile.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Last modified: {new Date(selectedFile.modifiedTime).toLocaleString()}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
