@@ -24,8 +24,8 @@ export async function POST(
 
     // Find the user record (employees are stored in users table)
     const userQuery = await pool.query(
-      'SELECT id, name, role FROM users WHERE id = $1 AND role IN ($2, $3)',
-      [employeeId, 'Employee', 'Crew Chief']
+      'SELECT id, name, role FROM users WHERE id = $1 AND role IN ($2, $3, $4)',
+      [employeeId, 'Employee', 'Crew Chief', 'Manager/Admin']
     )
 
     console.log('User query result:', userQuery.rows)
@@ -68,6 +68,54 @@ export async function POST(
         { error: 'Shift not found' },
         { status: 404 }
       )
+    }
+
+    // Check for time conflicts for all users
+    const currentShiftResult = await pool.query(`
+      SELECT date, start_time, end_time
+      FROM shifts
+      WHERE id = $1
+    `, [shiftId])
+
+    if (currentShiftResult.rows.length > 0) {
+      const currentShift = currentShiftResult.rows[0]
+      const shiftDate = currentShift.date
+      const startTime = currentShift.start_time
+      const endTime = currentShift.end_time
+
+      // Check for conflicting assignments on the same date
+      const conflictResult = await pool.query(`
+        SELECT
+          s.id as shift_id,
+          s.start_time,
+          s.end_time,
+          j.name as job_name,
+          c.name as client_name,
+          ap.role_on_shift
+        FROM assigned_personnel ap
+        JOIN shifts s ON ap.shift_id = s.id
+        JOIN jobs j ON s.job_id = j.id
+        JOIN clients c ON j.client_id = c.id
+        WHERE ap.employee_id = $1
+          AND s.date = $2
+          AND s.id != $3
+          AND (
+            -- Check for time overlap
+            (s.start_time < $5 AND s.end_time > $4) OR
+            (s.start_time >= $4 AND s.start_time < $5) OR
+            (s.end_time > $4 AND s.end_time <= $5)
+          )
+      `, [actualEmployeeId, shiftDate, shiftId, startTime, endTime])
+
+      if (conflictResult.rows.length > 0) {
+        const conflict = conflictResult.rows[0]
+        return NextResponse.json(
+          {
+            error: `Worker is already assigned to another shift at ${conflict.client_name} - ${conflict.job_name} from ${conflict.start_time} to ${conflict.end_time} on the same day`
+          },
+          { status: 400 }
+        )
+      }
     }
 
     // Insert the assignment

@@ -10,14 +10,7 @@ export async function POST(
 
     console.log(`End shift request:`, { shiftId, assignmentId })
 
-    // Handle crew chief assignments specially
-    if (assignmentId.startsWith('crew-chief-')) {
-      // For crew chief, we handle shift ending differently since they're not in assigned_personnel table
-      return NextResponse.json({
-        success: true,
-        message: 'Crew chief shift ended successfully'
-      })
-    }
+
 
     // First, clock out any active time entries
     const activeEntryResult = await query(`

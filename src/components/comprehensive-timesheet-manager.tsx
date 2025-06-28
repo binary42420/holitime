@@ -115,15 +115,20 @@ export default function ComprehensiveTimesheetManager({
   // Fetch available employees for assignment
   const { data: usersData } = useApi<{ users: any[] }>('/api/users')
   const availableEmployees = usersData?.users?.filter(user =>
-    user.role === 'Employee' || user.role === 'Crew Chief'
+    user.role === 'Employee' || user.role === 'Crew Chief' || user.role === 'Manager/Admin'
   ) || []
 
   // Filter employees by role eligibility
   const getEligibleEmployees = (roleCode: RoleCode) => {
     return availableEmployees.filter(employee => {
+      // Manager/Admin users can be assigned to any role
+      if (employee.role === 'Manager/Admin') {
+        return true
+      }
+
       switch (roleCode) {
         case 'CC':
-          return employee.crewChiefEligible || employee.role === 'Crew Chief' || employee.role === 'Manager/Admin'
+          return employee.crewChiefEligible || employee.role === 'Crew Chief'
         case 'FO':
         case 'RFO':
           return employee.forkOperatorEligible
@@ -198,10 +203,42 @@ export default function ComprehensiveTimesheetManager({
     }
   }
 
+  const checkTimeConflicts = async (employeeId: string) => {
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}/check-conflicts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employeeId })
+      })
+
+      if (!response.ok) {
+        return { hasConflicts: false, conflicts: [] }
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error checking conflicts:', error)
+      return { hasConflicts: false, conflicts: [] }
+    }
+  }
+
   const assignWorker = async (employeeId: string, roleCode: RoleCode) => {
     try {
       const employee = availableEmployees.find(emp => emp.id === employeeId)
       if (!employee) return
+
+      // Check for time conflicts for all users
+      const conflictCheck = await checkTimeConflicts(employeeId)
+      if (conflictCheck.hasConflicts && conflictCheck.conflicts.length > 0) {
+        const conflict = conflictCheck.conflicts[0]
+        toast({
+          title: "Time Conflict",
+          description: `${employee.name} is already assigned to ${conflict.clientName} - ${conflict.jobName} from ${conflict.startTime} to ${conflict.endTime} on the same day`,
+          variant: "destructive",
+        })
+        return
+      }
 
       const response = await fetch(`/api/shifts/${shiftId}/assign`, {
         method: 'POST',
@@ -526,24 +563,46 @@ export default function ComprehensiveTimesheetManager({
                     <span className={`font-medium ${roleDef.color}`}>{roleDef.name}</span>
                     <Badge variant="outline">{roleCode}</Badge>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => updateWorkerRequirement(roleCode, currentCount - 1)}
-                      disabled={currentCount === 0 || isUpdating}
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="w-8 text-center font-medium">{currentCount}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => updateWorkerRequirement(roleCode, currentCount + 1)}
-                      disabled={isUpdating}
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateWorkerRequirement(roleCode, currentCount - 1)}
+                        disabled={currentCount === 0 || isUpdating}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-8 text-center font-medium">{currentCount}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateWorkerRequirement(roleCode, currentCount + 1)}
+                        disabled={isUpdating}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-2 justify-center">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateWorkerRequirement(roleCode, currentCount + 5)}
+                        disabled={isUpdating}
+                        className="text-xs px-2"
+                      >
+                        +5
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateWorkerRequirement(roleCode, currentCount + 10)}
+                        disabled={isUpdating}
+                        className="text-xs px-2"
+                      >
+                        +10
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )
@@ -621,13 +680,20 @@ export default function ComprehensiveTimesheetManager({
                                 .filter(emp => !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
                                 .map(employee => (
                                   <SelectItem key={employee.id} value={employee.id}>
-                                    {employee.name}
-                                    {roleCode === 'CC' && employee.crewChiefEligible && (
-                                      <span className="ml-2 text-xs text-muted-foreground">(CC Eligible)</span>
-                                    )}
-                                    {(roleCode === 'FO' || roleCode === 'RFO') && employee.forkOperatorEligible && (
-                                      <span className="ml-2 text-xs text-muted-foreground">(FO Eligible)</span>
-                                    )}
+                                    <div className="flex items-center justify-between w-full">
+                                      <span>{employee.name}</span>
+                                      <div className="flex gap-1">
+                                        {employee.role === 'Manager/Admin' && (
+                                          <Badge variant="secondary" className="text-xs">Manager</Badge>
+                                        )}
+                                        {roleCode === 'CC' && employee.crewChiefEligible && (
+                                          <span className="text-xs text-muted-foreground">(CC Eligible)</span>
+                                        )}
+                                        {(roleCode === 'FO' || roleCode === 'RFO') && employee.forkOperatorEligible && (
+                                          <span className="text-xs text-muted-foreground">(FO Eligible)</span>
+                                        )}
+                                      </div>
+                                    </div>
                                   </SelectItem>
                                 ))}
                               {getEligibleEmployees(roleCode)

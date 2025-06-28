@@ -107,49 +107,68 @@ export async function GET(
       const existingCrewChief = assignedPersonnel.find(ap => ap.employeeId === crewChief.crew_chief_id);
 
       if (!existingCrewChief) {
-        // Get crew chief's time entries
-        const crewChiefTimeEntries = await query(`
-          SELECT
-            te.id,
-            te.entry_number,
-            te.clock_in,
-            te.clock_out,
-            (te.clock_in IS NOT NULL AND te.clock_out IS NULL) as is_active
-          FROM time_entries te
-          JOIN assigned_personnel ap ON te.assigned_personnel_id = ap.id
-          WHERE ap.shift_id = $1 AND ap.employee_id = $2
-          ORDER BY te.entry_number
-        `, [shiftId, crewChief.crew_chief_id]);
+        // Add crew chief to assigned_personnel table
+        try {
+          const insertResult = await query(`
+            INSERT INTO assigned_personnel (shift_id, employee_id, role_on_shift, role_code, status)
+            VALUES ($1, $2, 'Crew Chief', 'CC', 'Clocked Out')
+            ON CONFLICT (shift_id, employee_id) DO NOTHING
+            RETURNING id
+          `, [shiftId, crewChief.crew_chief_id]);
 
-        const timeEntries = crewChiefTimeEntries.rows.map(entry => ({
-          id: entry.id,
-          entryNumber: entry.entry_number,
-          clockIn: entry.clock_in,
-          clockOut: entry.clock_out,
-          isActive: entry.is_active,
-        }));
+          // If we successfully inserted or if it already existed, fetch the assignment
+          const assignmentResult = await query(`
+            SELECT id FROM assigned_personnel
+            WHERE shift_id = $1 AND employee_id = $2
+          `, [shiftId, crewChief.crew_chief_id]);
 
-        // Determine status based on time entries
-        let status = 'Clocked Out';
-        const hasActiveEntry = timeEntries.some(entry => entry.isActive);
-        if (hasActiveEntry) {
-          status = 'Clocked In';
-        } else if (timeEntries.length > 0) {
-          status = 'Clocked Out';
-        } else {
-          status = 'Clocked Out';
+          if (assignmentResult.rows.length > 0) {
+            const assignmentId = assignmentResult.rows[0].id;
+
+            // Get time entries for this assignment
+            const timeEntriesResult = await query(`
+              SELECT
+                te.id,
+                te.entry_number,
+                te.clock_in,
+                te.clock_out,
+                (te.clock_in IS NOT NULL AND te.clock_out IS NULL) as is_active
+              FROM time_entries te
+              WHERE te.assigned_personnel_id = $1
+              ORDER BY te.entry_number ASC
+            `, [assignmentId]);
+
+            const timeEntries = timeEntriesResult.rows.map(entry => ({
+              id: entry.id,
+              entryNumber: entry.entry_number,
+              clockIn: entry.clock_in,
+              clockOut: entry.clock_out,
+              isActive: entry.is_active,
+            }));
+
+            // Determine status based on time entries
+            let status = 'Clocked Out';
+            const hasActiveEntry = timeEntries.some(entry => entry.isActive);
+            if (hasActiveEntry) {
+              status = 'Clocked In';
+            }
+
+            // Add crew chief to the beginning of the list
+            assignedPersonnel.unshift({
+              id: assignmentId,
+              employeeId: crewChief.crew_chief_id,
+              employeeName: crewChief.crew_chief_name,
+              employeeAvatar: crewChief.crew_chief_avatar,
+              roleOnShift: 'Crew Chief',
+              roleCode: 'CC',
+              status,
+              timeEntries
+            });
+          }
+        } catch (error) {
+          console.error('Error adding crew chief to assigned personnel:', error);
+          // Continue without adding crew chief if there's an error
         }
-
-        assignedPersonnel.unshift({
-          id: `crew-chief-${crewChief.crew_chief_id}`, // Special ID to identify crew chief
-          employeeId: crewChief.crew_chief_id,
-          employeeName: crewChief.crew_chief_name,
-          employeeAvatar: crewChief.crew_chief_avatar,
-          roleOnShift: 'Crew Chief',
-          roleCode: 'CC',
-          status,
-          timeEntries
-        });
       }
     }
 

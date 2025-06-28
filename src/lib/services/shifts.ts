@@ -320,6 +320,20 @@ export async function createShift(shiftData: {
 
     const shiftId = result.rows[0].id;
 
+    // If a crew chief is assigned, add them to assigned_personnel table
+    if (shiftData.crewChiefId) {
+      try {
+        await query(`
+          INSERT INTO assigned_personnel (shift_id, employee_id, role_on_shift, role_code, status)
+          VALUES ($1, $2, 'Crew Chief', 'CC', 'Clocked Out')
+          ON CONFLICT (shift_id, employee_id) DO NOTHING
+        `, [shiftId, shiftData.crewChiefId]);
+      } catch (error) {
+        console.error('Error adding crew chief to assigned personnel:', error);
+        // Continue without failing the shift creation
+      }
+    }
+
     return await getShiftById(shiftId);
   } catch (error) {
     console.error('Error creating shift:', error);
@@ -384,6 +398,28 @@ export async function updateShift(shiftId: string, shiftData: {
       WHERE id = $${paramCount}
     `, values);
 
+    // Handle crew chief assignment changes
+    if (shiftData.crewChiefId !== undefined) {
+      try {
+        if (shiftData.crewChiefId) {
+          // Add new crew chief to assigned_personnel if not already there
+          await query(`
+            INSERT INTO assigned_personnel (shift_id, employee_id, role_on_shift, role_code, status)
+            VALUES ($1, $2, 'Crew Chief', 'CC', 'Clocked Out')
+            ON CONFLICT (shift_id, employee_id) DO NOTHING
+          `, [shiftId, shiftData.crewChiefId]);
+        } else {
+          // Remove crew chief from assigned_personnel if crew chief is being unassigned
+          await query(`
+            DELETE FROM assigned_personnel
+            WHERE shift_id = $1 AND role_code = 'CC'
+          `, [shiftId]);
+        }
+      } catch (error) {
+        console.error('Error updating crew chief assignment:', error);
+        // Continue without failing the shift update
+      }
+    }
 
     return await getShiftById(shiftId);
   } catch (error) {

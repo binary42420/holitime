@@ -19,22 +19,7 @@ export async function POST(
       )
     }
 
-    // Handle crew chief assignments specially
-    if (assignmentId.startsWith('crew-chief-')) {
-      // For crew chief, we need to handle time tracking differently since they're not in assigned_personnel table
-      // For now, return success but don't actually create time entries
-      return NextResponse.json({
-        success: true,
-        message: `Crew chief ${action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully`,
-        timeEntry: {
-          id: 'crew-chief-time-entry',
-          entryNumber: 1,
-          clockIn: action === 'clock_in' ? new Date().toISOString() : null,
-          clockOut: action === 'clock_out' ? new Date().toISOString() : null,
-          isActive: action === 'clock_in'
-        }
-      })
-    }
+
 
     if (action === 'clock_in') {
       // Check if there's already an active time entry

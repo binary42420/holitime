@@ -90,14 +90,24 @@ gcloud run deploy $ServiceName `
   --region $Region `
   --allow-unauthenticated `
   --port 3000 `
-  --memory 1Gi `
-  --cpu 1 `
+  --memory 2Gi `
+  --cpu 2 `
   --min-instances 0 `
   --max-instances 10 `
   --timeout 300 `
   --concurrency 80 `
   --set-env-vars "NODE_ENV=production" `
-  --set-env-vars "NEXT_TELEMETRY_DISABLED=1"
+  --set-env-vars "NEXT_TELEMETRY_DISABLED=1" `
+  --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@holidb-hol619.d.aivencloud.com:12297/defaultdb?sslmode=require" `
+  --set-env-vars "DATABASE_PROVIDER=aiven" `
+  --set-env-vars "DATABASE_SSL=true" `
+  --set-env-vars "NODE_TLS_REJECT_UNAUTHORIZED=0" `
+  --set-env-vars "NEXTAUTH_SECRET=holitime-super-secure-secret-key-for-production-2024" `
+  --set-env-vars "NEXTAUTH_URL=https://holitime-369017734615.us-central1.run.app" `
+  --set-env-vars "GOOGLE_CLIENT_ID=369017734615-d69l9fi2bphahlk815ji447ri2m3qjjp.apps.googleusercontent.com" `
+  --set-env-vars "GOOGLE_CLIENT_SECRET=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" `
+  --set-env-vars "GOOGLE_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k" `
+  --set-env-vars "JWT_SECRET=holitime-jwt-secret-key-for-production-2024"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "❌ Cloud Run deployment failed" -ForegroundColor Red

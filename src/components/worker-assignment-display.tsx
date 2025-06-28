@@ -91,8 +91,8 @@ export default function WorkerAssignmentDisplay({
 
   // Fetch available employees for assignment
   const { data: usersData } = useApi<{ users: any[] }>('/api/users')
-  const availableEmployees = usersData?.users?.filter(user => 
-    user.role === 'Employee' || user.role === 'Crew Chief'
+  const availableEmployees = usersData?.users?.filter(user =>
+    user.role === 'Employee' || user.role === 'Crew Chief' || user.role === 'Manager/Admin'
   ) || []
 
   useEffect(() => {
@@ -158,10 +158,44 @@ export default function WorkerAssignmentDisplay({
     }
   }
 
+  const checkTimeConflicts = async (employeeId: string) => {
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}/check-conflicts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ employeeId })
+      })
+
+      if (!response.ok) {
+        return { hasConflicts: false, conflicts: [] }
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error checking conflicts:', error)
+      return { hasConflicts: false, conflicts: [] }
+    }
+  }
+
   const assignWorker = async (employeeId: string, roleCode: RoleCode) => {
     try {
       const employee = availableEmployees.find(emp => emp.id === employeeId)
       if (!employee) return
+
+      // Check for time conflicts if this is a Manager/Admin
+      if (employee.role === 'Manager/Admin') {
+        const conflictCheck = await checkTimeConflicts(employeeId)
+        if (conflictCheck.hasConflicts && conflictCheck.conflicts.length > 0) {
+          const conflict = conflictCheck.conflicts[0]
+          toast({
+            title: "Time Conflict",
+            description: `${employee.name} is already assigned to ${conflict.clientName} - ${conflict.jobName} from ${conflict.startTime} to ${conflict.endTime} on the same day`,
+            variant: "destructive",
+          })
+          return
+        }
+      }
 
       const response = await fetch(`/api/shifts/${shiftId}/assign`, {
         method: 'POST',
@@ -369,7 +403,12 @@ export default function WorkerAssignmentDisplay({
                                 .filter(emp => !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
                                 .map(employee => (
                                   <SelectItem key={employee.id} value={employee.id}>
-                                    {employee.name}
+                                    <div className="flex items-center justify-between w-full">
+                                      <span>{employee.name}</span>
+                                      {employee.role === 'Manager/Admin' && (
+                                        <Badge variant="secondary" className="text-xs">Manager</Badge>
+                                      )}
+                                    </div>
                                   </SelectItem>
                                 ))}
                             </SelectContent>
