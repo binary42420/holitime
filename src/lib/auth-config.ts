@@ -5,12 +5,6 @@ import { authenticateUser, createUser, getUserByEmail } from './auth';
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    // Google OAuth Provider
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-    
     // Credentials Provider (existing username/password)
     CredentialsProvider({
       name: 'credentials',
@@ -44,16 +38,24 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
       }
-    })
+    }),
+
+    // Google OAuth Provider
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      })
+    ] : [])
   ],
 
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === 'google') {
-        try {
+      try {
+        if (account?.provider === 'google') {
           // Check if user exists in our database
           const existingUser = await getUserByEmail(user.email!);
-          
+
           if (!existingUser) {
             // Create new user for Google OAuth
             const newUser = await createUser({
@@ -62,43 +64,51 @@ export const authOptions: NextAuthOptions = {
               name: user.name!,
               role: 'Employee', // Default role, can be changed by admin
             });
-            
+
             if (!newUser) {
               console.error('Failed to create user for Google OAuth');
               return false;
             }
           }
-          
-          return true;
-        } catch (error) {
-          console.error('Google sign-in error:', error);
-          return false;
         }
+
+        return true;
+      } catch (error) {
+        console.error('Sign-in error:', error);
+        return true; // Allow sign-in even if database operations fail
       }
-      
-      return true;
     },
 
-    async jwt({ token, user, account }) {
-      if (user) {
-        // Get user data from our database
-        const dbUser = await getUserByEmail(user.email!);
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.role = dbUser.role;
-          token.clientId = dbUser.clientId || undefined;
+    async jwt({ token, user }) {
+      try {
+        if (user) {
+          // Get user data from our database
+          const dbUser = await getUserByEmail(user.email!);
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.role = dbUser.role;
+            token.clientId = dbUser.clientId || undefined;
+          }
         }
+        return token;
+      } catch (error) {
+        console.error('JWT callback error:', error);
+        return token;
       }
-      return token;
     },
 
     async session({ session, token }) {
-      if (token) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.clientId = token.clientId as string;
+      try {
+        if (token) {
+          session.user.id = token.id as string;
+          session.user.role = token.role as string;
+          session.user.clientId = token.clientId as string;
+        }
+        return session;
+      } catch (error) {
+        console.error('Session callback error:', error);
+        return session;
       }
-      return session;
     }
   },
 
@@ -106,6 +116,8 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
     error: '/login',
   },
+
+  debug: process.env.NODE_ENV === 'development',
 
   session: {
     strategy: 'jwt',

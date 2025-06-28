@@ -1,5 +1,4 @@
 import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
 
 export interface DriveFile {
   id: string;
@@ -33,11 +32,13 @@ const SCOPES = [
 /**
  * Create OAuth2 client for Google Drive API
  */
-function createOAuth2Client(): OAuth2Client {
+function createOAuth2Client() {
+  // Use production URL for OAuth callback
+  const baseUrl = 'https://holitime-369017734615.us-central1.run.app';
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    `${process.env.NEXTAUTH_URL}/api/auth/google/callback`
+    `${baseUrl}/api/import/google-drive/callback`
   );
 }
 
@@ -90,10 +91,10 @@ export async function listSpreadsheetFiles(accessToken: string): Promise<DriveFi
       id: file.id!,
       name: file.name!,
       mimeType: file.mimeType!,
-      size: file.size,
+      size: file.size || undefined,
       modifiedTime: file.modifiedTime!,
       webViewLink: file.webViewLink!,
-      thumbnailLink: file.thumbnailLink,
+      thumbnailLink: file.thumbnailLink || undefined,
     })) || [];
   } catch (error) {
     console.error('Error listing Drive files:', error);

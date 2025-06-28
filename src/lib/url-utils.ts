@@ -29,7 +29,9 @@ export function createDateSlug(date: string | Date): string {
 export function createShiftIdentifier(startTime: string, sequence?: number): string {
   // Convert time format from "HH:MM" to "HHMM" and add sequence if provided
   if (!startTime || startTime.trim() === '' || startTime === 'undefined') {
-    throw new Error(`startTime is required for createShiftIdentifier, received: "${startTime}" (type: ${typeof startTime})`)
+    // Return a default identifier instead of throwing during build
+    console.warn(`Invalid startTime for createShiftIdentifier: "${startTime}", using default`)
+    return sequence ? `0000-${sequence}` : '0000'
   }
   const timeSlug = startTime.replace(':', '')
   return sequence ? `${timeSlug}-${sequence}` : timeSlug

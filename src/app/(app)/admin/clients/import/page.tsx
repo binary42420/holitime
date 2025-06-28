@@ -1,6 +1,9 @@
 "use client"
 
 import React, { useState } from "react"
+
+// Force dynamic rendering to avoid build-time URL issues
+export const dynamic = 'force-dynamic'
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"

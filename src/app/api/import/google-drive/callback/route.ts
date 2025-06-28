@@ -11,13 +11,13 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('Google OAuth error:', error);
       return NextResponse.redirect(
-        new URL('/import?error=oauth_error', request.url)
+        new URL('/staffing?error=oauth_error', request.url)
       );
     }
 
     if (!code || !state) {
       return NextResponse.redirect(
-        new URL('/import?error=missing_params', request.url)
+        new URL('/staffing?error=missing_params', request.url)
       );
     }
 
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       const tokens = await exchangeCodeForTokens(code);
       
       // Store tokens in session/cookie (simplified for demo)
-      const response = NextResponse.redirect(new URL('/import?success=true', request.url));
+      const response = NextResponse.redirect(new URL('/staffing?success=true', request.url));
       
       // Set secure cookie with access token (in production, use proper session management)
       response.cookies.set('google_drive_token', tokens.access_token, {
@@ -52,13 +52,13 @@ export async function GET(request: NextRequest) {
     } catch (tokenError) {
       console.error('Error exchanging code for tokens:', tokenError);
       return NextResponse.redirect(
-        new URL('/import?error=token_exchange_failed', request.url)
+        new URL('/staffing?error=token_exchange_failed', request.url)
       );
     }
   } catch (error) {
     console.error('Error in Google Drive callback:', error);
     return NextResponse.redirect(
-      new URL('/import?error=callback_error', request.url)
+      new URL('/staffing?error=callback_error', request.url)
     );
   }
 }
