@@ -115,7 +115,7 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
   }
 
   const getStaffingStatus = () => {
-    const assignedCount = assignedPersonnel.length
+    const assignedCount = assignedPersonnel.filter(p => !p.isPlaceholder).length
     const requested = shift?.requestedWorkers || 0
 
     if (assignedCount >= requested) {
@@ -272,7 +272,7 @@ export default function ShiftDetailPage({ params }: ShiftDetailPageProps) {
             <div className="flex justify-between items-center">
               <span>Assigned Workers:</span>
               <span className="font-medium">
-                {assignedPersonnel.length}
+                {assignedPersonnel.filter(p => !p.isPlaceholder).length}
               </span>
             </div>
             <div className="flex justify-between items-center">
