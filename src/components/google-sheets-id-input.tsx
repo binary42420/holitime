@@ -71,6 +71,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
       if (accessToken) {
         try {
           console.log('Trying OAuth method first...')
+          console.log('OAuth token preview:', accessToken.substring(0, 20) + '...')
           const response = await fetch(`/api/import/google-sheets/fetch-with-oauth/${extractedId}`, {
             method: 'POST',
             headers: {
@@ -95,7 +96,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
       }
 
       // Only try API key method if OAuth failed AND we don't have an access token
-      // (Skip API key method if we have OAuth access since it's failing with 403)
+      // Skip API key method entirely if we have OAuth access
       if (!sheetsData && !accessToken) {
         try {
           console.log('Trying API key method (no OAuth token available)...')
@@ -110,17 +111,20 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
           } else {
             const errorData = await response.json()
             console.log('API key method failed:', errorData.error)
+            // Don't treat API key failure as critical if we have OAuth available
           }
         } catch (error) {
           console.log('API key method error:', error)
         }
+      } else if (!sheetsData && accessToken) {
+        console.log('OAuth method failed, but skipping API key since OAuth should be sufficient')
       }
 
       if (!sheetsData) {
         if (accessToken) {
-          throw new Error('Failed to access Google Sheets using your Google Drive authentication. Please check that the sheet ID is correct and you have permission to access it. The sheet may be private or the ID may be incorrect.')
+          throw new Error('Failed to access Google Sheets using OAuth authentication. Please verify: 1) The sheet ID is correct, 2) You have permission to access the sheet, 3) The sheet exists and is not deleted.')
         } else {
-          throw new Error('Failed to access Google Sheets. Make sure the sheet is publicly accessible (anyone with link can view) or connect to Google Drive for authenticated access.')
+          throw new Error('No Google Drive authentication available. Please connect to Google Drive first to access Google Sheets, or ensure the sheet is publicly accessible.')
         }
       }
 
