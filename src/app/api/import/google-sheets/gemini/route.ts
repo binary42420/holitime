@@ -1,72 +1,182 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/middleware'
 
-const GEMINI_PROMPT = `
-Core Objective
-Extract client, job, shift, employee, and time tracking information from each worksheet and transform it into a single, unified CSV output.
-Data Extraction Rules
-For each worksheet, identify and extract the following. Note that column headers may not always be in the first row; scan the first few rows to accurately identify them.
-1. Client & Job Details (Per Worksheet)
-client_name: Look for headers like "CLIENT NAME:", "Client".
-contact_name: Look for headers like "POC:", "Contact".
-contact_phone: Look for headers like "POC:", "Contact" (if clearly a phone number), or "Contact Phone".
-job_name: Look for headers like "HANDS ON JOB #:", "JOB Name:", "Job".
-Inference Rule: If no explicit job_name is found, infer it from LOCATION: (e.g., "7471 University Ave, La Mesa" -> "University Ave Project") or CLIENT NAME: (e.g., "RCA MIDLAND" -> "RCA MIDLAND Project"). Prioritize LOCATION: for inference.
-job_start_date: This is the earliest shift_date found within that specific worksheet. Each worksheet represents a distinct job for a single client.
-2. Shift & Employee Details (Per Row)
-shift_date: Look for headers like "DATE/TIME:", "DATE:".
-shift_start_time: Look for headers like "DATE/TIME:", "TIME:".
-shift_end_time: This will be the clock_out_1 if only one pair, or the last clock_out_X if multiple pairs are present for that row.
-employee_name: Look for headers like "EMPLOYEE NAME:", "NAME", "Worker", "Staff".
-employee_email: Look for headers like "Email Adresss:", "Email", "Email Address".
-employee_phone: Look for headers like "Contact" (if clearly a phone number), "phone", "CONTACT INFO:".
-worker_type: Look for headers like "JT", "Position", "Job Title", "Role".
-3. Time Tracking (Per Row, up to 3 pairs)
-clock_in_1, clock_out_1: First pair of clock in/out times.
-clock_in_2, clock_out_2: Second pair (e.g., after lunch break).
-clock_in_3, clock_out_3: Third pair (if present).
-Column Headers: These are typically found under "IN", "OUT" columns, often repeated.
-Data Transformation & Validation Rules
-Date Formatting:
-Recognize formats: MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD, "Month Day, Year", "DD-Mon-YY".
-Convert ALL dates to YYYY-MM-DD format (e.g., 2024-01-15).
-Time Formatting:
-Recognize 12-hour (e.g., "8:00 AM", "5:30 PM", "7a", "12p", "1230p", "330p", "1p", "8p") and 24-hour formats.
-Convert ALL times to HH:MM in 24-hour format (e.g., "08:00", "17:30", "07:00", "12:00", "12:30", "15:30", "13:00", "20:00).
-Infer AM/PM if not explicitly stated (e.g., "7a" is 07:00, "7p" is 19:00).
-Worker Type Mapping:
-"CC" -> CC (Crew Chief)
-"SH" -> SH (Stage Hand)
-"FO" -> FO (Foreman)
-"RFO" -> RFO (Rigging Foreman)
-"RG" -> RG (Rigger)
-Any other value found in the worker type column (e.g., "JT", "PR", "TRK", "OTC") should be mapped to GL (General Labor). Crucially, ensure that only CC, SH, FO, RFO, RG, or GL are output for worker_type. If an unmappable value is encountered, default to GL.
-Time Sequence Validation:
-shift_end_time must be logically after shift_start_time.
-For clock in/out pairs: clock_out_X must be after clock_in_X, and clock_in_X+1 must be after clock_out_X.
-If a shift spans midnight (e.g., starts 22:00, ends 02:00 the next day), the shift_date remains the start date, and the end time should reflect the correct time (e.g., 02:00).
-Minimum Row Validity: A row is considered a valid shift record and should be processed only if it contains a discernible shift_date, shift_start_time, and employee_name. Rows failing this minimum validity check should be entirely skipped from the output CSV.
-Missing Data Handling:
-If employee_email or employee_phone is missing or invalid, leave the field empty.
-Time Format Enforcement: All time values (shift_start_time, shift_end_time, clock_in_X, clock_out_X) must be converted to HH:MM (24-hour) format. If a time value is present but cannot be parsed or converted to this format, it should be treated as invalid. For clock_in_X and clock_out_X, if they are invalid or missing, leave them completely blank. For shift_start_time and shift_end_time, if they are invalid or missing, the row should be skipped as per the 'Minimum Row Validity' rule.
-If worker_type cannot be determined, leave it empty.
-Crucially, leave fields completely blank (empty string) rather than inserting "N/A", "null", or placeholders, unless an inference rule specifically applies (like for job_name or job_start_date).
-Output Requirements
-CSV Format Specification
-Generate a CSV with exactly these 18 columns in this precise order:
-client_name,contact_name,contact_phone,job_name,job_start_date,shift_date,shift_start_time,shift_end_time,employee_name,employee_email,employee_phone,worker_type,clock_in_1,clock_out_1,clock_in_2,clock_out_2,clock_in_3,clock_out_3
-Row Structure
-One row per employee per shift assignment.
-If an employee works multiple shifts (on different dates/times), create separate rows for each shift.
-If multiple employees work the same shift, create separate rows for each employee.
-Final Processing Instructions
-Iterate through each worksheet in the provided JSON data.
-For each worksheet, apply the data extraction, transformation, and validation rules.
-Aggregate all extracted data from all worksheets.
-Generate the final CSV output.
-Output only the CSV data. Do not include any introductory text, summary, or commentary. The response must begin immediately with the CSV header row.
+const GEMINI_PROMPT = `You are a data extraction and transformation specialist for the Holitime workforce management system. Your task is to analyze Google Sheets documents and extract workforce scheduling data, transforming it into a standardized CSV format for import.
 
-`
+## INPUT SPECIFICATIONS
+
+**Google Sheets Document**: You will receive a Google Sheets document ID for a publicly shared document. Process ALL worksheets/tabs within the file.
+
+**Expected Data Types**: Look for client companies, job projects, shift schedules, employee information, and time tracking data across all sheets.
+
+## DATA EXTRACTION REQUIREMENTS
+
+### 1. IDENTIFY AND EXTRACT DATA
+Scan all worksheets for the following information types:
+
+**Client Information:**
+- Company names (not individual contact names)
+- Contact person names
+- Phone numbers
+- Email addresses
+
+**Job/Project Information:**
+- Job names, project titles, event names
+- Start dates, project dates
+- Client associations
+
+**Shift Information:**
+- Shift dates
+- Start and end times
+- Job associations
+- Location information
+
+**Employee Information:**
+- Full employee names
+- Email addresses
+- Phone numbers
+- Role assignments, job titles, worker types
+
+**Time Tracking:**
+- Clock in/out times
+- Multiple time pairs per employee per shift
+- Break times, lunch periods
+
+### 2. RECOGNIZE FLEXIBLE DATA FORMATS
+Be prepared to handle various spreadsheet layouts:
+
+**Column Header Variations:**
+- "CLIENT NAME:", "Client" → client_name
+- "POC:", "Contact" → contact_name
+- "POC:", "Contact Phone" → contact_phone (might be combined with contact name or under it)
+- "HANDS ON JOB #:", "Job" → job_name
+- "(there is no labeled start and end date for the job. this should be determined by the first shift start date, SEPERATELY BY EACH SHEET, EACH SHEET INDICATES A DIFFERENT JOB. EACH SEPERATE GOOGLE SPREADSHEET CONTAIN DATA FOR 1 SINGLE CLIENT COMPANY, EACH SHEET BEING A DIFFERENT JOB FOR THAT 1 CLIENT, AND MULTIPLE SHIFTS ARE CONTAINED ON EACH SHEET ALL PERTAINING TO THE SAME JOB FOR THE SAME CLIENT)" → job_start_date
+- "DATE/TIME:" (COMBINED WITH SHIFT START TIME) → shift_date
+- "DATE/TIME:"  → shift_start_time
+- "NAME", "Worker", "Staff", "Name" → employee_name
+- "Email Adresss:", "Email", "Email Address" → employee_email
+- "CONTACT INFO:", "phone" → employee_phone
+- "JT", "Position","Job Title" → worker_type
+
+**Date Format Recognition:**
+- MM/DD/YYYY, DD/MM/YYYY, YYYY-MM-DD
+- "January 15, 2024", "15-Jan-24", "1/15/24"
+- Convert ALL dates to YYYY-MM-DD format
+
+**Time Format Recognition:**
+- 12-hour format (8:00 AM, 5:30 PM) → 24-hour format (08:00, 17:30)
+- 24-hour format (08:00, 17:30) → 24-HOUR FORMAT
+- other 12-hour time formats (8p 830p 1115a, 1p) → 24-hour format (20:00, 20:30, 11:15, 13:00)
+
+**Worker Type Mapping:**
+- "CC" → CC
+- "SH" → SH
+- "FO" → FO
+- ALL OTHER VALUES IN THE JT COLUMN SHOULD BE MAPPED TO "GL"
+
+### 3. DATA PROCESSING LOGIC
+
+**Multi-Sheet Processing:**
+1. Identify the primary data structure across all sheets
+2. Look for master client/job lists in separate tabs
+3. Combine employee assignments from multiple sheets
+4. Maintain data relationships across sheets
+5. each sheet represents all the shifts scheduled for 1 client company for 1 specific job. 
+6. each seperate sheet in a spreadsheet is a different job.
+7. if no job name can be determined for a sheet, use part of the location as the name, ie location: waterfront park > job name: waterfront 
+
+**Data Validation:**
+- Ensure dates are valid and logical (shift dates after job start dates)
+-if email is missing or invalid, warn but dont invalidate the row of shift data 
+- Check time logic (end times after start times unless its an overnight shift going into the next day)
+- Verify worker types match allowed codes
+- the shift start date and shift start time are generally both combined in 1 cell, you'll need to split the date and time to the corresponding columns
+**Missing Data Handling:**
+- Leave fields empty rather than inserting "N/A" or placeholders
+- Infer missing data where logical (e.g., job start date from first shift date)
+- Flag required fields that are completely missing
+- if worker type cant be determined, input it as SH for Stage Hand
+- if an employee row has no clock in / clock out entries, still extract that row just without any in or out times
+## OUTPUT REQUIREMENTS
+
+### 4. CSV FORMAT SPECIFICATION
+Generate a CSV with exactly these 18 columns in this order:
+
+client_name,contact_name,contact_phone,job_name,job_start_date,shift_date,shift_start_time,shift_end_time,employee_name,employee_email,employee_phone,worker_type,clock_in_1,clock_out_1,clock_in_2,clock_out_2,clock_in_3,clock_out_3
+
+**Row Structure:**
+
+- one job per google sheet (all shifts within each seperate sheet will always be for the same overall job, each new sheet is always a new job)
+- One row per employee per shift assignment
+- If an employee works multiple shifts, create separate rows for each shift for the same employee
+- If multiple employees work the same shift, create separate rows for each employee
+
+**Data Format Requirements:**
+- Dates: YYYY-MM-DD (e.g., 2024-01-15)
+- Times: HH:MM in 24-hour format (e.g., 08:00, 17:30)
+- Worker types: Exact codes (CC, SH, FO, RFO, RG, GL)
+- Empty fields: Leave completely blank, no quotes or spaces unless they can be inferred
+
+### 5. SUMMARY REPORT
+Provide a detailed analysis including:
+
+**Data Discovery:**
+- Number of sheets processed
+- Types of data found in each sheet
+- Total clients, jobs, shifts, and employees identified
+
+**Data Quality Assessment:**
+- Rows with complete data vs. missing information
+- Date/time format issues encountered
+
+**Processing Summary:**
+- Total CSV rows generated
+- Data transformations performed
+- Assumptions made for missing data
+
+**Recommendations:**
+- Suggest corrections for problematic data
+- Identify patterns that might need manual review
+- Recommend additional data that would improve import quality
+
+### 6. ERROR HANDLING AND VALIDATION
+
+**Critical Issues (Stop Processing):**
+- No recognizable workforce data found
+- All sheets are empty or inaccessible
+- Fundamental data structure cannot be determined
+
+**Warning Issues (Continue with Notes):**
+- Some sheets couldn't be processed
+- Significant amounts of missing required data
+- Date/time formats that couldn't be parsed
+- Unrecognized worker types
+
+**Data Integrity Checks:**
+- Ensure each row has at minimum: client_name, job_name, shift_date, employee_name
+- Verify shift times are logical (start before end)
+- Check that employee assignments don't conflict (same person, same time)
+- Validate that job dates align with shift dates
+
+## EXAMPLE OUTPUT STRUCTURE
+
+client_name,contact_name,contact_phone,job_name,job_start_date,shift_date,shift_start_time,shift_end_time,employee_name,employee_email,employee_phone,worker_type,clock_in_1,clock_out_1,clock_in_2,clock_out_2,clock_in_3,clock_out_3
+Acme Construction,John Smith,555-0123,Downtown Office Building,2024-01-15,2024-01-20,08:00,17:00,Jane Doe,jane.doe@email.com,555-0456,SH,08:00,12:00,13:00,17:00,,
+Acme Construction,John Smith,555-0123,Downtown Office Building,2024-01-15,2024-01-20,08:00,17:00,Bob Wilson,bob.wilson@email.com,555-0789,FO,08:00,17:00,,,,
+
+## PROCESSING INSTRUCTIONS
+
+1. **Access the Google Sheets document** using the provided document ID
+2. **Scan all worksheets** for workforce-related data
+3. **Identify data patterns** and map to Holitime format
+4. **Transform and validate** all extracted data
+5. **Generate the standardized CSV** with proper formatting
+6. **Create the summary report** with findings and recommendations
+7. **Flag any critical issues** that require manual intervention
+
+**Remember**: The goal is to minimize manual data entry while maintaining data accuracy. When in doubt, preserve the original data and flag for manual review rather than making assumptions that could introduce errors.
+
+**Output the CSV data first, followed by the summary report.**`
 
 export async function POST(request: NextRequest) {
   try {
