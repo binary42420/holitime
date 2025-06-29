@@ -19,8 +19,10 @@ export interface RegisterData {
   email: string;
   password: string;
   name: string;
-  role: 'Employee' | 'Crew Chief' | 'Manager/Admin' | 'Client';
+  role: 'Employee' | 'Crew Chief' | 'Manager/Admin' | 'Client' | 'User';
   clientId?: string;
+  companyName?: string;
+  phone?: string;
 }
 
 // Verify password using bcrypt
@@ -117,15 +119,17 @@ export async function createUser(userData: RegisterData): Promise<User | null> {
   try {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     const result = await query(
-      `INSERT INTO users (email, password_hash, name, role, avatar)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, email, name, role, avatar`,
+      `INSERT INTO users (email, password_hash, name, role, avatar, company_name, contact_phone)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id, email, name, role, avatar, company_name, contact_phone`,
       [
         userData.email,
         hashedPassword,
         userData.name,
         userData.role,
-        `https://i.pravatar.cc/32?u=${userData.email}`
+        `https://i.pravatar.cc/32?u=${userData.email}`,
+        userData.companyName || null,
+        userData.phone || null
       ]
     );
 
@@ -146,6 +150,27 @@ export async function createUser(userData: RegisterData): Promise<User | null> {
     console.error('Error creating user:', error);
     return null;
   }
+}
+
+// Permission checking functions
+export function hasShiftAccess(userRole: string): boolean {
+  return ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'].includes(userRole);
+}
+
+export function hasClientAccess(userRole: string): boolean {
+  return ['Manager/Admin', 'Client'].includes(userRole);
+}
+
+export function hasAdminAccess(userRole: string): boolean {
+  return userRole === 'Manager/Admin';
+}
+
+export function hasEmployeeAccess(userRole: string): boolean {
+  return ['Employee', 'Crew Chief', 'Manager/Admin'].includes(userRole);
+}
+
+export function canViewSensitiveData(userRole: string): boolean {
+  return ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'].includes(userRole);
 }
 
 // Authenticate user
