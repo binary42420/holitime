@@ -68,9 +68,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </SidebarMenuItem>
             {!isLimitedUser && (
               <SidebarMenuItem>
-                <SidebarMenuButton href="/shifts" tooltip="Shifts" isActive={isActive('/shifts')}>
+                <SidebarMenuButton href="/shifts" tooltip="Today's Shifts" isActive={isActive('/shifts')}>
                   <CalendarClock />
-                  Shifts
+                  Today's Shifts
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}

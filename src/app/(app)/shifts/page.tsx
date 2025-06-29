@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation"
 import { format, isToday, isTomorrow, isYesterday, startOfWeek, endOfWeek, isWithinInterval } from "date-fns"
 import Link from "next/link"
 import { useUser } from "@/hooks/use-user"
-import { useShifts } from "@/hooks/use-api"
+import { useTodaysShifts, useShiftsByDate } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -49,7 +50,6 @@ export default function ShiftsPage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const { data: shiftsData, loading, error, refetch } = useShifts()
 
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -57,9 +57,66 @@ export default function ShiftsPage() {
   const [clientFilter, setClientFilter] = useState("all")
   const [showFilters, setShowFilters] = useState(false) // Collapsible filters
 
+  // Use optimized hooks based on date filter
+  const { data: todaysShiftsData, loading: todaysLoading, error: todaysError, refetch: refetchTodays } = useTodaysShifts()
+  const { data: filteredShiftsData, loading: filteredLoading, error: filteredError, refetch: refetchFiltered } = useShiftsByDate(dateFilter)
+
+  // Determine which data to use
+  const isToday = dateFilter === "today"
+  const shiftsData = isToday ? todaysShiftsData : filteredShiftsData
+  const loading = isToday ? todaysLoading : filteredLoading
+  const error = isToday ? todaysError : filteredError
+  const refetch = isToday ? refetchTodays : refetchFiltered
+
   const shifts = shiftsData?.shifts || []
 
   const canManage = user?.role === 'Manager/Admin' || user?.role === 'Crew Chief'
+
+  // Handle date filter changes - refetch data when filter changes
+  useEffect(() => {
+    if (dateFilter !== "today") {
+      refetchFiltered()
+    }
+  }, [dateFilter, refetchFiltered])
+
+  const ShiftsTableSkeleton = () => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Date & Time</TableHead>
+          <TableHead>Job & Client</TableHead>
+          <TableHead>Location</TableHead>
+          <TableHead>Crew Chief</TableHead>
+          <TableHead>Staffing</TableHead>
+          <TableHead>Status</TableHead>
+          {canManage && <TableHead className="text-right">Actions</TableHead>}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {[...Array(5)].map((_, i) => (
+          <TableRow key={i}>
+            <TableCell>
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </TableCell>
+            <TableCell>
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </TableCell>
+            <TableCell><Skeleton className="h-4 w-28" /></TableCell>
+            <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
+            <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+            {canManage && <TableCell><Skeleton className="h-8 w-16" /></TableCell>}
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
 
   const handleDeleteShift = async (shiftId: string, shiftName: string) => {
     if (!confirm(`Are you sure you want to delete the shift "${shiftName}"? This action cannot be undone.`)) {
@@ -199,8 +256,16 @@ export default function ShiftsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Loading shifts...</div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Today's Shifts</h1>
+            <p className="text-muted-foreground">
+              Manage and track your shifts
+            </p>
+          </div>
+        </div>
+        <ShiftsTableSkeleton />
       </div>
     )
   }
@@ -215,13 +280,35 @@ export default function ShiftsPage() {
 
   const uniqueClients = [...new Set(shifts.map(s => s.clientName))].filter(Boolean)
 
+  const getPageTitle = () => {
+    switch (dateFilter) {
+      case "today": return "Today's Shifts"
+      case "tomorrow": return "Tomorrow's Shifts"
+      case "yesterday": return "Yesterday's Shifts"
+      case "this_week": return "This Week's Shifts"
+      case "all": return "All Shifts"
+      default: return "Shifts"
+    }
+  }
+
+  const getPageDescription = () => {
+    switch (dateFilter) {
+      case "today": return "Today's scheduled shifts and assignments"
+      case "tomorrow": return "Tomorrow's scheduled shifts and assignments"
+      case "yesterday": return "Yesterday's shifts and assignments"
+      case "this_week": return "This week's scheduled shifts and assignments"
+      case "all": return "All shifts and assignments"
+      default: return "Manage work shifts and assignments"
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Today's Shifts</h1>
+          <h1 className="text-3xl font-bold font-headline">{getPageTitle()}</h1>
           <p className="text-muted-foreground">
-            {dateFilter === "today" ? "Today's scheduled shifts and assignments" : "Manage work shifts and assignments"}
+            {getPageDescription()}
           </p>
         </div>
         {canManage && (
@@ -239,6 +326,7 @@ export default function ShiftsPage() {
             variant={dateFilter === "today" ? "default" : "outline"}
             size="sm"
             onClick={() => setDateFilter("today")}
+            disabled={loading}
           >
             Today
           </Button>
@@ -246,6 +334,7 @@ export default function ShiftsPage() {
             variant={dateFilter === "tomorrow" ? "default" : "outline"}
             size="sm"
             onClick={() => setDateFilter("tomorrow")}
+            disabled={loading}
           >
             Tomorrow
           </Button>
@@ -253,6 +342,7 @@ export default function ShiftsPage() {
             variant={dateFilter === "this_week" ? "default" : "outline"}
             size="sm"
             onClick={() => setDateFilter("this_week")}
+            disabled={loading}
           >
             This Week
           </Button>
@@ -260,10 +350,18 @@ export default function ShiftsPage() {
             variant={dateFilter === "all" ? "default" : "outline"}
             size="sm"
             onClick={() => setDateFilter("all")}
+            disabled={loading}
           >
             All Shifts
           </Button>
         </div>
+        {loading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+            Loading...
+          </div>
+        )}
+      </div>
         <Button
           variant="outline"
           size="sm"
@@ -353,19 +451,22 @@ export default function ShiftsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date & Time</TableHead>
-                <TableHead>Job & Client</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Crew Chief</TableHead>
-                <TableHead>Staffing</TableHead>
-                <TableHead>Status</TableHead>
-                {canManage && <TableHead className="text-right">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          {loading ? (
+            <ShiftsTableSkeleton />
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date & Time</TableHead>
+                  <TableHead>Job & Client</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Crew Chief</TableHead>
+                  <TableHead>Staffing</TableHead>
+                  <TableHead>Status</TableHead>
+                  {canManage && <TableHead className="text-right">Actions</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
               {filteredShifts.map((shift) => (
                 <TableRow
                   key={shift.id}
@@ -458,8 +559,9 @@ export default function ShiftsPage() {
                   )}
                 </TableRow>
               ))}
-            </TableBody>
-          </Table>
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>
