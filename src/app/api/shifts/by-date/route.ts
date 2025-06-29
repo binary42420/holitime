@@ -126,7 +126,7 @@ export async function GET(request: NextRequest) {
       filteredShifts = shifts.filter(shift => shift.crewChiefId === user.id);
     } else if (user.role === 'Employee') {
       filteredShifts = shifts.filter(shift => 
-        shift.assignedPersonnel.some(person => person.employee.id === user.id)
+        shift.assignedPersonnel.some((person: any) => person.employee.id === user.id)
       );
     }
     // Manager/Admin and Client users see all shifts (clients will be filtered by their jobs in future)

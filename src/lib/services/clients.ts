@@ -15,7 +15,10 @@ export async function getAllClients(): Promise<Client[]> {
         -- Most recent upcoming shift
         upcoming_shift.shift_id as upcoming_shift_id,
         upcoming_shift.shift_date as upcoming_shift_date,
-        upcoming_shift.job_name as upcoming_job_name
+        upcoming_shift.start_time as upcoming_shift_start_time,
+        upcoming_shift.job_name as upcoming_job_name,
+        upcoming_shift.requested_workers as upcoming_requested_workers,
+        upcoming_shift.assigned_count as upcoming_assigned_count
       FROM users u
       LEFT JOIN (
         SELECT client_id, COUNT(*) as job_count
@@ -38,10 +41,19 @@ export async function getAllClients(): Promise<Client[]> {
           j.client_id,
           s.id as shift_id,
           s.date as shift_date,
-          j.name as job_name
+          s.start_time,
+          j.name as job_name,
+          COALESCE(s.requested_workers, 1) as requested_workers,
+          COALESCE(assigned_counts.assigned_count, 0) as assigned_count
         FROM shifts s
         JOIN jobs j ON s.job_id = j.id
-        WHERE s.status IN ('Upcoming', 'In Progress')
+        LEFT JOIN (
+          SELECT shift_id, COUNT(*) as assigned_count
+          FROM assigned_personnel
+          WHERE is_placeholder = false
+          GROUP BY shift_id
+        ) assigned_counts ON s.id = assigned_counts.shift_id
+        WHERE s.status IN ('Upcoming', 'In Progress') AND s.date >= CURRENT_DATE
         ORDER BY j.client_id, s.date ASC, s.start_time ASC
       ) upcoming_shift ON u.id = upcoming_shift.client_id
       WHERE u.role = 'Client'
@@ -70,7 +82,10 @@ export async function getAllClients(): Promise<Client[]> {
       mostRecentUpcomingShift: row.upcoming_shift_id ? {
         id: row.upcoming_shift_id,
         date: row.upcoming_shift_date,
+        startTime: row.upcoming_shift_start_time,
         jobName: row.upcoming_job_name,
+        requestedWorkers: parseInt(row.upcoming_requested_workers) || 1,
+        assignedCount: parseInt(row.upcoming_assigned_count) || 0,
       } : undefined,
     }));
   } catch (error) {

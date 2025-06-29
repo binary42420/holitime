@@ -49,7 +49,10 @@ export interface Client {
   mostRecentUpcomingShift?: {
     id: string;
     date: string;
+    startTime: string;
     jobName: string;
+    requestedWorkers: number;
+    assignedCount: number;
   };
 }
 

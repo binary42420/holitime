@@ -109,12 +109,23 @@ export default function ClientsPage() {
                         <Button variant="link" asChild className="p-0 h-auto font-normal justify-start">
                           <Link href={`/shifts/${client.mostRecentUpcomingShift.id}`}>
                             <Calendar className="mr-1 h-3 w-3" />
-                            {format(new Date(client.mostRecentUpcomingShift.date), 'MMM d, yyyy')}
+                            {format(new Date(client.mostRecentUpcomingShift.date), 'MMM d, yyyy')} at {client.mostRecentUpcomingShift.startTime}
                           </Link>
                         </Button>
                         <span className="text-xs text-muted-foreground">
                           {client.mostRecentUpcomingShift.jobName}
                         </span>
+                        <div className="flex items-center gap-1 text-xs">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            client.mostRecentUpcomingShift.assignedCount >= client.mostRecentUpcomingShift.requestedWorkers
+                              ? 'bg-green-100 text-green-800'
+                              : client.mostRecentUpcomingShift.assignedCount > 0
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {client.mostRecentUpcomingShift.assignedCount}/{client.mostRecentUpcomingShift.requestedWorkers} workers
+                          </span>
+                        </div>
                       </div>
                     ) : (
                       <span className="text-muted-foreground text-sm">No upcoming shifts</span>
