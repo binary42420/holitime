@@ -111,15 +111,15 @@ gcloud run deploy $ServiceName `
   --set-env-vars "NEXT_TELEMETRY_DISABLED=1"
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Cloud Run deployment failed" -ForegroundColor Red
+    Write-Host "Cloud Run deployment failed" -ForegroundColor Red
     exit 1
 }
 
-Write-Host "✅ Deployment completed successfully!" -ForegroundColor Green
+Write-Host "Deployment completed successfully!" -ForegroundColor Green
 
 # Get the service URL
 $serviceUrl = gcloud run services describe $ServiceName --region=$Region --format="value(status.url)"
-Write-Host "🌐 Service URL: $serviceUrl" -ForegroundColor Cyan
+Write-Host "Service URL: $serviceUrl" -ForegroundColor Cyan
 
 Write-Host "Handsonlabor Website deployment completed!" -ForegroundColor Green
 Write-Host "Visit your website at: $serviceUrl" -ForegroundColor Cyan

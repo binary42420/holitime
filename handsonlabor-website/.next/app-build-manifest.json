@@ -18,15 +18,6 @@
       "static/css/a52de8a0ab8108ec.css",
       "static/chunks/app/layout-b62a93c8eebbbbcf.js"
     ],
-    "/request-staff/page": [
-      "static/chunks/webpack-d6d22d3a7f2d5451.js",
-      "static/chunks/fd9d1056-a05196de8ce4eb35.js",
-      "static/chunks/472-36a5e6510208e28c.js",
-      "static/chunks/main-app-2e53897f93560a4d.js",
-      "static/chunks/590-1097e65af500717a.js",
-      "static/chunks/373-4c03e9e5029e858d.js",
-      "static/chunks/app/request-staff/page-7fe8ffedab1e8212.js"
-    ],
     "/page": [
       "static/chunks/webpack-d6d22d3a7f2d5451.js",
       "static/chunks/fd9d1056-a05196de8ce4eb35.js",
@@ -38,14 +29,14 @@
       "static/chunks/590-1097e65af500717a.js",
       "static/chunks/app/page-5f24fdfc3deae796.js"
     ],
-    "/industries/entertainment/page": [
+    "/request-staff/page": [
       "static/chunks/webpack-d6d22d3a7f2d5451.js",
       "static/chunks/fd9d1056-a05196de8ce4eb35.js",
       "static/chunks/472-36a5e6510208e28c.js",
       "static/chunks/main-app-2e53897f93560a4d.js",
-      "static/chunks/326-20c48834d69cc18c.js",
-      "static/chunks/413-657508e9ad307b5c.js",
-      "static/chunks/app/industries/entertainment/page-c3f98742937ede9e.js"
+      "static/chunks/590-1097e65af500717a.js",
+      "static/chunks/373-4c03e9e5029e858d.js",
+      "static/chunks/app/request-staff/page-7fe8ffedab1e8212.js"
     ],
     "/client-portal/page": [
       "static/chunks/webpack-d6d22d3a7f2d5451.js",
@@ -63,6 +54,15 @@
       "static/chunks/326-20c48834d69cc18c.js",
       "static/chunks/413-657508e9ad307b5c.js",
       "static/chunks/app/about/page-b6861959bb380db0.js"
+    ],
+    "/industries/entertainment/page": [
+      "static/chunks/webpack-d6d22d3a7f2d5451.js",
+      "static/chunks/fd9d1056-a05196de8ce4eb35.js",
+      "static/chunks/472-36a5e6510208e28c.js",
+      "static/chunks/main-app-2e53897f93560a4d.js",
+      "static/chunks/326-20c48834d69cc18c.js",
+      "static/chunks/413-657508e9ad307b5c.js",
+      "static/chunks/app/industries/entertainment/page-c3f98742937ede9e.js"
     ]
   }
 }
