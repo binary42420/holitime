@@ -34,11 +34,13 @@ export function getPool(): Pool {
     pool = new Pool({
       connectionString,
       ssl: sslConfig,
-      max: 20,
-      idleTimeoutMillis: 30000,
+      max: 5, // Reduced from 20 to 5 to avoid "too many connections" error
+      min: 1, // Keep at least 1 connection alive
+      idleTimeoutMillis: 10000, // Reduced from 30s to 10s to release connections faster
       connectionTimeoutMillis: 5000,
       statement_timeout: 30000, // 30 second query timeout
       query_timeout: 30000,
+      acquireTimeoutMillis: 5000, // Timeout for acquiring a connection from pool
     });
 
     // Handle pool errors
@@ -125,13 +127,28 @@ export async function closePool(): Promise<void> {
   }
 }
 
-// Health check function
+// Health check function to test database connectivity
 export async function checkDatabaseHealth(): Promise<boolean> {
   try {
     const result = await query('SELECT 1 as health_check');
-    return result.rows.length === 1 && result.rows[0].health_check === 1;
+    return result.rows.length > 0 && result.rows[0].health_check === 1;
   } catch (error) {
     console.error('Database health check failed:', error);
     return false;
   }
 }
+
+// Get pool statistics for monitoring
+export function getPoolStats() {
+  if (!pool) {
+    return null;
+  }
+
+  return {
+    totalCount: pool.totalCount,
+    idleCount: pool.idleCount,
+    waitingCount: pool.waitingCount,
+  };
+}
+
+

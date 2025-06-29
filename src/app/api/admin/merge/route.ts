@@ -93,33 +93,52 @@ async function mergeEmployees(primaryId: string, secondaryId: string, mergedData
     WHERE id = $4
   `, [mergedData.name, mergedData.email, mergedData.role, primaryId]);
 
-  // Transfer all shift assignments from secondary to primary
-  await query(`
-    UPDATE assigned_personnel 
-    SET employee_id = $1 
-    WHERE employee_id = $2
-  `, [primaryId, secondaryId]);
+  // Transfer all shift assignments from secondary to primary employee
+  // This is CRITICAL - we must preserve all shift assignments
+  try {
+    const assignedResult = await query(`
+      UPDATE assigned_personnel
+      SET employee_id = $1
+      WHERE employee_id = $2
+    `, [primaryId, secondaryId]);
+    console.log(`Transferred ${assignedResult.rowCount} shift assignments from employee ${secondaryId} to ${primaryId}`);
+  } catch (error: any) {
+    if (!error.message.includes('does not exist')) {
+      throw error;
+    }
+    console.log('assigned_personnel table does not exist, skipping shift assignment transfer...');
+  }
 
-  // Transfer crew chief assignments
-  await query(`
-    UPDATE shifts 
-    SET crew_chief_id = $1 
-    WHERE crew_chief_id = $2
-  `, [primaryId, secondaryId]);
+  // Transfer crew chief assignments in shifts table
+  try {
+    const crewChiefResult = await query(`
+      UPDATE shifts
+      SET crew_chief_id = $1
+      WHERE crew_chief_id = $2
+    `, [primaryId, secondaryId]);
+    console.log(`Transferred ${crewChiefResult.rowCount} crew chief assignments from employee ${secondaryId} to ${primaryId}`);
+  } catch (error: any) {
+    console.error('Error transferring crew chief assignments:', error);
+    throw error; // This is a critical table, don't skip
+  }
 
-  // Transfer time entries
-  await query(`
-    UPDATE time_entries 
-    SET employee_id = $1 
-    WHERE employee_id = $2
-  `, [primaryId, secondaryId]);
+  // Note: time_entries are linked through assigned_personnel_id, not employee_id directly
+  // So they will automatically follow the assigned_personnel records when we update employee_id above
 
-  // Transfer any job authorizations
-  await query(`
-    UPDATE job_authorizations 
-    SET crew_chief_id = $1 
-    WHERE crew_chief_id = $2
-  `, [primaryId, secondaryId]);
+  // Transfer any job authorizations (if table exists)
+  try {
+    const authResult = await query(`
+      UPDATE job_authorizations
+      SET crew_chief_id = $1
+      WHERE crew_chief_id = $2
+    `, [primaryId, secondaryId]);
+    console.log(`Transferred ${authResult.rowCount} job authorizations from employee ${secondaryId} to ${primaryId}`);
+  } catch (error: any) {
+    if (!error.message.includes('does not exist')) {
+      throw error;
+    }
+    console.log('job_authorizations table does not exist, skipping...');
+  }
 
   // Delete the secondary employee record
   await query('DELETE FROM users WHERE id = $1', [secondaryId]);
@@ -154,18 +173,26 @@ async function mergeClients(primaryId: string, secondaryId: string, mergedData: 
     WHERE client_id = $2
   `, [primaryId, secondaryId]);
 
-  // Transfer any job authorizations
-  await query(`
-    UPDATE job_authorizations ja
-    SET job_id = (
-      SELECT j.id FROM jobs j WHERE j.client_id = $1 
-      AND j.name = (SELECT j2.name FROM jobs j2 WHERE j2.id = ja.job_id)
-      LIMIT 1
-    )
-    FROM jobs j_secondary
-    WHERE j_secondary.client_id = $2 
-    AND ja.job_id = j_secondary.id
-  `, [primaryId, secondaryId]);
+  // Transfer any job authorizations (if table exists)
+  try {
+    const authResult = await query(`
+      UPDATE job_authorizations ja
+      SET job_id = (
+        SELECT j.id FROM jobs j WHERE j.client_id = $1
+        AND j.name = (SELECT j2.name FROM jobs j2 WHERE j2.id = ja.job_id)
+        LIMIT 1
+      )
+      FROM jobs j_secondary
+      WHERE j_secondary.client_id = $2
+      AND ja.job_id = j_secondary.id
+    `, [primaryId, secondaryId]);
+    console.log(`Transferred ${authResult.rowCount} job authorizations for client ${secondaryId} to ${primaryId}`);
+  } catch (error: any) {
+    if (!error.message.includes('does not exist')) {
+      throw error;
+    }
+    console.log('job_authorizations table does not exist, skipping...');
+  }
 
   // Delete the secondary client record
   await query('DELETE FROM users WHERE id = $1', [secondaryId]);
@@ -176,8 +203,8 @@ async function mergeClients(primaryId: string, secondaryId: string, mergedData: 
 async function mergeJobs(primaryId: string, secondaryId: string, mergedData: any) {
   // Update the primary job record
   await query(`
-    UPDATE jobs 
-    SET 
+    UPDATE jobs
+    SET
       name = $1,
       description = $2,
       updated_at = CURRENT_TIMESTAMP
@@ -186,17 +213,24 @@ async function mergeJobs(primaryId: string, secondaryId: string, mergedData: any
 
   // Transfer all shifts from secondary to primary job
   await query(`
-    UPDATE shifts 
-    SET job_id = $1 
+    UPDATE shifts
+    SET job_id = $1
     WHERE job_id = $2
   `, [primaryId, secondaryId]);
 
-  // Transfer job authorizations
-  await query(`
-    UPDATE job_authorizations 
-    SET job_id = $1 
-    WHERE job_id = $2
-  `, [primaryId, secondaryId]);
+  // Transfer job authorizations (if table exists)
+  try {
+    await query(`
+      UPDATE job_authorizations
+      SET job_id = $1
+      WHERE job_id = $2
+    `, [primaryId, secondaryId]);
+  } catch (error: any) {
+    if (!error.message.includes('does not exist')) {
+      throw error;
+    }
+    console.log('job_authorizations table does not exist, skipping...');
+  }
 
   // Delete the secondary job record
   await query('DELETE FROM jobs WHERE id = $1', [secondaryId]);

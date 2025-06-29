@@ -228,7 +228,7 @@ export default function ImportPageClient() {
             <CardHeader>
               <CardTitle>Import from Google Sheets</CardTitle>
               <CardDescription>
-                Import data from Google Sheets using AI-powered data extraction
+                Import data from Google Sheets
               </CardDescription>
             </CardHeader>
             <CardContent>

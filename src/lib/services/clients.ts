@@ -129,9 +129,18 @@ export async function getClientById(id: string): Promise<Client | null> {
 
     // Get next upcoming shift
     const upcomingResult = await query(`
-      SELECT s.id, s.date, j.name as job_name
+      SELECT
+        s.id, s.date, s.start_time, j.name as job_name,
+        COALESCE(s.requested_workers, 1) as requested_workers,
+        COALESCE(assigned_counts.assigned_count, 0) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
+      LEFT JOIN (
+        SELECT shift_id, COUNT(*) as assigned_count
+        FROM assigned_personnel
+        WHERE is_placeholder = false
+        GROUP BY shift_id
+      ) assigned_counts ON s.id = assigned_counts.shift_id
       WHERE j.client_id = $1 AND s.status = 'Upcoming' AND s.date >= CURRENT_DATE
       ORDER BY s.date ASC, s.start_time ASC
       LIMIT 1
@@ -158,7 +167,10 @@ export async function getClientById(id: string): Promise<Client | null> {
       mostRecentUpcomingShift: upcomingResult.rows.length > 0 ? {
         id: upcomingResult.rows[0].id,
         date: upcomingResult.rows[0].date,
+        startTime: upcomingResult.rows[0].start_time,
         jobName: upcomingResult.rows[0].job_name,
+        requestedWorkers: parseInt(upcomingResult.rows[0].requested_workers) || 1,
+        assignedCount: parseInt(upcomingResult.rows[0].assigned_count) || 0,
       } : undefined,
     };
   } catch (error) {

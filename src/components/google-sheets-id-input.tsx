@@ -219,7 +219,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
           Direct Google Sheets Access
         </CardTitle>
         <CardDescription>
-          Enter a Google Sheets ID or URL to process the data directly with Gemini AI
+          Enter a Google Sheets ID or URL to process a Client Shift Schedule
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

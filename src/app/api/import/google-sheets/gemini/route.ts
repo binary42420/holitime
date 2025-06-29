@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/middleware'
 
-const GEMINI_PROMPT = `You are a data extraction and transformation specialist for the Holitime workforce management system. Your task is to analyze Google Sheets documents and extract workforce scheduling data, transforming it into a standardized CSV format for import.
+const GEMINI_PROMPT = `
+You are a data extraction and transformation specialist for the Holitime workforce management system. Your task is to analyze Google Sheets documents and extract workforce scheduling data, transforming it into a standardized CSV format for import.
 
 ## INPUT SPECIFICATIONS
 
@@ -70,9 +71,9 @@ Be prepared to handle various spreadsheet layouts:
 
 **Worker Type Mapping:**
 - "CC" → CC
-- "SH" → SH
+- "SH" → SH (default if blank or if none of the other options match)
 - "FO" → FO
-- " " or any other → "GL"
+- "" or any other value in JT column → "SH"
 
 ### 3. DATA PROCESSING LOGIC
 
@@ -176,7 +177,120 @@ Acme Construction,John Smith,555-0123,Downtown Office Building,2024-01-15,2024-0
 
 **Remember**: The goal is to minimize manual data entry while maintaining data accuracy. When in doubt, preserve the original data and flag for manual review rather than making assumptions that could introduce errors.
 
-**Output the CSV data first, followed by the summary report.**`
+**Output the CSV data first, followed by the summary report.**
+
+heres a script i was using before which might help you to locate the client data header and employee data headers. 
+
+function findClientMetadataHeaderRow(sheet) {
+    if (!sheet) { return null; }
+    try {
+        const data = sheet.getDataRange().getValues();
+        const requiredMatches = Math.min(3, CONFIG.CLIENT_METADATA.headerKeywords.length);
+        for (let i = 0; i < data.length; i++) {
+            const row = data[i]; if (!row) continue;
+            const ucRow = row.map(cell => String(cell).trim().toUpperCase());
+            let matches = 0;
+            for (const kw of CONFIG.CLIENT_METADATA.headerKeywords) { 
+                if (ucRow.some(cell => cell.includes(kw.toUpperCase()))) { 
+                    matches++; 
+                } 
+            }
+            if (matches >= requiredMatches) { 
+                return i;
+            }
+        }
+    } catch (error) {  return null; }
+}
+
+function extractAndApplyClientMetadata(sourceSheet, destinationSheet, metadataHeaderRowIndex, sourceData) {
+    try {
+        const headerVals = sourceData[metadataHeaderRowIndex];
+        if (!headerVals) { return; }
+        const metadataValuesRowIndex = metadataHeaderRowIndex + 1;
+        if (metadataValuesRowIndex >= sourceData.length || !sourceData[metadataValuesRowIndex]) { return; }
+        const metadataRowValues = sourceData[metadataValuesRowIndex];
+
+        for (const fieldName in CONFIG.CLIENT_METADATA.fields) {
+            if (CONFIG.CLIENT_METADATA.fields.hasOwnProperty(fieldName)) {
+                const cfg = CONFIG.CLIENT_METADATA.fields[fieldName];
+                const colIdxInHeader = findColumnContainingKeywords(headerVals, cfg.keywords);
+
+                if (colIdxInHeader) {
+                    const colIdxInSourceData = colIdxInHeader - 1;
+                    if (colIdxInSourceData < 0 || colIdxInSourceData >= metadataRowValues.length) { continue; }
+                    const val = metadataRowValues[colIdxInSourceData];
+                    const valStr = String(val == null ? "" : val).trim();
+                    const isKw = cfg.keywords.some(kw => valStr.toUpperCase() === kw.trim().toUpperCase());
+                    if (!isKw) {
+                        try {
+                            destinationSheet.getRange(cfg.templateCell).setValue(valStr);
+                        } catch (e) {
+                        }
+                    }
+                }
+            }
+        }
+    } catch (error) {
+    }
+}
+
+
+function findAllHeaderRows(sheet) {
+    if (!sheet) { logToSheet("Library: findAllHeaderRows: Invalid sheet."); return []; }
+    try {
+        const data = sheet.getDataRange().getValues();
+        const headerRows = [];
+        for (let i = 0; i < data.length; i++) {
+            const row = data[i]; if (!row) continue;
+            const ucRow = row.map(cell => String(cell).trim().toUpperCase());
+            let matches = 0;
+            if (findColumnByKeywords(ucRow, CONFIG.HEADER_KEYWORDS.DATE)) matches++;
+            if (findColumnByKeywords(ucRow, CONFIG.HEADER_KEYWORDS.EMPLOYEE)) matches++;
+            if (findColumnByKeywords(ucRow, CONFIG.HEADER_KEYWORDS.JT)) matches++;
+            if (findColumnByKeywords(ucRow, CONFIG.HEADER_KEYWORDS.IN)) matches++;
+            if (findColumnByKeywords(ucRow, CONFIG.HEADER_KEYWORDS.OUT)) matches++;
+            if (matches >= 3) { headerRows.push(i + 1); } // 1-based index
+        }
+        return headerRows;
+    } catch (error) {
+        return [];
+    }
+}
+
+/**
+ * Finds a column index in a row array that exactly matches one of the provided keywords.
+ */
+function findColumnByKeywords(row, keywords) {
+    if (!row || !Array.isArray(row) || !keywords || !Array.isArray(keywords) || keywords.length === 0) return null;
+    try {
+        const ucRow = row.map(cell => String(cell === null || cell === undefined ? "" : cell).trim().toUpperCase());
+        const foundIndex = ucRow.findIndex(cellContent => 
+            keywords.some(keyword => cellContent === String(keyword).trim().toUpperCase())
+        );
+        return foundIndex !== -1 ? foundIndex + 1 : null; // 1-based index
+    } catch (error) {
+        return null;
+    }
+}
+
+/**
+ * Finds a column index in a header row array where the cell content CONTAINS one of the provided keywords.
+ */
+function findColumnContainingKeywords(headerRowArray, keywords) {
+    if (!headerRowArray || !Array.isArray(headerRowArray) || !keywords || !Array.isArray(keywords) || keywords.length === 0) return null;
+    try {
+        const ucHeaderRow = headerRowArray.map(cell => String(cell === null || cell === undefined ? "" : cell).trim().toUpperCase());
+        const ucKeywords = keywords.map(kw => String(kw).trim().toUpperCase());
+        for (let i = 0; i < ucHeaderRow.length; i++) {
+            if (ucKeywords.some(keyword => ucHeaderRow[i].includes(keyword))) return i + 1; // 1-based index
+        }
+        return null; 
+    } catch (error) {
+        return null;
+    }
+}
+    
+IMPORTANT: once you extract that data, go back and reanalyze the data you've extracted and to what column you've extracted them to, and try to infer as to what is likely misaligned. fix it before responding`;
 
 export async function POST(request: NextRequest) {
   try {
