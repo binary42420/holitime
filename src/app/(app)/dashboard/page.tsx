@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/hooks/use-user"
 import { useShifts, useAnnouncements, useJobs, useApi } from "@/hooks/use-api"
+import { canViewSensitiveData } from "@/lib/auth"
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, FileClock, CalendarDays, PlusCircle, Briefcase } from 'lucide-react'
 import { format } from 'date-fns'
@@ -93,6 +94,74 @@ export default function DashboardPage() {
     }
   }
 
+
+  // Check if user has limited access
+  const hasLimitedAccess = user?.role === 'User';
+
+  if (hasLimitedAccess) {
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold font-headline">Welcome to Hands On Labor</h1>
+        </div>
+
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="text-orange-800">Limited Access Account</CardTitle>
+            <CardDescription className="text-orange-700">
+              Your account has been created with limited permissions. Contact an administrator to upgrade your account for full access to shift schedules, client information, and other features.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="p-4 bg-white rounded-lg border">
+                  <h3 className="font-medium text-gray-900 mb-2">Current Access Level</h3>
+                  <Badge variant="secondary">Limited User</Badge>
+                  <p className="text-sm text-gray-600 mt-2">
+                    You can view general information and announcements, but cannot access sensitive data.
+                  </p>
+                </div>
+                <div className="p-4 bg-white rounded-lg border">
+                  <h3 className="font-medium text-gray-900 mb-2">To Get Full Access</h3>
+                  <p className="text-sm text-gray-600">
+                    Contact your administrator to upgrade your account to Employee, Crew Chief, or Client status for full system access.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Show announcements for limited users */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Company Announcements</CardTitle>
+            <CardDescription>
+              Stay updated with the latest company news and updates.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {announcementsData?.announcements && announcementsData.announcements.length > 0 ? (
+              <div className="space-y-4">
+                {announcementsData.announcements.slice(0, 3).map((announcement: any) => (
+                  <div key={announcement.id} className="p-4 border rounded-lg">
+                    <h3 className="font-medium">{announcement.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{announcement.content}</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {format(new Date(announcement.date), 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-muted-foreground">No announcements available.</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-6">

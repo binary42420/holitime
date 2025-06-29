@@ -44,6 +44,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   const isClient = user?.role === 'Client';
+  const isLimitedUser = user?.role === 'User';
 
   return (
     <AuthGuard>
@@ -65,12 +66,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 Dashboard
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/shifts" tooltip="Shifts" isActive={isActive('/shifts')}>
-                <CalendarClock />
-                Shifts
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            {!isLimitedUser && (
+              <SidebarMenuItem>
+                <SidebarMenuButton href="/shifts" tooltip="Shifts" isActive={isActive('/shifts')}>
+                  <CalendarClock />
+                  Shifts
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
             {(user?.role === 'Manager/Admin' || user?.role === 'Crew Chief') && (
               <SidebarMenuItem>
                 <SidebarMenuButton href="/timesheets" tooltip="Timesheets" isActive={isActive('/timesheets')}>
@@ -79,7 +82,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
-            {!isClient && (
+            {!isClient && !isLimitedUser && (
               <SidebarMenuItem>
                 <SidebarMenuButton href="/clients" tooltip="Clients" isActive={isActive('/clients')}>
                   <Building2 />
@@ -101,7 +104,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 Documents
               </SidebarMenuButton>
             </SidebarMenuItem>
-            {!isClient && (
+            {!isClient && !isLimitedUser && (
                <SidebarMenuItem>
                 <SidebarMenuButton href="/import" tooltip="Data Import" isActive={isActive('/import')}>
                   <Upload />

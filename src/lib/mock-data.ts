@@ -1,10 +1,11 @@
 import type { User, Client, Job, Employee, Shift, Announcement, AppDocument, UserRole, Timesheet } from './types';
 
-export const mockUsers: Record<UserRole | 'Client', User> = {
+export const mockUsers: Record<UserRole, User> = {
   'Employee': { id: 'emp1', name: 'Alex Johnson', email: 'alex.j@handson.com', avatar: '/avatars/01.png', role: 'Employee' },
   'Crew Chief': { id: 'cc1', name: 'Maria Garcia', email: 'maria.g@handson.com', avatar: '/avatars/02.png', role: 'Crew Chief' },
   'Manager/Admin': { id: 'mgr1', name: 'Sam Chen', email: 'sam.c@handson.com', avatar: '/avatars/03.png', role: 'Manager/Admin' },
   'Client': { id: 'cli-user1', name: 'John Smith', email: 'jsmith@constructo.com', avatar: '/avatars/04.png', role: 'Client', clientId: 'cli1' },
+  'User': { id: 'user1', name: 'Jane Doe', email: 'jane.doe@example.com', avatar: '/avatars/05.png', role: 'User' },
 };
 
 export const mockEmployees: Employee[] = [
