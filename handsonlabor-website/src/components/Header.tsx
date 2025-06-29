@@ -7,10 +7,17 @@ import { usePathname } from 'next/navigation'
 import { Menu, X, Phone, ChevronDown } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-const navigation = [
+interface NavigationItem {
+  name: string
+  href: string
+  external?: boolean
+  submenu?: { name: string; href: string }[]
+}
+
+const navigation: NavigationItem[] = [
   { name: 'Home', href: '/' },
-  { 
-    name: 'Industries', 
+  {
+    name: 'Industries',
     href: '/industries',
     submenu: [
       { name: 'Entertainment & Events', href: '/industries/entertainment' },
@@ -19,8 +26,8 @@ const navigation = [
       { name: 'General Labor', href: '/industries/general' },
     ]
   },
-  { 
-    name: 'Services', 
+  {
+    name: 'Services',
     href: '/services',
     submenu: [
       { name: 'Temporary Staffing', href: '/services/temporary' },
