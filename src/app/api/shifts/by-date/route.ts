@@ -62,10 +62,8 @@ export async function GET(request: NextRequest) {
               'employee_id', ap.employee_id,
               'employee_name', u.name,
               'employee_avatar', u.avatar,
-              'worker_type', ap.worker_type,
+              'worker_type', ap.role_code,
               'is_placeholder', ap.is_placeholder,
-              'clock_in_time', ap.clock_in_time,
-              'clock_out_time', ap.clock_out_time,
               'status', ap.status
             )
           END
@@ -96,8 +94,6 @@ export async function GET(request: NextRequest) {
           },
           workerType: person.worker_type,
           isPlaceholder: person.is_placeholder,
-          clockInTime: person.clock_in_time,
-          clockOutTime: person.clock_out_time,
           status: person.status,
         }));
 

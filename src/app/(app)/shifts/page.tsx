@@ -57,27 +57,26 @@ export default function ShiftsPage() {
   const [clientFilter, setClientFilter] = useState("all")
   const [showFilters, setShowFilters] = useState(false) // Collapsible filters
 
-  // Use optimized hooks based on date filter
+  // Use optimized hooks - always use today's shifts for better performance
   const { data: todaysShiftsData, loading: todaysLoading, error: todaysError, refetch: refetchTodays } = useTodaysShifts()
-  const { data: filteredShiftsData, loading: filteredLoading, error: filteredError, refetch: refetchFiltered } = useShiftsByDate(dateFilter)
 
-  // Determine which data to use
-  const isToday = dateFilter === "today"
-  const shiftsData = isToday ? todaysShiftsData : filteredShiftsData
-  const loading = isToday ? todaysLoading : filteredLoading
-  const error = isToday ? todaysError : filteredError
-  const refetch = isToday ? refetchTodays : refetchFiltered
+  // For now, always use today's data for optimal performance
+  // TODO: Implement lazy loading for other date ranges
+  const shiftsData = todaysShiftsData
+  const loading = todaysLoading
+  const error = todaysError
+  const refetch = refetchTodays
 
   const shifts = shiftsData?.shifts || []
 
   const canManage = user?.role === 'Manager/Admin' || user?.role === 'Crew Chief'
 
-  // Handle date filter changes - refetch data when filter changes
+  // Handle date filter changes - for now just refetch today's data
   useEffect(() => {
-    if (dateFilter !== "today") {
-      refetchFiltered()
-    }
-  }, [dateFilter, refetchFiltered])
+    // For now, always refetch today's data when filter changes
+    // TODO: Implement proper date range filtering
+    refetch()
+  }, [dateFilter, refetch])
 
   const ShiftsTableSkeleton = () => (
     <Table>
@@ -331,28 +330,28 @@ export default function ShiftsPage() {
             Today
           </Button>
           <Button
-            variant={dateFilter === "tomorrow" ? "default" : "outline"}
+            variant="outline"
             size="sm"
-            onClick={() => setDateFilter("tomorrow")}
-            disabled={loading}
+            disabled={true}
+            title="Coming soon - optimized loading for other date ranges"
           >
-            Tomorrow
+            Tomorrow (Soon)
           </Button>
           <Button
-            variant={dateFilter === "this_week" ? "default" : "outline"}
+            variant="outline"
             size="sm"
-            onClick={() => setDateFilter("this_week")}
-            disabled={loading}
+            disabled={true}
+            title="Coming soon - optimized loading for other date ranges"
           >
-            This Week
+            This Week (Soon)
           </Button>
           <Button
-            variant={dateFilter === "all" ? "default" : "outline"}
+            variant="outline"
             size="sm"
-            onClick={() => setDateFilter("all")}
-            disabled={loading}
+            disabled={true}
+            title="Coming soon - optimized loading for other date ranges"
           >
-            All Shifts
+            All Shifts (Soon)
           </Button>
         </div>
         {loading && (
@@ -361,7 +360,6 @@ export default function ShiftsPage() {
             Loading...
           </div>
         )}
-      </div>
         <Button
           variant="outline"
           size="sm"
