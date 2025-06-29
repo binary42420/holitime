@@ -45,16 +45,14 @@ export async function GET(request: NextRequest) {
       name: row.name,
       description: row.description,
       clientId: row.client_id,
-      clientName: row.client_name || row.company_name,
-      status: row.status || 'Active',
-      startDate: row.start_date,
-      endDate: row.end_date,
+      clientName: row.client_name,
+      status: row.status,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
       shiftCount: parseInt(row.shift_count) || 0,
       lastActivity: row.last_activity,
-      upcomingShifts: parseInt(row.upcoming_count) || 0,
-      activeShifts: parseInt(row.active_count) || 0,
+      upcomingShifts: parseInt(row.upcoming_shifts) || 0,
+      activeShifts: parseInt(row.active_shifts) || 0,
       lastActivityType: row.most_recent_shift ? 'shift' : 'created'
     }));
 

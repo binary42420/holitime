@@ -6,16 +6,18 @@ import { useUser } from "@/hooks/use-user"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Building2, 
-  Users, 
-  Briefcase, 
-  Calendar, 
-  Plus, 
+import {
+  Building2,
+  Users,
+  Briefcase,
+  Calendar,
+  Plus,
   Settings,
   BarChart3,
   FileText,
-  Clock
+  Clock,
+  UserCog,
+  Merge
 } from "lucide-react"
 
 export default function AdminDashboard() {
@@ -41,7 +43,7 @@ export default function AdminDashboard() {
       ]
     },
     {
-      title: "Employee Management", 
+      title: "Employee Management",
       description: "Manage workforce and employee records",
       icon: Users,
       href: "/admin/employees",
@@ -49,6 +51,28 @@ export default function AdminDashboard() {
         { label: "View All Employees", href: "/admin/employees" },
         { label: "Add New Employee", href: "/admin/employees/new" },
         { label: "Employee Reports", href: "/admin/employees/reports" }
+      ]
+    },
+    {
+      title: "User Management",
+      description: "Manage user accounts and reset passwords",
+      icon: UserCog,
+      href: "/admin/users",
+      actions: [
+        { label: "View All Users", href: "/admin/users" },
+        { label: "Reset Passwords", href: "/admin/users" },
+        { label: "User Roles", href: "/admin/users" }
+      ]
+    },
+    {
+      title: "Merge Duplicates",
+      description: "Combine duplicate employees, clients, or jobs",
+      icon: Merge,
+      href: "/admin/merge",
+      actions: [
+        { label: "Merge Employees", href: "/admin/merge" },
+        { label: "Merge Clients", href: "/admin/merge" },
+        { label: "Merge Jobs", href: "/admin/merge" }
       ]
     },
     {

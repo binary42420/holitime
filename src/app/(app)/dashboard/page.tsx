@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/hooks/use-user"
-import { useShifts, useAnnouncements, useJobs } from "@/hooks/use-api"
+import { useShifts, useAnnouncements, useJobs, useApi } from "@/hooks/use-api"
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, FileClock, CalendarDays, PlusCircle, Briefcase } from 'lucide-react'
 import { format } from 'date-fns'
@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const { data: shiftsData, loading } = useShifts();
   const { data: announcementsData } = useAnnouncements();
   const { data: jobsData, loading: jobsLoading } = useJobs();
+  const { data: usersData } = useApi<{ users: any[] }>('/api/users');
 
   const shiftsForUser = useMemo(() => {
     if (!shiftsData?.shifts) return [];
@@ -67,7 +68,13 @@ export default function DashboardPage() {
   }, [jobsData, shiftsData]);
 
   // For now, we'll hide the team members section since we don't have an employees API yet
-  const teamMembers: any[] = [];
+  // Get team members (employees and crew chiefs)
+  const teamMembers = useMemo(() => {
+    if (!usersData?.users) return [];
+    return usersData.users
+      .filter(user => user.role === 'Employee' || user.role === 'Crew Chief')
+      .slice(0, 5); // Show top 5 team members
+  }, [usersData]);
 
   const handleShiftClick = (shift: any) => {
     if (shift.clientName && shift.jobName) {

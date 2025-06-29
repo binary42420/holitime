@@ -6,6 +6,8 @@ export async function getAllClients(): Promise<Client[]> {
     const result = await query(`
       SELECT
         u.id, u.name, u.company_name, u.company_address, u.contact_person, u.contact_email, u.contact_phone,
+        -- Job count
+        COALESCE(job_counts.job_count, 0) as job_count,
         -- Most recent completed shift
         completed_shift.shift_id as completed_shift_id,
         completed_shift.shift_date as completed_shift_date,
@@ -15,6 +17,11 @@ export async function getAllClients(): Promise<Client[]> {
         upcoming_shift.shift_date as upcoming_shift_date,
         upcoming_shift.job_name as upcoming_job_name
       FROM users u
+      LEFT JOIN (
+        SELECT client_id, COUNT(*) as job_count
+        FROM jobs
+        GROUP BY client_id
+      ) job_counts ON u.id = job_counts.client_id
       LEFT JOIN (
         SELECT DISTINCT ON (j.client_id)
           j.client_id,
@@ -49,6 +56,7 @@ export async function getAllClients(): Promise<Client[]> {
       contactPerson: row.contact_person,
       contactEmail: row.contact_email,
       contactPhone: row.contact_phone,
+      jobCount: parseInt(row.job_count) || 0,
       // Add backward compatibility fields for the frontend
       address: row.company_address, // Map companyAddress to address for frontend
       email: row.contact_email, // Map contactEmail to email for frontend
