@@ -38,14 +38,6 @@
       "static/chunks/590-1097e65af500717a.js",
       "static/chunks/app/page-5f24fdfc3deae796.js"
     ],
-    "/client-portal/page": [
-      "static/chunks/webpack-d6d22d3a7f2d5451.js",
-      "static/chunks/fd9d1056-a05196de8ce4eb35.js",
-      "static/chunks/472-36a5e6510208e28c.js",
-      "static/chunks/main-app-2e53897f93560a4d.js",
-      "static/chunks/326-20c48834d69cc18c.js",
-      "static/chunks/app/client-portal/page-d1e1065b0c4360a5.js"
-    ],
     "/industries/entertainment/page": [
       "static/chunks/webpack-d6d22d3a7f2d5451.js",
       "static/chunks/fd9d1056-a05196de8ce4eb35.js",
@@ -54,6 +46,14 @@
       "static/chunks/326-20c48834d69cc18c.js",
       "static/chunks/413-657508e9ad307b5c.js",
       "static/chunks/app/industries/entertainment/page-c3f98742937ede9e.js"
+    ],
+    "/client-portal/page": [
+      "static/chunks/webpack-d6d22d3a7f2d5451.js",
+      "static/chunks/fd9d1056-a05196de8ce4eb35.js",
+      "static/chunks/472-36a5e6510208e28c.js",
+      "static/chunks/main-app-2e53897f93560a4d.js",
+      "static/chunks/326-20c48834d69cc18c.js",
+      "static/chunks/app/client-portal/page-d1e1065b0c4360a5.js"
     ],
     "/about/page": [
       "static/chunks/webpack-d6d22d3a7f2d5451.js",

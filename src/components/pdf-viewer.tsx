@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react"
 import { Document, Page, pdfjs } from 'react-pdf'
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"

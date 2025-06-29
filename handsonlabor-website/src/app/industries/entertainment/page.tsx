@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Music, Users, Clock, Shield, CheckCircle, ArrowRight, Phone } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 
 export const metadata: Metadata = {
   title: 'Entertainment & Events Staffing | Hands On Labor',

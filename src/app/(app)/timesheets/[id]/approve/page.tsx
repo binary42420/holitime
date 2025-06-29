@@ -10,7 +10,7 @@ import { format, differenceInMinutes } from 'date-fns'
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
 import SignaturePad, { type SignaturePadRef } from "@/components/signature-pad"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ExternalLink, Calendar, Users, FileText, Clock, Shield } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 
 export const metadata: Metadata = {
   title: 'Client Portal | Hands On Labor',

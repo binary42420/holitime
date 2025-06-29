@@ -30,7 +30,7 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar'
 import { UserNav } from '@/components/user-nav'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/Button'
 import { useUser } from '@/hooks/use-user'
 import { AuthGuard } from '@/components/auth-guard'
 

@@ -19,7 +19,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { Badge } from "@/components/ui/badge"
 import { useUser } from "@/hooks/use-user"
 import { useTimesheets } from "@/hooks/use-api"

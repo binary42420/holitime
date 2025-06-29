@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/Button"
 import { useUser } from "@/hooks/use-user"
 import { useShifts, useAnnouncements, useJobs, useApi } from "@/hooks/use-api"
 import { canViewSensitiveData } from "@/lib/auth"
