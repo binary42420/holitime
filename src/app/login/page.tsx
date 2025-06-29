@@ -74,13 +74,13 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-bold">Hands On Labor</CardTitle>
           <CardDescription>
-            Sign in to your workforce management account
+            Sign in to your Scheduling Portal
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">Email Address</Label>
               <Input
                 id="email"
                 type="email"
@@ -129,7 +129,7 @@ export default function LoginPage() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  Or continue with
+                  Or
                 </span>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function LoginPage() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                     />
                   </svg>
-                  Continue with Google
+                  Sign In with Google
                 </>
               )}
             </button>
@@ -175,21 +175,12 @@ export default function LoginPage() {
             <p className="text-sm text-muted-foreground">
               Don't have an account?{" "}
               <Link href="/signup" className="font-medium text-primary hover:underline">
-                Sign up
+                Sign up 
               </Link>
             </p>
           </div>
 
-          <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="text-sm font-medium mb-2">Test Accounts:</p>
-            <div className="text-xs space-y-1">
-              <div><strong>Employee:</strong> employee@handson.com</div>
-              <div><strong>Crew Chief:</strong>cc@handson.com</div>
-              <div><strong>Manager:</strong> manager@handson.com</div>
-              <div><strong>Client:</strong> client@clientco.com</div>
-              <div className="mt-2"><strong>Password:</strong> password123</div>
-            </div>
-          </div>
+
         </CardContent>
       </Card>
     </div>
