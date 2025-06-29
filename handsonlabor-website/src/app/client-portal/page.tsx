@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ExternalLink, Calendar, Users, FileText, Clock, Shield } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = {
   title: 'Client Portal | Hands On Labor',
@@ -58,13 +58,13 @@ export default function ClientPortalPage() {
               rel="noopener noreferrer"
               className="inline-flex"
             >
-              <Button size="xl" className="group">
+              <Button size="lg" className="group">
                 Access Client Portal
                 <ExternalLink className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
             </a>
             <Link href="/contact">
-              <Button variant="outline" size="xl">
+              <Button variant="outline" size="lg">
                 Need Help?
               </Button>
             </Link>
