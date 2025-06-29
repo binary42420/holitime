@@ -28,9 +28,9 @@ const navigation = {
     { name: 'Benefits', href: '/benefits' },
   ],
   portal: [
-    { name: 'Client Area', href: 'http://localhost:3001', external: true },
-    { name: 'Employee Portal', href: 'http://localhost:3001', external: true },
-    { name: 'Schedule Management', href: 'http://localhost:3001', external: true },
+    { name: 'Client Area', href: 'https://holitime-369017734615.us-central1.run.app', external: true },
+    { name: 'Employee Portal', href: 'https://holitime-369017734615.us-central1.run.app', external: true },
+    { name: 'Schedule Management', href: 'https://holitime-369017734615.us-central1.run.app', external: true },
   ],
 }
 

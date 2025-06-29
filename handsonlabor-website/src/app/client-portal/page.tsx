@@ -52,9 +52,9 @@ export default function ClientPortalPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <a 
-              href="http://localhost:3001" 
-              target="_blank" 
+            <a
+              href="https://holitime-369017734615.us-central1.run.app"
+              target="_blank"
               rel="noopener noreferrer"
               className="inline-flex"
             >
