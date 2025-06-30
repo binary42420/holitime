@@ -21,11 +21,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except:
-     * - Public routes (login, api/auth)
+     * - Public routes (login, api/auth/*)
      * - Static files (_next/static, _next/image, favicon.ico)
      * - Import page (which uses client-side Google auth)
      * - Google Drive OAuth callback
      */
-    '/((?!login|api/auth|_next/static|_next/image|favicon.ico|import|google-drive-callback).*)',
+    '/((?!login|api/auth/|_next/static|_next/image|favicon.ico|import|google-drive-callback).*)',
   ],
 };

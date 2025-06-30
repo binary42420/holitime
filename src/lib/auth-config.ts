@@ -130,7 +130,7 @@ export const authOptions: NextAuthOptions = {
     error: '/login',
   },
 
-  debug: true, // Enable debug in production to see what's happening
+  debug: process.env.NODE_ENV === 'development',
 
   session: {
     strategy: 'jwt',
