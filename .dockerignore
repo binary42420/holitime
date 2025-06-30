@@ -15,7 +15,6 @@ out
 
 # Git
 .git
-.gitignore
 
 # Documentation
 README.md
@@ -91,3 +90,4 @@ jspm_packages/
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
+
