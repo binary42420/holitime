@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">holitime</string>
+    <string name="title_activity_main">holitime</string>
+    <string name="package_name">net.bin4ry.hol</string>
+    <string name="custom_url_scheme">net.bin4ry.hol</string>
+</resources>
