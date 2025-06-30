@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
-import { 
-  Clock, 
-  Play, 
-  Square, 
-  StopCircle, 
-  Users, 
-  CheckCircle2, 
+import {
+  Clock,
+  Play,
+  Square,
+  StopCircle,
+  Users,
+  CheckCircle2,
   AlertCircle,
   Timer,
   Coffee,
@@ -28,7 +28,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { useApi, useMutation } from "@/hooks/use-api"
 import { format, differenceInMinutes } from "date-fns"
-import { 
+import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
@@ -94,38 +94,38 @@ const roleColors = {
 const getStatusConfig = (status: string) => {
   switch (status) {
     case 'not_started':
-      return { 
-        label: 'Not Started', 
-        color: 'bg-gray-100 text-gray-800', 
+      return {
+        label: 'Not Started',
+        color: 'bg-gray-100 text-gray-800',
         icon: Clock,
         description: 'Ready to clock in'
       }
     case 'Clocked In':
-      return { 
-        label: 'Working', 
-        color: 'bg-green-100 text-green-800', 
+      return {
+        label: 'Working',
+        color: 'bg-green-100 text-green-800',
         icon: Play,
         description: 'Currently working'
       }
     case 'Clocked Out':
-      return { 
-        label: 'On Break', 
-        color: 'bg-yellow-100 text-yellow-800', 
+      return {
+        label: 'On Break',
+        color: 'bg-yellow-100 text-yellow-800',
         icon: Coffee,
         description: 'On break'
       }
     case 'Shift Ended':
     case 'shift_ended':
-      return { 
-        label: 'Completed', 
-        color: 'bg-blue-100 text-blue-800', 
+      return {
+        label: 'Completed',
+        color: 'bg-blue-100 text-blue-800',
         icon: CheckCircle2,
         description: 'Shift completed'
       }
     default:
-      return { 
-        label: status, 
-        color: 'bg-gray-100 text-gray-800', 
+      return {
+        label: status,
+        color: 'bg-gray-100 text-gray-800',
         icon: AlertCircle,
         description: 'Unknown status'
       }
@@ -134,7 +134,7 @@ const getStatusConfig = (status: string) => {
 
 const calculateTotalHours = (timeEntries: TimeEntry[] = []) => {
   let totalMinutes = 0
-  
+
   timeEntries.forEach(entry => {
     if (entry.clockIn && entry.clockOut) {
       const clockInTime = new Date(entry.clockIn)
@@ -142,15 +142,15 @@ const calculateTotalHours = (timeEntries: TimeEntry[] = []) => {
       totalMinutes += differenceInMinutes(clockOutTime, clockInTime)
     }
   })
-  
+
   const hours = Math.floor(totalMinutes / 60)
   const minutes = totalMinutes % 60
   return `${hours}h ${minutes}m`
 }
 
-export default function UnifiedShiftManager({ 
-  shiftId, 
-  assignedPersonnel, 
+export default function UnifiedShiftManager({
+  shiftId,
+  assignedPersonnel,
   onUpdate,
   isOnline = true
 }: UnifiedShiftManagerProps) {
@@ -168,7 +168,7 @@ export default function UnifiedShiftManager({
   const completedCount = assignedPersonnel.filter(w => ['Shift Ended', 'shift_ended'].includes(w.status)).length
   const notStartedCount = assignedPersonnel.filter(w => w.status === 'not_started').length
   const onBreakCount = assignedPersonnel.filter(w => w.status === 'Clocked Out').length
-  
+
   // Calculate completion percentage
   const completionPercentage = totalWorkers > 0 ? (completedCount / totalWorkers) * 100 : 0
 
@@ -193,32 +193,32 @@ export default function UnifiedShiftManager({
     delay: number = 1000
   ): Promise<Response> => {
     let lastError: Error | null = null
-    
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const response = await operation()
         if (response.ok) {
           return response
         }
-        
+
         // If it's a client error (4xx), don't retry
         if (response.status >= 400 && response.status < 500) {
           const errorData = await response.json()
           throw new Error(errorData.error || `Request failed with status ${response.status}`)
         }
-        
+
         // For server errors (5xx), retry
         throw new Error(`Server error: ${response.status}`)
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error')
-        
+
         if (attempt < maxRetries) {
           await new Promise(resolve => setTimeout(resolve, delay * attempt))
           continue
         }
       }
     }
-    
+
     throw lastError || new Error('Operation failed after retries')
   }, [])
 
@@ -242,10 +242,10 @@ export default function UnifiedShiftManager({
       return
     }
 
-    setActionState(prev => ({ 
-      ...prev, 
-      isProcessing: true, 
-      lastAction: `${action}_${assignmentId}` 
+    setActionState(prev => ({
+      ...prev,
+      isProcessing: true,
+      lastAction: `${action}_${assignmentId}`
     }))
 
     try {
@@ -261,11 +261,11 @@ export default function UnifiedShiftManager({
         title: action === 'clock_in' ? "Clocked In" : "Clocked Out",
         description: `${worker.employeeName} has been ${action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully`,
       })
-      
+
       // Immediate update after successful action
       onUpdate()
       setLastUpdateTime(new Date())
-      
+
     } catch (error) {
       console.error(`Error ${action}:`, error)
       toast({
@@ -274,10 +274,10 @@ export default function UnifiedShiftManager({
         variant: "destructive",
       })
     } finally {
-      setActionState(prev => ({ 
-        ...prev, 
-        isProcessing: false, 
-        lastAction: undefined 
+      setActionState(prev => ({
+        ...prev,
+        isProcessing: false,
+        lastAction: undefined
       }))
     }
   }
@@ -292,10 +292,10 @@ export default function UnifiedShiftManager({
       return
     }
 
-    setActionState(prev => ({ 
-      ...prev, 
-      isProcessing: true, 
-      lastAction: `end_shift_${assignmentId}` 
+    setActionState(prev => ({
+      ...prev,
+      isProcessing: true,
+      lastAction: `end_shift_${assignmentId}`
     }))
 
     try {
@@ -309,10 +309,10 @@ export default function UnifiedShiftManager({
         title: "Shift Ended",
         description: `${workerName}'s shift has been ended`,
       })
-      
+
       onUpdate()
       setLastUpdateTime(new Date())
-      
+
     } catch (error) {
       console.error('Error ending shift:', error)
       toast({
@@ -321,10 +321,10 @@ export default function UnifiedShiftManager({
         variant: "destructive",
       })
     } finally {
-      setActionState(prev => ({ 
-        ...prev, 
-        isProcessing: false, 
-        lastAction: undefined 
+      setActionState(prev => ({
+        ...prev,
+        isProcessing: false,
+        lastAction: undefined
       }))
     }
   }
@@ -339,7 +339,7 @@ export default function UnifiedShiftManager({
       return
     }
 
-    const activeWorkers = assignedPersonnel.filter(w => 
+    const activeWorkers = assignedPersonnel.filter(w =>
       !['Shift Ended', 'shift_ended'].includes(w.status)
     )
 
@@ -351,10 +351,10 @@ export default function UnifiedShiftManager({
       return
     }
 
-    setActionState(prev => ({ 
-      ...prev, 
-      isProcessing: true, 
-      lastAction: 'end_all_shifts' 
+    setActionState(prev => ({
+      ...prev,
+      isProcessing: true,
+      lastAction: 'end_all_shifts'
     }))
 
     try {
@@ -368,10 +368,10 @@ export default function UnifiedShiftManager({
         title: "All Shifts Ended",
         description: `Successfully ended shifts for ${activeWorkers.length} workers`,
       })
-      
+
       onUpdate()
       setLastUpdateTime(new Date())
-      
+
     } catch (error) {
       console.error('Error ending all shifts:', error)
       toast({
@@ -380,10 +380,10 @@ export default function UnifiedShiftManager({
         variant: "destructive",
       })
     } finally {
-      setActionState(prev => ({ 
-        ...prev, 
-        isProcessing: false, 
-        lastAction: undefined 
+      setActionState(prev => ({
+        ...prev,
+        isProcessing: false,
+        lastAction: undefined
       }))
     }
   }
@@ -398,7 +398,7 @@ export default function UnifiedShiftManager({
       return
     }
 
-    const incompleteWorkers = assignedPersonnel.filter(w => 
+    const incompleteWorkers = assignedPersonnel.filter(w =>
       !['Shift Ended', 'shift_ended'].includes(w.status)
     )
 
@@ -411,10 +411,10 @@ export default function UnifiedShiftManager({
       return
     }
 
-    setActionState(prev => ({ 
-      ...prev, 
-      isProcessing: true, 
-      lastAction: 'finalize_timesheet' 
+    setActionState(prev => ({
+      ...prev,
+      isProcessing: true,
+      lastAction: 'finalize_timesheet'
     }))
 
     try {
@@ -440,8 +440,8 @@ export default function UnifiedShiftManager({
             title: "Timesheet Ready",
             description: "Click here to view the timesheet approval page",
             action: (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="sm"
                 onClick={() => window.location.href = `/timesheets/${result.timesheetId}/approve`}
               >
@@ -454,7 +454,7 @@ export default function UnifiedShiftManager({
 
       onUpdate()
       setLastUpdateTime(new Date())
-      
+
     } catch (error) {
       console.error('Error finalizing timesheet:', error)
       toast({
@@ -463,10 +463,10 @@ export default function UnifiedShiftManager({
         variant: "destructive",
       })
     } finally {
-      setActionState(prev => ({ 
-        ...prev, 
-        isProcessing: false, 
-        lastAction: undefined 
+      setActionState(prev => ({
+        ...prev,
+        isProcessing: false,
+        lastAction: undefined
       }))
     }
   }
@@ -587,7 +587,7 @@ export default function UnifiedShiftManager({
                         <AvatarImage src={worker.employeeAvatar} alt={worker.employeeName} />
                         <AvatarFallback>{worker.employeeName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
                       </Avatar>
-                      
+
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <h4 className="font-medium">{worker.employeeName}</h4>
@@ -595,20 +595,20 @@ export default function UnifiedShiftManager({
                             {roleConfig.name}
                           </Badge>
                         </div>
-                        
+
                         <div className="flex items-center gap-4 mt-1">
                           <Badge className={statusConfig.color}>
                             <StatusIcon className="h-3 w-3 mr-1" />
                             {statusConfig.label}
                           </Badge>
-                          
+
                           {totalHours !== '0h 0m' && (
                             <span className="text-sm text-muted-foreground flex items-center gap-1">
                               <Timer className="h-3 w-3" />
                               {totalHours}
                             </span>
                           )}
-                          
+
                           {currentEntry && currentEntry.clockIn && !currentEntry.clockOut && (
                             <span className="text-sm text-green-600 flex items-center gap-1">
                               <Clock className="h-3 w-3" />
@@ -643,7 +643,7 @@ export default function UnifiedShiftManager({
                           Clock In
                         </Button>
                       )}
-                      
+
                       {worker.status === 'Clocked In' && (
                         <>
                           <TooltipProvider>
@@ -692,16 +692,37 @@ export default function UnifiedShiftManager({
                           </TooltipProvider>
                         </>
                       )}
-                      
+
                       {worker.status === 'Clocked Out' && (
                         <>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                  </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleClockAction(worker.id, 'clock_out')}
+                              disabled={actionState.isProcessing || !isOnline}
+                            >
+                              {actionState.lastAction === `clock_out_${worker.id}` ? (
+                                <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                              ) : (
+                                <Square className="h-3 w-3 mr-1" />
+                              )}
+                              Clock Out
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Clock out for a break.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </>
+                  )}
                 </div>
-              )
-            })}
+              </div>
+            )
+          })}
           </div>
         </CardContent>
       </Card>
@@ -709,77 +730,77 @@ export default function UnifiedShiftManager({
       {/* Bulk Actions */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Shift Management
-          </CardTitle>
-          <CardDescription>
-            Bulk operations and timesheet finalization
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={isProcessing || completedCount === totalWorkers}
-                >
-                  <StopCircle className="h-4 w-4 mr-2" />
-                  End All Shifts
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will end the shift for all workers who have not yet completed their shift. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleEndAllShifts}>
-                    End All Shifts
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  disabled={isProcessing || completedCount < totalWorkers}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Finalize Timesheet
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will finalize the timesheet and send it for client approval. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleFinalizeTimesheet}>
-                    Finalize Timesheet
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            
-            {completedCount === totalWorkers && (
-              <Badge className="bg-green-100 text-green-800 px-3 py-1">
-                <CheckCircle2 className="h-3 w-3 mr-1" />
-                All workers completed
-              </Badge>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  )
+                        <CardTitle className="flex items-center gap-2">
+                          <FileText className="h-5 w-5" />
+                          Shift Management
+                        </CardTitle>
+                        <CardDescription>
+                          Bulk operations and timesheet finalization
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-3">
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                variant="outline"
+                                disabled={isProcessing || completedCount === totalWorkers}
+                              >
+                                <StopCircle className="h-4 w-4 mr-2" />
+                                End All Shifts
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will end the shift for all workers who have not yet completed their shift. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleEndAllShifts}>
+                                  End All Shifts
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                disabled={isProcessing || completedCount < totalWorkers}
+                                className="bg-blue-600 hover:bg-blue-700"
+                              >
+                                <FileText className="h-4 w-4 mr-2" />
+                                Finalize Timesheet
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will finalize the timesheet and send it for client approval. This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleFinalizeTimesheet}>
+                                  Finalize Timesheet
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+
+                          {completedCount === totalWorkers && (
+                            <Badge className="bg-green-100 text-green-800 px-3 py-1">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              All workers completed
+                            </Badge>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  )
 }
