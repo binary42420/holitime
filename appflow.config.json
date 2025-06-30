@@ -1,0 +1,20 @@
+{
+  "build": {
+    "android": {
+      "dependencies": {
+        "installCommand": "npm ci --legacy-peer-deps"
+      },
+      "build": {
+        "buildCommand": "npm run build:capacitor"
+      }
+    },
+    "ios": {
+      "dependencies": {
+        "installCommand": "npm ci --legacy-peer-deps"
+      },
+      "build": {
+        "buildCommand": "npm run build:capacitor"
+      }
+    }
+  }
+}
