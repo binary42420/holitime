@@ -16,9 +16,7 @@ export async function GET(
     }
 
     const { id } = await params;
-    console.log('Getting client by ID:', id);
     const client = await getClientById(id);
-    console.log('Client found:', client ? 'Yes' : 'No');
     if (!client) {
       return NextResponse.json(
         { error: 'Client not found' },

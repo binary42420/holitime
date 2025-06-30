@@ -130,7 +130,7 @@ export const authOptions: NextAuthOptions = {
     error: '/login',
   },
 
-  debug: process.env.NODE_ENV === 'development',
+  debug: true, // Enable debug in production to see what's happening
 
   session: {
     strategy: 'jwt',
@@ -138,4 +138,17 @@ export const authOptions: NextAuthOptions = {
   },
 
   secret: process.env.NEXTAUTH_SECRET,
+
+  // Add CORS configuration for production
+  cookies: {
+    sessionToken: {
+      name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
 };

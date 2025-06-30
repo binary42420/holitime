@@ -96,14 +96,12 @@ export async function getAllClients(): Promise<Client[]> {
 
 export async function getClientById(id: string): Promise<Client | null> {
   try {
-    console.log('getClientById called with ID:', id);
     const result = await query(`
       SELECT id, name, company_name, company_address, contact_person, contact_email, contact_phone
       FROM users
       WHERE id = $1 AND role = 'Client'
     `, [id]);
 
-    console.log('Query result rows:', result.rows.length);
     if (result.rows.length === 0) {
       return null;
     }
