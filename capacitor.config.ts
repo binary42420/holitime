@@ -5,8 +5,17 @@ const config: CapacitorConfig = {
   appName: 'holitime',
   webDir: 'out',
   server: {
-    androidScheme: 'https'
-  }
+    // For development - points to local dev server
+    url: process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : undefined,
+    // For production - use deployed API
+    androidScheme: 'https',
+    cleartext: true
+  },
+  plugins: {
+    CapacitorHttp: {
+      enabled: true,
+    },
+  },
 };
 
 export default config;

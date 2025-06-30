@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Loader2, Upload, FileSpreadsheet, Download, CheckCircle, AlertCircle, Cloud } from "lucide-react"
 
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import {
   Card,
   CardContent,

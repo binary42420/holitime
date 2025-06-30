@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'

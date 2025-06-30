@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/Button"
+import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Plus, Minus, Users } from "lucide-react"
 import { RoleCode } from "@/lib/types"
