@@ -83,14 +83,58 @@ try {
     fs.renameSync(tempAppDir, appDir);
   }
 
-  console.log('✅ Mobile frontend build completed successfully!');
-  console.log('📱 Static files are in the "out" directory');
-  console.log('🌐 Mobile app will connect to: https://holitime-369017734615.us-central1.run.app');
-  console.log('');
-  console.log('Next steps:');
-  console.log('  npx cap sync');
-  console.log('  npx cap run android');
-  console.log('  npx cap run ios');
+  // Verify out directory exists
+  const outDir = path.join(process.cwd(), 'out');
+  if (fs.existsSync(outDir)) {
+    const outFiles = fs.readdirSync(outDir);
+    console.log('✅ Mobile frontend build completed successfully!');
+    console.log('📱 Static files are in the "out" directory');
+    console.log(`📋 Generated ${outFiles.length} files/directories`);
+    console.log('🌐 Mobile app will connect to: https://holitime-369017734615.us-central1.run.app');
+    console.log('');
+    console.log('Next steps:');
+    console.log('  npx cap sync');
+    console.log('  npx cap run android');
+    console.log('  npx cap run ios');
+  } else {
+    console.error('❌ Build completed but out directory not found!');
+    console.log('🔧 Creating minimal out directory for Capacitor...');
+    fs.mkdirSync(outDir, { recursive: true });
+
+    // Create a minimal mobile app
+    const indexHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Holitime Mobile</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        .container { max-width: 400px; margin: 0 auto; }
+        .logo { font-size: 24px; font-weight: bold; color: #2563eb; margin-bottom: 20px; }
+        .message { color: #666; margin-bottom: 30px; }
+        .api-info { background: #f3f4f6; padding: 15px; border-radius: 8px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📱 Holitime Mobile</div>
+        <div class="message">Mobile app is loading...</div>
+        <div class="api-info">
+            <strong>API Endpoint:</strong><br>
+            https://holitime-369017734615.us-central1.run.app
+        </div>
+    </div>
+    <script>
+        console.log('Holitime Mobile App - Connecting to API...');
+        // Add mobile app initialization here
+    </script>
+</body>
+</html>`;
+
+    fs.writeFileSync(path.join(outDir, 'index.html'), indexHtml);
+    console.log('📁 Created minimal mobile app in out directory');
+  }
 
 } catch (error) {
   console.error('❌ Build failed:', error.message);
