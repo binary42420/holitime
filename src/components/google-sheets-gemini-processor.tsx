@@ -187,6 +187,7 @@ export default function GoogleSheetsGeminiProcessor({
       updateStepStatus('validate', 'completed', 100)
 
       setGeminiResult(result)
+      onCSVGenerated(result.csvData)
 
       toast({
         title: 'Processing Complete',
