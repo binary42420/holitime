@@ -47,13 +47,20 @@ try {
   });
 
   // 4. Create a temporary API routes directory to exclude them
-  console.log('🚫 Temporarily removing API routes for static export...');
+  console.log('🚫 Temporarily removing API routes and dynamic routes for static export...');
   const apiDir = path.join(process.cwd(), 'src', 'app', 'api');
-  const tempDir = path.join(process.cwd(), 'temp_api_backup');
+  const appDir = path.join(process.cwd(), 'src', 'app', '(app)');
+  const tempApiDir = path.join(process.cwd(), 'temp_api_backup');
+  const tempAppDir = path.join(process.cwd(), 'temp_app_backup');
 
   if (fs.existsSync(apiDir)) {
-    // Move to a location outside the src directory
-    fs.renameSync(apiDir, tempDir);
+    // Move API routes to backup
+    fs.renameSync(apiDir, tempApiDir);
+  }
+
+  if (fs.existsSync(appDir)) {
+    // Move app routes to backup (we'll only use the mobile dashboard)
+    fs.renameSync(appDir, tempAppDir);
   }
 
   // 5. Build with Next.js
@@ -68,9 +75,12 @@ try {
     }
   });
 
-  // 6. Restore API routes
-  if (fs.existsSync(tempDir)) {
-    fs.renameSync(tempDir, apiDir);
+  // 6. Restore API routes and app routes
+  if (fs.existsSync(tempApiDir)) {
+    fs.renameSync(tempApiDir, apiDir);
+  }
+  if (fs.existsSync(tempAppDir)) {
+    fs.renameSync(tempAppDir, appDir);
   }
 
   console.log('✅ Mobile frontend build completed successfully!');
@@ -85,11 +95,17 @@ try {
 } catch (error) {
   console.error('❌ Build failed:', error.message);
 
-  // Restore API routes if they were moved
+  // Restore API routes and app routes if they were moved
   const apiDir = path.join(process.cwd(), 'src', 'app', 'api');
-  const tempDir = path.join(process.cwd(), 'temp_api_backup');
-  if (fs.existsSync(tempDir)) {
-    fs.renameSync(tempDir, apiDir);
+  const appDir = path.join(process.cwd(), 'src', 'app', '(app)');
+  const tempApiDir = path.join(process.cwd(), 'temp_api_backup');
+  const tempAppDir = path.join(process.cwd(), 'temp_app_backup');
+
+  if (fs.existsSync(tempApiDir)) {
+    fs.renameSync(tempApiDir, apiDir);
+  }
+  if (fs.existsSync(tempAppDir)) {
+    fs.renameSync(tempAppDir, appDir);
   }
 
   process.exit(1);

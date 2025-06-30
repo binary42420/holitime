@@ -54,6 +54,18 @@ const nextConfig: NextConfig = {
         path: false,
       };
     }
+
+    // Exclude handsonlabor-website directory from build
+    config.module.rules.push({
+      test: /\.(js|jsx|ts|tsx)$/,
+      exclude: [
+        /node_modules/,
+        /handsonlabor-website/,
+        /\.next/,
+        /out/,
+      ],
+    });
+
     return config;
   },
 };
