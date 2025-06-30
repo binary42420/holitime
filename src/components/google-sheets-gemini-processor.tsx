@@ -1,15 +1,15 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
-import { Progress } from '@/components/ui/progress'
-import { useToast } from '@/hooks/use-toast'
-import { EnhancedFeedback, AsyncContent, StatusIndicator } from '@/components/ui/enhanced-feedback'
-import { GeminiProcessor } from '@/lib/services/gemini-processor'
+import { Button } from 'components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from 'components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from 'components/ui/alert'
+import { Badge } from 'components/ui/badge'
+import { Textarea } from 'components/ui/textarea'
+import { Progress } from 'components/ui/progress'
+import { useToast } from 'hooks/use-toast'
+import { EnhancedFeedback, AsyncContent, StatusIndicator } from 'components/ui/enhanced-feedback'
+import { GeminiProcessor } from 'lib/services/gemini-processor'
 import { 
   Loader2, 
   FileSpreadsheet, 
@@ -117,8 +117,7 @@ export default function GoogleSheetsGeminiProcessor({
       let sheetsData: any
 
       if (accessToken) {
-        console.log('Using OAuth method for data extraction...')
-        sheetsResponse = await fetch(`/api/import/google-sheets/fetch-with-oauth/${selectedFile.id}`, {
+        sheetsResponse = await fetch(\`/api/import/google-sheets/fetch-with-oauth/\${selectedFile.id}\`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -126,8 +125,7 @@ export default function GoogleSheetsGeminiProcessor({
           body: JSON.stringify({ accessToken })
         })
       } else {
-        console.log('Using API key method for data extraction...')
-        sheetsResponse = await fetch(`/api/import/google-sheets/fetch/${selectedFile.id}`)
+        sheetsResponse = await fetch(\`/api/import/google-sheets/fetch/\${selectedFile.id}\`)
       }
 
       if (!sheetsResponse.ok) {
@@ -166,9 +164,9 @@ export default function GoogleSheetsGeminiProcessor({
           sheetsData: sheetsData,
           prompt: generateEnhancedPrompt(sheetsData),
           options: {
-            temperature: 0.1, // Low temperature for consistent results
+            temperature: 0.1,
             maxTokens: 4000,
-            model: 'gemini-2.0-flash-exp' // Use latest model
+            model: 'gemini-2.0-flash-exp'
           }
         })
       })
@@ -190,9 +188,11 @@ export default function GoogleSheetsGeminiProcessor({
 
       setGeminiResult(result)
 
+      onCSVGenerated(result.csvData)
+
       toast({
         title: 'Processing Complete',
-        description: `Successfully processed ${result.csvData.split('\n').length - 1} rows with ${(result.confidence * 100).toFixed(1)}% confidence`,
+        description: \`Successfully processed \${result.csvData.split('\\n').length - 1} rows with \${(result.confidence * 100).toFixed(1)}% confidence\`,
         duration: 5000
       })
 
@@ -217,7 +217,7 @@ export default function GoogleSheetsGeminiProcessor({
   }
 
   const generateEnhancedPrompt = (sheetsData: any) => {
-    return `You are an expert data transformation specialist for Holitime, a professional shift management system. Your task is to analyze Google Sheets data and convert it into our standardized CSV format with maximum accuracy.
+    return \`You are an expert data transformation specialist for Holitime, a professional shift management system. Your task is to analyze Google Sheets data and convert it into our standardized CSV format with maximum accuracy.
 
 CRITICAL REQUIREMENTS:
 ======================
@@ -297,7 +297,7 @@ Please analyze the provided data and return a JSON response with:
 }
 
 Sheet Data to Process:
-${JSON.stringify(sheetsData, null, 2)}`
+\${JSON.stringify(sheetsData, null, 2)}\`
   }
 
   const downloadCSV = () => {
@@ -307,16 +307,84 @@ ${JSON.stringify(sheetsData, null, 2)}`
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${I have implemented the following enhancements as per your request:
+    a.download = \`\${selectedFile.name || 'export'}.csv\`
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }
 
-- Continued with additional UI/UX improvements focusing on mobile responsiveness, advanced notifications, and bulk operations.
-- Improved the Google Sheets import feature by creating a dedicated Gemini processor service with enhanced prompts and data validation to achieve the best extraction results from Gemini 2.5 Flash.
+  useEffect(() => {
+    if (geminiResult?.csvData) {
+      onCSVGenerated(geminiResult.csvData)
+    }
+  }, [geminiResult, onCSVGenerated])
 
-The system now has a robust, user-friendly interface with intelligent data extraction capabilities.
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Google Sheets Gemini Processor</CardTitle>
+        <CardDescription>
+          Processes the selected Google Sheets file using Gemini AI with enhanced prompts and validation.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-You can proceed to test these improvements or let me know if you want assistance with deployment, further enhancements, or documentation.
+        <div className="space-y-4">
+          <div>
+            <h4 className="font-semibold mb-2">Processing Steps</h4>
+            <ul className="space-y-2">
+              {processingSteps.map((step, index) => (
+                <li key={step.id} className="flex items-center space-x-2">
+                  <StatusIndicator status={step.status} />
+                  <div>
+                    <p className="font-medium">{step.name}</p>
+                    <p className="text-sm text-muted-foreground">{step.description}</p>
+                  </div>
+                  {step.status === 'processing' && (
+                    <Progress value={step.progress || 0} className="flex-1 ml-4" />
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
 
-<attempt_completion>
-<result>
-The UI/UX improvements and Google Sheets import enhancements have been successfully implemented. The Gemini processor now uses advanced prompts and validation to maximize data extraction accuracy. The system is ready for further testing or deployment.
-</result>
+          <div className="flex space-x-4 mt-6">
+            <Button
+              onClick={processWithGemini}
+              disabled={isProcessing}
+              variant="primary"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                'Start Processing'
+              )}
+            </Button>
+
+            {geminiResult?.csvData && (
+              <Button onClick={downloadCSV} variant="secondary">
+                <Download className="mr-2 h-4 w-4" />
+                Download CSV
+              </Button>
+            )}
+          </div>
+
+          {geminiResult && (
+            <EnhancedFeedback
+              summary={geminiResult.summaryReport}
+              warnings={geminiResult.warnings}
+              confidence={geminiResult.confidence}
+            />
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
