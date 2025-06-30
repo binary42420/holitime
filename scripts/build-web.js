@@ -23,7 +23,15 @@ try {
   // Clean previous builds
   if (fs.existsSync('.next')) {
     console.log('🧹 Cleaning previous builds...');
-    execSync('rmdir /s /q .next', { stdio: 'inherit' });
+    try {
+      if (process.platform === 'win32') {
+        execSync('rmdir /s /q .next', { stdio: 'inherit' });
+      } else {
+        execSync('rm -rf .next', { stdio: 'inherit' });
+      }
+    } catch (error) {
+      console.log('⚠️  Could not clean .next directory, continuing...');
+    }
   }
   
   // Build web application
