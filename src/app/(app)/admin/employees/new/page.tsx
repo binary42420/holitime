@@ -63,9 +63,6 @@ const availableCertifications = [
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
-
 function NewEmployeePage() {
   const { user } = useUser()
   const router = useRouter()

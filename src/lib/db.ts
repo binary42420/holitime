@@ -1,10 +1,29 @@
 import { Pool, PoolClient, QueryResult } from 'pg';
 
 let pool: Pool | null = null;
+let poolStats = {
+  totalQueries: 0,
+  successfulQueries: 0,
+  failedQueries: 0,
+  averageQueryTime: 0,
+  connectionErrors: 0,
+  lastError: null as string | null,
+  lastErrorTime: null as Date | null
+};
 
 interface QueryOptions {
   timeout?: number;
   retries?: number;
+  useReadReplica?: boolean;
+  priority?: 'low' | 'normal' | 'high';
+}
+
+interface QueryMetrics {
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  success: boolean;
+  error?: string;
 }
 
 export function getPool(): Pool {
@@ -31,26 +50,42 @@ export function getPool(): Pool {
       }
     }
 
+    // Enhanced pool configuration for Cloud Run
     pool = new Pool({
       connectionString,
       ssl: sslConfig,
-      max: 5, // Reduced from 20 to 5 to avoid "too many connections" error
+      max: process.env.NODE_ENV === 'production' ? 10 : 5, // More connections in production
       min: 1, // Keep at least 1 connection alive
-      idleTimeoutMillis: 10000, // Reduced from 30s to 10s to release connections faster
-      connectionTimeoutMillis: 5000,
-      statement_timeout: 30000, // 30 second query timeout
-      query_timeout: 30000
+      idleTimeoutMillis: 30000, // 30 seconds idle timeout
+      connectionTimeoutMillis: 10000, // 10 seconds connection timeout
+      statement_timeout: 60000, // 60 second query timeout
+      query_timeout: 60000,
+      // Additional Cloud Run optimizations
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000,
+      allowExitOnIdle: false, // Important for Cloud Run
     });
 
-    // Handle pool errors
+    // Enhanced error handling with metrics
     pool.on('error', (err) => {
       console.error('Unexpected error on idle client', err);
+      poolStats.connectionErrors++;
+      poolStats.lastError = err.message;
+      poolStats.lastErrorTime = new Date();
+    });
+
+    pool.on('connect', (client) => {
+      console.log('New client connected to database');
+    });
+
+    pool.on('remove', (client) => {
+      console.log('Client removed from pool');
     });
   }
   return pool;
 }
 
-// Secure query function with parameter validation
+// Enhanced query function with metrics and caching
 export async function query(
   text: string, 
   params?: any[], 
@@ -69,26 +104,136 @@ export async function query(
     }
   }
 
+  const metrics: QueryMetrics = {
+    startTime: Date.now(),
+    success: false
+  };
+
+  poolStats.totalQueries++;
+
   const pool = getPool();
-  const client = await pool.connect();
+  let client: PoolClient | null = null;
   
   try {
+    client = await pool.connect();
+    
     // Set statement timeout if specified
     if (options.timeout) {
       await client.query(`SET statement_timeout = ${options.timeout}`);
     }
 
+    // Set query priority if specified
+    if (options.priority === 'low') {
+      await client.query('SET statement_timeout = 120000'); // 2 minutes for low priority
+    } else if (options.priority === 'high') {
+      await client.query('SET statement_timeout = 30000'); // 30 seconds for high priority
+    }
+
     const result = await client.query(text, params);
+    
+    metrics.endTime = Date.now();
+    metrics.duration = metrics.endTime - metrics.startTime;
+    metrics.success = true;
+    
+    // Update stats
+    poolStats.successfulQueries++;
+    updateAverageQueryTime(metrics.duration);
+    
+    // Log slow queries in production
+    if (process.env.NODE_ENV === 'production' && metrics.duration > 5000) {
+      console.warn('Slow query detected:', {
+        query: text.substring(0, 200) + '...',
+        duration: metrics.duration,
+        params: params ? params.length : 0
+      });
+    }
+
     return result;
   } catch (error) {
+    metrics.endTime = Date.now();
+    metrics.duration = metrics.endTime - metrics.startTime;
+    metrics.error = error instanceof Error ? error.message : 'Unknown error';
+    
+    poolStats.failedQueries++;
+    poolStats.lastError = metrics.error;
+    poolStats.lastErrorTime = new Date();
+    
     console.error('Database query error:', {
-      query: text.substring(0, 100) + '...', // Log first 100 chars only
-      error: error instanceof Error ? error.message : 'Unknown error',
-      params: params ? params.length : 0
+      query: text.substring(0, 100) + '...',
+      error: metrics.error,
+      duration: metrics.duration,
+      params: params ? params.length : 0,
+      poolStats: getPoolStats()
     });
     throw error;
   } finally {
-    client.release();
+    if (client) {
+      client.release();
+    }
+  }
+}
+
+// Helper function to update average query time
+function updateAverageQueryTime(duration: number): void {
+  const totalQueries = poolStats.successfulQueries;
+  if (totalQueries === 1) {
+    poolStats.averageQueryTime = duration;
+  } else {
+    poolStats.averageQueryTime = (poolStats.averageQueryTime * (totalQueries - 1) + duration) / totalQueries;
+  }
+}
+
+// Cached query function for read-heavy operations
+export async function cachedQuery(
+  text: string,
+  params?: any[],
+  cacheKey?: string,
+  cacheTime: number = 5 * 60 * 1000, // 5 minutes default
+  options: QueryOptions = {}
+): Promise<QueryResult> {
+  // Import cache here to avoid circular dependency
+  const { globalCache } = await import('./cache');
+  
+  if (cacheKey) {
+    const cached = globalCache.get<QueryResult>(cacheKey);
+    if (cached && !cached.isStale) {
+      return cached.data;
+    }
+  }
+
+  const result = await query(text, params, options);
+  
+  if (cacheKey) {
+    const { globalCache } = await import('./cache');
+    globalCache.set(cacheKey, result, cacheTime, ['database']);
+  }
+
+  return result;
+}
+
+// Batch query function for multiple operations
+export async function batchQuery(
+  queries: Array<{ text: string; params?: any[]; options?: QueryOptions }>,
+  useTransaction: boolean = false
+): Promise<QueryResult[]> {
+  if (useTransaction) {
+    return withTransaction(async (client) => {
+      const results: QueryResult[] = [];
+      for (const { text, params, options = {} } of queries) {
+        // Set timeout if specified
+        if (options.timeout) {
+          await client.query(`SET statement_timeout = ${options.timeout}`);
+        }
+        const result = await client.query(text, params);
+        results.push(result);
+      }
+      return results;
+    });
+  } else {
+    const promises = queries.map(({ text, params, options }) => 
+      query(text, params, options)
+    );
+    return Promise.all(promises);
   }
 }
 
@@ -126,28 +271,189 @@ export async function closePool(): Promise<void> {
   }
 }
 
-// Health check function to test database connectivity
-export async function checkDatabaseHealth(): Promise<boolean> {
-  try {
-    const result = await query('SELECT 1 as health_check');
-    return result.rows.length > 0 && result.rows[0].health_check === 1;
-  } catch (error) {
-    console.error('Database health check failed:', error);
-    return false;
-  }
-}
 
-// Get pool statistics for monitoring
+// Enhanced pool statistics for monitoring
 export function getPoolStats() {
   if (!pool) {
     return null;
   }
 
   return {
+    // Pool connection stats
     totalCount: pool.totalCount,
     idleCount: pool.idleCount,
     waitingCount: pool.waitingCount,
+    
+    // Query performance stats
+    totalQueries: poolStats.totalQueries,
+    successfulQueries: poolStats.successfulQueries,
+    failedQueries: poolStats.failedQueries,
+    successRate: poolStats.totalQueries > 0 ? 
+      (poolStats.successfulQueries / poolStats.totalQueries * 100).toFixed(2) + '%' : '0%',
+    averageQueryTime: Math.round(poolStats.averageQueryTime),
+    
+    // Error tracking
+    connectionErrors: poolStats.connectionErrors,
+    lastError: poolStats.lastError,
+    lastErrorTime: poolStats.lastErrorTime,
+    
+    // Health indicators
+    isHealthy: poolStats.connectionErrors < 5 && 
+               (poolStats.totalQueries === 0 || poolStats.successfulQueries / poolStats.totalQueries > 0.95),
+    uptime: pool ? Date.now() - (poolStats.lastErrorTime?.getTime() || Date.now()) : 0
   };
+}
+
+// Enhanced health check with detailed diagnostics
+export async function checkDatabaseHealth(): Promise<{
+  healthy: boolean;
+  details: {
+    connectionTest: boolean;
+    queryTest: boolean;
+    poolStatus: any;
+    responseTime: number;
+    error?: string;
+  };
+}> {
+  const startTime = Date.now();
+  const details = {
+    connectionTest: false,
+    queryTest: false,
+    poolStatus: getPoolStats(),
+    responseTime: 0,
+    error: undefined as string | undefined
+  };
+
+  try {
+    // Test basic connection
+    const pool = getPool();
+    const client = await pool.connect();
+    details.connectionTest = true;
+    
+    try {
+      // Test query execution
+      const result = await client.query('SELECT 1 as health_check, NOW() as server_time');
+      details.queryTest = result.rows.length > 0 && result.rows[0].health_check === 1;
+      client.release();
+    } catch (queryError) {
+      client.release();
+      details.error = `Query test failed: ${queryError instanceof Error ? queryError.message : 'Unknown error'}`;
+    }
+  } catch (connectionError) {
+    details.error = `Connection test failed: ${connectionError instanceof Error ? connectionError.message : 'Unknown error'}`;
+  }
+
+  details.responseTime = Date.now() - startTime;
+  
+  return {
+    healthy: details.connectionTest && details.queryTest,
+    details
+  };
+}
+
+// Database performance monitoring
+export async function getDatabaseMetrics(): Promise<{
+  performance: {
+    activeConnections: number;
+    totalQueries: number;
+    averageQueryTime: number;
+    slowQueries: number;
+    errorRate: number;
+  };
+  health: {
+    isHealthy: boolean;
+    uptime: number;
+    lastError?: string;
+    lastErrorTime?: Date;
+  };
+  recommendations: string[];
+}> {
+  const stats = getPoolStats();
+  const health = await checkDatabaseHealth();
+  
+  const recommendations: string[] = [];
+  
+  if (stats) {
+    // Performance recommendations
+    if (stats.averageQueryTime > 1000) {
+      recommendations.push('Consider optimizing slow queries or adding database indexes');
+    }
+    
+    if (stats.waitingCount > 0) {
+      recommendations.push('Consider increasing database connection pool size');
+    }
+    
+    if (stats.connectionErrors > 3) {
+      recommendations.push('Investigate connection stability issues');
+    }
+    
+    const errorRate = stats.totalQueries > 0 ? 
+      (stats.failedQueries / stats.totalQueries) * 100 : 0;
+    
+    if (errorRate > 5) {
+      recommendations.push('High error rate detected - review query patterns and error logs');
+    }
+  }
+
+  return {
+    performance: {
+      activeConnections: stats?.totalCount || 0,
+      totalQueries: stats?.totalQueries || 0,
+      averageQueryTime: stats?.averageQueryTime || 0,
+      slowQueries: 0, // Could be enhanced to track slow queries
+      errorRate: stats ? (stats.failedQueries / Math.max(stats.totalQueries, 1)) * 100 : 0
+    },
+    health: {
+      isHealthy: health.healthy,
+      uptime: stats?.uptime || 0,
+      lastError: stats?.lastError || undefined,
+      lastErrorTime: stats?.lastErrorTime || undefined
+    },
+    recommendations
+  };
+}
+
+// Reset statistics (useful for testing or monitoring resets)
+export function resetPoolStats(): void {
+  poolStats = {
+    totalQueries: 0,
+    successfulQueries: 0,
+    failedQueries: 0,
+    averageQueryTime: 0,
+    connectionErrors: 0,
+    lastError: null,
+    lastErrorTime: null
+  };
+}
+
+// Graceful shutdown function for Cloud Run
+export async function gracefulShutdown(): Promise<void> {
+  console.log('Starting graceful database shutdown...');
+  
+  if (pool) {
+    try {
+      // Wait for active queries to complete (with timeout)
+      const shutdownTimeout = 30000; // 30 seconds
+      const startTime = Date.now();
+      
+      while (pool.totalCount > pool.idleCount && Date.now() - startTime < shutdownTimeout) {
+        console.log(`Waiting for ${pool.totalCount - pool.idleCount} active connections to finish...`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
+      await pool.end();
+      pool = null;
+      console.log('Database pool closed successfully');
+    } catch (error) {
+      console.error('Error during database shutdown:', error);
+    }
+  }
+}
+
+// Handle Cloud Run shutdown signals
+if (typeof process !== 'undefined') {
+  process.on('SIGTERM', gracefulShutdown);
+  process.on('SIGINT', gracefulShutdown);
 }
 
 

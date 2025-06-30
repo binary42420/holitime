@@ -18,9 +18,6 @@ interface ClientDetailPageProps {
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
-
 function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { id: clientId } = params
   const { user } = useUser()
