@@ -32,22 +32,25 @@ export async function GET(request: NextRequest) {
     `, [today]);
 
     // Get assigned personnel counts in a separate, simple query
-    const assignedCountsResult = await query(`
-      SELECT
-        shift_id,
-        COUNT(*) as assigned_count
-      FROM assigned_personnel
-      WHERE shift_id IN (${result.rows.map((_, i) => `$${i + 1}`).join(',')})
-        AND is_placeholder = false
-      GROUP BY shift_id
-    `, result.rows.map(row => row.id));
-
-    // Create a map of assigned counts for quick lookup
     const assignedCountsMap = new Map();
-    if (assignedCountsResult.rows) {
-      assignedCountsResult.rows.forEach(row => {
-        assignedCountsMap.set(row.shift_id, parseInt(row.assigned_count) || 0);
-      });
+
+    if (result.rows.length > 0) {
+      const assignedCountsResult = await query(`
+        SELECT
+          shift_id,
+          COUNT(*) as assigned_count
+        FROM assigned_personnel
+        WHERE shift_id IN (${result.rows.map((_, i) => `$${i + 1}`).join(',')})
+          AND is_placeholder = false
+        GROUP BY shift_id
+      `, result.rows.map(row => row.id));
+
+      // Create a map of assigned counts for quick lookup
+      if (assignedCountsResult.rows) {
+        assignedCountsResult.rows.forEach(row => {
+          assignedCountsMap.set(row.shift_id, parseInt(row.assigned_count) || 0);
+        });
+      }
     }
 
     // Transform the data to match the expected format (simplified for performance)
@@ -79,15 +82,19 @@ export async function GET(request: NextRequest) {
       filteredShifts = shifts.filter(shift => shift.crewChiefId === user.id);
     } else if (user.role === 'Employee') {
       // For employees, we need to check assigned_personnel table
-      const employeeShiftsResult = await query(`
-        SELECT DISTINCT shift_id
-        FROM assigned_personnel
-        WHERE employee_id = $1
-          AND shift_id IN (${shifts.map((_, i) => `$${i + 2}`).join(',')})
-      `, [user.id, ...shifts.map(s => s.id)]);
+      if (shifts.length > 0) {
+        const employeeShiftsResult = await query(`
+          SELECT DISTINCT shift_id
+          FROM assigned_personnel
+          WHERE employee_id = $1
+            AND shift_id IN (${shifts.map((_, i) => `$${i + 2}`).join(',')})
+        `, [user.id, ...shifts.map(s => s.id)]);
 
-      const employeeShiftIds = new Set(employeeShiftsResult.rows.map(row => row.shift_id));
-      filteredShifts = shifts.filter(shift => employeeShiftIds.has(shift.id));
+        const employeeShiftIds = new Set(employeeShiftsResult.rows.map(row => row.shift_id));
+        filteredShifts = shifts.filter(shift => employeeShiftIds.has(shift.id));
+      } else {
+        filteredShifts = [];
+      }
     }
     // Manager/Admin and Client users see all shifts
 

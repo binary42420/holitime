@@ -39,8 +39,7 @@ export function getPool(): Pool {
       idleTimeoutMillis: 10000, // Reduced from 30s to 10s to release connections faster
       connectionTimeoutMillis: 5000,
       statement_timeout: 30000, // 30 second query timeout
-      query_timeout: 30000,
-      acquireTimeoutMillis: 5000, // Timeout for acquiring a connection from pool
+      query_timeout: 30000
     });
 
     // Handle pool errors
