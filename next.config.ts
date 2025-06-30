@@ -2,8 +2,8 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: process.env.CAPACITOR_BUILD ? 'export' : 'standalone',
-  trailingSlash: process.env.CAPACITOR_BUILD ? true : false,
+  output: 'export',
+  trailingSlash: true,
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    unoptimized: process.env.CAPACITOR_BUILD ? true : false,
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',

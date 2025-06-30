@@ -1,0 +1,7 @@
+{
+  "name": "holitime",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "custom"
+}
