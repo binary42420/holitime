@@ -8,8 +8,6 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
-import { EnhancedFeedback, AsyncContent, StatusIndicator } from '@/components/ui/enhanced-feedback'
-import { GeminiProcessor } from '@/lib/services/gemini-processor'
 import { 
   Loader2, 
   FileSpreadsheet, 
@@ -168,7 +166,7 @@ export default function GoogleSheetsGeminiProcessor({
           options: {
             temperature: 0.1, // Low temperature for consistent results
             maxTokens: 4000,
-            model: 'gemini-2.0-flash-exp' // Use latest model
+            model: 'gemini-1.5-flash' // Use latest model
           }
         })
       })
@@ -303,20 +301,166 @@ ${JSON.stringify(sheetsData, null, 2)}`
   const downloadCSV = () => {
     if (!geminiResult?.csvData) return
 
-    const blob = new Blob([geminiResult.csvData], { type: 'text/csv' })
+    const blob = new Blob([geminiResult.csvData], { type: 'text/csv;charset=utf-8;' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `${I have implemented the following enhancements as per your request:
+    a.download = `${selectedFile?.name?.split('.')[0] || 'processed'}-holitime.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+  }
 
-- Continued with additional UI/UX improvements focusing on mobile responsiveness, advanced notifications, and bulk operations.
-- Improved the Google Sheets import feature by creating a dedicated Gemini processor service with enhanced prompts and data validation to achieve the best extraction results from Gemini 2.5 Flash.
+  const getStepIcon = (status: ProcessingStep['status']) => {
+    switch (status) {
+      case 'processing':
+        return <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+      case 'completed':
+        return <CheckCircle className="h-5 w-5 text-green-500" />
+      case 'error':
+        return <AlertCircle className="h-5 w-5 text-red-500" />
+      default:
+        return <FileSpreadsheet className="h-5 w-5 text-gray-400" />
+    }
+  }
 
-The system now has a robust, user-friendly interface with intelligent data extraction capabilities.
+  return (
+    <Card className="w-full max-w-2xl mx-auto">
+      <CardHeader>
+        <div className="flex items-center space-x-3">
+          <Sparkles className="h-8 w-8 text-purple-500" />
+          <div>
+            <CardTitle>Gemini-Powered Sheets Processor</CardTitle>
+            <CardDescription>
+              AI-driven data extraction and transformation for Holitime.
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {!isProcessing && !geminiResult && (
+          <div className="text-center py-8">
+            <Brain className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium">Ready to Process</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Click the button below to start the AI-powered data transformation.
+            </p>
+            <Button onClick={processWithGemini} disabled={!selectedFile || isProcessing}>
+              <Sparkles className="mr-2 h-4 w-4" />
+              {isProcessing ? 'Processing...' : `Process ${selectedFile?.name || 'Sheet'}`}
+            </Button>
+          </div>
+        )}
 
-You can proceed to test these improvements or let me know if you want assistance with deployment, further enhancements, or documentation.
+        {isProcessing && (
+          <div>
+            <div className="flex items-center justify-center mb-4">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-500 mr-3" />
+              <p className="text-lg font-medium">AI is at work...</p>
+            </div>
+            <ul className="space-y-4">
+              {processingSteps.map((step, index) => (
+                <li key={step.id} className="flex items-start">
+                  <div className="flex-shrink-0">{getStepIcon(step.status)}</div>
+                  <div className="ml-4">
+                    <p className={`font-medium ${currentStep === index ? 'text-primary' : ''}`}>
+                      {step.name}
+                    </p>
+                    <p className="text-sm text-muted-foreground">{step.description}</p>
+                    {step.status === 'processing' && step.progress !== undefined && (
+                      <Progress value={step.progress} className="mt-2 h-2" />
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-<attempt_completion>
-<result>
-The UI/UX improvements and Google Sheets import enhancements have been successfully implemented. The Gemini processor now uses advanced prompts and validation to maximize data extraction accuracy. The system is ready for further testing or deployment.
-</result>
+        {error && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Processing Error</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {geminiResult && (
+          <div className="mt-6 space-y-6">
+            <Alert variant="default" className="bg-green-50 border-green-200">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertTitle className="text-green-800">Processing Successful!</AlertTitle>
+              <AlertDescription className="text-green-700">
+                Your data has been transformed and is ready for download.
+              </AlertDescription>
+            </Alert>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center"><TrendingUp className="mr-2 h-5 w-5 text-blue-500" />Confidence Score</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-blue-600">
+                    {(geminiResult.confidence * 100).toFixed(1)}%
+                  </p>
+                  <p className="text-xs text-muted-foreground">AI confidence in data accuracy.</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center"><Target className="mr-2 h-5 w-5 text-green-500" />Mapped Fields</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-green-600">
+                    {Object.keys(geminiResult.mappedFields).length}
+                  </p>
+                   <p className="text-xs text-muted-foreground">Source columns mapped to target.</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center"><Eye className="mr-2 h-5 w-5" />Summary Report</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea readOnly value={geminiResult.summaryReport} className="h-32 text-sm" />
+              </CardContent>
+            </Card>
+
+            {geminiResult.warnings && geminiResult.warnings.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center"><AlertCircle className="mr-2 h-5 w-5 text-amber-500" />Warnings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2">
+                    {geminiResult.warnings.map((warning, index) => (
+                      <li key={index} className="text-sm flex items-start">
+                        <Badge variant="destructive" className="mr-2 mt-1">!</Badge> 
+                        <span>{warning}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="flex justify-end space-x-3 mt-6">
+              <Button variant="outline" onClick={processWithGemini} disabled={isProcessing}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Reprocess
+              </Button>
+              <Button onClick={downloadCSV}>
+                <Download className="mr-2 h-4 w-4" />
+                Download CSV
+              </Button>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
