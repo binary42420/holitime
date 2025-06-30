@@ -3,5 +3,6 @@
   "integrations": {
     "capacitor": {}
   },
-  "type": "custom"
+  "type": "custom",
+  "version": "1.0.0"
 }
