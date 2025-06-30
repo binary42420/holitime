@@ -7,6 +7,7 @@
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
     "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "node scripts/smart-build.js",
+    "build:web": "next build",
     "build:capacitor": "node scripts/build-capacitor.js",
     "start": "next start",
     "lint": "next lint",
