@@ -1,4 +1,4 @@
-# Use the official Node.js 20 image (required for Capacitor CLI)
+# Use the official Node.js 20 image (required for pdfjs-dist and other dependencies)
 FROM node:20-alpine AS base
 
 # Install dependencies only when needed
@@ -22,7 +22,7 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN npm run build
+RUN npx next build
 
 # Production image, copy all the files and run next
 FROM base AS runner

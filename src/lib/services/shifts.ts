@@ -13,6 +13,29 @@ export async function getTodaysShifts(): Promise<Shift[]> {
     }
 
     const result = await query(`
+      WITH shift_personnel AS (
+        SELECT
+          ap.shift_id,
+          json_agg(
+            json_build_object(
+              'employee', json_build_object(
+                'id', u.id,
+                'name', u.name,
+                'certifications', u.certifications,
+                'performance', u.performance,
+                'location', u.location,
+                'avatar', u.avatar
+              ),
+              'roleOnShift', ap.role_on_shift,
+              'roleCode', ap.role_code,
+              'status', ap.status,
+              'isPlaceholder', ap.is_placeholder
+            )
+          ) as assigned_personnel
+        FROM assigned_personnel ap
+        LEFT JOIN users u ON ap.employee_id = u.id
+        GROUP BY ap.shift_id
+      )
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         COALESCE(s.requested_workers, 1) as requested_workers,
@@ -20,30 +43,23 @@ export async function getTodaysShifts(): Promise<Shift[]> {
         COALESCE(c.company_name, c.name) as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
-        (COUNT(CASE WHEN ap.is_placeholder = false THEN ap.id END) + CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
+        sp.assigned_personnel,
+        (
+          SELECT COUNT(*)
+          FROM assigned_personnel ap
+          WHERE ap.shift_id = s.id AND ap.is_placeholder = false
+        ) + (CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
-      LEFT JOIN assigned_personnel ap ON s.id = ap.shift_id
+      LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
       WHERE s.date = CURRENT_DATE
-      GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-               s.requested_workers, j.id, j.name, j.client_id, c.company_name, c.name,
-               cc.id, cc.name, cc.avatar, t.id, t.status
       ORDER BY s.start_time, s.date
     `);
 
-    const shifts: Shift[] = [];
-
-    for (const row of result.rows) {
-      // Get assigned personnel for this shift
-      const assignedPersonnel = await getAssignedPersonnelForShift(row.id);
-
-      // Get worker requirements for this shift
-      const workerRequirements = await getWorkerRequirements(row.id);
-
-      shifts.push({
+    const shifts: Shift[] = result.rows.map(row => ({
         id: row.id,
         timesheetId: row.timesheet_id || '',
         date: row.date,
@@ -69,11 +85,10 @@ export async function getTodaysShifts(): Promise<Shift[]> {
         crewChiefId: row.crew_chief_id,
         crewChiefName: row.crew_chief_name,
         crewChiefAvatar: row.crew_chief_avatar,
-        assignedPersonnel,
-        workerRequirements: workerRequirements || [],
+        assignedPersonnel: row.assigned_personnel || [],
+        workerRequirements: [], // This will be populated by a separate query if needed
         timesheetStatus: row.timesheet_status || 'Not Started',
-      });
-    }
+      }));
 
     return shifts;
   } catch (error) {
@@ -93,6 +108,29 @@ export async function getAllShifts(): Promise<Shift[]> {
     }
 
     const result = await query(`
+      WITH shift_personnel AS (
+        SELECT
+          ap.shift_id,
+          json_agg(
+            json_build_object(
+              'employee', json_build_object(
+                'id', u.id,
+                'name', u.name,
+                'certifications', u.certifications,
+                'performance', u.performance,
+                'location', u.location,
+                'avatar', u.avatar
+              ),
+              'roleOnShift', ap.role_on_shift,
+              'roleCode', ap.role_code,
+              'status', ap.status,
+              'isPlaceholder', ap.is_placeholder
+            )
+          ) as assigned_personnel
+        FROM assigned_personnel ap
+        LEFT JOIN users u ON ap.employee_id = u.id
+        GROUP BY ap.shift_id
+      )
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         COALESCE(s.requested_workers, 1) as requested_workers,
@@ -100,55 +138,50 @@ export async function getAllShifts(): Promise<Shift[]> {
         COALESCE(c.company_name, c.name) as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
-        (COUNT(CASE WHEN ap.is_placeholder = false THEN ap.id END) + CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
+        sp.assigned_personnel,
+        (
+          SELECT COUNT(*) 
+          FROM assigned_personnel ap 
+          WHERE ap.shift_id = s.id AND ap.is_placeholder = false
+        ) + (CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
-      LEFT JOIN assigned_personnel ap ON s.id = ap.shift_id
-      GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-               s.requested_workers, j.id, j.name, j.client_id, c.company_name, c.name,
-               cc.id, cc.name, cc.avatar, t.id, t.status
+      LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
       ORDER BY s.date DESC, s.start_time
     `);
 
-    const shifts: Shift[] = [];
-    
-    for (const row of result.rows) {
-      // Get assigned personnel for this shift
-      const assignedPersonnel = await getAssignedPersonnelForShift(row.id);
-      
-      shifts.push({
-        id: row.id,
-        timesheetId: row.timesheet_id || '',
-        jobId: row.job_id,
-        jobName: row.job_name,
-        clientName: row.client_name,
-        authorizedCrewChiefIds: [row.crew_chief_id], // Simplified for now
-        date: row.date,
-        startTime: row.start_time,
-        endTime: row.end_time,
-        location: row.location,
-        requestedWorkers: parseInt(row.requested_workers) || 1,
-        assignedCount: parseInt(row.assigned_count) || 0,
-        crewChief: {
-          id: row.crew_chief_id,
-          name: row.crew_chief_name,
-          certifications: [],
-          performance: 0,
-          location: '',
-          avatar: row.crew_chief_avatar || '',
-        },
-        crewChiefId: row.crew_chief_id,
-        crewChiefName: row.crew_chief_name,
-        crewChiefAvatar: row.crew_chief_avatar || '',
-        assignedPersonnel,
-        status: row.status,
-        timesheetStatus: row.timesheet_status || 'Pending Finalization',
-        notes: row.notes,
-      });
-    }
+    const shifts: Shift[] = result.rows.map(row => ({
+      id: row.id,
+      timesheetId: row.timesheet_id || '',
+      jobId: row.job_id,
+      jobName: row.job_name,
+      clientName: row.client_name,
+      authorizedCrewChiefIds: row.crew_chief_id ? [row.crew_chief_id] : [],
+      date: row.date,
+      startTime: row.start_time,
+      endTime: row.end_time,
+      location: row.location,
+      requestedWorkers: parseInt(row.requested_workers) || 1,
+      assignedCount: parseInt(row.assigned_count) || 0,
+      crewChief: row.crew_chief_id ? {
+        id: row.crew_chief_id,
+        name: row.crew_chief_name,
+        certifications: [],
+        performance: 0,
+        location: '',
+        avatar: row.crew_chief_avatar || '',
+      } : null,
+      crewChiefId: row.crew_chief_id,
+      crewChiefName: row.crew_chief_name,
+      crewChiefAvatar: row.crew_chief_avatar || '',
+      assignedPersonnel: row.assigned_personnel || [],
+      status: row.status,
+      timesheetStatus: row.timesheet_status || 'Pending Finalization',
+      notes: row.notes,
+    }));
 
     return shifts;
   } catch (error) {
@@ -160,17 +193,56 @@ export async function getAllShifts(): Promise<Shift[]> {
 export async function getShiftById(id: string): Promise<Shift | null> {
   try {
     const result = await query(`
+      WITH shift_personnel AS (
+        SELECT
+          ap.shift_id,
+          json_agg(
+            json_build_object(
+              'employee', json_build_object(
+                'id', u.id,
+                'name', u.name,
+                'certifications', u.certifications,
+                'performance', u.performance,
+                'location', u.location,
+                'avatar', u.avatar
+              ),
+              'roleOnShift', ap.role_on_shift,
+              'roleCode', ap.role_code,
+              'status', ap.status,
+              'isPlaceholder', ap.is_placeholder
+            )
+          ) as assigned_personnel
+        FROM assigned_personnel ap
+        LEFT JOIN users u ON ap.employee_id = u.id
+        GROUP BY ap.shift_id
+      ),
+      shift_requirements AS (
+        SELECT
+          wr.shift_id,
+          json_agg(
+            json_build_object(
+              'roleCode', wr.role_code,
+              'requiredCount', wr.required_count
+            )
+          ) as worker_requirements
+        FROM worker_requirements wr
+        GROUP BY wr.shift_id
+      )
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes, s.requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
         COALESCE(c.company_name, c.name) as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
-        t.id as timesheet_id, t.status as timesheet_status
+        t.id as timesheet_id, t.status as timesheet_status,
+        sp.assigned_personnel,
+        sr.worker_requirements
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
+      LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
+      LEFT JOIN shift_requirements sr ON s.id = sr.shift_id
       WHERE s.id = $1
     `, [id]);
 
@@ -179,8 +251,6 @@ export async function getShiftById(id: string): Promise<Shift | null> {
     }
 
     const row = result.rows[0];
-    const assignedPersonnel = await getAssignedPersonnelForShift(row.id);
-    const workerRequirements = await getWorkerRequirements(row.id);
 
     return {
       id: row.id,
@@ -194,7 +264,7 @@ export async function getShiftById(id: string): Promise<Shift | null> {
       endTime: row.end_time,
       location: row.location,
       requestedWorkers: row.requested_workers,
-      workerRequirements,
+      workerRequirements: row.worker_requirements || [],
       crewChiefName: row.crew_chief_name || null,
       crewChief: row.crew_chief_id ? {
         id: row.crew_chief_id,
@@ -204,7 +274,7 @@ export async function getShiftById(id: string): Promise<Shift | null> {
         location: '',
         avatar: row.crew_chief_avatar || '',
       } : null,
-      assignedPersonnel,
+      assignedPersonnel: row.assigned_personnel || [],
       status: row.status,
       timesheetStatus: row.timesheet_status || 'Pending Finalization',
       notes: row.notes,
@@ -215,95 +285,34 @@ export async function getShiftById(id: string): Promise<Shift | null> {
   }
 }
 
-async function getAssignedPersonnelForShift(shiftId: string): Promise<AssignedPersonnel[]> {
-  try {
-    const result = await query(`
-      SELECT
-        ap.id as assigned_id, ap.role_on_shift, ap.role_code, ap.status, ap.is_placeholder,
-        u.id as employee_id, u.name as employee_name, u.certifications, u.performance, u.location, u.avatar
-      FROM assigned_personnel ap
-      LEFT JOIN users u ON ap.employee_id = u.id
-      WHERE ap.shift_id = $1
-      ORDER BY ap.role_code, u.name
-    `, [shiftId]);
 
-    const personnel: AssignedPersonnel[] = [];
-
-    for (const row of result.rows) {
-      // Get time entries for this assigned personnel
-      const timeEntries = await getTimeEntriesForAssignedPersonnel(row.assigned_id);
-
-      if (row.is_placeholder) {
-        // Handle placeholder personnel
-        personnel.push({
-          employee: {
-            id: '',
-            name: 'Unassigned',
-            certifications: [],
-            performance: 0,
-            location: '',
-            avatar: '',
-          },
-          roleOnShift: row.role_on_shift || '',
-          roleCode: row.role_code,
-          status: row.status,
-          timeEntries,
-          isPlaceholder: true,
-        });
-      } else if (row.employee_id) {
-        personnel.push({
-          employee: {
-            id: row.employee_id,
-            name: row.employee_name,
-            certifications: row.certifications || [],
-            performance: parseFloat(row.performance) || 0,
-            location: row.location || '',
-            avatar: row.avatar || '',
-          },
-          roleOnShift: row.role_on_shift || '',
-          roleCode: row.role_code,
-          status: row.status,
-          timeEntries,
-        });
-      }
-    }
-
-    return personnel;
-  } catch (error) {
-    console.error('Error getting assigned personnel for shift:', error);
-    return [];
-  }
-}
-
-async function getTimeEntriesForAssignedPersonnel(assignedPersonnelId: string): Promise<{ clockIn?: string; clockOut?: string }[]> {
-  try {
-    const result = await query(`
-      SELECT entry_number, clock_in, clock_out
-      FROM time_entries
-      WHERE assigned_personnel_id = $1
-      ORDER BY entry_number
-    `, [assignedPersonnelId]);
-
-    const timeEntries: { clockIn?: string; clockOut?: string }[] = [];
-    
-    for (let i = 0; i < 3; i++) {
-      const entry = result.rows.find(row => row.entry_number === i + 1);
-      timeEntries.push({
-        clockIn: entry?.clock_in || '',
-        clockOut: entry?.clock_out || '',
-      });
-    }
-
-    return timeEntries;
-  } catch (error) {
-    console.error('Error getting time entries for assigned personnel:', error);
-    return [{ clockIn: '', clockOut: '' }, { clockIn: '', clockOut: '' }, { clockIn: '', clockOut: '' }];
-  }
-}
 
 export async function getShiftsByCrewChief(crewChiefId: string): Promise<Shift[]> {
   try {
     const result = await query(`
+      WITH shift_personnel AS (
+        SELECT
+          ap.shift_id,
+          json_agg(
+            json_build_object(
+              'employee', json_build_object(
+                'id', u.id,
+                'name', u.name,
+                'certifications', u.certifications,
+                'performance', u.performance,
+                'location', u.location,
+                'avatar', u.avatar
+              ),
+              'roleOnShift', ap.role_on_shift,
+              'roleCode', ap.role_code,
+              'status', ap.status,
+              'isPlaceholder', ap.is_placeholder
+            )
+          ) as assigned_personnel
+        FROM assigned_personnel ap
+        LEFT JOIN users u ON ap.employee_id = u.id
+        GROUP BY ap.shift_id
+      )
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         COALESCE(s.requested_workers, 1) as requested_workers,
@@ -311,26 +320,23 @@ export async function getShiftsByCrewChief(crewChiefId: string): Promise<Shift[]
         COALESCE(c.company_name, c.name) as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
-        (COUNT(CASE WHEN ap.is_placeholder = false THEN ap.id END) + CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
+        sp.assigned_personnel,
+        (
+          SELECT COUNT(*)
+          FROM assigned_personnel ap
+          WHERE ap.shift_id = s.id AND ap.is_placeholder = false
+        ) + (CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN users c ON j.client_id = c.id AND c.role = 'Client'
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
-      LEFT JOIN assigned_personnel ap ON s.id = ap.shift_id
+      LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
       WHERE s.crew_chief_id = $1
-      GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-               s.requested_workers, j.id, j.name, j.client_id, c.company_name, c.name,
-               cc.id, cc.name, cc.avatar, t.id, t.status
       ORDER BY s.date DESC, s.start_time
     `, [crewChiefId]);
 
-    const shifts: Shift[] = [];
-    
-    for (const row of result.rows) {
-      const assignedPersonnel = await getAssignedPersonnelForShift(row.id);
-      
-      shifts.push({
+    const shifts: Shift[] = result.rows.map(row => ({
         id: row.id,
         timesheetId: row.timesheet_id || '',
         jobId: row.job_id,
@@ -354,12 +360,11 @@ export async function getShiftsByCrewChief(crewChiefId: string): Promise<Shift[]
         crewChiefId: row.crew_chief_id,
         crewChiefName: row.crew_chief_name,
         crewChiefAvatar: row.crew_chief_avatar || '',
-        assignedPersonnel,
+        assignedPersonnel: row.assigned_personnel || [],
         status: row.status,
         timesheetStatus: row.timesheet_status || 'Pending Finalization',
         notes: row.notes,
-      });
-    }
+      }));
 
     return shifts;
   } catch (error) {

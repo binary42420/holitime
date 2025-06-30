@@ -99,13 +99,13 @@ const getStatusConfig = (status: string) => {
   }
 }
 
-const calculateTotalHours = (timeEntries: TimeEntry[]) => {
+const calculateTotalHours = (timeEntries: TimeEntry[] = []) => {
   let totalMinutes = 0
   
   timeEntries.forEach(entry => {
-    if (entry.clockIn) {
+    if (entry.clockIn && entry.clockOut) {
       const clockInTime = new Date(entry.clockIn)
-      const clockOutTime = entry.clockOut ? new Date(entry.clockOut) : new Date()
+      const clockOutTime = new Date(entry.clockOut)
       totalMinutes += differenceInMinutes(clockOutTime, clockInTime)
     }
   })
@@ -335,18 +335,26 @@ export default function UnifiedShiftManager({
                           {totalHours !== '0h 0m' && (
                             <span className="text-sm text-muted-foreground flex items-center gap-1">
                               <Timer className="h-3 w-3" />
-                              {totalHours} total
+                              {totalHours}
                             </span>
                           )}
                           
                           {currentEntry && currentEntry.clockIn && !currentEntry.clockOut && (
                             <span className="text-sm text-green-600 flex items-center gap-1">
                               <Clock className="h-3 w-3" />
-                              Since {format(new Date(currentEntry.clockIn), 'HH:mm')}
+                              Started at {format(new Date(currentEntry.clockIn), 'HH:mm')}
                             </span>
                           )}
                         </div>
                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {worker.timeEntries.map((entry, index) => (
+                        <div key={index} className="text-xs text-muted-foreground">
+                          {entry.clockIn ? format(new Date(entry.clockIn), 'HH:mm') : '--:--'} - {entry.clockOut ? format(new Date(entry.clockOut), 'HH:mm') : '--:--'}
+                        </div>
+                      ))}
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -362,49 +370,94 @@ export default function UnifiedShiftManager({
                         </Button>
                       )}
                       
+                      import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+
+// ... (rest of the component)
+
                       {worker.status === 'Clocked In' && (
                         <>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleClockAction(worker.id, 'clock_out')}
-                            disabled={isProcessing}
-                          >
-                            <Square className="h-3 w-3 mr-1" />
-                            Clock Out
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleEndShift(worker.id, worker.employeeName)}
-                            disabled={isProcessing}
-                          >
-                            <StopCircle className="h-3 w-3 mr-1" />
-                            End Shift
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleClockAction(worker.id, 'clock_out')}
+                                  disabled={isProcessing}
+                                >
+                                  <Square className="h-3 w-3 mr-1" />
+                                  Clock Out
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Clock out for a break.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleEndShift(worker.id, worker.employeeName)}
+                                  disabled={isProcessing}
+                                >
+                                  <StopCircle className="h-3 w-3 mr-1" />
+                                  End Shift
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>End the shift for this worker.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </>
                       )}
                       
                       {worker.status === 'Clocked Out' && (
                         <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleClockAction(worker.id, 'clock_in')}
-                            disabled={isProcessing}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <Play className="h-3 w-3 mr-1" />
-                            Clock In
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleEndShift(worker.id, worker.employeeName)}
-                            disabled={isProcessing}
-                          >
-                            <StopCircle className="h-3 w-3 mr-1" />
-                            End Shift
-                          </Button>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleClockAction(worker.id, 'clock_in')}
+                                  disabled={isProcessing}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  <Play className="h-3 w-3 mr-1" />
+                                  Clock In
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Clock in to start working.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleEndShift(worker.id, worker.employeeName)}
+                                  disabled={isProcessing}
+                                >
+                                  <StopCircle className="h-3 w-3 mr-1" />
+                                  End Shift
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>End the shift for this worker.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </>
                       )}
                       
@@ -435,24 +488,72 @@ export default function UnifiedShiftManager({
           </CardDescription>
         </CardHeader>
         <CardContent>
+          import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
+// ... (rest of the component)
+
           <div className="flex flex-wrap gap-3">
-            <Button
-              variant="outline"
-              onClick={handleEndAllShifts}
-              disabled={isProcessing || completedCount === totalWorkers}
-            >
-              <StopCircle className="h-4 w-4 mr-2" />
-              End All Shifts
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={isProcessing || completedCount === totalWorkers}
+                >
+                  <StopCircle className="h-4 w-4 mr-2" />
+                  End All Shifts
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will end the shift for all workers who have not yet completed their shift. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleEndAllShifts}>
+                    End All Shifts
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             
-            <Button
-              onClick={handleFinalizeTimesheet}
-              disabled={isProcessing || completedCount < totalWorkers}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Finalize Timesheet
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  disabled={isProcessing || completedCount < totalWorkers}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Finalize Timesheet
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will finalize the timesheet and send it for client approval. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleFinalizeTimesheet}>
+                    Finalize Timesheet
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
             
             {completedCount === totalWorkers && (
               <Badge className="bg-green-100 text-green-800 px-3 py-1">

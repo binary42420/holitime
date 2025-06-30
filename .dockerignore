@@ -91,3 +91,11 @@ jspm_packages/
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
+# Backup directories
+temp_app_backup
+handsonlabor-website
+
+# AI and development files
+src/ai
+*.ai
+

@@ -108,6 +108,15 @@ export async function getClientById(id: string): Promise<Client | null> {
 
     const row = result.rows[0];
 
+    // Get jobs for this client
+    const jobsResult = await query(`
+      SELECT id, name, description, status, start_date,
+        (SELECT COUNT(*) FROM shifts WHERE job_id = jobs.id) as shifts_count
+      FROM jobs
+      WHERE client_id = $1
+      ORDER BY start_date DESC
+    `, [id]);
+
     // Get authorized crew chiefs
     const crewChiefsResult = await query(`
       SELECT crew_chief_id FROM job_authorizations ja
@@ -154,6 +163,14 @@ export async function getClientById(id: string): Promise<Client | null> {
       contactPerson: row.contact_person,
       contactEmail: row.contact_email,
       contactPhone: row.contact_phone,
+      jobs: jobsResult.rows.map(job => ({
+        id: job.id,
+        name: job.name,
+        description: job.description,
+        status: job.status,
+        startDate: job.start_date,
+        shiftsCount: parseInt(job.shifts_count) || 0,
+      })),
       // Add backward compatibility fields for the frontend
       address: row.company_address, // Map companyAddress to address for frontend
       email: row.contact_email, // Map contactEmail to email for frontend

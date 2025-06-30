@@ -18,26 +18,43 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 
 export function MobileDashboard() {
-  const { data: todaysShifts, loading: shiftsLoading, error: shiftsError } = useMobileApi<any[]>('/api/shifts/today');
-  const { data: pendingTimesheets, loading: timesheetsLoading } = useMobileApi<any[]>('/api/timesheets/pending');
+  const { data: todaysShifts, loading: shiftsLoading, error: shiftsError, refetch: refetchShifts } = useMobileApi<any[]>('/api/shifts/today');
+  const { data: pendingTimesheets, loading: timesheetsLoading, refetch: refetchTimesheets } = useMobileApi<any[]>('/api/timesheets/pending');
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    // Force a page reload to refresh data
-    setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+    await Promise.all([refetchShifts(), refetchTimesheets()]);
+    setRefreshing(false);
   };
 
   const handleClockAction = async (shiftId: string, assignmentId: string, action: 'clock_in' | 'clock_out') => {
+    const originalShifts = todaysShifts ? [...todaysShifts] : [];
+    
+    // Optimistically update the UI
+    if (todaysShifts) {
+      const newShifts = todaysShifts.map(shift => {
+        if (shift.id === shiftId) {
+          return {
+            ...shift,
+            status: action === 'clock_in' ? 'active' : 'inactive',
+          };
+        }
+        return shift;
+      });
+      // This is a hack to update the state without a setter from the hook
+      // In a real app, the useMobileApi hook would return a state setter
+      Object.assign(todaysShifts, newShifts);
+    }
+
     try {
       // This would be implemented with the mobile API
       console.log(`${action} for shift ${shiftId}, assignment ${assignmentId}`);
-      // Refresh data after action
-      handleRefresh();
+      // No need to refresh, UI is already updated
     } catch (error) {
       console.error('Clock action failed:', error);
+      // Restore the original shifts if the API call fails
+      Object.assign(todaysShifts, originalShifts);
     }
   };
 

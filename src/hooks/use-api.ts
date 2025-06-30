@@ -66,8 +66,14 @@ export function useTodaysShifts() {
   return useApi<{ shifts: any[] }>('/api/shifts/today');
 }
 
-export function useShiftsByDate(dateFilter: string = 'today') {
-  return useApi<{ shifts: any[], dateRange?: any }>(`/api/shifts/by-date?filter=${dateFilter}`);
+export function useShiftsByDate(dateFilter: string = 'today', statusFilter: string = 'all', clientFilter: string = 'all', searchTerm: string = '') {
+  const params = new URLSearchParams({
+    filter: dateFilter,
+    status: statusFilter,
+    client: clientFilter,
+    search: searchTerm,
+  });
+  return useApi<{ shifts: any[], dateRange?: any }>(`/api/shifts/by-date?${params.toString()}`);
 }
 
 export function useShift(id: string) {

@@ -32,16 +32,32 @@ const nextConfig: NextConfig = {
   },
   // Webpack configuration for web build
   webpack: (config, { isServer }) => {
-    // Exclude handsonlabor-website directory from build
+    // Exclude problematic directories and files from build
     config.module.rules.push({
       test: /\.(js|jsx|ts|tsx)$/,
       exclude: [
         /node_modules/,
         /handsonlabor-website/,
+        /temp_app_backup/,
         /\.next/,
         /out/,
+        /src\/ai/,
       ],
     });
+
+    // Ignore AI-related modules that cause build issues
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
+    };
+
+    // Ignore problematic modules
+    config.externals = config.externals || [];
+    if (isServer) {
+      config.externals.push('@opentelemetry/exporter-jaeger');
+    }
 
     return config;
   },
