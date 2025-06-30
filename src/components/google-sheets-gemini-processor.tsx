@@ -154,7 +154,7 @@ export default function GoogleSheetsGeminiProcessor({
       setCurrentStep(3)
 
       // Enhanced Gemini processing with better prompts
-      const geminiResponse = await fetch('/api/import/google-sheets/gemini-enhanced', {
+      const geminiResponse = await fetch('/api/import/google-sheets/gemini', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

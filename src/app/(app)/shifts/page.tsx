@@ -65,7 +65,7 @@ export default function ShiftsPage() {
 
   useEffect(() => {
     refetch()
-  }, [dateFilter, refetch])
+  }, [dateFilter])
 
   const ShiftsTableSkeleton = () => (
     <Table>

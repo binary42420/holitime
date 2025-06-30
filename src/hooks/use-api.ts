@@ -197,9 +197,12 @@ export function useApi<T>(
     };
   }, []);
 
+  const fetchDataRef = useRef(fetchData);
+  fetchDataRef.current = fetchData;
+
   const refetch = useCallback(() => {
-    fetchData(true);
-  }, [fetchData]);
+    fetchDataRef.current(true);
+  }, []);
 
   return {
     ...state,
