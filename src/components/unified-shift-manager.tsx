@@ -741,15 +741,15 @@ export default function UnifiedShiftManager({
                       <CardContent>
                         <div className="flex flex-wrap gap-3">
                           <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                disabled={isProcessing || completedCount === totalWorkers}
-                              >
-                                <StopCircle className="h-4 w-4 mr-2" />
-                                End All Shifts
-                              </Button>
-                            </AlertDialogTrigger>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              disabled={actionState.isProcessing || completedCount === totalWorkers}
+                            >
+                              <StopCircle className="h-4 w-4 mr-2" />
+                              End All Shifts
+                            </Button>
+                          </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -769,7 +769,7 @@ export default function UnifiedShiftManager({
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button
-                                disabled={isProcessing || completedCount < totalWorkers}
+                                disabled={actionState.isProcessing || completedCount < totalWorkers}
                                 className="bg-blue-600 hover:bg-blue-700"
                               >
                                 <FileText className="h-4 w-4 mr-2" />
