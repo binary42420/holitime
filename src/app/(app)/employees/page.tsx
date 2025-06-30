@@ -27,9 +27,6 @@ import type { User, UserRole } from "@/lib/types"
 
 interface EmployeeManagementProps {}
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
-
 function EmployeesPage({}: EmployeeManagementProps) {
   const { toast } = useToast()
   const [editingUser, setEditingUser] = useState<string | null>(null)
@@ -232,7 +229,6 @@ function EmployeesPage({}: EmployeeManagementProps) {
   }
 
   return (
-    <>
       <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -693,7 +689,8 @@ function EmployeesPage({}: EmployeeManagementProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    )
+    </div>
+  )
 }
 
 export default EmployeesPage;

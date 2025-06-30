@@ -695,34 +695,35 @@ export default function UnifiedShiftManager({
 
                       {worker.status === 'Clocked Out' && (
                         <>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleClockAction(worker.id, 'clock_out')}
-                              disabled={actionState.isProcessing || !isOnline}
-                            >
-                              {actionState.lastAction === `clock_out_${worker.id}` ? (
-                                <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                              ) : (
-                                <Square className="h-3 w-3 mr-1" />
-                              )}
-                              Clock Out
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Clock out for a break.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </>
-                  )}
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleClockAction(worker.id, 'clock_in')}
+                                  disabled={actionState.isProcessing || !isOnline}
+                                >
+                                  {actionState.lastAction === `clock_in_${worker.id}` ? (
+                                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                  ) : (
+                                    <Play className="h-3 w-3 mr-1" />
+                                  )}
+                                  Clock In
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Clock back in from break.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
           </div>
         </CardContent>
       </Card>
@@ -730,77 +731,77 @@ export default function UnifiedShiftManager({
       {/* Bulk Actions */}
       <Card>
         <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <FileText className="h-5 w-5" />
-                          Shift Management
-                        </CardTitle>
-                        <CardDescription>
-                          Bulk operations and timesheet finalization
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-3">
-                          <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button
-                              variant="outline"
-                              disabled={actionState.isProcessing || completedCount === totalWorkers}
-                            >
-                              <StopCircle className="h-4 w-4 mr-2" />
-                              End All Shifts
-                            </Button>
-                          </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will end the shift for all workers who have not yet completed their shift. This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleEndAllShifts}>
-                                  End All Shifts
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+          <CardTitle className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            Shift Management
+          </CardTitle>
+          <CardDescription>
+            Bulk operations and timesheet finalization
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={actionState.isProcessing || completedCount === totalWorkers}
+                >
+                  <StopCircle className="h-4 w-4 mr-2" />
+                  End All Shifts
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will end the shift for all workers who have not yet completed their shift. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleEndAllShifts}>
+                    End All Shifts
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                disabled={actionState.isProcessing || completedCount < totalWorkers}
-                                className="bg-blue-600 hover:bg-blue-700"
-                              >
-                                <FileText className="h-4 w-4 mr-2" />
-                                Finalize Timesheet
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will finalize the timesheet and send it for client approval. This action cannot be undone.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleFinalizeTimesheet}>
-                                  Finalize Timesheet
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  disabled={actionState.isProcessing || completedCount < totalWorkers}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Finalize Timesheet
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will finalize the timesheet and send it for client approval. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleFinalizeTimesheet}>
+                    Finalize Timesheet
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
 
-                          {completedCount === totalWorkers && (
-                            <Badge className="bg-green-100 text-green-800 px-3 py-1">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
-                              All workers completed
-                            </Badge>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                  )
+            {completedCount === totalWorkers && (
+              <Badge className="bg-green-100 text-green-800 px-3 py-1">
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+                All workers completed
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
