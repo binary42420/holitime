@@ -45,18 +45,36 @@ const nextConfig: NextConfig = {
       ],
     });
 
-    // Ignore AI-related modules that cause build issues
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      net: false,
-      tls: false,
-    };
+    // Handle Node.js modules properly
+    if (!isServer) {
+      // For client-side builds, exclude all Node.js modules
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        dns: false,
+        crypto: false,
+        stream: false,
+        url: false,
+        zlib: false,
+        http: false,
+        https: false,
+        assert: false,
+        os: false,
+        path: false,
+        pg: false,
+        'pg-native': false,
+      };
+    }
 
     // Ignore problematic modules
     config.externals = config.externals || [];
     if (isServer) {
-      config.externals.push('@opentelemetry/exporter-jaeger');
+      config.externals.push(
+        '@opentelemetry/exporter-jaeger',
+        'pg-native'
+      );
     }
 
     return config;
