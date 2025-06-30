@@ -2,9 +2,9 @@
 
 import React, { useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import { Button } from './ui/button';
-import { Label } from './ui/label';
-import { Separator } from './ui/separator';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 import { RefreshCw, Download } from 'lucide-react';
 
 interface SignaturePadProps {
