@@ -219,6 +219,17 @@ export default function GoogleSheetsGeminiProcessor({
   const generateEnhancedPrompt = (sheetsData: any) => {
     return \`You are an expert data transformation specialist for Holitime, a professional shift management system. Your task is to analyze Google Sheets data and convert it into our standardized CSV format with maximum accuracy.
 
+IMPORTANT:
+==========
+Ignore any headers or rows that contain titles or instructions such as "Time Card Signature Instructions", "Attached Below", "Apple Time Card Signature Process 3/23" or any other non-data headers.
+
+DATA STRUCTURE AND HEADER HANDLING:
+==================================
+- The client metadata section is always near the top of each sheet, with key client information such as client_name, job_name, location, and notes. Values are found below the header row.
+- Employee data sections can appear multiple times per sheet. Each employee header row indicates a new shift for the same job.
+- Each sheet corresponds to a different job for the same client.
+- Process each employee data section as a separate shift but associate all with the same client/job metadata.
+
 CRITICAL REQUIREMENTS:
 ======================
 Output Format: client_name,job_name,shift_date,shift_start_time,shift_end_time,employee_name,worker_type,notes
