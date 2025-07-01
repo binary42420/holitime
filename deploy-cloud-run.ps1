@@ -107,6 +107,15 @@ if ($UseCloudBuild) {
 
 # Deploy to Cloud Run
 Write-Host "Deploying to Cloud Run..." -ForegroundColor Yellow
+
+# Get project number for NEXTAUTH_URL
+$ProjectNumber = gcloud projects describe $ProjectId --format='value(projectNumber)'
+if (-not $ProjectNumber) {
+    Write-Host "Failed to get project number for project $ProjectId" -ForegroundColor Red
+    exit 1
+}
+$NEXTAUTH_URL = "https://$ServiceName-$ProjectNumber.$Region.run.app"
+
 gcloud run deploy $ServiceName `
   --image $ImageName `
   --platform managed `
@@ -121,21 +130,9 @@ gcloud run deploy $ServiceName `
   --concurrency 80 `
   --set-env-vars "NODE_ENV=production" `
   --set-env-vars "NEXT_TELEMETRY_DISABLED=1" `
-  --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@holidb-hol619.d.aivencloud.com:12297/defaultdb?sslmode=require" `
   --set-env-vars "DATABASE_PROVIDER=aiven" `
   --set-env-vars "DATABASE_SSL=true" `
-  --set-env-vars "NODE_TLS_REJECT_UNAUTHORIZED=0" `
-  --set-env-vars "NEXTAUTH_SECRET=holitime-super-secure-secret-key-for-production-2024" `
-  --set-env-vars "NEXTAUTH_URL=https://holitime-369017734615.us-central1.run.app" `
-  --set-env-vars "GOOGLE_CLIENT_ID=369017734615-d69l9fi2bphahlk815ji447ri2m3qjjp.apps.googleusercontent.com" `
-  --set-env-vars "GOOGLE_CLIENT_SECRET=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" `
-  --set-env-vars "GOOGLE_API_KEY=AIzaSyAaMQ6qq0iVnyt2w1IERTPwXGrllSLnhZQ" `
-  --set-env-vars "GOOGLE_AI_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k" `
-  --set-env-vars "JWT_SECRET=holitime-jwt-secret-key-for-production-2024" `
-  --set-env-vars "SMTP_HOST=smtp.gmail.com" `
-  --set-env-vars "SMTP_PORT=587" `
-  --set-env-vars "SMTP_USER=ryley92@gmail.com" `
-  --set-env-vars "SMTP_PASS=HdfatbOY123!!!"
+  --set-env-vars "NEXTAUTH_URL=$NEXTAUTH_URL"
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Cloud Run deployment failed" -ForegroundColor Red
@@ -148,10 +145,11 @@ $ServiceUrl = gcloud run services describe $ServiceName --platform managed --reg
 Write-Host "Deployment completed successfully!" -ForegroundColor Green
 Write-Host "Your application is available at: $ServiceUrl" -ForegroundColor Green
 Write-Host "Don't forget to:" -ForegroundColor Yellow
-Write-Host "   1. Set up your environment variables in Cloud Run console"
+Write-Host "   1. Set up your environment variables in Cloud Run console (especially database credentials)"
 Write-Host "   2. Configure your database connection"
 Write-Host "   3. Set up your domain (if needed)"
 Write-Host "   4. Configure authentication secrets"
+Write-Host "   5. Set up Google Secret Manager for sensitive credentials"
 
 Write-Host "Useful commands:" -ForegroundColor Blue
 Write-Host "   View logs: gcloud run services logs tail $ServiceName --region $Region"

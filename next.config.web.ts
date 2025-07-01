@@ -37,7 +37,6 @@ const nextConfig: NextConfig = {
       test: /\.(js|jsx|ts|tsx)$/,
       exclude: [
         /node_modules/,
-        /handsonlabor-website/,
         /temp_app_backup/,
         /\.next/,
         /out/,
