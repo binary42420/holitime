@@ -288,7 +288,8 @@ export function useShiftsByDate(dateFilter: string = 'today', statusFilter: stri
 }
 
 export function useShift(id: string) {
-  return useApi<{ shift: any }>(`/api/shifts/${id}`, [id]);
+  const { data, ...rest } = useApi<{ shift: any }>(`/api/shifts/${id}`, [id]);
+  return { data: data?.shift, ...rest };
 }
 
 export function useAnnouncements() {

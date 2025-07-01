@@ -14,9 +14,8 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
+    const dateFilter = searchParams.get('date') || 'today';
     const statusFilter = searchParams.get('status') || 'all';
-    const clientFilter = searchParams.get('client') || 'all';
-    const searchTerm = searchParams.get('search') || '';
 
     let startDate: string;
     let endDate: string;
@@ -52,17 +51,19 @@ export async function GET(request: NextRequest) {
 
     if (statusFilter !== 'all') {
       queryParams.push(statusFilter);
-      whereClause += ` AND s.status = ${queryParams.length}`;
+      whereClause += ` AND s.status = $${queryParams.length}`;
     }
 
+    const clientFilter = searchParams.get('client') || 'all';
     if (clientFilter !== 'all') {
       queryParams.push(clientFilter);
-      whereClause += ` AND c.name = ${queryParams.length}`;
+      whereClause += ` AND c.name = $${queryParams.length}`;
     }
 
+    const searchTerm = searchParams.get('search') || '';
     if (searchTerm) {
       queryParams.push(`%${searchTerm}%`);
-      whereClause += ` AND (j.name ILIKE ${queryParams.length} OR c.name ILIKE ${queryParams.length} OR s.location ILIKE ${queryParams.length} OR cc.name ILIKE ${queryParams.length})`;
+      whereClause += ` AND (j.name ILIKE $${queryParams.length} OR c.name ILIKE $${queryParams.length} OR s.location ILIKE $${queryParams.length} OR cc.name ILIKE $${queryParams.length})`;
     }
 
     // Optimized query that gets shifts with all needed data in one query

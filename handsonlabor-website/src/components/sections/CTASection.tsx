@@ -127,7 +127,7 @@ export default function CTASection() {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/client-portal">
+              <Link href="https://holitime-369017734615.us-central1.run.app">
                 <Button size="lg" className="bg-primary-600 hover:bg-primary-700">
                   Client Portal
                 </Button>

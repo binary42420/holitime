@@ -1,4 +1,4 @@
-"use client"
+ "use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -32,7 +32,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
     clientId ? `/api/clients/${clientId}/jobs` : null
   );
   const { data: shiftsData, loading: shiftsLoading, error: shiftsError } = useApi<{ shifts: any[] }>(
-    clientId ? `/api/clients/${clientId}/shifts` : null
+    clientId ? `/api/shifts?clientId=${clientId}` : null
   );
 
   const client = clientData?.client;
@@ -237,7 +237,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
                   onClick={() => router.push(`/shifts/${shift.id}`)}
                 >
                   <div className="space-y-1">
-                    <h3 className="font-medium">{shift.job.name}</h3>
+                    <h3 className="font-medium">{shift.job ? shift.job.name : 'No Job Assigned'}</h3>
                     <p className="text-sm text-muted-foreground">{new Date(shift.startTime).toLocaleString()} - {new Date(shift.endTime).toLocaleString()}</p>
                   </div>
                   <div className="flex items-center gap-2">
