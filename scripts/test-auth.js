@@ -12,13 +12,13 @@ async function testAuth() {
     console.log('Testing authentication system...');
     
     // Test login endpoint
-    const loginResponse = await fetch('http://localhost:3000/api/auth/login', {
+    const loginResponse = await fetch('http://localhost:3001/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        email: 'maria.g@handson.com',
+        email: 'manager@handson.com',
         password: 'password123'
       }),
     });
@@ -31,7 +31,7 @@ async function testAuth() {
       const cookies = loginResponse.headers.get('set-cookie');
       
       // Test protected endpoint
-      const shiftsResponse = await fetch('http://localhost:3000/api/shifts', {
+      const shiftsResponse = await fetch('http://localhost:3001/api/shifts', {
         headers: {
           'Cookie': cookies || ''
         }
