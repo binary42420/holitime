@@ -60,7 +60,7 @@ gcloud run deploy $SERVICE_NAME \
     --port 3000 \
     --memory 1Gi \
     --cpu 1 \
-    --max-instances 10 \
+    --max-instances 1 \
     --set-env-vars "NODE_ENV=production,DATABASE_PROVIDER=aiven,DATABASE_SSL=true,NODE_TLS_REJECT_UNAUTHORIZED=0"
 
 # Get the service URL

@@ -106,13 +106,14 @@ export const authOptions: NextAuthOptions = {
         return token;
       } catch (error) {
         console.error('JWT callback error:', error);
+        // Return token even if there's an error to prevent auth failure
         return token;
       }
     },
 
     async session({ session, token }) {
       try {
-        if (token) {
+        if (token && session.user) {
           session.user.id = token.id as string;
           session.user.role = token.role as string;
           session.user.clientId = token.clientId as string;
@@ -120,6 +121,7 @@ export const authOptions: NextAuthOptions = {
         return session;
       } catch (error) {
         console.error('Session callback error:', error);
+        // Return session even if there's an error to prevent auth failure
         return session;
       }
     }
@@ -137,7 +139,7 @@ export const authOptions: NextAuthOptions = {
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-for-development',
 
   // Add CORS configuration for production
   cookies: {
