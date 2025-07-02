@@ -57,11 +57,13 @@ export default function ShiftsPage() {
   const [clientFilter, setClientFilter] = useState("all")
   const [showFilters, setShowFilters] = useState(false) // Collapsible filters
 
-  const { data, loading, error, refetch } = useShiftsByDate(dateFilter, statusFilter, clientFilter, searchTerm)
+  const canManage = user?.role === 'Manager/Admin' || user?.role === 'Crew Chief'
+
+  const { data, loading, error, refetch } = user?.role === 'Manager/Admin'
+    ? useApi<{ shifts: any[] }>('/api/shifts')
+    : useShiftsByDate(dateFilter, statusFilter, clientFilter, searchTerm)
 
   const shifts = data?.shifts || []
-
-  const canManage = user?.role === 'Manager/Admin' || user?.role === 'Crew Chief'
 
   useEffect(() => {
     refetch()

@@ -152,11 +152,18 @@ export async function GET(request: NextRequest) {
     }
     // Manager/Admin and Client users see all shifts (clients will be filtered by their jobs in future)
 
+    // Filter by clientId if provided and user is Client or Manager/Admin
+    const clientIdParam = searchParams.get('clientId');
+    if (clientIdParam && (user.role === 'Client' || user.role === 'Manager/Admin')) {
+      filteredShifts = filteredShifts.filter(shift => shift.clientName === clientIdParam);
+    }
+
     return NextResponse.json({
       success: true,
       shifts: filteredShifts,
       dateRange: { startDate, endDate, filter: dateFilter }
     });
+
 
   } catch (error) {
     console.error('Error getting shifts by date:', error);
