@@ -210,7 +210,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                         console.error('Missing startTime for shift:', shift)
                         return
                       }
-                      router.push(generateShiftUrl(job.clientName, job.name, shift.date, shift.startTime))
+                      router.push(generateShiftUrl(shift.id))
                     }}
                     className="cursor-pointer hover:bg-muted/50"
                   >
@@ -238,7 +238,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                     </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={shift.startTime ? generateShiftUrl(job.clientName, job.name, shift.date, shift.startTime) : '#'}>
+                        <Link href={shift.id ? generateShiftUrl(shift.id) : '#'}>
                           View
                         </Link>
                       </Button>

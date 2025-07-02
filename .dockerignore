@@ -1,55 +1,30 @@
 # Dependencies
-node_modules
+node_modules/
 npm-debug.log*
+jspm_packages/
 
 # Next.js build output
-.next
-out
+.next/
+out/
 
-# Environment files
+# Environment files (exclude all except what Docker needs)
 .env*
-.env.local
-.env.development.local
-.env.test.local
-.env.production
+!.env.production
 
 # Git
-.git
+.git/
+.gitignore
 
 # Documentation
 README.md
 DEPLOYMENT.md
 *.md
 
-# IDE files
-.vscode
-.idea
-*.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
-logs
-*.log
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
 # Coverage directory used by tools like istanbul
-coverage
-
-# Dependency directories
-node_modules/
-jspm_packages/
+coverage/
 
 # Optional npm cache directory
-.npm
+.npm/
 
 # Optional REPL history
 .node_repl_history
@@ -60,24 +35,18 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env
-
 # parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# next.js build output
-.next
+.cache/
+.parcel-cache/
 
 # nuxt.js build output
-.nuxt
+.nuxt/
 
 # vuepress build output
-.vuepress/dist
+.vuepress/dist/
 
 # Serverless directories
-.serverless
+.serverless/
 
 # FuseBox cache
 .fusebox/
@@ -88,14 +57,81 @@ jspm_packages/
 # TernJS port file
 .tern-port
 
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
 # Backup directories
 temp_app_backup
-handsonlabor-website
+handsonlabor-website/
 
 # AI and development files
 src/ai
 *.ai
+
+# Build artifacts and cache
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+.turbo/
+
+# Development and testing files
+scripts/
+docs/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+__tests__/
+coverage/
+.nyc_output/
+
+# Docker and deployment files
+Dockerfile*
+docker-compose*.yml
+cloudbuild.yaml
+deploy*.sh
+deploy*.ps1
+*.dockerignore
+
+# Package manager files (keep package.json and package-lock.json)
+yarn.lock
+pnpm-lock.yaml
+.pnpm-store/
+.yarn/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS and system files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.temp
+
+# Logs and debugging
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime and process files
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
 

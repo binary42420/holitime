@@ -3,7 +3,7 @@
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { format, isToday, isTomorrow, isYesterday } from "date-fns"
-import Link from "next/link"
+
 import { useUser } from "@/hooks/use-user"
 import { useRecentJobs } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -26,13 +26,10 @@ import {
   Activity,
   TrendingUp
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-
 export default function JobsPage() {
   const { user } = useUser()
   const router = useRouter()
-  const { toast } = useToast()
-  const { data: jobsData, loading, error, refetch } = useRecentJobs()
+  const { data: jobsData, loading, error } = useRecentJobs()
 
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
