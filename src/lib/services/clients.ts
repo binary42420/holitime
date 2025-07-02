@@ -1,12 +1,68 @@
 import { query } from '../db';
-import type { Client } from '../types';
+import type { Client, ClientCompany } from '../types';
 
+// Client Company functions (for the actual company entities)
+export async function getAllClientCompanies(): Promise<ClientCompany[]> {
+  try {
+    const result = await query(`
+      SELECT id, company_name, company_address, contact_phone, contact_email, notes, created_at, updated_at
+      FROM clients
+      ORDER BY company_name
+    `);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      companyName: row.company_name,
+      companyAddress: row.company_address,
+      contactPhone: row.contact_phone,
+      contactEmail: row.contact_email,
+      notes: row.notes,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    }));
+  } catch (error) {
+    console.error('Error getting all client companies:', error);
+    return [];
+  }
+}
+
+export async function getClientCompanyById(id: string): Promise<ClientCompany | null> {
+  try {
+    const result = await query(`
+      SELECT id, company_name, company_address, contact_phone, contact_email, notes, created_at, updated_at
+      FROM clients
+      WHERE id = $1
+    `, [id]);
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      companyName: row.company_name,
+      companyAddress: row.company_address,
+      contactPhone: row.contact_phone,
+      contactEmail: row.contact_email,
+      notes: row.notes,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  } catch (error) {
+    console.error('Error getting client company by ID:', error);
+    return null;
+  }
+}
+
+// Client Contact functions (for the contact person users)
 export async function getAllClients(): Promise<Client[]> {
   try {
     const result = await query(`
       SELECT
-        u.id, u.name, u.company_name, u.company_address, u.contact_person, u.contact_email, u.contact_phone,
-        -- Job count
+        u.id, u.name, u.email, u.client_company_id,
+        c.company_name, c.company_address, c.contact_phone, c.contact_email as company_contact_email, c.notes,
+        -- Job count (now based on client company, not user)
         COALESCE(job_counts.job_count, 0) as job_count,
         -- Most recent completed shift
         completed_shift.shift_id as completed_shift_id,
@@ -20,11 +76,12 @@ export async function getAllClients(): Promise<Client[]> {
         upcoming_shift.requested_workers as upcoming_requested_workers,
         upcoming_shift.assigned_count as upcoming_assigned_count
       FROM users u
+      LEFT JOIN clients c ON u.client_company_id = c.id
       LEFT JOIN (
         SELECT client_id, COUNT(*) as job_count
         FROM jobs
         GROUP BY client_id
-      ) job_counts ON u.id = job_counts.client_id
+      ) job_counts ON u.client_company_id = job_counts.client_id
       LEFT JOIN (
         SELECT DISTINCT ON (j.client_id)
           j.client_id,
@@ -35,7 +92,7 @@ export async function getAllClients(): Promise<Client[]> {
         JOIN jobs j ON s.job_id = j.id
         WHERE s.status = 'Completed'
         ORDER BY j.client_id, s.date DESC, s.start_time DESC
-      ) completed_shift ON u.id = completed_shift.client_id
+      ) completed_shift ON u.client_company_id = completed_shift.client_id
       LEFT JOIN (
         SELECT DISTINCT ON (j.client_id)
           j.client_id,
@@ -55,24 +112,35 @@ export async function getAllClients(): Promise<Client[]> {
         ) assigned_counts ON s.id = assigned_counts.shift_id
         WHERE s.status IN ('Upcoming', 'In Progress') AND s.date >= CURRENT_DATE
         ORDER BY j.client_id, s.date ASC, s.start_time ASC
-      ) upcoming_shift ON u.id = upcoming_shift.client_id
-      WHERE u.role = 'Client'
-      ORDER BY COALESCE(u.company_name, u.name)
+      ) upcoming_shift ON u.client_company_id = upcoming_shift.client_id
+      WHERE u.role = 'Client' AND u.client_company_id IS NOT NULL
+      ORDER BY COALESCE(c.company_name, u.name)
     `);
 
     return result.rows.map(row => ({
-      id: row.id,
-      name: row.name,
-      companyName: row.company_name || row.name,
+      id: row.id, // User ID (contact person)
+      name: row.name, // Contact person name
+      email: row.email, // Contact person email
+      clientCompanyId: row.client_company_id,
+      clientCompany: row.client_company_id ? {
+        id: row.client_company_id,
+        companyName: row.company_name,
+        companyAddress: row.company_address,
+        contactPhone: row.contact_phone,
+        contactEmail: row.company_contact_email,
+        notes: row.notes,
+      } : undefined,
+
+      // Backward compatibility fields for the frontend
+      companyName: row.company_name,
       companyAddress: row.company_address,
-      contactPerson: row.contact_person,
-      contactEmail: row.contact_email,
+      contactPerson: row.name, // Contact person is the user name
+      contactEmail: row.email, // Contact person email is the user email
       contactPhone: row.contact_phone,
-      jobCount: parseInt(row.job_count) || 0,
-      // Add backward compatibility fields for the frontend
-      address: row.company_address, // Map companyAddress to address for frontend
-      email: row.contact_email, // Map contactEmail to email for frontend
-      phone: row.contact_phone, // Map contactPhone to phone for frontend
+      address: row.company_address,
+      phone: row.contact_phone,
+      notes: row.notes,
+
       authorizedCrewChiefIds: [], // Will be populated separately if needed
       mostRecentCompletedShift: row.completed_shift_id ? {
         id: row.completed_shift_id,
@@ -97,9 +165,12 @@ export async function getAllClients(): Promise<Client[]> {
 export async function getClientById(id: string): Promise<Client | null> {
   try {
     const result = await query(`
-      SELECT id, name, company_name, company_address, contact_person, contact_email, contact_phone
-      FROM users
-      WHERE id = $1 AND role = 'Client'
+      SELECT
+        u.id, u.name, u.email, u.client_company_id,
+        c.company_name, c.company_address, c.contact_phone, c.contact_email as company_contact_email, c.notes
+      FROM users u
+      LEFT JOIN clients c ON u.client_company_id = c.id
+      WHERE u.id = $1 AND u.role = 'Client'
     `, [id]);
 
     if (result.rows.length === 0) {
@@ -108,21 +179,21 @@ export async function getClientById(id: string): Promise<Client | null> {
 
     const row = result.rows[0];
 
-    // Get jobs for this client
+    // Get jobs for this client company
     const jobsResult = await query(`
       SELECT id, name, description, status, start_date,
         (SELECT COUNT(*) FROM shifts WHERE job_id = jobs.id) as shifts_count
       FROM jobs
       WHERE client_id = $1
       ORDER BY start_date DESC
-    `, [id]);
+    `, [row.client_company_id]);
 
     // Get authorized crew chiefs
     const crewChiefsResult = await query(`
       SELECT crew_chief_id FROM job_authorizations ja
       JOIN jobs j ON ja.job_id = j.id
       WHERE j.client_id = $1
-    `, [id]);
+    `, [row.client_company_id]);
 
     // Note: Contact user IDs are no longer needed since client is now a user
 
@@ -134,7 +205,7 @@ export async function getClientById(id: string): Promise<Client | null> {
       WHERE j.client_id = $1 AND s.status = 'Completed'
       ORDER BY s.date DESC, s.start_time DESC
       LIMIT 1
-    `, [id]);
+    `, [row.client_company_id]);
 
     // Get next upcoming shift
     const upcomingResult = await query(`
@@ -153,16 +224,32 @@ export async function getClientById(id: string): Promise<Client | null> {
       WHERE j.client_id = $1 AND s.status = 'Upcoming' AND s.date >= CURRENT_DATE
       ORDER BY s.date ASC, s.start_time ASC
       LIMIT 1
-    `, [id]);
+    `, [row.client_company_id]);
 
     return {
-      id: row.id,
-      name: row.name,
-      companyName: row.company_name || row.name,
+      id: row.id, // User ID (contact person)
+      name: row.name, // Contact person name
+      email: row.email, // Contact person email
+      clientCompanyId: row.client_company_id,
+      clientCompany: row.client_company_id ? {
+        id: row.client_company_id,
+        companyName: row.company_name,
+        companyAddress: row.company_address,
+        contactPhone: row.contact_phone,
+        contactEmail: row.company_contact_email,
+        notes: row.notes,
+      } : undefined,
+
+      // Backward compatibility fields for the frontend
+      companyName: row.company_name,
       companyAddress: row.company_address,
-      contactPerson: row.contact_person,
-      contactEmail: row.contact_email,
+      contactPerson: row.name, // Contact person is the user name
+      contactEmail: row.email, // Contact person email is the user email
       contactPhone: row.contact_phone,
+      address: row.company_address,
+      phone: row.contact_phone,
+      notes: row.notes,
+
       jobs: jobsResult.rows.map(job => ({
         id: job.id,
         name: job.name,
@@ -171,10 +258,6 @@ export async function getClientById(id: string): Promise<Client | null> {
         startDate: job.start_date,
         shiftsCount: parseInt(job.shifts_count) || 0,
       })),
-      // Add backward compatibility fields for the frontend
-      address: row.company_address, // Map companyAddress to address for frontend
-      email: row.contact_email, // Map contactEmail to email for frontend
-      phone: row.contact_phone, // Map contactPhone to phone for frontend
       authorizedCrewChiefIds: crewChiefsResult.rows.map(r => r.crew_chief_id),
       mostRecentCompletedShift: recentCompletedResult.rows.length > 0 ? {
         id: recentCompletedResult.rows[0].id,

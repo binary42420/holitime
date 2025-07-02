@@ -74,10 +74,10 @@ gcloud run deploy ${SERVICE_NAME} \
   --region ${REGION} \
   --allow-unauthenticated \
   --port 3000 \
-  --memory 2Gi \
-  --cpu 2 \
+  --memory 1Gi \
+  --cpu 1 \
   --min-instances 0 \
-  --max-instances 10 \
+  --max-instances 1 \
   --timeout 300 \
   --concurrency 80 \
   --set-env-vars "NODE_ENV=production" \

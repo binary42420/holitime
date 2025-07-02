@@ -4,5 +4,6 @@
     "fixAugment.showWelcomeOnUpdate": false,
     "augment.nextEdit.enableAutoApply": false,
     "augment.nextEdit.highlightSuggestionsInTheEditor": true,
-    "augment.nextEdit.showDiffInHover": true
+    "augment.nextEdit.showDiffInHover": true,
+    "search.useIgnoreFiles": true
 }

@@ -6,7 +6,7 @@ export interface User {
   email: string;
   avatar: string;
   role: UserRole;
-  clientId?: string | null; // For client users, this is their own ID; for employees, it's null
+  clientCompanyId?: string | null; // For client users, references clients table
 
   // Employee-specific fields (null for non-employees)
   certifications?: string[];
@@ -17,7 +17,7 @@ export interface User {
   crewChiefEligible?: boolean;
   forkOperatorEligible?: boolean;
 
-  // Client company fields (null for non-clients)
+  // Legacy fields - will be removed after full migration
   companyName?: string;
   companyAddress?: string;
   contactPerson?: string;
@@ -25,21 +25,37 @@ export interface User {
   contactPhone?: string;
 }
 
-// Client interface now represents a client user (role: 'Client')
-// Client company data is stored directly in the User interface
-export interface Client {
-  id: string; // This is now the user ID
-  name: string; // User name
-  companyName: string; // Company name
+// Client Company interface - represents the actual client company entity
+export interface ClientCompany {
+  id: string;
+  companyName: string;
   companyAddress?: string;
-  contactPerson?: string;
-  contactEmail?: string;
   contactPhone?: string;
-  // Backward compatibility fields for frontend
+  contactEmail?: string;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+// Client interface now represents a client contact person (role: 'Client')
+// This is a user who works for a client company
+export interface Client {
+  id: string; // This is the user ID (contact person)
+  name: string; // Contact person name
+  email: string; // Contact person email
+  clientCompanyId: string; // References ClientCompany
+  clientCompany?: ClientCompany; // Populated client company data
+
+  // Backward compatibility fields for frontend (will be deprecated)
+  companyName?: string; // Maps to clientCompany.companyName
+  companyAddress?: string; // Maps to clientCompany.companyAddress
+  contactPerson?: string; // Maps to name
+  contactEmail?: string; // Maps to email
+  contactPhone?: string; // Maps to clientCompany.contactPhone
   address?: string; // Maps to companyAddress
-  email?: string; // Maps to contactEmail
   phone?: string; // Maps to contactPhone
-  notes?: string; // Optional notes field
+  notes?: string; // Maps to clientCompany.notes
+
   authorizedCrewChiefIds?: string[];
   mostRecentCompletedShift?: {
     id: string;
@@ -60,7 +76,7 @@ export interface Job {
   id: string;
   name: string;
   description?: string;
-  clientId: string;
+  clientId: string; // Now references clients table (ClientCompany), not users table
   clientName?: string;
   shiftCount?: number;
   startDate?: string;
@@ -68,6 +84,33 @@ export interface Job {
   status?: 'Planning' | 'Active' | 'Completed';
   authorizedCrewChiefIds?: string[];
 }
+
+// Crew Chief Permission System Types
+export type CrewChiefPermissionType = 'client' | 'job' | 'shift';
+
+export interface CrewChiefPermission {
+  id: string;
+  userId: string; // Must be a user with role 'Employee' OR 'Crew Chief'
+  permissionType: CrewChiefPermissionType;
+  targetId: string; // clientId, jobId, or shiftId depending on permissionType
+  grantedByUserId: string;
+  grantedAt: string;
+  revokedAt?: string;
+}
+
+// Helper interface for checking crew chief permissions
+export interface CrewChiefPermissionCheck {
+  hasPermission: boolean;
+  permissionSource: 'designated' | 'client' | 'job' | 'shift' | 'none';
+  permissions: CrewChiefPermission[];
+}
+
+// Crew Chief Role Clarification:
+// - Role 'Crew Chief': Indicates eligibility/capability to be assigned as crew chief on shifts
+//   Does NOT automatically grant any permissions beyond 'Employee' role
+// - Admin-granted permissions: Can be granted to both 'Employee' and 'Crew Chief' role users
+// - Designated crew chief: When assigned as crew chief on a specific shift, automatically
+//   grants management permissions for that shift only
 
 // Employee interface now represents an employee user (role: 'Employee' | 'Crew Chief')
 // Employee data is stored directly in the User interface

@@ -1,46 +1,115 @@
-import { query } from '../db';
-import type { Shift, AssignedPersonnel, TimesheetStatus } from '../types';
+import { query, cachedQuery } from '../db';
+import type { 
+  Shift, 
+  AssignedPersonnel, 
+  TimesheetStatus, 
+  Employee, 
+  WorkerRequirement 
+} from '../types';
 import { getWorkerRequirements } from './worker-requirements';
+
+interface ShiftRow {
+  id: string;
+  timesheet_id: string | null;
+  date: string;
+  start_time: string;
+  end_time: string;
+  location: string | null;
+  status: string;
+  notes: string | null;
+  requested_workers: string | number;
+  job_id: string;
+  job_name: string;
+  client_name: string;
+  crew_chief_id: string | null;
+  crew_chief_name: string | null;
+  crew_chief_avatar: string | null;
+  assigned_personnel: any[] | null;
+  assigned_count: string | number;
+  timesheet_status: string | null;
+  worker_requirements?: WorkerRequirement[];
+}
+
+const SHIFTS_PER_PAGE = 50; // Default page size
+
+interface ShiftQueryOptions {
+  page?: number;
+  pageSize?: number;
+  status?: string[];
+  startDate?: string;
+  endDate?: string;
+  jobId?: string;
+}
+
+// Helper function to map database row to Shift type
+function mapShiftRow(row: ShiftRow): Shift {
+  return {
+    id: row.id,
+    timesheetId: row.timesheet_id || '',
+    date: row.date,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    location: row.location || '',
+    status: row.status as Shift['status'],
+    notes: row.notes || '',
+    requestedWorkers: parseInt(row.requested_workers.toString()) || 1,
+    assignedCount: parseInt(row.assigned_count.toString()) || 0,
+    jobId: row.job_id,
+    jobName: row.job_name,
+    clientName: row.client_name,
+    authorizedCrewChiefIds: row.crew_chief_id ? [row.crew_chief_id] : [],
+    crewChief: row.crew_chief_id ? {
+      id: row.crew_chief_id,
+      name: row.crew_chief_name || '',
+      avatar: row.crew_chief_avatar || '',
+      certifications: [],
+      performance: 0,
+      location: '',
+    } : null,
+    crewChiefId: row.crew_chief_id || undefined,
+    crewChiefName: row.crew_chief_name || undefined,
+    crewChiefAvatar: row.crew_chief_avatar || undefined,
+    assignedPersonnel: row.assigned_personnel || [],
+    workerRequirements: row.worker_requirements || [],
+    timesheetStatus: (row.timesheet_status as TimesheetStatus) || 'Pending Finalization',
+  };
+}
+
+// Reusable CTE for shift personnel
+const SHIFT_PERSONNEL_CTE = `
+WITH shift_personnel AS (
+  SELECT
+    ap.shift_id,
+    json_agg(
+      json_build_object(
+        'employee', json_build_object(
+          'id', u.id,
+          'name', u.name,
+          'certifications', u.certifications,
+          'performance', u.performance,
+          'location', u.location,
+          'avatar', u.avatar
+        ),
+        'roleOnShift', ap.role_on_shift,
+        'roleCode', ap.role_code,
+        'status', ap.status,
+        'isPlaceholder', ap.is_placeholder
+      )
+    ) as assigned_personnel
+  FROM assigned_personnel ap
+  LEFT JOIN users u ON ap.employee_id = u.id
+  GROUP BY ap.shift_id
+)`;
 
 export async function getTodaysShifts(): Promise<Shift[]> {
   try {
-    // First, try to add the column if it doesn't exist
-    try {
-      await query(`ALTER TABLE shifts ADD COLUMN IF NOT EXISTS requested_workers INTEGER DEFAULT 1;`);
-      await query(`UPDATE shifts SET requested_workers = 1 WHERE requested_workers IS NULL;`);
-    } catch (error) {
-      console.log('Column may already exist or permission issue:', error instanceof Error ? error.message : 'Unknown error');
-    }
-
-    const result = await query(`
-      WITH shift_personnel AS (
-        SELECT
-          ap.shift_id,
-          json_agg(
-            json_build_object(
-              'employee', json_build_object(
-                'id', u.id,
-                'name', u.name,
-                'certifications', u.certifications,
-                'performance', u.performance,
-                'location', u.location,
-                'avatar', u.avatar
-              ),
-              'roleOnShift', ap.role_on_shift,
-              'roleCode', ap.role_code,
-              'status', ap.status,
-              'isPlaceholder', ap.is_placeholder
-            )
-          ) as assigned_personnel
-        FROM assigned_personnel ap
-        LEFT JOIN users u ON ap.employee_id = u.id
-        GROUP BY ap.shift_id
-      )
+    const result = await cachedQuery(`
+      ${SHIFT_PERSONNEL_CTE}
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-        COALESCE(s.requested_workers, 1) as requested_workers,
+        s.requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
-        COALESCE(c.company_name, c.name) as client_name,
+        c.company_name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
         sp.assigned_personnel,
@@ -51,171 +120,113 @@ export async function getTodaysShifts(): Promise<Shift[]> {
         ) + (CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      JOIN clients c ON j.client_id = c.id
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
       WHERE s.date = CURRENT_DATE
-      ORDER BY s.start_time, s.date
-    `);
+      ORDER BY s.start_time
+    `, [], 'todays_shifts', 5 * 60 * 1000); // 5 minute cache
 
-    const shifts: Shift[] = result.rows.map(row => ({
-        id: row.id,
-        timesheetId: row.timesheet_id || '',
-        date: row.date,
-        startTime: row.start_time,
-        endTime: row.end_time,
-        location: row.location || '',
-        status: row.status,
-        notes: row.notes || '',
-        requestedWorkers: parseInt(row.requested_workers) || 1,
-        assignedCount: parseInt(row.assigned_count) || 0,
-        jobId: row.job_id,
-        jobName: row.job_name,
-        clientName: row.client_name,
-        authorizedCrewChiefIds: [],
-        crewChief: row.crew_chief_id ? {
-          id: row.crew_chief_id,
-          name: row.crew_chief_name,
-          avatar: row.crew_chief_avatar,
-          certifications: [],
-          performance: 0,
-          location: '',
-        } : null,
-        crewChiefId: row.crew_chief_id,
-        crewChiefName: row.crew_chief_name,
-        crewChiefAvatar: row.crew_chief_avatar,
-        assignedPersonnel: row.assigned_personnel || [],
-        workerRequirements: [], // This will be populated by a separate query if needed
-        timesheetStatus: row.timesheet_status || 'Not Started',
-      }));
-
-    return shifts;
+    return result.rows.map(mapShiftRow);
   } catch (error) {
     console.error('Error getting today\'s shifts:', error);
     return [];
   }
 }
 
-export async function getAllShifts(): Promise<Shift[]> {
+export async function getAllShifts(options: ShiftQueryOptions = {}): Promise<{
+  shifts: Shift[];
+  total: number;
+  pages: number;
+}> {
   try {
-    // First, try to add the column if it doesn't exist
-    try {
-      await query(`ALTER TABLE shifts ADD COLUMN IF NOT EXISTS requested_workers INTEGER DEFAULT 1;`);
-      await query(`UPDATE shifts SET requested_workers = 1 WHERE requested_workers IS NULL;`);
-    } catch (error) {
-      console.log('Column may already exist or permission issue:', error instanceof Error ? error.message : 'Unknown error');
+    const {
+      page = 1,
+      pageSize = SHIFTS_PER_PAGE,
+      status,
+      startDate,
+      endDate,
+      jobId
+    } = options;
+
+    const offset = (page - 1) * pageSize;
+    const params: any[] = [pageSize, offset];
+    let paramIndex = 3;
+
+    // Build WHERE clause
+    const conditions: string[] = [];
+    if (status?.length) {
+      conditions.push(`s.status = ANY($${paramIndex++})`);
+      params.push(status);
+    }
+    if (startDate) {
+      conditions.push(`s.date >= $${paramIndex++}`);
+      params.push(startDate);
+    }
+    if (endDate) {
+      conditions.push(`s.date <= $${paramIndex++}`);
+      params.push(endDate);
+    }
+    if (jobId) {
+      conditions.push(`s.job_id = $${paramIndex++}`);
+      params.push(jobId);
     }
 
+    const whereClause = conditions.length
+      ? `WHERE ${conditions.join(' AND ')}`
+      : '';
+
+    // Get total count
+    const countResult = await query(
+      `SELECT COUNT(*) FROM shifts s ${whereClause}`,
+      params.slice(2)
+    );
+    const total = parseInt(countResult.rows[0].count);
+    const pages = Math.ceil(total / pageSize);
+
+    // Get paginated results with optimized query
     const result = await query(`
-      WITH shift_personnel AS (
-        SELECT
-          ap.shift_id,
-          json_agg(
-            json_build_object(
-              'employee', json_build_object(
-                'id', u.id,
-                'name', u.name,
-                'certifications', u.certifications,
-                'performance', u.performance,
-                'location', u.location,
-                'avatar', u.avatar
-              ),
-              'roleOnShift', ap.role_on_shift,
-              'roleCode', ap.role_code,
-              'status', ap.status,
-              'isPlaceholder', ap.is_placeholder
-            )
-          ) as assigned_personnel
-        FROM assigned_personnel ap
-        LEFT JOIN users u ON ap.employee_id = u.id
-        GROUP BY ap.shift_id
-      )
+      ${SHIFT_PERSONNEL_CTE}
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-        COALESCE(s.requested_workers, 1) as requested_workers,
+        s.requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
-        COALESCE(c.company_name, c.name) as client_name,
+        c.company_name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
         sp.assigned_personnel,
         (
-          SELECT COUNT(*) 
-          FROM assigned_personnel ap 
+          SELECT COUNT(*)
+          FROM assigned_personnel ap
           WHERE ap.shift_id = s.id AND ap.is_placeholder = false
         ) + (CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      JOIN clients c ON j.client_id = c.id
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
+      ${whereClause}
       ORDER BY s.date DESC, s.start_time
-    `);
+      LIMIT $1 OFFSET $2
+    `, params);
 
-    const shifts: Shift[] = result.rows.map(row => ({
-      id: row.id,
-      timesheetId: row.timesheet_id || '',
-      jobId: row.job_id,
-      jobName: row.job_name,
-      clientName: row.client_name,
-      authorizedCrewChiefIds: row.crew_chief_id ? [row.crew_chief_id] : [],
-      date: row.date,
-      startTime: row.start_time,
-      endTime: row.end_time,
-      location: row.location,
-      requestedWorkers: parseInt(row.requested_workers) || 1,
-      assignedCount: parseInt(row.assigned_count) || 0,
-      crewChief: row.crew_chief_id ? {
-        id: row.crew_chief_id,
-        name: row.crew_chief_name,
-        certifications: [],
-        performance: 0,
-        location: '',
-        avatar: row.crew_chief_avatar || '',
-      } : null,
-      crewChiefId: row.crew_chief_id,
-      crewChiefName: row.crew_chief_name,
-      crewChiefAvatar: row.crew_chief_avatar || '',
-      assignedPersonnel: row.assigned_personnel || [],
-      status: row.status,
-      timesheetStatus: row.timesheet_status || 'Pending Finalization',
-      notes: row.notes,
-    }));
-
-    return shifts;
+    return {
+      shifts: result.rows.map(mapShiftRow),
+      total,
+      pages
+    };
   } catch (error) {
     console.error('Error getting all shifts:', error);
-    return [];
+    return { shifts: [], total: 0, pages: 0 };
   }
 }
 
 export async function getShiftById(id: string): Promise<Shift | null> {
   try {
     const result = await query(`
-      WITH shift_personnel AS (
-        SELECT
-          ap.shift_id,
-          json_agg(
-            json_build_object(
-              'employee', json_build_object(
-                'id', u.id,
-                'name', u.name,
-                'certifications', u.certifications,
-                'performance', u.performance,
-                'location', u.location,
-                'avatar', u.avatar
-              ),
-              'roleOnShift', ap.role_on_shift,
-              'roleCode', ap.role_code,
-              'status', ap.status,
-              'isPlaceholder', ap.is_placeholder
-            )
-          ) as assigned_personnel
-        FROM assigned_personnel ap
-        LEFT JOIN users u ON ap.employee_id = u.id
-        GROUP BY ap.shift_id
-      ),
+      ${SHIFT_PERSONNEL_CTE},
       shift_requirements AS (
         SELECT
           wr.shift_id,
@@ -229,16 +240,17 @@ export async function getShiftById(id: string): Promise<Shift | null> {
         GROUP BY wr.shift_id
       )
       SELECT
-        s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes, s.requested_workers,
+        s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
+        s.requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
-        COALESCE(c.company_name, c.name) as client_name,
+        c.company_name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
         sp.assigned_personnel,
         sr.worker_requirements
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      JOIN clients c ON j.client_id = c.id
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
@@ -250,74 +262,22 @@ export async function getShiftById(id: string): Promise<Shift | null> {
       return null;
     }
 
-    const row = result.rows[0];
-
-    return {
-      id: row.id,
-      timesheetId: row.timesheet_id || '',
-      jobId: row.job_id,
-      jobName: row.job_name,
-      clientName: row.client_name,
-      authorizedCrewChiefIds: row.crew_chief_id ? [row.crew_chief_id] : [],
-      date: row.date,
-      startTime: row.start_time,
-      endTime: row.end_time,
-      location: row.location,
-      requestedWorkers: row.requested_workers,
-      workerRequirements: row.worker_requirements || [],
-      crewChiefName: row.crew_chief_name || null,
-      crewChief: row.crew_chief_id ? {
-        id: row.crew_chief_id,
-        name: row.crew_chief_name,
-        certifications: [],
-        performance: 0,
-        location: '',
-        avatar: row.crew_chief_avatar || '',
-      } : null,
-      assignedPersonnel: row.assigned_personnel || [],
-      status: row.status,
-      timesheetStatus: row.timesheet_status || 'Pending Finalization',
-      notes: row.notes,
-    };
+    return mapShiftRow(result.rows[0]);
   } catch (error) {
     console.error('Error getting shift by ID:', error);
     return null;
   }
 }
 
-
-
 export async function getShiftsByCrewChief(crewChiefId: string): Promise<Shift[]> {
   try {
     const result = await query(`
-      WITH shift_personnel AS (
-        SELECT
-          ap.shift_id,
-          json_agg(
-            json_build_object(
-              'employee', json_build_object(
-                'id', u.id,
-                'name', u.name,
-                'certifications', u.certifications,
-                'performance', u.performance,
-                'location', u.location,
-                'avatar', u.avatar
-              ),
-              'roleOnShift', ap.role_on_shift,
-              'roleCode', ap.role_code,
-              'status', ap.status,
-              'isPlaceholder', ap.is_placeholder
-            )
-          ) as assigned_personnel
-        FROM assigned_personnel ap
-        LEFT JOIN users u ON ap.employee_id = u.id
-        GROUP BY ap.shift_id
-      )
+      ${SHIFT_PERSONNEL_CTE}
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-        COALESCE(s.requested_workers, 1) as requested_workers,
+        s.requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
-        COALESCE(c.company_name, c.name) as client_name,
+        c.company_name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
         sp.assigned_personnel,
@@ -328,7 +288,7 @@ export async function getShiftsByCrewChief(crewChiefId: string): Promise<Shift[]
         ) + (CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      JOIN clients c ON j.client_id = c.id
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
@@ -336,37 +296,7 @@ export async function getShiftsByCrewChief(crewChiefId: string): Promise<Shift[]
       ORDER BY s.date DESC, s.start_time
     `, [crewChiefId]);
 
-    const shifts: Shift[] = result.rows.map(row => ({
-        id: row.id,
-        timesheetId: row.timesheet_id || '',
-        jobId: row.job_id,
-        jobName: row.job_name,
-        clientName: row.client_name,
-        authorizedCrewChiefIds: [row.crew_chief_id],
-        date: row.date,
-        startTime: row.start_time,
-        endTime: row.end_time,
-        location: row.location,
-        requestedWorkers: parseInt(row.requested_workers) || 1,
-        assignedCount: parseInt(row.assigned_count) || 0,
-        crewChief: {
-          id: row.crew_chief_id,
-          name: row.crew_chief_name,
-          certifications: [],
-          performance: 0,
-          location: '',
-          avatar: row.crew_chief_avatar || '',
-        },
-        crewChiefId: row.crew_chief_id,
-        crewChiefName: row.crew_chief_name,
-        crewChiefAvatar: row.crew_chief_avatar || '',
-        assignedPersonnel: row.assigned_personnel || [],
-        status: row.status,
-        timesheetStatus: row.timesheet_status || 'Pending Finalization',
-        notes: row.notes,
-      }));
-
-    return shifts;
+    return result.rows.map(mapShiftRow);
   } catch (error) {
     console.error('Error getting shifts by crew chief:', error);
     return [];
@@ -458,7 +388,6 @@ export async function updateShift(shiftId: string, shiftData: {
     }
     if (shiftData.crewChiefId !== undefined) {
       updates.push(`crew_chief_id = $${paramCount++}`);
-      // Convert empty string to null for UUID column
       values.push(shiftData.crewChiefId === '' ? null : shiftData.crewChiefId);
     }
     if (shiftData.requestedWorkers !== undefined) {
@@ -487,14 +416,12 @@ export async function updateShift(shiftId: string, shiftData: {
     if (shiftData.crewChiefId !== undefined) {
       try {
         if (shiftData.crewChiefId) {
-          // Add new crew chief to assigned_personnel if not already there
           await query(`
             INSERT INTO assigned_personnel (shift_id, employee_id, role_on_shift, role_code, status)
             VALUES ($1, $2, 'Crew Chief', 'CC', 'Clocked Out')
             ON CONFLICT (shift_id, employee_id) DO NOTHING
           `, [shiftId, shiftData.crewChiefId]);
         } else {
-          // Remove crew chief from assigned_personnel if crew chief is being unassigned
           await query(`
             DELETE FROM assigned_personnel
             WHERE shift_id = $1 AND role_code = 'CC'
@@ -502,7 +429,6 @@ export async function updateShift(shiftId: string, shiftData: {
         }
       } catch (error) {
         console.error('Error updating crew chief assignment:', error);
-        // Continue without failing the shift update
       }
     }
 

@@ -67,7 +67,7 @@ export function getPool(): Pool {
     });
 
     // Enhanced error handling with metrics
-    pool.on('error', (err) => {
+    pool.on('error', (err: Error) => {
       console.error('Unexpected error on idle client', err);
       poolStats.connectionErrors++;
       poolStats.lastError = err.message;
@@ -78,7 +78,7 @@ export function getPool(): Pool {
       console.log('New client connected to database');
     });
 
-    pool.on('remove', (client) => {
+    pool.on('remove', (_client: PoolClient) => {
       console.log('Client removed from pool');
     });
   }

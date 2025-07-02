@@ -17,7 +17,8 @@ export async function runMigrations() {
     const migrations = [
       '001_initial_schema.sql',
       '002_add_is_active_to_time_entries.sql',
-      '003_consolidate_user_tables.sql'
+      '003_consolidate_user_tables.sql',
+      '004_restructure_client_model_and_crew_chief_permissions.sql'
     ];
 
     for (const migration of migrations) {
