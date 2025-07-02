@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
 import { query } from '@/lib/db';
 import { withCrewChiefPermission } from '@/lib/utils/crew-chief-auth';
 
@@ -21,11 +20,11 @@ export async function POST(
         );
       }
 
-    // Get the assigned personnel record
-    const assignedPersonnelResult = await query(`
-      SELECT id, employee_id FROM assigned_personnel
-      WHERE id = $1 AND shift_id = $2
-    `, [workerId, id]);
+      // Get the assigned personnel record
+      const assignedPersonnelResult = await query(`
+        SELECT id, employee_id FROM assigned_personnel
+        WHERE id = $1 AND shift_id = $2
+      `, [workerId, shiftId]);
 
     if (assignedPersonnelResult.rows.length === 0) {
       return NextResponse.json(
@@ -76,15 +75,16 @@ export async function POST(
       DO UPDATE SET clock_in = $3, is_active = true
     `, [workerId, nextEntryNumber, now]);
 
-    return NextResponse.json({
-      success: true,
-      message: 'Employee clocked in successfully',
-    });
-  } catch (error) {
-    console.error('Error clocking in employee:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
+      return NextResponse.json({
+        success: true,
+        message: 'Employee clocked in successfully',
+      });
+    } catch (error) {
+      console.error('Error clocking in employee:', error);
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
+  });
 }

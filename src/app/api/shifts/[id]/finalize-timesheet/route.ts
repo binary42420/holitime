@@ -1,27 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
 import { query } from '@/lib/db'
+import { withCrewChiefPermission } from '@/lib/utils/crew-chief-auth'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const user = await getCurrentUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
+  const { id: shiftId } = await params
 
-    // Only crew chiefs and managers can finalize timesheets
-    if (!['Crew Chief', 'Manager/Admin'].includes(user.role)) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
-    }
+  return withCrewChiefPermission(shiftId, async (session, permissionCheck) => {
+    try {
 
     const { id: shiftId } = await params
 
@@ -79,15 +67,16 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Timesheet finalized and submitted for client approval',
-      timesheetId
-    })
+        message: 'Timesheet finalized and submitted for client approval',
+        timesheetId
+      })
 
-  } catch (error) {
-    console.error('Error finalizing timesheet:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
+    } catch (error) {
+      console.error('Error finalizing timesheet:', error)
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      )
+    }
+  });
 }

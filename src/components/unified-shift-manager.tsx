@@ -28,6 +28,8 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { useApi, useMutation } from "@/hooks/use-api"
 import { format, differenceInMinutes } from "date-fns"
+import { useCrewChiefPermissions } from "@/hooks/useCrewChiefPermissions"
+import { CrewChiefPermissionBadge, PermissionGuard } from "@/components/crew-chief-permission-badge"
 import {
   Tooltip,
   TooltipContent,
@@ -154,6 +156,7 @@ export default function UnifiedShiftManager({
   onUpdate,
   isOnline = true
 }: UnifiedShiftManagerProps) {
+  const { hasPermission, permissionCheck, isLoading: permissionLoading } = useCrewChiefPermissions(shiftId);
   const { toast } = useToast()
   const [actionState, setActionState] = useState<ActionState>({
     isProcessing: false,
@@ -628,70 +631,78 @@ export default function UnifiedShiftManager({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {worker.status === 'not_started' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleClockAction(worker.id, 'clock_in')}
-                          disabled={actionState.isProcessing || !isOnline}
-                          className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
-                        >
-                          {actionState.lastAction === `clock_in_${worker.id}` ? (
-                            <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                          ) : (
-                            <Play className="h-3 w-3 mr-1" />
-                          )}
-                          Clock In
-                        </Button>
-                      )}
+                      <PermissionGuard
+                        shiftId={shiftId}
+                        fallback={
+                          <div className="text-xs text-muted-foreground">
+                            <CrewChiefPermissionBadge shiftId={shiftId} size="sm" />
+                          </div>
+                        }
+                      >
+                        {worker.status === 'not_started' && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleClockAction(worker.id, 'clock_in')}
+                            disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                            className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                          >
+                            {actionState.lastAction === `clock_in_${worker.id}` ? (
+                              <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                            ) : (
+                              <Play className="h-3 w-3 mr-1" />
+                            )}
+                            Clock In
+                          </Button>
+                        )}
 
-                      {worker.status === 'Clocked In' && (
-                        <>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleClockAction(worker.id, 'clock_out')}
-                                  disabled={actionState.isProcessing || !isOnline}
-                                >
-                                  {actionState.lastAction === `clock_out_${worker.id}` ? (
-                                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                  ) : (
-                                    <Square className="h-3 w-3 mr-1" />
-                                  )}
-                                  Clock Out
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Clock out for a break.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={() => handleEndShift(worker.id, worker.employeeName)}
-                                  disabled={actionState.isProcessing || !isOnline}
-                                >
-                                  {actionState.lastAction === `end_shift_${worker.id}` ? (
-                                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                  ) : (
-                                    <StopCircle className="h-3 w-3 mr-1" />
-                                  )}
-                                  End Shift
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>End the shift for this worker.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </>
-                      )}
+                        {worker.status === 'Clocked In' && (
+                          <>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleClockAction(worker.id, 'clock_out')}
+                                    disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                                  >
+                                    {actionState.lastAction === `clock_out_${worker.id}` ? (
+                                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                    ) : (
+                                      <Square className="h-3 w-3 mr-1" />
+                                    )}
+                                    Clock Out
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Clock out for a break.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    size="sm"
+                                    variant="destructive"
+                                    onClick={() => handleEndShift(worker.id, worker.employeeName)}
+                                    disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                                  >
+                                    {actionState.lastAction === `end_shift_${worker.id}` ? (
+                                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                    ) : (
+                                      <StopCircle className="h-3 w-3 mr-1" />
+                                    )}
+                                    End Shift
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>End the shift for this worker.</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </>
+                        )}
 
                       {worker.status === 'Clocked Out' && (
                         <>
@@ -718,7 +729,8 @@ export default function UnifiedShiftManager({
                             </Tooltip>
                           </TooltipProvider>
                         </>
-                      )}
+                        )}
+                      </PermissionGuard>
                     </div>
                   </div>
                 </div>
@@ -741,16 +753,26 @@ export default function UnifiedShiftManager({
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  disabled={actionState.isProcessing || completedCount === totalWorkers}
-                >
-                  <StopCircle className="h-4 w-4 mr-2" />
-                  End All Shifts
-                </Button>
-              </AlertDialogTrigger>
+            <PermissionGuard
+              shiftId={shiftId}
+              fallback={
+                <div className="text-sm text-muted-foreground flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  <span>Crew chief permissions required for bulk operations</span>
+                  <CrewChiefPermissionBadge shiftId={shiftId} size="sm" />
+                </div>
+              }
+            >
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    disabled={actionState.isProcessing || completedCount === totalWorkers || !hasPermission}
+                  >
+                    <StopCircle className="h-4 w-4 mr-2" />
+                    End All Shifts
+                  </Button>
+                </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -767,31 +789,32 @@ export default function UnifiedShiftManager({
               </AlertDialogContent>
             </AlertDialog>
 
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  disabled={actionState.isProcessing || completedCount < totalWorkers}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <FileText className="h-4 w-4 mr-2" />
-                  Finalize Timesheet
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will finalize the timesheet and send it for client approval. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleFinalizeTimesheet}>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    disabled={actionState.isProcessing || completedCount < totalWorkers || !hasPermission}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
                     Finalize Timesheet
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will finalize the timesheet and send it for client approval. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleFinalizeTimesheet}>
+                      Finalize Timesheet
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </PermissionGuard>
 
             {completedCount === totalWorkers && (
               <Badge className="bg-green-100 text-green-800 px-3 py-1">
