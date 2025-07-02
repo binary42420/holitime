@@ -24,6 +24,11 @@ interface ApiOptions {
 // Simple cache implementation
 const cache = new Map<string, { data: any; timestamp: number; staleTime: number }>();
 
+// Circuit breaker to prevent infinite retries
+const failureCount = new Map<string, { count: number; lastFailure: number }>();
+const CIRCUIT_BREAKER_THRESHOLD = 3;
+const CIRCUIT_BREAKER_TIMEOUT = 30000; // 30 seconds
+
 export function useApi<T>(
   url: string, 
   dependencies: any[] = [], 
@@ -64,6 +69,19 @@ export function useApi<T>(
 
   const fetchData = useCallback(async (forceRefresh = false) => {
     if (!enabled || !url) return;
+
+    // Check circuit breaker
+    const failure = failureCount.get(url);
+    if (failure && failure.count >= CIRCUIT_BREAKER_THRESHOLD) {
+      const timeSinceLastFailure = Date.now() - failure.lastFailure;
+      if (timeSinceLastFailure < CIRCUIT_BREAKER_TIMEOUT) {
+        console.warn(`Circuit breaker open for ${url}, skipping request`);
+        return;
+      } else {
+        // Reset circuit breaker after timeout
+        failureCount.delete(url);
+      }
+    }
 
     // Cancel previous request
     if (abortControllerRef.current) {
@@ -125,10 +143,6 @@ export function useApi<T>(
         component: 'useApi',
         action: 'fetch',
         metadata: { url }
-      }, {
-        maxAttempts: 2, // Reduce retry attempts to prevent infinite loops
-        baseDelay: 500,
-        maxDelay: 2000
       });
 
       // Only update state if component is still mounted
@@ -150,12 +164,21 @@ export function useApi<T>(
         });
 
         onSuccess?.(data);
+
+        // Reset circuit breaker on success
+        failureCount.delete(url);
       }
     } catch (error: any) {
+      // Update circuit breaker on failure
+      const failure = failureCount.get(url) || { count: 0, lastFailure: 0 };
+      failure.count += 1;
+      failure.lastFailure = Date.now();
+      failureCount.set(url, failure);
+
       // Only update state if component is still mounted and error wasn't from abort
       if (mountedRef.current && error.name !== 'AbortError') {
         const errorMessage = error.message || 'An error occurred';
-        
+
         setState(prev => ({
           ...prev,
           loading: false,
