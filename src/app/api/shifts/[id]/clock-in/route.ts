@@ -1,39 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/middleware';
 import { query } from '@/lib/db';
+import { withCrewChiefPermission } from '@/lib/utils/crew-chief-auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const user = await getCurrentUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
-    }
+  const { id: shiftId } = await params;
 
-    // Only crew chiefs and managers can manage time
-    if (!['Crew Chief', 'Manager/Admin'].includes(user.role)) {
-      return NextResponse.json(
-        { error: 'Insufficient permissions' },
-        { status: 403 }
-      );
-    }
+  return withCrewChiefPermission(shiftId, async (session, permissionCheck) => {
+    try {
+      const body = await request.json();
+      const { workerId } = body;
 
-    const body = await request.json();
-    const { workerId } = body;
-
-    if (!workerId) {
-      return NextResponse.json(
-        { error: 'Worker ID is required' },
-        { status: 400 }
-      );
-    }
-
-    const { id } = await params;
+      if (!workerId) {
+        return NextResponse.json(
+          { error: 'Worker ID is required' },
+          { status: 400 }
+        );
+      }
 
     // Get the assigned personnel record
     const assignedPersonnelResult = await query(`
