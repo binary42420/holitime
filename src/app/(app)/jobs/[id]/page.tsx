@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Briefcase, Calendar, Users, Clock, MapPin, Plus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"
+import { DangerZone } from "@/components/danger-zone"
 
 interface JobDetailPageProps {
   params: Promise<{ id: string }>
@@ -255,6 +256,15 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
         targetId={job.id}
         targetType="job"
         targetName={job.name}
+        className="mt-6"
+      />
+
+      {/* Danger Zone - Only visible to admins */}
+      <DangerZone
+        entityType="job"
+        entityId={job.id}
+        entityName={job.name}
+        redirectTo="/jobs"
         className="mt-6"
       />
     </div>

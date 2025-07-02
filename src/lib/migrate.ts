@@ -18,7 +18,8 @@ export async function runMigrations() {
       '001_initial_schema.sql',
       '002_add_is_active_to_time_entries.sql',
       '003_consolidate_user_tables.sql',
-      '004_restructure_client_model_and_crew_chief_permissions.sql'
+      '004_restructure_client_model_and_crew_chief_permissions.sql',
+      '005_add_audit_log_table.sql'
     ];
 
     for (const migration of migrations) {

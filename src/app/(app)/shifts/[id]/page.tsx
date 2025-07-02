@@ -16,6 +16,7 @@ import { LoadingSpinner } from "@/components/loading-states"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertTriangle } from "lucide-react"
 import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"
+import { DangerZone } from "@/components/danger-zone"
 
 export default function ShiftDetailsPage() {
   const params = useParams()
@@ -293,6 +294,15 @@ export default function ShiftDetailsPage() {
         targetId={shiftId}
         targetType="shift"
         targetName={`${shift.job.jobName} - ${new Date(shift.shiftDate).toLocaleDateString()} ${shift.startTime}`}
+        className="mt-6"
+      />
+
+      {/* Danger Zone - Only visible to admins */}
+      <DangerZone
+        entityType="shift"
+        entityId={shiftId}
+        entityName={`${shift.job.jobName} - ${new Date(shift.shiftDate).toLocaleDateString()} ${shift.startTime}`}
+        redirectTo="/shifts"
         className="mt-6"
       />
     </div>

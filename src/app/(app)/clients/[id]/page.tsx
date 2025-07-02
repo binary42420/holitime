@@ -11,6 +11,7 @@ import { ArrowLeft, Building2, Phone, Mail, MapPin, Briefcase, Plus, Calendar, U
 import { useToast } from "@/hooks/use-toast"
 import { generateClientEditUrl } from "@/lib/url-utils"
 import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"
+import { DangerZone } from "@/components/danger-zone"
 
 interface ClientDetailPageProps {
   params: { id: string }
@@ -267,6 +268,15 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
         targetId={client.clientCompanyId || client.id}
         targetType="client"
         targetName={client.companyName || client.name}
+        className="mt-6"
+      />
+
+      {/* Danger Zone - Only visible to admins */}
+      <DangerZone
+        entityType="client"
+        entityId={client.id}
+        entityName={client.companyName || client.name}
+        redirectTo="/clients"
         className="mt-6"
       />
     </div>
