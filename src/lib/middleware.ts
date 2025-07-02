@@ -7,14 +7,14 @@ import { authOptions } from './auth-config';
 export async function getCurrentUser(req: NextRequest): Promise<User | null> {
   const session = await getServerSession(authOptions);
 
-  if (session?.user) {
+if (session?.user) {
     return {
       id: session.user.id,
       email: session.user.email!,
       name: session.user.name!,
       role: session.user.role as any, // Cast because role is not on default User type
       avatar: session.user.image || `https://i.pravatar.cc/32?u=${session.user.email}`,
-      clientCompanyId: session.user.clientCompanyId || null,
+      clientCompanyId: session.user.role === 'Client' ? (session.user as any).clientCompanyId || null : null,
     };
   }
 
