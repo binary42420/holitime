@@ -133,10 +133,10 @@ export interface RetryConfig {
 }
 
 export const DEFAULT_RETRY_CONFIG: RetryConfig = {
-  maxAttempts: 3,
-  baseDelay: 1000,
-  maxDelay: 10000,
-  backoffFactor: 2,
+  maxAttempts: 2,
+  baseDelay: 500,
+  maxDelay: 2000,
+  backoffFactor: 1.5,
   retryableErrors: ['NETWORK_ERROR', 'SERVER_ERROR']
 }
 

@@ -125,6 +125,10 @@ export function useApi<T>(
         component: 'useApi',
         action: 'fetch',
         metadata: { url }
+      }, {
+        maxAttempts: 2, // Reduce retry attempts to prevent infinite loops
+        baseDelay: 500,
+        maxDelay: 2000
       });
 
       // Only update state if component is still mounted
@@ -158,10 +162,10 @@ export function useApi<T>(
           error: errorMessage,
         }));
 
-        // Handle error with our error system
+        // Handle error with our error system - but don't show toast for network errors
         if (onError) {
           onError(error);
-        } else {
+        } else if (error.code !== 'NETWORK_ERROR') {
           handleError(error, {
             ...context,
             component: 'useApi',
@@ -171,7 +175,7 @@ export function useApi<T>(
         }
       }
     }
-  }, [url, enabled, withRetry, context, onSuccess, onError, getCachedData, staleTime]);
+  }, [url, enabled, context, onSuccess, onError, staleTime]);
 
   // Effect for initial fetch and dependency changes
   useEffect(() => {
