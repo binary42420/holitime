@@ -14,7 +14,7 @@ export async function getCurrentUser(req: NextRequest): Promise<User | null> {
       name: session.user.name!,
       role: session.user.role as any, // Cast because role is not on default User type
       avatar: session.user.image || `https://i.pravatar.cc/32?u=${session.user.email}`,
-      clientId: session.user.clientId || null,
+      clientCompanyId: session.user.clientCompanyId || null,
     };
   }
 
