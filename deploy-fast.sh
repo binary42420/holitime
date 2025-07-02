@@ -45,14 +45,14 @@ fi
 
 # Use Cloud Build for faster building with simple Dockerfile
 echo -e "${YELLOW}🏗️  Building with Cloud Build (using simple Dockerfile)...${NC}"
+cp Dockerfile.simple Dockerfile
 gcloud builds submit \
   --tag ${IMAGE_NAME} \
-  --file=Dockerfile.simple \
   --timeout=600s \
   --machine-type=e2-highcpu-8 \
   --quiet
 
-# Deploy to Cloud Run with minimal config
+# Deploy to Cloud Run with environment variables
 echo -e "${YELLOW}🚀 Deploying to Cloud Run...${NC}"
 gcloud run deploy ${SERVICE_NAME} \
   --image ${IMAGE_NAME} \
@@ -66,7 +66,24 @@ gcloud run deploy ${SERVICE_NAME} \
   --max-instances 3 \
   --timeout 300 \
   --concurrency 100 \
-  --env-vars-file .env.production \
+  --set-env-vars "NODE_ENV=production" \
+  --set-env-vars "NEXT_TELEMETRY_DISABLED=1" \
+  --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@holidb-hol619.d.aivencloud.com:12297/defaultdb?sslmode=require" \
+  --set-env-vars "DATABASE_PROVIDER=aiven" \
+  --set-env-vars "DATABASE_SSL=true" \
+  --set-env-vars "NODE_TLS_REJECT_UNAUTHORIZED=0" \
+  --set-env-vars "NEXTAUTH_SECRET=holitime-super-secure-secret-key-for-production-2024" \
+  --set-env-vars "NEXTAUTH_URL=https://holitime-369017734615.us-central1.run.app" \
+  --set-env-vars "GOOGLE_CLIENT_ID=369017734615-d69l9fi2bphahlk815ji447ri2m3qjjp.apps.googleusercontent.com" \
+  --set-env-vars "GOOGLE_CLIENT_SECRET=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" \
+  --set-env-vars "GOOGLE_API_KEY=AIzaSyAaMQ6qq0iVnyt2w1IERTPwXGrllSLnhZQ" \
+  --set-env-vars "GOOGLE_AI_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k" \
+  --set-env-vars "JWT_SECRET=holitime-jwt-secret-key-for-production-2024" \
+  --set-env-vars "SMTP_HOST=smtp.gmail.com" \
+  --set-env-vars "SMTP_PORT=587" \
+  --set-env-vars "SMTP_USER=ryley92@gmail.com" \
+  --set-env-vars "SMTP_PASS=HdfatbOY123!!!" \
+  --set-env-vars "DISABLE_API_ROUTES=false" \
   --quiet
 
 # Get the service URL
