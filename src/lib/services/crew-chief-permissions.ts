@@ -180,7 +180,7 @@ export async function getPermissionsForTarget(
 ): Promise<CrewChiefPermission[]> {
   try {
     const result = await query(`
-      SELECT 
+      SELECT
         p.id, p.user_id, p.permission_type, p.target_id, p.granted_by_user_id, p.granted_at, p.revoked_at,
         u.name as user_name,
         gb.name as granted_by_name
@@ -205,6 +205,49 @@ export async function getPermissionsForTarget(
     }));
   } catch (error) {
     console.error('Error getting permissions for target:', error);
+    return [];
+  }
+}
+
+// Get all crew chief permissions (for admin interface)
+export async function getAllCrewChiefPermissions(): Promise<CrewChiefPermission[]> {
+  try {
+    const result = await query(`
+      SELECT
+        p.id, p.user_id, p.permission_type, p.target_id, p.granted_by_user_id, p.granted_at, p.revoked_at,
+        u.name as user_name,
+        gb.name as granted_by_name,
+        CASE
+          WHEN p.permission_type = 'client' THEN c.company_name
+          WHEN p.permission_type = 'job' THEN j.name
+          WHEN p.permission_type = 'shift' THEN CONCAT(sj.name, ' - ', s.date, ' ', s.start_time)
+        END as target_name
+      FROM crew_chief_permissions p
+      JOIN users u ON p.user_id = u.id
+      JOIN users gb ON p.granted_by_user_id = gb.id
+      LEFT JOIN clients c ON p.permission_type = 'client' AND p.target_id = c.id
+      LEFT JOIN jobs j ON p.permission_type = 'job' AND p.target_id = j.id
+      LEFT JOIN shifts s ON p.permission_type = 'shift' AND p.target_id = s.id
+      LEFT JOIN jobs sj ON s.job_id = sj.id
+      WHERE p.revoked_at IS NULL
+      ORDER BY p.granted_at DESC
+    `);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      userId: row.user_id,
+      permissionType: row.permission_type,
+      targetId: row.target_id,
+      grantedByUserId: row.granted_by_user_id,
+      grantedAt: row.granted_at,
+      revokedAt: row.revoked_at,
+      // Additional fields for admin interface
+      userName: row.user_name,
+      grantedByName: row.granted_by_name,
+      targetName: row.target_name,
+    }));
+  } catch (error) {
+    console.error('Error getting all crew chief permissions:', error);
     return [];
   }
 }

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { 
-  grantCrewChiefPermission, 
-  revokeCrewChiefPermission, 
+import {
+  grantCrewChiefPermission,
+  revokeCrewChiefPermission,
   getUserCrewChiefPermissions,
-  getPermissionsForTarget 
+  getPermissionsForTarget,
+  getAllCrewChiefPermissions
 } from '@/lib/services/crew-chief-permissions';
 import type { CrewChiefPermissionType } from '@/lib/types';
 
@@ -26,8 +27,13 @@ export async function GET(request: NextRequest) {
     const userId = searchParams.get('userId');
     const permissionType = searchParams.get('permissionType') as CrewChiefPermissionType;
     const targetId = searchParams.get('targetId');
+    const all = searchParams.get('all');
 
-    if (userId) {
+    if (all === 'true') {
+      // Get all permissions for admin interface
+      const permissions = await getAllCrewChiefPermissions();
+      return NextResponse.json({ permissions });
+    } else if (userId) {
       // Get permissions for a specific user
       const permissions = await getUserCrewChiefPermissions(userId);
       return NextResponse.json({ permissions });
