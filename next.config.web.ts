@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
   },
   // Environment variables for production
   env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+    NEXT_PUBLIC_API_URL: process.env.NEXTAUTH_URL || 'https://holitime-369017734615.us-central1.run.app',
     NEXT_PUBLIC_IS_MOBILE: 'false',
   },
   // Webpack configuration for web build

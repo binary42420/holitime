@@ -8,7 +8,7 @@ set -e  # Exit on any error
 # Configuration
 PROJECT_ID="handsonlabor"
 SERVICE_NAME="handsonlabor-website"
-REGION="us-central1"  # Change to your preferred region
+REGION="us-central1"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
 
 # Colors for output

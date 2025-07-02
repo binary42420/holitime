@@ -58,15 +58,12 @@
 - **Dependency Resolution**: Fixed OpenTelemetry and Handlebars webpack issues
 
 ### Architecture Changes:
-- **Dual Configuration**: Web (standalone) and Mobile (static export) builds
-- **API Exclusion**: Mobile builds exclude server-side API routes
-- **Environment Detection**: Automatic Capacitor vs. web build detection
+- **Dual Configuration**: Web (standalone)
 - **Docker Optimization**: Multi-stage builds with proper Node.js 20 support
 
 ### Known Issues Resolved:
 - ✅ Next.js 15 params Promise compatibility
 - ✅ Node.js version compatibility (upgraded to Node 20)
-- ✅ Build system conflicts between web and mobile
 - ✅ Missing dependencies in production builds
 - ✅ TypeScript compilation errors in deployment
 
