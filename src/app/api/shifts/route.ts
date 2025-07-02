@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
       shifts = await getShiftsByCrewChief(user.id);
     } else if (user.role === 'Employee') {
       // For employees, get shifts where they are assigned
-      shifts = await getAllShifts();
-      // TODO: Filter to only shifts where the employee is assigned
-      shifts = shifts.filter(shift => 
-        shift.assignedPersonnel.some(person => person.employee.id === user.id)
+      const allShiftsData = await getAllShifts();
+      // Filter to only shifts where the employee is assigned
+      shifts = allShiftsData.shifts.filter((shift: any) => 
+        shift.assignedPersonnel.some((person: any) => person.employee.id === user.id)
       );
     } else if (user.role === 'Client') {
       // Get shifts for client's jobs

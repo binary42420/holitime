@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
         name: user.name,
         role: user.role,
         avatar: user.avatar,
-        clientId: user.clientId,
+        clientCompanyId: user.clientCompanyId,
       },
     });
 
