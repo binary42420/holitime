@@ -39,6 +39,7 @@ interface ShiftQueryOptions {
   startDate?: string;
   endDate?: string;
   jobId?: string;
+  clientId?: string;
 }
 
 // Helper function to map database row to Shift type
@@ -147,7 +148,8 @@ export async function getAllShifts(options: ShiftQueryOptions = {}): Promise<{
       status,
       startDate,
       endDate,
-      jobId
+      jobId,
+      clientId
     } = options;
 
     const offset = (page - 1) * pageSize;
@@ -171,6 +173,10 @@ export async function getAllShifts(options: ShiftQueryOptions = {}): Promise<{
     if (jobId) {
       conditions.push(`s.job_id = $${paramIndex++}`);
       params.push(jobId);
+    }
+    if (clientId) {
+      conditions.push(`j.client_id = $${paramIndex++}`);
+      params.push(clientId);
     }
 
     const whereClause = conditions.length

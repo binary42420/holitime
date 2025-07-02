@@ -26,10 +26,21 @@ export async function GET(request: NextRequest) {
       shifts = shifts.filter(shift => 
         shift.assignedPersonnel.some(person => person.employee.id === user.id)
       );
+    } else if (user.role === 'Client') {
+      // Get shifts for client's jobs
+      const searchParams = new URL(request.url).searchParams;
+      const clientId = searchParams.get('clientId') || user.clientCompanyId;
+      
+      if (clientId) {
+        shifts = (await getAllShifts({ 
+          jobId: undefined, 
+          clientId: clientId 
+        })).shifts;
+      } else {
+        shifts = [];
+      }
     } else {
-      // Client users - get shifts for their jobs
-      shifts = await getAllShifts();
-      // TODO: Filter to only shifts for client's jobs
+      shifts = [];
     }
 
     return NextResponse.json({
