@@ -182,7 +182,7 @@ export async function getPermissionsForTarget(
     const result = await query(`
       SELECT
         p.id, p.user_id, p.permission_type, p.target_id, p.granted_by_user_id, p.granted_at, p.revoked_at,
-        u.name as user_name,
+        u.name as user_name, u.role as user_role,
         gb.name as granted_by_name
       FROM crew_chief_permissions p
       JOIN users u ON p.user_id = u.id
@@ -201,6 +201,7 @@ export async function getPermissionsForTarget(
       revokedAt: row.revoked_at,
       // Additional fields for admin interface
       userName: row.user_name,
+      userRole: row.user_role,
       grantedByName: row.granted_by_name,
     }));
   } catch (error) {

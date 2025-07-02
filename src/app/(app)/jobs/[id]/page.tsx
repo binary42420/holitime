@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Briefcase, Calendar, Users, Clock, MapPin, Plus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"
 
 interface JobDetailPageProps {
   params: Promise<{ id: string }>
@@ -248,6 +249,14 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Crew Chief Permissions Section - Only visible to admins */}
+      <CrewChiefPermissionManager
+        targetId={job.id}
+        targetType="job"
+        targetName={job.name}
+        className="mt-6"
+      />
     </div>
   )
 }

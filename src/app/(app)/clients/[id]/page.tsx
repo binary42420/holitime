@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Building2, Phone, Mail, MapPin, Briefcase, Plus, Calendar, Users } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateClientEditUrl } from "@/lib/url-utils"
+import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"
 
 interface ClientDetailPageProps {
   params: { id: string }
@@ -260,6 +261,14 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Crew Chief Permissions Section - Only visible to admins */}
+      <CrewChiefPermissionManager
+        targetId={client.clientCompanyId || client.id}
+        targetType="client"
+        targetName={client.companyName || client.name}
+        className="mt-6"
+      />
     </div>
   )
 }

@@ -17,7 +17,8 @@ import {
   FileText,
   Clock,
   UserCog,
-  Merge
+  Merge,
+  Shield
 } from "lucide-react"
 
 import { withAuth } from '@/lib/with-auth';
@@ -109,6 +110,17 @@ function AdminPage() {
         { label: "Pending Approvals", href: "/admin/timesheets/pending" },
         { label: "All Timesheets", href: "/timesheets" },
         { label: "Timesheet Reports", href: "/admin/timesheets/reports" }
+      ]
+    },
+    {
+      title: "Crew Chief Permissions",
+      description: "Manage crew chief permissions and access control",
+      icon: Shield,
+      href: "/admin/crew-chief-permissions",
+      actions: [
+        { label: "View All Permissions", href: "/admin/crew-chief-permissions" },
+        { label: "Grant New Permission", href: "/admin/crew-chief-permissions?tab=grant" },
+        { label: "User Overview", href: "/admin/crew-chief-permissions?tab=users" }
       ]
     },
     {

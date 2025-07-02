@@ -15,6 +15,7 @@ import { generateShiftEditUrl } from "@/lib/url-utils"
 import { LoadingSpinner } from "@/components/loading-states"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertTriangle } from "lucide-react"
+import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"
 
 export default function ShiftDetailsPage() {
   const params = useParams()
@@ -286,6 +287,14 @@ export default function ShiftDetailsPage() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Crew Chief Permissions Section - Only visible to admins */}
+      <CrewChiefPermissionManager
+        targetId={shiftId}
+        targetType="shift"
+        targetName={`${shift.job.jobName} - ${new Date(shift.shiftDate).toLocaleDateString()} ${shift.startTime}`}
+        className="mt-6"
+      />
     </div>
   )
 }
