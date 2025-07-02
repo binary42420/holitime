@@ -1,16 +1,22 @@
-# Multi-stage build for optimization
-FROM node:20-alpine AS base
+# Use Debian-based Node.js image for better compatibility
+FROM node:20-slim AS base
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install dependencies with optimizations
-RUN npm ci --legacy-peer-deps --only=production --no-audit --no-fund && \
+# Install dependencies
+RUN npm ci --legacy-peer-deps --omit=dev --no-audit --no-fund && \
     npm cache clean --force
 
 # Rebuild the source code only when needed
@@ -27,15 +33,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Production image, copy all the files and run next
-FROM base AS runner
+FROM node:20-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Create user
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN groupadd --gid 1001 nodejs
+RUN useradd --uid 1001 --gid nodejs --shell /bin/bash --create-home nextjs
 
 # Copy built application
 COPY --from=builder /app/public ./public

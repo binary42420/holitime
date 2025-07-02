@@ -43,10 +43,11 @@ if [ "$BUILD_SIZE" -gt 1000 ]; then
     echo -e "${YELLOW}⚠️  Large build context detected. This might take longer.${NC}"
 fi
 
-# Use Cloud Build for faster building
-echo -e "${YELLOW}🏗️  Building with Cloud Build (faster)...${NC}"
+# Use Cloud Build for faster building with simple Dockerfile
+echo -e "${YELLOW}🏗️  Building with Cloud Build (using simple Dockerfile)...${NC}"
 gcloud builds submit \
   --tag ${IMAGE_NAME} \
+  --file=Dockerfile.simple \
   --timeout=600s \
   --machine-type=e2-highcpu-8 \
   --quiet
