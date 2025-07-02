@@ -58,16 +58,53 @@ gcloud services enable containerregistry.googleapis.com
 echo -e "${YELLOW}🐳 Configuring Docker authentication...${NC}"
 gcloud auth configure-docker
 
-# Build the Docker image
-echo -e "${YELLOW}🏗️  Building Docker image...${NC}"
-docker build -t ${IMAGE_NAME} .
+# Clean up Docker to free space
+echo -e "${YELLOW}🧹 Cleaning up Docker...${NC}"
+docker system prune -f
+
+# Build the Docker image with optimizations
+echo -e "${YELLOW}🏗️  Building Docker image with optimizations...${NC}"
+echo -e "${BLUE}Build context size:${NC}"
+du -sh . | head -1
+
+# Use BuildKit for faster builds
+export DOCKER_BUILDKIT=1
+docker build \
+  --progress=plain \
+  --no-cache \
+  -t ${IMAGE_NAME} .
 
 # Push the image to Google Container Registry
 echo -e "${YELLOW}📤 Pushing image to Google Container Registry...${NC}"
 docker push ${IMAGE_NAME}
 
 # Deploy to Cloud Run
-echo -e "${YELLOW}🚀 Deploying to Cloud Run...${NC}"
+echo -e "${YELLOW}🚀 Deploying to Cloud Run with command: \n
+gcloud run deploy ${SERVICE_NAME} \n
+  --image ${IMAGE_NAME} \n
+  --platform managed \n
+  --region ${REGION} \n
+  --allow-unauthenticated \n
+  --port 3000 \n
+  --memory 2Gi \n
+  --cpu 2 \n
+  --min-instances 0 \n
+  --max-instances 1 \n
+  --timeout 300 \n
+  --concurrency 80 \n
+  --set-env-vars "NODE_ENV=production" \n
+  --set-env-vars "NEXT_TELEMETRY_DISABLED=1" \n
+  --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@holidb-hol619.d.aivencloud.com:12297/defaultdb?sslmode=require" \n
+  --set-env-vars "DATABASE_PROVIDER=aiven" \n
+  --set-env-vars "DATABASE_SSL=true" \n
+  --set-env-vars "NODE_TLS_REJECT_UNAUTHORIZED=0" \n
+  --set-env-vars "NEXTAUTH_SECRET=holitime-super-secure-secret-key-for-production-2024" \n
+  --set-env-vars "NEXTAUTH_URL=https://holitime-369017734615.us-central1.run.app" \n
+  --set-env-vars "GOOGLE_CLIENT_ID=369017734615-d69l9fi2bphahlk815ji447ri2m3qjjp.apps.googleusercontent.com" \n
+  --set-env-vars "GOOGLE_CLIENT_SECRET=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" \n
+  --set-env-vars "GOOGLE_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k" \n
+  --set-env-vars "JWT_SECRET=holitime-jwt-secret-key-for-production-2024" \n
+${NC}"
 gcloud run deploy ${SERVICE_NAME} \
   --image ${IMAGE_NAME} \
   --platform managed \

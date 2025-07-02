@@ -19,6 +19,11 @@ const nextConfig: NextConfig = {
         dns: false,
       };
     }
+
+    // Fix pg-native issue
+    config.externals = config.externals || [];
+    config.externals.push('pg-native');
+
     return config;
   },
 };

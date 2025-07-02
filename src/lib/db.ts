@@ -50,20 +50,22 @@ export function getPool(): Pool {
       }
     }
 
-    // Enhanced pool configuration for Cloud Run
+    // Enhanced pool configuration for Cloud Run with better error handling
     pool = new Pool({
       connectionString,
       ssl: sslConfig,
-      max: process.env.NODE_ENV === 'production' ? 10 : 5, // More connections in production
-      min: 1, // Keep at least 1 connection alive
-      idleTimeoutMillis: 30000, // 30 seconds idle timeout
-      connectionTimeoutMillis: 10000, // 10 seconds connection timeout
-      statement_timeout: 60000, // 60 second query timeout
-      query_timeout: 60000,
-      // Additional Cloud Run optimizations
+      max: process.env.NODE_ENV === 'production' ? 8 : 3, // Reduced for stability
+      min: 0, // Allow pool to scale to zero when idle
+      idleTimeoutMillis: 60000, // 1 minute idle timeout
+      connectionTimeoutMillis: 15000, // 15 seconds connection timeout (increased)
+      statement_timeout: 30000, // 30 second query timeout (reduced)
+      query_timeout: 30000,
+      // Additional optimizations for network stability
       keepAlive: true,
-      keepAliveInitialDelayMillis: 10000,
-      allowExitOnIdle: false, // Important for Cloud Run
+      keepAliveInitialDelayMillis: 5000,
+      allowExitOnIdle: process.env.NODE_ENV !== 'production', // Allow exit in development
+      // Application identification
+      application_name: 'holitime-app',
     });
 
     // Enhanced error handling with metrics
@@ -74,7 +76,7 @@ export function getPool(): Pool {
       poolStats.lastErrorTime = new Date();
     });
 
-    pool.on('connect', (client) => {
+    pool.on('connect', () => {
       console.log('New client connected to database');
     });
 
