@@ -5,6 +5,7 @@ import React from 'react'
 // Force dynamic rendering to avoid build-time URL issues
 export const dynamic = 'force-dynamic'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   Building2,
@@ -52,10 +53,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center gap-2">
-             <Button variant="ghost" size="icon" className="shrink-0" asChild>
+            <Button variant="ghost" size="icon" className="shrink-0" asChild>
               <Link href="/dashboard"><Hand className="text-primary size-6" /></Link>
             </Button>
-            <h1 className="text-xl font-semibold text-sidebar-foreground font-headline group-data-[collapsible=icon]:hidden">Hands On Labor</h1>
+            <Link
+              href="https://handsonlabor-website-369017734615.us-central1.run.app"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group-data-[collapsible=icon]:hidden hover:opacity-80 transition-opacity"
+              aria-label="Visit Hands On Labor marketing website"
+            >
+              <Image
+                src="/images/handson-labor-logo.svg"
+                alt="Hands On Labor"
+                width={120}
+                height={40}
+                className="h-8 w-auto"
+                priority
+              />
+            </Link>
           </div>
         </SidebarHeader>
         <SidebarContent>
