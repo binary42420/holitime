@@ -21,11 +21,11 @@ export async function GET(request: NextRequest) {
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         COALESCE(s.requested_workers, 1) as requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
-        COALESCE(c.company_name, c.name) as client_name,
+        c.company_name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      JOIN clients c ON j.client_id = c.id
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       WHERE s.date = $1
       ORDER BY s.start_time ASC
