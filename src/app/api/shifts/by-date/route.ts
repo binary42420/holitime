@@ -59,13 +59,13 @@ export async function GET(request: NextRequest) {
     const clientFilter = searchParams.get('client') || 'all';
     if (clientFilter !== 'all') {
       queryParams.push(clientFilter);
-      whereClause += ` AND c.name = $${queryParams.length}`;
+      whereClause += ` AND c.company_name = $${queryParams.length}`;
     }
 
     const searchTerm = searchParams.get('search') || '';
     if (searchTerm) {
       queryParams.push(`%${searchTerm}%`);
-      whereClause += ` AND (j.name ILIKE $${queryParams.length} OR c.name ILIKE $${queryParams.length} OR s.location ILIKE $${queryParams.length} OR cc.name ILIKE $${queryParams.length})`;
+      whereClause += ` AND (j.name ILIKE $${queryParams.length} OR c.company_name ILIKE $${queryParams.length} OR s.location ILIKE $${queryParams.length} OR cc.name ILIKE $${queryParams.length})`;
     }
 
     // Optimized query that gets shifts with all needed data in one query
@@ -77,7 +77,7 @@ export async function GET(request: NextRequest) {
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         COALESCE(s.requested_workers, 1) as requested_workers,
         j.id as job_id, j.name as job_name, j.client_id,
-        COALESCE(c.company_name, c.name) as client_name,
+        c.company_name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
         COUNT(CASE WHEN ap.is_placeholder = false THEN ap.id END) as assigned_count,
@@ -96,14 +96,14 @@ export async function GET(request: NextRequest) {
         ) FILTER (WHERE ap.id IS NOT NULL) as assigned_personnel_data
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      JOIN clients c ON j.client_id = c.id
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       LEFT JOIN assigned_personnel ap ON s.id = ap.shift_id
       LEFT JOIN users u ON ap.employee_id = u.id
       ${whereClause}
       GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-               s.requested_workers, j.id, j.name, j.client_id, c.company_name, c.name,
+               s.requested_workers, j.id, j.name, j.client_id, c.company_name,
                cc.id, cc.name, cc.avatar, t.id, t.status
       ORDER BY s.date DESC, s.start_time ASC
       LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}

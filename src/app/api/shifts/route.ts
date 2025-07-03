@@ -12,40 +12,44 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let shifts;
-    
+    let shiftsData;
+
     // Filter shifts based on user role
     if (user.role === 'Manager/Admin') {
-      shifts = await getAllShifts();
+      shiftsData = await getAllShifts();
     } else if (user.role === 'Crew Chief') {
-      shifts = await getShiftsByCrewChief(user.id);
+      const crewChiefShifts = await getShiftsByCrewChief(user.id);
+      shiftsData = { shifts: crewChiefShifts, total: crewChiefShifts.length, pages: 1 };
     } else if (user.role === 'Employee') {
       // For employees, get shifts where they are assigned
       const allShiftsData = await getAllShifts();
       // Filter to only shifts where the employee is assigned
-      shifts = allShiftsData.shifts.filter((shift: any) => 
+      const filteredShifts = allShiftsData.shifts.filter((shift: any) =>
         shift.assignedPersonnel.some((person: any) => person.employee.id === user.id)
       );
+      shiftsData = { shifts: filteredShifts, total: filteredShifts.length, pages: 1 };
     } else if (user.role === 'Client') {
       // Get shifts for client's jobs
       const searchParams = new URL(request.url).searchParams;
       const clientId = searchParams.get('clientId') || user.clientCompanyId;
-      
+
       if (clientId) {
-        shifts = (await getAllShifts({ 
-          jobId: undefined, 
-          clientId: clientId 
-        })).shifts;
+        shiftsData = await getAllShifts({
+          jobId: undefined,
+          clientId: clientId
+        });
       } else {
-        shifts = [];
+        shiftsData = { shifts: [], total: 0, pages: 0 };
       }
     } else {
-      shifts = [];
+      shiftsData = { shifts: [], total: 0, pages: 0 };
     }
 
     return NextResponse.json({
       success: true,
-      shifts,
+      shifts: shiftsData.shifts,
+      total: shiftsData.total,
+      pages: shiftsData.pages,
     });
   } catch (error) {
     console.error('Error getting shifts:', error);
