@@ -415,7 +415,8 @@ class EnhancedEmailService {
 export const emailService = new EnhancedEmailService()
 
 // Start email queue processor (runs every 30 seconds)
-if (typeof window === 'undefined') { // Only run on server
+// Note: This should be started separately in production
+if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
   setInterval(() => {
     emailService.processEmailQueue()
   }, 30000)

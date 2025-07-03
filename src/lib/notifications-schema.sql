@@ -4,7 +4,7 @@
 -- User Profiles Table (Enhanced user information)
 CREATE TABLE IF NOT EXISTS user_profiles (
     id SERIAL PRIMARY KEY,
-    user_id VARCHAR(255) UNIQUE NOT NULL, -- References users.id
+    user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- References users.id
     phone VARCHAR(20),
     address TEXT,
     city VARCHAR(100),
@@ -33,10 +33,10 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Notifications Table
-CREATE TABLE IF NOT EXISTS notifications (
+-- Enhanced Notifications Table (extends existing notifications)
+CREATE TABLE IF NOT EXISTS notifications_enhanced (
     id SERIAL PRIMARY KEY,
-    user_id VARCHAR(255) NOT NULL, -- References users.id
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- References users.id
     type VARCHAR(50) NOT NULL, -- 'shift_assignment', 'document_reminder', 'system_message', etc.
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS notifications (
 -- Notification Responses Table (For shift confirmations, etc.)
 CREATE TABLE IF NOT EXISTS notification_responses (
     id SERIAL PRIMARY KEY,
-    notification_id INTEGER NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
-    user_id VARCHAR(255) NOT NULL, -- References users.id
+    notification_id INTEGER NOT NULL REFERENCES notifications_enhanced(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- References users.id
     response_type VARCHAR(50) NOT NULL, -- 'accept', 'decline', 'maybe', 'acknowledged'
     response_data JSONB, -- Additional response data
     response_message TEXT, -- Optional message from user
@@ -68,9 +68,9 @@ CREATE TABLE IF NOT EXISTS notification_responses (
 -- Shift Assignment Notifications Table (Specific to shift assignments)
 CREATE TABLE IF NOT EXISTS shift_assignment_notifications (
     id SERIAL PRIMARY KEY,
-    notification_id INTEGER NOT NULL REFERENCES notifications(id) ON DELETE CASCADE,
-    shift_id INTEGER NOT NULL, -- References shifts.id
-    assigned_by VARCHAR(255) NOT NULL, -- References users.id (who assigned)
+    notification_id INTEGER NOT NULL REFERENCES notifications_enhanced(id) ON DELETE CASCADE,
+    shift_id UUID NOT NULL, -- References shifts.id
+    assigned_by UUID NOT NULL REFERENCES users(id), -- References users.id (who assigned)
     assignment_type VARCHAR(50) DEFAULT 'direct', -- 'direct', 'invitation', 'replacement'
     response_deadline TIMESTAMP,
     auto_accept_after TIMESTAMP, -- Auto-accept if no response by this time
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS email_templates_enhanced (
     variables JSONB, -- Available template variables
     is_active BOOLEAN DEFAULT true,
     is_system BOOLEAN DEFAULT false, -- System templates cannot be deleted
-    created_by VARCHAR(255), -- References users.id
+    created_by UUID REFERENCES users(id), -- References users.id
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS email_queue (
 -- Notification Preferences Table
 CREATE TABLE IF NOT EXISTS notification_preferences (
     id SERIAL PRIMARY KEY,
-    user_id VARCHAR(255) UNIQUE NOT NULL, -- References users.id
+    user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE, -- References users.id
     email_notifications BOOLEAN DEFAULT true,
     sms_notifications BOOLEAN DEFAULT false,
     push_notifications BOOLEAN DEFAULT true,
@@ -138,11 +138,11 @@ CREATE TABLE IF NOT EXISTS notification_preferences (
 );
 
 -- Indexes for Performance
-CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_type ON notifications(type);
-CREATE INDEX IF NOT EXISTS idx_notifications_is_read ON notifications(is_read);
-CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at);
-CREATE INDEX IF NOT EXISTS idx_notifications_expires_at ON notifications(expires_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_enhanced_user_id ON notifications_enhanced(user_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_enhanced_type ON notifications_enhanced(type);
+CREATE INDEX IF NOT EXISTS idx_notifications_enhanced_is_read ON notifications_enhanced(is_read);
+CREATE INDEX IF NOT EXISTS idx_notifications_enhanced_created_at ON notifications_enhanced(created_at);
+CREATE INDEX IF NOT EXISTS idx_notifications_enhanced_expires_at ON notifications_enhanced(expires_at);
 
 CREATE INDEX IF NOT EXISTS idx_notification_responses_notification_id ON notification_responses(notification_id);
 CREATE INDEX IF NOT EXISTS idx_notification_responses_user_id ON notification_responses(user_id);
@@ -165,10 +165,19 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON user_profiles;
 CREATE TRIGGER update_user_profiles_updated_at BEFORE UPDATE ON user_profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_notifications_updated_at BEFORE UPDATE ON notifications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_notifications_enhanced_updated_at ON notifications_enhanced;
+CREATE TRIGGER update_notifications_enhanced_updated_at BEFORE UPDATE ON notifications_enhanced FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_email_templates_enhanced_updated_at ON email_templates_enhanced;
 CREATE TRIGGER update_email_templates_enhanced_updated_at BEFORE UPDATE ON email_templates_enhanced FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_email_queue_updated_at ON email_queue;
 CREATE TRIGGER update_email_queue_updated_at BEFORE UPDATE ON email_queue FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS update_notification_preferences_updated_at ON notification_preferences;
 CREATE TRIGGER update_notification_preferences_updated_at BEFORE UPDATE ON notification_preferences FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert Default Email Templates
