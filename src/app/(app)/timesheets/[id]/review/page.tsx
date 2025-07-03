@@ -80,7 +80,14 @@ interface TimesheetReviewData {
 export default function TimesheetReviewPage() {
   const params = useParams()
   const router = useRouter()
-  const timesheetId = params.id as string
+  const [timesheetId, setTimesheetId] = useState<string>('')
+
+  // Unwrap params
+  useEffect(() => {
+    if (params.id) {
+      setTimesheetId(params.id as string)
+    }
+  }, [params.id])
 
   const [data, setData] = useState<TimesheetReviewData | null>(null)
   const [loading, setLoading] = useState(true)

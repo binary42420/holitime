@@ -56,7 +56,14 @@ export default function ClientReviewPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
-  const timesheetId = params.id as string
+  const [timesheetId, setTimesheetId] = useState<string>('')
+
+  // Unwrap params
+  useEffect(() => {
+    if (params.id) {
+      setTimesheetId(params.id as string)
+    }
+  }, [params.id])
   
   const [isApproving, setIsApproving] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)

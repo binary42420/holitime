@@ -16,14 +16,19 @@ import { TimesheetStatusIndicator } from "@/components/timesheet-status-indicato
 import Link from "next/link"
 
 interface ClientDetailPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
 
 function ClientDetailPage({ params }: ClientDetailPageProps) {
-  const { id: clientId } = params
+  const [clientId, setClientId] = useState<string>('')
+
+  // Unwrap params
+  useEffect(() => {
+    params.then(p => setClientId(p.id))
+  }, [params])
   const { user } = useUser()
   const router = useRouter()
   const canEdit = user?.role === 'Manager/Admin'

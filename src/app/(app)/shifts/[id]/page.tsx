@@ -23,7 +23,14 @@ export default function ShiftDetailsPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
-  const shiftId = params.id as string
+  const [shiftId, setShiftId] = useState<string>('')
+
+  // Unwrap params
+  useEffect(() => {
+    if (params.id) {
+      setShiftId(params.id as string)
+    }
+  }, [params.id])
 
   const { data: shiftData, loading: shiftLoading, error: shiftError, refetch } = useShift(shiftId)
   
