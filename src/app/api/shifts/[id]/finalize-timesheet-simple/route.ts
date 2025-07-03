@@ -25,7 +25,7 @@ export async function POST(
 
     const { id: shiftId } = await params;
 
-    console.log(`SIMPLE Finalize timesheet request:`, { shiftId, userId: user.id, userRole: user.role });
+    console.log(`SIMPLE Finalize timesheet request (UPDATED):`, { shiftId, userId: user.id, userRole: user.role });
 
     // Check if all workers have ended their shifts
     const activeWorkersResult = await query(`
@@ -57,7 +57,8 @@ export async function POST(
         UPDATE timesheets
         SET status = 'pending_client_approval',
             submitted_by = $1,
-            submitted_at = NOW()
+            submitted_at = NOW(),
+            updated_at = NOW()
         WHERE id = $2
       `, [user.id, timesheetId]);
     } else {
@@ -70,12 +71,69 @@ export async function POST(
       timesheetId = newTimesheetResult.rows[0].id;
     }
 
-    // Update shift status
+    // Update shift status to "Pending Client Approval" as per requirements
+    console.log(`SIMPLE Updating shift status to 'Pending Client Approval' for shift:`, shiftId);
     await query(`
       UPDATE shifts
-      SET status = 'Pending Approval'
+      SET status = 'Pending Client Approval'
       WHERE id = $1
     `, [shiftId]);
+
+    // Create notifications for relevant users
+    console.log(`SIMPLE Creating notifications for timesheet approval...`);
+
+    // Get shift and client information for notifications
+    const shiftInfoResult = await query(`
+      SELECT
+        s.id as shift_id,
+        s.crew_chief_id,
+        s.date,
+        j.name as job_name,
+        j.client_id,
+        c.company_name as client_name
+      FROM shifts s
+      JOIN jobs j ON s.job_id = j.id
+      JOIN clients c ON j.client_id = c.id
+      WHERE s.id = $1
+    `, [shiftId]);
+
+    if (shiftInfoResult.rows.length > 0) {
+      const shiftInfo = shiftInfoResult.rows[0];
+
+      // Get users to notify: client users, crew chief, and managers
+      const usersToNotifyResult = await query(`
+        SELECT DISTINCT u.id, u.name, u.role
+        FROM users u
+        WHERE
+          (u.client_company_id = $1 AND u.role = 'Client') OR  -- Client users
+          u.id = $2 OR  -- Crew chief
+          u.role = 'Manager/Admin'  -- All managers
+      `, [shiftInfo.client_id, shiftInfo.crew_chief_id]);
+
+      // Create notifications for each user
+      for (const userToNotify of usersToNotifyResult.rows) {
+        await query(`
+          INSERT INTO notifications (
+            user_id,
+            type,
+            title,
+            message,
+            related_timesheet_id,
+            related_shift_id
+          )
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          userToNotify.id,
+          'timesheet_ready_for_approval',
+          'Timesheet Ready for Approval',
+          `Timesheet for ${shiftInfo.job_name} on ${shiftInfo.date} is ready for your approval.`,
+          timesheetId,
+          shiftId
+        ]);
+      }
+
+      console.log(`SIMPLE Created notifications for ${usersToNotifyResult.rows.length} users`);
+    }
 
     console.log(`SIMPLE Timesheet finalized successfully:`, { timesheetId, shiftId });
 

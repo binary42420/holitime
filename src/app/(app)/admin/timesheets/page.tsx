@@ -22,7 +22,8 @@ import {
   Users,
   Eye,
   Check,
-  X
+  X,
+  Download
 } from "lucide-react"
 import { format } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
@@ -286,6 +287,32 @@ function AdminTimesheetsPage() {
                               <X className="h-4 w-4" />
                             </Button>
                           </>
+                        )}
+                        {timesheet.status === 'completed' && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={async () => {
+                              try {
+                                const response = await fetch(`/api/timesheets/${timesheet.id}/pdf`)
+                                if (response.ok) {
+                                  const blob = await response.blob()
+                                  const url = window.URL.createObjectURL(blob)
+                                  const a = document.createElement('a')
+                                  a.href = url
+                                  a.download = `timesheet-${timesheet.jobName.replace(/\s+/g, '-')}-${timesheet.shiftDate}.pdf`
+                                  document.body.appendChild(a)
+                                  a.click()
+                                  window.URL.revokeObjectURL(url)
+                                  document.body.removeChild(a)
+                                }
+                              } catch (error) {
+                                console.error('Error downloading PDF:', error)
+                              }
+                            }}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
                         )}
                       </div>
                     </TableCell>

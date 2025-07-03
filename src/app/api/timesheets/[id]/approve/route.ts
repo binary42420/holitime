@@ -61,14 +61,42 @@ export async function POST(
 
       // Update timesheet with client approval
       await query(`
-        UPDATE timesheets 
-        SET status = 'pending_manager_approval',
+        UPDATE timesheets
+        SET status = 'pending_final_approval',
             client_approved_by = $1,
             client_approved_at = NOW(),
             client_signature = $2,
             updated_at = NOW()
         WHERE id = $3
       `, [user.id, signature, id]);
+
+      // Create notifications for managers for final approval
+      const managersResult = await query(`
+        SELECT id, name
+        FROM users
+        WHERE role = 'Manager/Admin'
+      `);
+
+      for (const manager of managersResult.rows) {
+        await query(`
+          INSERT INTO notifications (
+            user_id,
+            type,
+            title,
+            message,
+            related_timesheet_id,
+            related_shift_id
+          )
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          manager.id,
+          'timesheet_ready_for_approval',
+          'Timesheet Ready for Final Approval',
+          `Timesheet has been approved by client and is ready for final approval.`,
+          id,
+          timesheet.shift_id
+        ]);
+      }
 
       return NextResponse.json({
         success: true,
@@ -77,9 +105,9 @@ export async function POST(
 
     } else if (approvalType === 'manager') {
       // Manager approval
-      if (timesheet.status !== 'pending_manager_approval') {
+      if (timesheet.status !== 'pending_final_approval') {
         return NextResponse.json(
-          { error: 'Timesheet is not pending manager approval' },
+          { error: 'Timesheet is not pending final approval' },
           { status: 400 }
         );
       }
@@ -94,7 +122,7 @@ export async function POST(
 
       // Update timesheet with manager approval
       await query(`
-        UPDATE timesheets 
+        UPDATE timesheets
         SET status = 'completed',
             manager_approved_by = $1,
             manager_approved_at = NOW(),
@@ -102,6 +130,24 @@ export async function POST(
             updated_at = NOW()
         WHERE id = $3
       `, [user.id, signature, id]);
+
+      // Generate PDF after final approval
+      try {
+        const generatePdfResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/timesheets/${id}/generate-pdf`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${user.id}`, // Simple auth for internal call
+          },
+        });
+
+        if (generatePdfResponse.ok) {
+          console.log(`PDF generated for completed timesheet ${id}`);
+        } else {
+          console.warn(`Failed to generate PDF for timesheet ${id}`);
+        }
+      } catch (error) {
+        console.warn(`Error generating PDF for timesheet ${id}:`, error);
+      }
 
       // Update shift status to completed
       await query(`

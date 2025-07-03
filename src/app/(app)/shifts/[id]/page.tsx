@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase } from "lucide-react"
+import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase, Download } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import UnifiedShiftManager from "@/components/unified-shift-manager"
 import WorkerAssignmentDisplay from "@/components/worker-assignment-display"
@@ -154,9 +154,45 @@ export default function ShiftDetailsPage() {
         </div>
         <div className="flex items-center gap-2">
           {getStatusBadge(shift.status)}
-          <Button 
-            variant="outline" 
-            size="sm" 
+          {(shift.status === 'Completed' || shift.status === 'Pending Client Approval') && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  // Get timesheet for this shift
+                  const timesheetResponse = await fetch(`/api/timesheets?shiftId=${shiftId}`)
+                  if (timesheetResponse.ok) {
+                    const timesheetData = await timesheetResponse.json()
+                    if (timesheetData.timesheets && timesheetData.timesheets.length > 0) {
+                      const timesheetId = timesheetData.timesheets[0].id
+                      // Download PDF
+                      const pdfResponse = await fetch(`/api/timesheets/${timesheetId}/pdf`)
+                      if (pdfResponse.ok) {
+                        const blob = await pdfResponse.blob()
+                        const url = window.URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        a.download = `timesheet-${shift.jobName.replace(/\s+/g, '-')}-${shift.date}.pdf`
+                        document.body.appendChild(a)
+                        a.click()
+                        window.URL.revokeObjectURL(url)
+                        document.body.removeChild(a)
+                      }
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error downloading PDF:', error)
+                }
+              }}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Download PDF
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => router.push(generateShiftEditUrl(shiftId))}
           >
             Edit Shift
