@@ -5,7 +5,7 @@ import type { Client, ClientCompany } from '../types';
 export async function getAllClientCompanies(): Promise<ClientCompany[]> {
   try {
     const result = await query(`
-      SELECT id, company_name, company_address, contact_phone, contact_email, notes, created_at, updated_at
+      SELECT id, company_name, company_address, contact_phone, contact_email, notes, logo_url, created_at, updated_at
       FROM clients
       ORDER BY company_name
     `);
@@ -17,6 +17,7 @@ export async function getAllClientCompanies(): Promise<ClientCompany[]> {
       contactPhone: row.contact_phone,
       contactEmail: row.contact_email,
       notes: row.notes,
+      logoUrl: row.logo_url,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     }));
@@ -29,7 +30,7 @@ export async function getAllClientCompanies(): Promise<ClientCompany[]> {
 export async function getClientCompanyById(id: string): Promise<ClientCompany | null> {
   try {
     const result = await query(`
-      SELECT id, company_name, company_address, contact_phone, contact_email, notes, created_at, updated_at
+      SELECT id, company_name, company_address, contact_phone, contact_email, notes, logo_url, created_at, updated_at
       FROM clients
       WHERE id = $1
     `, [id]);
@@ -46,11 +47,116 @@ export async function getClientCompanyById(id: string): Promise<ClientCompany | 
       contactPhone: row.contact_phone,
       contactEmail: row.contact_email,
       notes: row.notes,
+      logoUrl: row.logo_url,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
   } catch (error) {
     console.error('Error getting client company by ID:', error);
+    return null;
+  }
+}
+
+export async function createClientCompany(companyData: Omit<ClientCompany, 'id' | 'createdAt' | 'updatedAt'>): Promise<ClientCompany | null> {
+  try {
+    const result = await query(`
+      INSERT INTO clients (company_name, company_address, contact_phone, contact_email, notes, logo_url, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+      RETURNING id, company_name, company_address, contact_phone, contact_email, notes, logo_url, created_at, updated_at
+    `, [
+      companyData.companyName,
+      companyData.companyAddress || null,
+      companyData.contactPhone || null,
+      companyData.contactEmail || null,
+      companyData.notes || null,
+      companyData.logoUrl || null
+    ]);
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      companyName: row.company_name,
+      companyAddress: row.company_address,
+      contactPhone: row.contact_phone,
+      contactEmail: row.contact_email,
+      notes: row.notes,
+      logoUrl: row.logo_url,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  } catch (error) {
+    console.error('Error creating client company:', error);
+    return null;
+  }
+}
+
+export async function updateClientCompany(id: string, companyData: Partial<Omit<ClientCompany, 'id' | 'createdAt' | 'updatedAt'>>): Promise<ClientCompany | null> {
+  try {
+    const fields = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (companyData.companyName !== undefined) {
+      fields.push(`company_name = $${paramCount++}`);
+      values.push(companyData.companyName);
+    }
+    if (companyData.companyAddress !== undefined) {
+      fields.push(`company_address = $${paramCount++}`);
+      values.push(companyData.companyAddress);
+    }
+    if (companyData.contactPhone !== undefined) {
+      fields.push(`contact_phone = $${paramCount++}`);
+      values.push(companyData.contactPhone);
+    }
+    if (companyData.contactEmail !== undefined) {
+      fields.push(`contact_email = $${paramCount++}`);
+      values.push(companyData.contactEmail);
+    }
+    if (companyData.notes !== undefined) {
+      fields.push(`notes = $${paramCount++}`);
+      values.push(companyData.notes);
+    }
+    if (companyData.logoUrl !== undefined) {
+      fields.push(`logo_url = $${paramCount++}`);
+      values.push(companyData.logoUrl);
+    }
+
+    if (fields.length === 0) {
+      return await getClientCompanyById(id);
+    }
+
+    fields.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const result = await query(`
+      UPDATE clients
+      SET ${fields.join(', ')}
+      WHERE id = $${paramCount}
+      RETURNING id, company_name, company_address, contact_phone, contact_email, notes, logo_url, created_at, updated_at
+    `, values);
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      companyName: row.company_name,
+      companyAddress: row.company_address,
+      contactPhone: row.contact_phone,
+      contactEmail: row.contact_email,
+      notes: row.notes,
+      logoUrl: row.logo_url,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  } catch (error) {
+    console.error('Error updating client company:', error);
     return null;
   }
 }
@@ -61,7 +167,7 @@ export async function getAllClients(): Promise<Client[]> {
     const result = await query(`
       SELECT
         u.id, u.name, u.email, u.client_company_id,
-        c.company_name, c.company_address, c.contact_phone, c.contact_email as company_contact_email, c.notes,
+        c.company_name, c.company_address, c.contact_phone, c.contact_email as company_contact_email, c.notes, c.logo_url,
         -- Job count (now based on client company, not user)
         COALESCE(job_counts.job_count, 0) as job_count,
         -- Most recent completed shift
@@ -129,6 +235,7 @@ export async function getAllClients(): Promise<Client[]> {
         contactPhone: row.contact_phone,
         contactEmail: row.company_contact_email,
         notes: row.notes,
+        logoUrl: row.logo_url,
       } : undefined,
 
       // Backward compatibility fields for the frontend
@@ -167,7 +274,7 @@ export async function getClientById(id: string): Promise<Client | null> {
     const result = await query(`
       SELECT
         u.id, u.name, u.email, u.client_company_id,
-        c.company_name, c.company_address, c.contact_phone, c.contact_email as company_contact_email, c.notes
+        c.company_name, c.company_address, c.contact_phone, c.contact_email as company_contact_email, c.notes, c.logo_url
       FROM users u
       LEFT JOIN clients c ON u.client_company_id = c.id
       WHERE u.id = $1 AND u.role = 'Client'
@@ -238,6 +345,7 @@ export async function getClientById(id: string): Promise<Client | null> {
         contactPhone: row.contact_phone,
         contactEmail: row.company_contact_email,
         notes: row.notes,
+        logoUrl: row.logo_url,
       } : undefined,
 
       // Backward compatibility fields for the frontend

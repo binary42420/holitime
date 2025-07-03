@@ -21,6 +21,7 @@ import {
 import { Plus, Building2, Calendar, ExternalLink, MoreHorizontal, Eye, Briefcase, Clock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateClientUrl } from "@/lib/url-utils"
+import { CompanyLogoWithName } from "@/components/ui/company-logo"
 
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
@@ -95,7 +96,14 @@ function ClientsPage() {
                     onClick={() => router.push(generateClientUrl(client.clientCompanyId || client.id))}
                     className="cursor-pointer hover:bg-muted/50"
                   >
-                    <TableCell className="font-medium">{client.companyName || client.name}</TableCell>
+                    <TableCell className="font-medium">
+                      <CompanyLogoWithName
+                        companyName={client.companyName || client.name}
+                        logoUrl={client.clientCompany?.logoUrl}
+                        size="sm"
+                        gap="sm"
+                      />
+                    </TableCell>
                     <TableCell>{client.contactPerson}</TableCell>
                     <TableCell className="hidden md:table-cell">{client.contactEmail}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>

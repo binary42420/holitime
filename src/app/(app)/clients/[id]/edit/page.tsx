@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/use-user'
+import { useApi } from '@/hooks/use-api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,62 +12,75 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast'
 import { ArrowLeft, Save } from 'lucide-react'
 import { LogoUpload } from '@/components/ui/logo-upload'
+import { CompanyLogo } from '@/components/ui/company-logo'
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+interface ClientEditPageProps {
+  params: Promise<{ id: string }>
+}
 
-function NewClientPage() {
+export default function ClientEditPage({ params }: ClientEditPageProps) {
+  const [clientId, setClientId] = useState<string>('')
+
+  useEffect(() => {
+    params.then(({ id }) => setClientId(id))
+  }, [params])
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   
-  const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    contactPerson: '',
-    contactEmail: '',
-    contactPhone: ''
-  })
-
-  const [logoFile, setLogoFile] = useState<File | null>(null)
-  const [logoUrl, setLogoUrl] = useState<string | null>(null)
-
-  // Only managers can create clients
+  // Only managers can edit clients
   if (user?.role !== 'Manager/Admin') {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-          <p className="text-muted-foreground">You don't have permission to create clients.</p>
+          <p className="text-muted-foreground">You don't have permission to edit clients.</p>
         </div>
       </div>
     )
   }
+
+  const { data: clientData, loading: clientLoading, error: clientError } = useApi<{ client: any }>(
+    clientId ? `/api/clients/${clientId}` : null
+  )
+
+  const client = clientData?.client
+
+  const [formData, setFormData] = useState({
+    name: '',
+    address: '',
+    contactPerson: '',
+    contactEmail: '',
+    contactPhone: '',
+    notes: ''
+  })
+  
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+
+  // Update form data when client data loads
+  useEffect(() => {
+    if (client) {
+      setFormData({
+        name: client.companyName || client.name || '',
+        address: client.companyAddress || client.address || '',
+        contactPerson: client.contactPerson || '',
+        contactEmail: client.contactEmail || client.email || '',
+        contactPhone: client.contactPhone || client.phone || '',
+        notes: client.notes || ''
+      })
+      setLogoUrl(client.clientCompany?.logoUrl || client.logoUrl || null)
+    }
+  }, [client])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
-      // First create the client
-      const response = await fetch('/api/clients', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to create client')
-      }
-
-      const result = await response.json()
-      const clientId = result.client.id
-
-      // Upload logo if provided
-      let finalLogoUrl = null
+      // Upload logo if a new one was selected
+      let finalLogoUrl = logoUrl
       if (logoFile) {
         const logoFormData = new FormData()
         logoFormData.append('logo', logoFile)
@@ -80,29 +94,40 @@ function NewClientPage() {
         if (logoResponse.ok) {
           const logoResult = await logoResponse.json()
           finalLogoUrl = logoResult.logoUrl
-
-          // Update client with logo URL
-          await fetch(`/api/clients/${clientId}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ logoUrl: finalLogoUrl }),
-          })
         }
       }
 
+      // Update client data
+      const updateData = {
+        ...formData,
+        logoUrl: finalLogoUrl
+      }
+
+      const response = await fetch(`/api/clients/${clientId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update client')
+      }
+
+      const result = await response.json()
+      
       toast({
         title: "Success",
-        description: "Client created successfully",
+        description: "Client updated successfully",
       })
 
       router.push(`/clients/${clientId}`)
     } catch (error) {
-      console.error('Error creating client:', error)
+      console.error('Error updating client:', error)
       toast({
         title: "Error",
-        description: "Failed to create client. Please try again.",
+        description: "Failed to update client. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -118,26 +143,57 @@ function NewClientPage() {
     }))
   }
 
+  if (clientLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading client data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (clientError || !client) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Client Not Found</h2>
+          <p className="text-muted-foreground">The requested client could not be found.</p>
+          <Button onClick={() => router.push('/clients')} className="mt-4">
+            Back to Clients
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="container mx-auto py-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.back()}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
+        <Button variant="ghost" size="sm" onClick={() => router.push(`/clients/${clientId}`)}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Client
         </Button>
-        <h1 className="text-3xl font-bold font-headline">New Client</h1>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold font-headline">Edit Client</h1>
+          <p className="text-muted-foreground">Update client company information</p>
+        </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Client Information</CardTitle>
+          <CardTitle className="flex items-center gap-3">
+            <CompanyLogo
+              companyName={formData.name || 'Client Company'}
+              logoUrl={logoUrl}
+              size="md"
+            />
+            Client Information
+          </CardTitle>
           <CardDescription>
-            Enter the details for the new client company.
+            Update the details for this client company.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -203,11 +259,23 @@ function NewClientPage() {
               />
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                name="notes"
+                value={formData.notes}
+                onChange={handleChange}
+                placeholder="Enter any additional notes"
+                rows={3}
+              />
+            </div>
+
             {/* Company Logo Upload */}
             <div className="space-y-2">
               <Label>Company Logo</Label>
               <LogoUpload
-                companyName={formData.name || 'New Company'}
+                companyName={formData.name || 'Client Company'}
                 currentLogoUrl={logoUrl}
                 onLogoChange={setLogoFile}
                 onLogoRemove={() => {
@@ -222,7 +290,7 @@ function NewClientPage() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => router.back()}
+                onClick={() => router.push(`/clients/${clientId}`)}
                 disabled={loading}
               >
                 Cancel
@@ -233,7 +301,7 @@ function NewClientPage() {
                 className="flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
-                {loading ? 'Creating...' : 'Create Client'}
+                {loading ? 'Updating...' : 'Update Client'}
               </Button>
             </div>
           </form>
@@ -242,5 +310,3 @@ function NewClientPage() {
     </div>
   )
 }
-
-export default withAuth(NewClientPage, hasAdminAccess);

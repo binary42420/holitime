@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/middleware';
-import { getClientById, getClientCompanyById, updateClient, deleteClient } from '@/lib/services/clients';
+import { getClientById, getClientCompanyById, updateClient, updateClientCompany, deleteClient } from '@/lib/services/clients';
 
 export async function GET(
   request: NextRequest,
@@ -67,6 +67,20 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  return handleUpdate(request, params);
+}
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  return handleUpdate(request, params);
+}
+
+async function handleUpdate(
+  request: NextRequest,
+  params: Promise<{ id: string }>
+) {
   try {
     const user = await getCurrentUser(request);
     if (!user) {
@@ -85,17 +99,31 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { name, address, contactPerson, email, phone, notes } = body;
+    const { name, address, contactPerson, email, phone, notes, logoUrl } = body;
 
     const { id } = await params;
-    const client = await updateClient(id, {
-      name,
-      companyName: name, // Map name to companyName for consistency
-      companyAddress: address, // Map address to companyAddress
-      contactPerson,
-      contactEmail: email, // Map email to contactEmail
-      contactPhone: phone, // Map phone to contactPhone
+
+    // Try to update as client company first
+    let client = await updateClientCompany(id, {
+      companyName: name,
+      companyAddress: address,
+      contactPhone: phone,
+      contactEmail: email,
+      notes,
+      logoUrl,
     });
+
+    // If that fails, try to update as client user
+    if (!client) {
+      client = await updateClient(id, {
+        name,
+        companyName: name, // Map name to companyName for consistency
+        companyAddress: address, // Map address to companyAddress
+        contactPerson,
+        contactEmail: email, // Map email to contactEmail
+        contactPhone: phone, // Map phone to contactPhone
+      });
+    }
 
     if (!client) {
       return NextResponse.json(

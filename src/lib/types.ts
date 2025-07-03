@@ -33,6 +33,7 @@ export interface ClientCompany {
   contactPhone?: string;
   contactEmail?: string;
   notes?: string;
+  logoUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   Clock,
   Play,
@@ -23,7 +24,8 @@ import {
   Wifi,
   WifiOff,
   AlertTriangle,
-  Shield
+  Shield,
+  UserX
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useApi, useMutation } from "@/hooks/use-api"
@@ -76,6 +78,7 @@ interface UnifiedShiftManagerProps {
   assignedPersonnel: AssignedWorker[];
   onUpdate: () => void;
   isOnline?: boolean;
+  shift?: any; // Add shift data for accessing start time and date
 }
 
 interface ActionState {
@@ -150,11 +153,35 @@ const calculateTotalHours = (timeEntries: TimeEntry[] = []) => {
   return `${hours}h ${minutes}m`
 }
 
+// Helper function to format time in 12-hour format with AM/PM
+const formatTime12Hour = (timeString: string | undefined): string => {
+  if (!timeString) return ''
+  try {
+    const date = new Date(timeString)
+    return format(date, 'h:mm a')
+  } catch {
+    return ''
+  }
+}
+
+// Helper function to check if "No Show" button should be enabled
+const canMarkNoShow = (shiftStartTime: string, shiftDate: string): boolean => {
+  try {
+    const shiftDateTime = new Date(`${shiftDate}T${shiftStartTime}`)
+    const now = new Date()
+    const minutesSinceStart = differenceInMinutes(now, shiftDateTime)
+    return minutesSinceStart >= 30 // Enable after 30 minutes
+  } catch {
+    return false
+  }
+}
+
 export default function UnifiedShiftManager({
   shiftId,
   assignedPersonnel,
   onUpdate,
-  isOnline = true
+  isOnline = true,
+  shift
 }: UnifiedShiftManagerProps) {
   const { hasPermission, permissionCheck, isLoading: permissionLoading } = useCrewChiefPermissions(shiftId);
   const { toast } = useToast()
@@ -419,6 +446,55 @@ export default function UnifiedShiftManager({
     }
   }
 
+  const handleNoShow = async (workerId: string, workerName: string) => {
+    if (!isOnline) {
+      toast({
+        title: "Offline",
+        description: "Cannot mark no-show while offline. Please check your connection.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setActionState(prev => ({
+      ...prev,
+      isProcessing: true,
+      lastAction: `no_show_${workerId}`
+    }))
+
+    try {
+      await executeWithRetry(async () => {
+        return fetch(`/api/shifts/${shiftId}/no-show`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workerId }),
+        })
+      })
+
+      toast({
+        title: "No Show Marked",
+        description: `${workerName} has been marked as no-show`,
+      })
+
+      onUpdate()
+      setLastUpdateTime(new Date())
+
+    } catch (error) {
+      console.error('Error marking no-show:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to mark no-show",
+        variant: "destructive",
+      })
+    } finally {
+      setActionState(prev => ({
+        ...prev,
+        isProcessing: false,
+        lastAction: undefined
+      }))
+    }
+  }
+
   const handleFinalizeTimesheet = async () => {
     if (!isOnline) {
       toast({
@@ -590,7 +666,7 @@ export default function UnifiedShiftManager({
         </CardContent>
       </Card>
 
-      {/* Employee Management */}
+      {/* Employee Time Management */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -598,172 +674,195 @@ export default function UnifiedShiftManager({
             Employee Time Management
           </CardTitle>
           <CardDescription>
-            Manage individual employee clock in/out times and shift status
+            Review and manage employee time entries for payroll and timesheet purposes
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {assignedPersonnel.map((worker) => {
-              const statusConfig = getStatusConfig(worker.status)
-              const roleConfig = roleColors[worker.roleCode as keyof typeof roleColors] || roleColors.GL
-              const StatusIcon = statusConfig.icon
-              const totalHours = calculateTotalHours(worker.timeEntries)
-              const currentEntry = worker.timeEntries.find(entry => entry.isActive || (!entry.clockOut && entry.clockIn))
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>JT</TableHead>
+                  <TableHead>IN 1</TableHead>
+                  <TableHead>OUT 1</TableHead>
+                  <TableHead>IN 2</TableHead>
+                  <TableHead>OUT 2</TableHead>
+                  <TableHead>IN 3</TableHead>
+                  <TableHead>OUT 3</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {assignedPersonnel.map((worker) => {
+                  const statusConfig = getStatusConfig(worker.status)
+                  const roleConfig = roleColors[worker.roleCode as keyof typeof roleColors] || roleColors.GL
+                  const noShowEnabled = shift ? canMarkNoShow(shift.startTime, shift.date) : false
 
-              return (
-                <div key={worker.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={worker.employeeAvatar} alt={worker.employeeName} />
-                        <AvatarFallback>{worker.employeeName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
+                  // Get time entries for each pair (up to 3)
+                  const timeEntry1 = worker.timeEntries.find(e => e.entryNumber === 1)
+                  const timeEntry2 = worker.timeEntries.find(e => e.entryNumber === 2)
+                  const timeEntry3 = worker.timeEntries.find(e => e.entryNumber === 3)
 
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{worker.employeeName}</h4>
-                          <Badge className={`${roleConfig.bgColor} ${roleConfig.color} ${roleConfig.borderColor} border`}>
-                            {roleConfig.name}
-                          </Badge>
-                        </div>
-
-                        <div className="flex items-center gap-4 mt-1">
-                          <Badge className={statusConfig.color}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
-                            {statusConfig.label}
-                          </Badge>
-
-                          {totalHours !== '0h 0m' && (
-                            <span className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Timer className="h-3 w-3" />
-                              {totalHours}
-                            </span>
-                          )}
-
-                          {currentEntry && currentEntry.clockIn && !currentEntry.clockOut && (
-                            <span className="text-sm text-green-600 flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              Started at {format(new Date(currentEntry.clockIn), 'HH:mm')}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {worker.timeEntries.map((entry, index) => (
-                        <div key={index} className="text-xs text-muted-foreground">
-                          {entry.clockIn ? format(new Date(entry.clockIn), 'HH:mm') : '--:--'} - {entry.clockOut ? format(new Date(entry.clockOut), 'HH:mm') : '--:--'}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <PermissionGuard
-                        shiftId={shiftId}
-                        fallback={
-                          <div className="text-xs text-muted-foreground">
-                            <CrewChiefPermissionBadge shiftId={shiftId} size="sm" />
+                  return (
+                    <TableRow key={worker.id} className="hover:bg-muted/50">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={worker.employeeAvatar} alt={worker.employeeName} />
+                            <AvatarFallback>{worker.employeeName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{worker.employeeName}</div>
+                            <Badge className={`${statusConfig.color} text-xs`}>
+                              {statusConfig.label}
+                            </Badge>
                           </div>
-                        }
-                      >
-                        {worker.status === 'not_started' && (
-                          <Button
-                            size="sm"
-                            onClick={() => handleClockAction(worker.id, 'clock_in')}
-                            disabled={actionState.isProcessing || !isOnline || !hasPermission}
-                            className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`${roleConfig.bgColor} ${roleConfig.color} ${roleConfig.borderColor} border text-xs`}>
+                          {roleConfig.name}
+                        </Badge>
+                      </TableCell>
+
+                      {/* Time Entry 1 */}
+                      <TableCell className="text-sm">
+                        {formatTime12Hour(timeEntry1?.clockIn)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {formatTime12Hour(timeEntry1?.clockOut)}
+                      </TableCell>
+
+                      {/* Time Entry 2 */}
+                      <TableCell className="text-sm">
+                        {formatTime12Hour(timeEntry2?.clockIn)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {formatTime12Hour(timeEntry2?.clockOut)}
+                      </TableCell>
+
+                      {/* Time Entry 3 */}
+                      <TableCell className="text-sm">
+                        {formatTime12Hour(timeEntry3?.clockIn)}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {formatTime12Hour(timeEntry3?.clockOut)}
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <PermissionGuard
+                            shiftId={shiftId}
+                            fallback={
+                              <div className="text-xs text-muted-foreground">
+                                <CrewChiefPermissionBadge shiftId={shiftId} size="sm" />
+                              </div>
+                            }
                           >
-                            {actionState.lastAction === `clock_in_${worker.id}` ? (
-                              <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                            ) : (
-                              <Play className="h-3 w-3 mr-1" />
+                            {/* No Show Button */}
+                            {worker.status === 'not_started' && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => handleNoShow(worker.id, worker.employeeName)}
+                                      disabled={!noShowEnabled || actionState.isProcessing || !isOnline || !hasPermission}
+                                      className="text-red-600 border-red-200 hover:bg-red-50"
+                                    >
+                                      {actionState.lastAction === `no_show_${worker.id}` ? (
+                                        <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                      ) : (
+                                        <UserX className="h-3 w-3 mr-1" />
+                                      )}
+                                      No Show
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{noShowEnabled ? 'Mark worker as no-show' : 'Available 30 minutes after shift start'}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                             )}
-                            Clock In
-                          </Button>
-                        )}
 
-                        {worker.status === 'Clocked In' && (
-                          <>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleClockAction(worker.id, 'clock_out')}
-                                    disabled={actionState.isProcessing || !isOnline || !hasPermission}
-                                  >
-                                    {actionState.lastAction === `clock_out_${worker.id}` ? (
-                                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                    ) : (
-                                      <Square className="h-3 w-3 mr-1" />
-                                    )}
-                                    Clock Out
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Clock out for a break.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => handleEndShift(worker.id, worker.employeeName)}
-                                    disabled={actionState.isProcessing || !isOnline || !hasPermission}
-                                  >
-                                    {actionState.lastAction === `end_shift_${worker.id}` ? (
-                                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                    ) : (
-                                      <StopCircle className="h-3 w-3 mr-1" />
-                                    )}
-                                    End Shift
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>End the shift for this worker.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </>
-                        )}
+                            {/* Clock In Button */}
+                            {worker.status === 'not_started' && (
+                              <Button
+                                size="sm"
+                                onClick={() => handleClockAction(worker.id, 'clock_in')}
+                                disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                                className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                              >
+                                {actionState.lastAction === `clock_in_${worker.id}` ? (
+                                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                ) : (
+                                  <Play className="h-3 w-3 mr-1" />
+                                )}
+                                Clock In
+                              </Button>
+                            )}
 
-                      {worker.status === 'Clocked Out' && (
-                        <>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleClockAction(worker.id, 'clock_in')}
-                                  disabled={actionState.isProcessing || !isOnline}
-                                >
-                                  {actionState.lastAction === `clock_in_${worker.id}` ? (
-                                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                  ) : (
-                                    <Play className="h-3 w-3 mr-1" />
-                                  )}
-                                  Clock In
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Clock back in from break.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </>
-                        )}
-                      </PermissionGuard>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+                            {/* Clock Out Button */}
+                            {worker.status === 'Clocked In' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleClockAction(worker.id, 'clock_out')}
+                                disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                              >
+                                {actionState.lastAction === `clock_out_${worker.id}` ? (
+                                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                ) : (
+                                  <Square className="h-3 w-3 mr-1" />
+                                )}
+                                Clock Out
+                              </Button>
+                            )}
+
+                            {/* End Shift Button */}
+                            {(worker.status === 'Clocked In' || worker.status === 'Clocked Out') && (
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                onClick={() => handleEndShift(worker.id, worker.employeeName)}
+                                disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                              >
+                                {actionState.lastAction === `end_shift_${worker.id}` ? (
+                                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                ) : (
+                                  <StopCircle className="h-3 w-3 mr-1" />
+                                )}
+                                End Shift
+                              </Button>
+                            )}
+
+                            {/* Clock Back In Button */}
+                            {worker.status === 'Clocked Out' && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleClockAction(worker.id, 'clock_in')}
+                                disabled={actionState.isProcessing || !isOnline}
+                              >
+                                {actionState.lastAction === `clock_in_${worker.id}` ? (
+                                  <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+                                ) : (
+                                  <Play className="h-3 w-3 mr-1" />
+                                )}
+                                Clock In
+                              </Button>
+                            )}
+                          </PermissionGuard>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
           </div>
         </CardContent>
       </Card>
