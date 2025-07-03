@@ -239,7 +239,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
                   onClick={() => router.push(`/shifts/${shift.id}`)}
                 >
                   <div className="space-y-1">
-                    <h3 className="font-medium">{shift.job ? shift.job.name : 'No Job Assigned'}</h3>
+                    <h3 className="font-medium">{shift.jobName || 'No Job Assigned'}</h3>
                     <p className="text-sm text-muted-foreground">{new Date(shift.startTime).toLocaleString()} - {new Date(shift.endTime).toLocaleString()}</p>
                   </div>
                   <div className="flex items-center gap-2">
