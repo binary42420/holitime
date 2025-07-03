@@ -164,6 +164,8 @@ export default function UnifiedShiftManager({
   })
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date())
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true)
+  const [timesheetStatus, setTimesheetStatus] = useState<string | null>(null)
+  const [timesheetId, setTimesheetId] = useState<string | null>(null)
 
   // Calculate shift statistics
   const totalWorkers = assignedPersonnel.length
@@ -175,6 +177,26 @@ export default function UnifiedShiftManager({
   // Calculate completion percentage
   const completionPercentage = totalWorkers > 0 ? (completedCount / totalWorkers) * 100 : 0
 
+  // Fetch timesheet status
+  const fetchTimesheetStatus = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/timesheets?shiftId=${shiftId}`)
+      if (response.ok) {
+        const data = await response.json()
+        if (data.timesheets && data.timesheets.length > 0) {
+          const timesheet = data.timesheets[0]
+          setTimesheetStatus(timesheet.status)
+          setTimesheetId(timesheet.id)
+        } else {
+          setTimesheetStatus(null)
+          setTimesheetId(null)
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to fetch timesheet status:', error)
+    }
+  }, [shiftId])
+
   // Auto-refresh functionality
   useEffect(() => {
     if (!autoRefreshEnabled) return
@@ -183,11 +205,17 @@ export default function UnifiedShiftManager({
       if (!actionState.isProcessing && isOnline) {
         onUpdate()
         setLastUpdateTime(new Date())
+        fetchTimesheetStatus()
       }
     }, 30000) // Refresh every 30 seconds
 
     return () => clearInterval(interval)
-  }, [autoRefreshEnabled, actionState.isProcessing, isOnline, onUpdate])
+  }, [autoRefreshEnabled, actionState.isProcessing, isOnline, onUpdate, fetchTimesheetStatus])
+
+  // Fetch timesheet status on component mount and when shift updates
+  useEffect(() => {
+    fetchTimesheetStatus()
+  }, [fetchTimesheetStatus, assignedPersonnel])
 
   // Enhanced error handling with retry logic
   const executeWithRetry = useCallback(async (
@@ -789,31 +817,71 @@ export default function UnifiedShiftManager({
               </AlertDialogContent>
             </AlertDialog>
 
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    disabled={actionState.isProcessing || completedCount < totalWorkers || !hasPermission}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Finalize Timesheet
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will finalize the timesheet and send it for client approval. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleFinalizeTimesheet}>
+              {/* Dynamic Timesheet Button based on status */}
+              {!timesheetStatus ? (
+                // No timesheet exists - show finalize button
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      disabled={actionState.isProcessing || completedCount < totalWorkers || !hasPermission}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <FileText className="h-4 w-4 mr-2" />
                       Finalize Timesheet
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will finalize the timesheet and send it for client approval. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleFinalizeTimesheet}>
+                        Finalize Timesheet
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : timesheetStatus === 'pending_client_approval' ? (
+                // Timesheet pending client approval
+                <Button
+                  onClick={() => window.open(`/timesheets/${timesheetId}/approve`, '_blank')}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  View Client Approval
+                </Button>
+              ) : timesheetStatus === 'pending_final_approval' ? (
+                // Timesheet pending manager approval
+                <Button
+                  onClick={() => window.open(`/timesheets/${timesheetId}/manager-approval`, '_blank')}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Manager Approval Required
+                </Button>
+              ) : timesheetStatus === 'completed' ? (
+                // Timesheet completed - show view button
+                <Button
+                  onClick={() => window.open(`/timesheets/${timesheetId}`, '_blank')}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  View Completed Timesheet
+                </Button>
+              ) : (
+                // Other statuses - show generic view button
+                <Button
+                  onClick={() => window.open(`/timesheets/${timesheetId}`, '_blank')}
+                  variant="outline"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  View Timesheet
+                </Button>
+              )}
             </PermissionGuard>
 
             {completedCount === totalWorkers && (

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
+import { getCurrentUser } from '@/lib/auth';
 import { query } from '@/lib/db';
-import { generateTimesheetPDF } from '@/lib/pdf-generator';
-import { format } from 'date-fns';
+import jsPDF from 'jspdf';
+import { formatTo12Hour, formatDate, getTimeEntryDisplay } from '@/lib/time-utils';
 
 // POST /api/timesheets/[id]/generate-pdf - Generate and store PDF in database
 export async function POST(
@@ -22,26 +22,15 @@ export async function POST(
 
     // Get timesheet data for PDF generation
     const timesheetResult = await query(`
-      SELECT 
-        t.id,
-        t.status,
-        t.client_signature,
-        t.manager_signature,
-        t.client_approved_at,
-        t.manager_approved_at,
-        t.submitted_by,
-        t.submitted_at,
-        s.id as shift_id,
-        s.date,
+      SELECT
+        t.*,
+        s.date as shift_date,
         s.start_time,
         s.end_time,
         s.location,
-        s.crew_chief_id,
-        j.id as job_id,
         j.name as job_name,
-        c.id as client_id,
+        j.po_number,
         c.company_name as client_name,
-        c.contact_person as client_contact,
         cc.name as crew_chief_name
       FROM timesheets t
       JOIN shifts s ON t.shift_id = s.id
@@ -60,150 +49,213 @@ export async function POST(
 
     const timesheet = timesheetResult.rows[0];
 
-    // Check permissions
-    const hasAccess = 
-      user.role === 'Manager/Admin' ||
-      user.id === timesheet.crew_chief_id ||
-      (user.role === 'Client' && user.client_company_id === timesheet.client_id);
-
-    if (!hasAccess) {
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      );
-    }
-
-    // Get assigned personnel with time entries
-    const personnelResult = await query(`
-      SELECT 
-        ap.id as assignment_id,
-        ap.role_on_shift,
-        ap.role_code,
-        u.id as employee_id,
+    // Get employee time entries
+    const timeEntriesResult = await query(`
+      SELECT
         u.name as employee_name,
-        u.avatar as employee_avatar,
-        te.id as time_entry_id,
-        te.entry_number,
+        ap.role_on_shift,
         te.clock_in,
-        te.clock_out
-      FROM assigned_personnel ap
+        te.clock_out,
+        te.entry_number
+      FROM time_entries te
+      JOIN assigned_personnel ap ON te.assigned_personnel_id = ap.id
       JOIN users u ON ap.employee_id = u.id
-      LEFT JOIN time_entries te ON ap.id = te.assigned_personnel_id
       WHERE ap.shift_id = $1
       ORDER BY u.name, te.entry_number
     `, [timesheet.shift_id]);
 
     // Group time entries by employee
-    const employeeMap = new Map();
-    
-    personnelResult.rows.forEach(row => {
-      if (!employeeMap.has(row.employee_id)) {
-        employeeMap.set(row.employee_id, {
-          employeeId: row.employee_id,
-          employeeName: row.employee_name,
-          employeeAvatar: row.employee_avatar,
-          roleOnShift: row.role_on_shift,
-          roleCode: row.role_code,
+    const employeeEntries = timeEntriesResult.rows.reduce((acc, entry) => {
+      if (!acc[entry.employee_name]) {
+        acc[entry.employee_name] = {
+          name: entry.employee_name,
+          role: entry.role_on_shift,
           timeEntries: []
-        });
+        };
       }
-      
-      if (row.time_entry_id) {
-        employeeMap.get(row.employee_id).timeEntries.push({
-          id: row.time_entry_id,
-          entryNumber: row.entry_number,
-          clockIn: row.clock_in,
-          clockOut: row.clock_out
-        });
-      }
-    });
-
-    const assignedPersonnel = Array.from(employeeMap.values());
-
-    // Calculate total hours for each employee
-    assignedPersonnel.forEach(employee => {
-      let totalMinutes = 0;
-      
-      employee.timeEntries.forEach(entry => {
-        if (entry.clockIn && entry.clockOut) {
-          const clockIn = new Date(entry.clockIn);
-          const clockOut = new Date(entry.clockOut);
-          const diffMs = clockOut.getTime() - clockIn.getTime();
-          totalMinutes += Math.floor(diffMs / (1000 * 60));
-        }
+      acc[entry.employee_name].timeEntries.push({
+        clockIn: entry.clock_in,
+        clockOut: entry.clock_out
       });
-      
-      employee.totalHours = (totalMinutes / 60).toFixed(2);
-      employee.totalMinutes = totalMinutes;
+      return acc;
+    }, {} as Record<string, any>);
+
+    // Create PDF using jsPDF with Hands On Labor template
+    const pdf = new jsPDF('portrait', 'pt', 'letter');
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    // Set up fonts and colors
+    pdf.setFont('helvetica');
+
+    // Header - HOLI TIMESHEET
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('HOLI TIMESHEET', pageWidth / 2, 60, { align: 'center' });
+
+    // Company info section
+    pdf.setFontSize(10);
+    pdf.setFont('helvetica', 'normal');
+
+    // Left side - Client info
+    let yPos = 100;
+    pdf.text('PO#:', 50, yPos);
+    pdf.text(timesheet.po_number || 'N/A', 100, yPos);
+
+    yPos += 20;
+    pdf.text('Job#:', 50, yPos);
+    pdf.text(timesheet.job_name || 'N/A', 100, yPos);
+
+    yPos += 20;
+    pdf.text('Client:', 50, yPos);
+    pdf.text(timesheet.client_name || 'N/A', 100, yPos);
+
+    yPos += 20;
+    pdf.text('Location:', 50, yPos);
+    pdf.text(timesheet.location || 'N/A', 100, yPos);
+
+    // Right side - Date/Time info
+    yPos = 100;
+    pdf.text('Date:', 350, yPos);
+    pdf.text(formatDate(timesheet.shift_date), 400, yPos);
+
+    yPos += 20;
+    pdf.text('Start Time:', 350, yPos);
+    pdf.text(formatTo12Hour(timesheet.start_time), 420, yPos);
+
+    yPos += 20;
+    pdf.text('End Time:', 350, yPos);
+    pdf.text(formatTo12Hour(timesheet.end_time), 420, yPos);
+
+    // Employee table header
+    yPos = 220;
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'bold');
+
+    // Draw table header
+    pdf.rect(50, yPos - 15, pageWidth - 100, 25);
+    pdf.text('Employee Name', 60, yPos);
+    pdf.text('Job Title', 200, yPos);
+    pdf.text('Initials', 300, yPos);
+    pdf.text('IN', 350, yPos);
+    pdf.text('OUT', 420, yPos);
+    pdf.text('Regular', 470, yPos);
+    pdf.text('OT', 520, yPos);
+
+    // Employee rows
+    yPos += 30;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(10);
+
+    let totalRegularHours = 0;
+    let totalOTHours = 0;
+
+    Object.values(employeeEntries).forEach((employee: any) => {
+      // Calculate total hours for this employee
+      let employeeTotalHours = 0;
+      employee.timeEntries.forEach((entry: any) => {
+        const display = getTimeEntryDisplay(entry.clockIn, entry.clockOut);
+        employeeTotalHours += display.totalHours;
+      });
+
+      // Determine regular vs overtime (assuming 8 hours regular, rest overtime)
+      const regularHours = Math.min(employeeTotalHours, 8);
+      const otHours = Math.max(employeeTotalHours - 8, 0);
+
+      totalRegularHours += regularHours;
+      totalOTHours += otHours;
+
+      // Draw employee row
+      pdf.rect(50, yPos - 15, pageWidth - 100, 25);
+
+      pdf.text(employee.name, 60, yPos);
+      pdf.text(employee.role, 200, yPos);
+      pdf.text(employee.name.split(' ').map((n: string) => n[0]).join(''), 300, yPos); // Initials
+
+      // Time entries (show first entry, or combine if multiple)
+      if (employee.timeEntries.length > 0) {
+        const firstEntry = employee.timeEntries[0];
+        const display = getTimeEntryDisplay(firstEntry.clockIn, firstEntry.clockOut);
+        pdf.text(display.displayClockIn, 350, yPos);
+        pdf.text(display.displayClockOut, 420, yPos);
+      }
+
+      pdf.text(regularHours.toFixed(2), 470, yPos);
+      pdf.text(otHours.toFixed(2), 520, yPos);
+
+      yPos += 25;
     });
 
-    // Calculate grand total hours
-    const grandTotalMinutes = assignedPersonnel.reduce((sum, emp) => sum + (emp.totalMinutes || 0), 0);
-    const grandTotalHours = (grandTotalMinutes / 60).toFixed(2);
+    // Total row
+    pdf.setFont('helvetica', 'bold');
+    pdf.rect(50, yPos - 15, pageWidth - 100, 25);
+    pdf.text('TOTAL HOURS:', 300, yPos);
+    pdf.text(totalRegularHours.toFixed(2), 470, yPos);
+    pdf.text(totalOTHours.toFixed(2), 520, yPos);
 
-    // Prepare data for PDF generation
-    const pdfData = {
-      timesheet: {
-        id: timesheet.id,
-        status: timesheet.status,
-        clientSignature: timesheet.client_signature,
-        managerSignature: timesheet.manager_signature,
-        clientApprovedAt: timesheet.client_approved_at,
-        managerApprovedAt: timesheet.manager_approved_at,
-        submittedBy: timesheet.submitted_by,
-        submittedAt: timesheet.submitted_at
-      },
-      shift: {
-        id: timesheet.shift_id,
-        date: timesheet.date,
-        startTime: timesheet.start_time,
-        endTime: timesheet.end_time,
-        location: timesheet.location,
-        crewChiefName: timesheet.crew_chief_name
-      },
-      job: {
-        id: timesheet.job_id,
-        name: timesheet.job_name,
-        client: {
-          id: timesheet.client_id,
-          name: timesheet.client_name,
-          contactPerson: timesheet.client_contact
-        }
-      },
-      assignedPersonnel,
-      totals: {
-        grandTotalHours,
-        grandTotalMinutes,
-        employeeCount: assignedPersonnel.length
+    // Client signature section
+    yPos += 60;
+    pdf.setFont('helvetica', 'normal');
+    pdf.setFontSize(12);
+
+    pdf.text('Client Name: ________________________________', 50, yPos);
+
+    yPos += 40;
+    pdf.text('Client Signature:', 50, yPos);
+
+    // Add client signature if available
+    if (timesheet.client_signature) {
+      try {
+        pdf.addImage(timesheet.client_signature, 'PNG', 150, yPos - 20, 200, 40);
+      } catch (error) {
+        console.warn('Failed to add client signature to PDF:', error);
       }
-    };
+    }
 
-    // Generate PDF
-    const doc = generateTimesheetPDF(pdfData);
-    const pdfBuffer = Buffer.from(doc.output('arraybuffer'));
-    
-    // Create filename
-    const filename = `timesheet-${timesheet.client_name.replace(/\s+/g, '-')}-${format(new Date(timesheet.date), 'yyyy-MM-dd')}.pdf`;
+    yPos += 60;
+    pdf.text('Date: ________________', 50, yPos);
+
+    // Manager signature section (if available)
+    if (timesheet.manager_signature) {
+      yPos += 40;
+      pdf.text('Manager Signature:', 50, yPos);
+
+      try {
+        pdf.addImage(timesheet.manager_signature, 'PNG', 150, yPos - 20, 200, 40);
+      } catch (error) {
+        console.warn('Failed to add manager signature to PDF:', error);
+      }
+    }
+
+    // Footer
+    yPos = pageHeight - 80;
+    pdf.setFontSize(8);
+    pdf.text('HANDS ON LABOR INTERNATIONAL', pageWidth / 2, yPos, { align: 'center' });
+    pdf.text('Phone: (555) 123-4567 • Fax: (555) 123-4568', pageWidth / 2, yPos + 15, { align: 'center' });
+    pdf.text('123 Labor Street, Work City, ST 12345', pageWidth / 2, yPos + 30, { align: 'center' });
+
+    yPos += 45;
+    pdf.text('White Copy - HANDS ON, Yellow Copy - Client', pageWidth / 2, yPos, { align: 'center' });
+
+    // Generate PDF buffer
+    const pdfBuffer = Buffer.from(pdf.output('arraybuffer'));
 
     // Store PDF in database
+    const filename = `timesheet-${timesheet.client_name.replace(/\s+/g, '-')}-${formatDate(timesheet.shift_date).replace(/\//g, '-')}.pdf`;
+
     await query(`
       UPDATE timesheets
-      SET 
-        pdf_data = $1,
-        pdf_filename = $2,
-        pdf_content_type = 'application/pdf',
-        pdf_generated_at = NOW(),
-        updated_at = NOW()
+      SET pdf_data = $1,
+          pdf_filename = $2,
+          pdf_content_type = 'application/pdf',
+          pdf_generated_at = NOW()
       WHERE id = $3
     `, [pdfBuffer, filename, timesheetId]);
-
-    console.log(`PDF generated and stored for timesheet ${timesheetId}, size: ${pdfBuffer.length} bytes`);
 
     return NextResponse.json({
       success: true,
       message: 'PDF generated and stored successfully',
-      filename,
-      size: pdfBuffer.length
+      filename: filename
     });
 
   } catch (error) {
