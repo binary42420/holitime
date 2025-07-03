@@ -43,15 +43,15 @@ export async function POST(
       }
     }
 
-    // Verify the worker is assigned to this shift
+    // Get the assigned personnel record (workerId is the assigned_personnel.id)
     const assignmentCheck = await query(`
-      SELECT id, status FROM assigned_personnel 
-      WHERE shift_id = $1 AND employee_id = $2
-    `, [shiftId, workerId])
+      SELECT id, employee_id, status FROM assigned_personnel
+      WHERE id = $1 AND shift_id = $2
+    `, [workerId, shiftId])
 
     if (assignmentCheck.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Worker not assigned to this shift' },
+        { error: 'Worker assignment not found' },
         { status: 404 }
       )
     }
@@ -60,7 +60,7 @@ export async function POST(
 
     // Check if worker has already started (has time entries)
     const timeEntriesCheck = await query(`
-      SELECT id FROM time_entries 
+      SELECT id FROM time_entries
       WHERE assigned_personnel_id = $1
     `, [assignment.id])
 
@@ -73,7 +73,7 @@ export async function POST(
 
     // Update the assigned personnel status to indicate no-show
     await query(`
-      UPDATE assigned_personnel 
+      UPDATE assigned_personnel
       SET status = 'no_show', updated_at = NOW()
       WHERE id = $1
     `, [assignment.id])
@@ -86,7 +86,7 @@ export async function POST(
       shiftId,
       user.id,
       JSON.stringify({
-        workerId,
+        employeeId: assignment.employee_id,
         assignmentId: assignment.id,
         markedBy: user.name
       })

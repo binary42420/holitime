@@ -55,10 +55,10 @@ export async function POST(
       timesheetId = newTimesheetResult.rows[0].id
     }
 
-    // Update shift status
+    // Update shift status to completed (shift is completed even if timesheet is pending approval)
     await query(`
       UPDATE shifts
-      SET status = 'Pending Approval'
+      SET status = 'Completed'
       WHERE id = $1
     `, [shiftId])
 

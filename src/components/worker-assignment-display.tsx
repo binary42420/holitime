@@ -318,47 +318,7 @@ export default function WorkerAssignmentDisplay({
     }
   }
 
-  const clockOutAllEmployees = async () => {
-    const clockedInWorkers = assignedPersonnel.filter(worker =>
-      worker.status === 'Clocked In' || worker.status === 'Working'
-    )
 
-    if (clockedInWorkers.length === 0) {
-      toast({
-        title: "No Workers to Clock Out",
-        description: "All workers are already clocked out or haven't clocked in yet.",
-      })
-      return
-    }
-
-    if (!confirm(`Are you sure you want to clock out all ${clockedInWorkers.length} workers?`)) {
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/shifts/${shiftId}/clock-out-all`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to clock out workers')
-      }
-
-      toast({
-        title: "Workers Clocked Out",
-        description: `Successfully clocked out ${clockedInWorkers.length} workers.`,
-      })
-
-      onUpdate()
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to clock out workers. Please try again.",
-        variant: "destructive",
-      })
-    }
-  }
 
   const markNoShow = async (assignmentId: string, workerName: string) => {
     // Check if it's within 30 minutes of shift start
@@ -499,17 +459,7 @@ export default function WorkerAssignmentDisplay({
                 Assign specific workers to each required position
               </CardDescription>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clockOutAllEmployees}
-                className="flex items-center gap-2"
-              >
-                <Clock className="h-4 w-4" />
-                Clock Out All
-              </Button>
-            </div>
+
           </div>
         </CardHeader>
         <CardContent>

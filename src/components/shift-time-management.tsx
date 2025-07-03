@@ -91,6 +91,8 @@ export default function ShiftTimeManagement({
         return <Badge variant="secondary"><Square className="mr-1 h-3 w-3" />Clocked Out</Badge>
       case 'shift_ended':
         return <Badge variant="outline"><CheckCircle className="mr-1 h-3 w-3" />Shift Ended</Badge>
+      case 'no_show':
+        return <Badge variant="destructive" className="bg-orange-600"><AlertCircle className="mr-1 h-3 w-3" />No Show</Badge>
       default:
         return <Badge variant="outline">Not Started</Badge>
     }
@@ -183,6 +185,44 @@ export default function ShiftTimeManagement({
     }
   }
 
+  const handleNoShow = async (workerId: string, employeeName: string) => {
+    console.log('No Show button clicked for:', { workerId, employeeName })
+    setLoading(true)
+    try {
+      console.log('Making API call to:', `/api/shifts/${shiftId}/no-show`)
+      const response = await fetch(`/api/shifts/${shiftId}/no-show`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ workerId }),
+      })
+
+      console.log('API response status:', response.status)
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('API response:', result)
+        toast({
+          title: "Marked as No Show",
+          description: `${employeeName} has been marked as no show.`,
+        })
+        onUpdate()
+      } else {
+        const errorData = await response.json()
+        console.error('API error:', errorData)
+        throw new Error(errorData.error || 'Failed to mark as no show')
+      }
+    } catch (error) {
+      console.error('No Show error:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to mark as no show.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleEndAllShifts = async () => {
     setLoading(true)
     try {
@@ -203,6 +243,46 @@ export default function ShiftTimeManagement({
       toast({
         title: "Error",
         description: "Failed to end all shifts.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleClockOutAll = async () => {
+    const clockedInWorkers = workers.filter(worker =>
+      worker.status === 'clocked_in'
+    )
+
+    if (clockedInWorkers.length === 0) {
+      toast({
+        title: "No Workers to Clock Out",
+        description: "All workers are already clocked out or haven't clocked in yet.",
+      })
+      return
+    }
+
+    setLoading(true)
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}/clock-out-all`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      if (response.ok) {
+        toast({
+          title: "Workers Clocked Out",
+          description: `Successfully clocked out ${clockedInWorkers.length} workers.`,
+        })
+        onUpdate()
+      } else {
+        throw new Error('Failed to clock out workers')
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clock out workers. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -307,6 +387,31 @@ export default function ShiftTimeManagement({
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" disabled={loading}>
+                  <Square className="h-4 w-4 mr-2" />
+                  Clock Out All
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Clock Out All Workers</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will clock out all currently clocked-in employees without ending their shifts.
+                    Workers can still clock back in if needed.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleClockOutAll}>
+                    Clock Out All
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" disabled={loading}>
+                  <CheckCircle className="h-4 w-4 mr-2" />
                   End All Shifts
                 </Button>
               </AlertDialogTrigger>
@@ -314,7 +419,7 @@ export default function ShiftTimeManagement({
                 <AlertDialogHeader>
                   <AlertDialogTitle>End All Shifts</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will clock out all currently clocked-in employees and end their shifts. 
+                    This will clock out all currently clocked-in employees and end their shifts.
                     This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
@@ -421,19 +526,36 @@ export default function ShiftTimeManagement({
                   <TableCell>
                     <div className="flex gap-1">
                       {worker.status === 'not_started' && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleClockIn(worker.id)}
-                          disabled={loading}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <Play className="h-3 w-3 mr-1" />
-                          Clock In
-                        </Button>
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => handleClockIn(worker.id)}
+                            disabled={loading}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Play className="h-3 w-3 mr-1" />
+                            Clock In
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={loading}
+                            className="border-orange-500 text-orange-600 hover:bg-orange-50"
+                            onClick={() => {
+                              console.log('No Show button clicked for:', worker.employeeName)
+                              if (window.confirm(`Mark ${worker.employeeName} as no show? This action cannot be undone.`)) {
+                                handleNoShow(worker.id, worker.employeeName)
+                              }
+                            }}
+                          >
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            No Show
+                          </Button>
+                        </>
                       )}
                       {worker.status === 'clocked_in' && (
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => handleClockOut(worker.id)}
                           disabled={loading}
@@ -454,7 +576,7 @@ export default function ShiftTimeManagement({
                             <AlertDialogHeader>
                               <AlertDialogTitle>End Shift for {worker.employeeName}</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will end the shift for this employee and record their final clock out time. 
+                                This will end the shift for this employee and record their final clock out time.
                                 This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
