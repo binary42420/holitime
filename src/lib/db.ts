@@ -54,11 +54,11 @@ export function getPool(): Pool {
     pool = new Pool({
       connectionString,
       ssl: sslConfig,
-      max: process.env.NODE_ENV === 'production' ? 8 : 3, // Reduced for stability
-      min: 0, // Allow pool to scale to zero when idle
-      idleTimeoutMillis: 60000, // 1 minute idle timeout
-      connectionTimeoutMillis: 15000, // 15 seconds connection timeout (increased)
-      statement_timeout: 30000, // 30 second query timeout (reduced)
+      max: process.env.NODE_ENV === 'production' ? 15 : 10, // Increased for better concurrency
+      min: 1, // Keep at least one connection alive
+      idleTimeoutMillis: 30000, // 30 seconds idle timeout (reduced)
+      connectionTimeoutMillis: 10000, // 10 seconds connection timeout
+      statement_timeout: 30000, // 30 second query timeout
       query_timeout: 30000,
       // Additional optimizations for network stability
       keepAlive: true,
@@ -304,6 +304,39 @@ export function getPoolStats() {
                (poolStats.totalQueries === 0 || poolStats.successfulQueries / poolStats.totalQueries > 0.95),
     uptime: pool ? Date.now() - (poolStats.lastErrorTime?.getTime() || Date.now()) : 0
   };
+}
+
+// Reset pool if it's in a bad state
+export async function resetPoolIfNeeded() {
+  if (pool) {
+    const stats = getPoolStats();
+
+    // Reset if too many connection errors or if pool is unhealthy
+    if (stats && (stats.connectionErrors > 10 || (!stats.isHealthy && stats.totalQueries > 20))) {
+      console.warn('Resetting database pool due to poor health:', stats);
+
+      try {
+        await pool.end();
+      } catch (error) {
+        console.error('Error ending pool:', error);
+      }
+
+      pool = null;
+
+      // Reset stats
+      poolStats = {
+        totalQueries: 0,
+        successfulQueries: 0,
+        failedQueries: 0,
+        averageQueryTime: 0,
+        connectionErrors: 0,
+        lastError: null,
+        lastErrorTime: null
+      };
+
+      console.log('Database pool reset successfully');
+    }
+  }
 }
 
 // Enhanced health check with detailed diagnostics
