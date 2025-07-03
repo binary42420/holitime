@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const dateFilter = searchParams.get('date') || 'today';
     const statusFilter = searchParams.get('status') || 'all';
+    const page = parseInt(searchParams.get('page') || '1');
+    const pageSize = parseInt(searchParams.get('pageSize') || '20');
 
     let startDate: string;
     let endDate: string;
@@ -67,6 +69,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Optimized query that gets shifts with all needed data in one query
+    const offset = (page - 1) * pageSize;
+    queryParams.push(pageSize, offset);
+
     const result = await query(`
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
@@ -101,6 +106,7 @@ export async function GET(request: NextRequest) {
                s.requested_workers, j.id, j.name, j.client_id, c.company_name, c.name,
                cc.id, cc.name, cc.avatar, t.id, t.status
       ORDER BY s.date DESC, s.start_time ASC
+      LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}
     `, queryParams);
 
     const shifts = result.rows.map(row => {
@@ -152,11 +158,18 @@ export async function GET(request: NextRequest) {
     }
     // Manager/Admin and Client users see all shifts (clients will be filtered by their jobs in future)
 
+    // Filter by clientId if provided and user is Client or Manager/Admin
+    const clientIdParam = searchParams.get('clientId');
+    if (clientIdParam && (user.role === 'Client' || user.role === 'Manager/Admin')) {
+      filteredShifts = filteredShifts.filter(shift => shift.clientName === clientIdParam);
+    }
+
     return NextResponse.json({
       success: true,
       shifts: filteredShifts,
       dateRange: { startDate, endDate, filter: dateFilter }
     });
+
 
   } catch (error) {
     console.error('Error getting shifts by date:', error);
