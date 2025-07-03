@@ -205,7 +205,7 @@ export default function ShiftsPage() {
   const filteredShifts = shifts.filter((shift: any) => {
     // Date filtering
     if (dateFilter !== 'all') {
-      const shiftCategory = getShiftCategory(shift.date)
+      const shiftCategory = getDateCategory(shift.date)
       if (shiftCategory !== dateFilter) {
         return false
       }
