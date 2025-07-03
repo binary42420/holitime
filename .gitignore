@@ -44,5 +44,5 @@ next-env.d.ts
 firebase*
 firestore-debug.log
 
-
 handsonlabor-website/*
+./handsonlabor-website/*
