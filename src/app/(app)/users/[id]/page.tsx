@@ -335,10 +335,20 @@ function UserProfilePage({ params }: UserProfilePageProps) {
               {user.forkOperatorEligible && (
                 <Badge variant="default">Forklift Operator</Badge>
               )}
+              {user.oshaCompliant && (
+                <Badge variant="default" className="flex items-center gap-1">
+                  <img
+                    src="/images/osha-compliant.svg"
+                    alt="OSHA Compliant"
+                    className="w-3 h-3"
+                  />
+                  OSHA Compliant
+                </Badge>
+              )}
               {user.certifications?.map((cert, index) => (
                 <Badge key={index} variant="outline">{cert}</Badge>
               ))}
-              {(!user.crewChiefEligible && !user.forkOperatorEligible && (!user.certifications || user.certifications.length === 0)) && (
+              {(!user.crewChiefEligible && !user.forkOperatorEligible && !user.oshaCompliant && (!user.certifications || user.certifications.length === 0)) && (
                 <span className="text-muted-foreground">No certifications on file</span>
               )}
             </div>

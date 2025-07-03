@@ -46,7 +46,7 @@ export default function Footer() {
           <div className="lg:col-span-2">
             <div className="flex items-center space-x-3 mb-6">
               <Image
-                src="https://img1.wsimg.com/isteam/ip/c5ad71c6-23e4-46f8-b587-2a12fbde04f5/HANDSON%20logo_2009.jpg"
+                src="/images/handson-labor-logo.png"
                 alt="Hands On Labor"
                 width={120}
                 height={60}

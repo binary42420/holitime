@@ -6,7 +6,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Users, Plus, Minus, UserPlus, X, Clock, UserX, AlertTriangle } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Users, Plus, Minus, UserPlus, X, Clock, UserX, AlertTriangle, UserCheck } from "lucide-react"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
 import { useToast } from "@/hooks/use-toast"
 import { RoleCode } from "@/lib/types"
 import { useApi } from "@/hooks/use-api"
@@ -89,6 +103,9 @@ export default function WorkerAssignmentDisplay({
   const { toast } = useToast()
   const [workerRequirements, setWorkerRequirements] = useState<WorkerRequirement[]>([])
   const [isUpdating, setIsUpdating] = useState(false)
+  const [customEmployeeName, setCustomEmployeeName] = useState('')
+  const [isCreatingPendingEmployee, setIsCreatingPendingEmployee] = useState(false)
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({})
 
   // Fetch worker requirements
   const { data: requirementsData, loading: requirementsLoading, refetch: refetchRequirements } = useApi<{ workerRequirements: WorkerRequirement[] }>(
@@ -256,6 +273,48 @@ export default function WorkerAssignmentDisplay({
         description: error instanceof Error ? error.message : "Failed to unassign worker",
         variant: "destructive",
       })
+    }
+  }
+
+  const createPendingEmployee = async (name: string, roleCode: RoleCode) => {
+    if (!name.trim()) return
+
+    setIsCreatingPendingEmployee(true)
+    try {
+      const response = await fetch('/api/employees/create-pending', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name.trim() })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to create pending employee')
+      }
+
+      const result = await response.json()
+      const newEmployee = result.employee
+
+      toast({
+        title: "Pending Employee Created",
+        description: `${newEmployee.name} has been created and assigned. Manager approval required.`,
+      })
+
+      // Now assign the pending employee to the shift
+      await assignWorker(newEmployee.id, roleCode)
+
+      setCustomEmployeeName('')
+      setOpenDropdowns({})
+
+    } catch (error) {
+      console.error('Error creating pending employee:', error)
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create pending employee",
+        variant: "destructive",
+      })
+    } finally {
+      setIsCreatingPendingEmployee(false)
     }
   }
 
@@ -519,25 +578,87 @@ export default function WorkerAssignmentDisplay({
                             </div>
                           </div>
                         ) : (
-                          <Select onValueChange={(employeeId) => assignWorker(employeeId, roleCode)}>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select worker..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {availableEmployees
-                                .filter(emp => !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
-                                .map(employee => (
-                                  <SelectItem key={employee.id} value={employee.id}>
-                                    <div className="flex items-center justify-between w-full">
-                                      <span>{employee.name}</span>
-                                      {employee.role === 'Manager/Admin' && (
-                                        <Badge variant="secondary" className="text-xs">Manager</Badge>
-                                      )}
-                                    </div>
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
+                          <Popover
+                            open={openDropdowns[`${roleCode}-${index}`] || false}
+                            onOpenChange={(open) => setOpenDropdowns(prev => ({ ...prev, [`${roleCode}-${index}`]: open }))}
+                          >
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between"
+                              >
+                                Select worker...
+                                <UserPlus className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[300px] p-0">
+                              <Command>
+                                <CommandInput
+                                  placeholder="Search employees or type new name..."
+                                  value={customEmployeeName}
+                                  onValueChange={setCustomEmployeeName}
+                                />
+                                <CommandList>
+                                  <CommandEmpty>
+                                    {customEmployeeName.trim() ? (
+                                      <div className="p-2">
+                                        <Button
+                                          onClick={() => createPendingEmployee(customEmployeeName, roleCode)}
+                                          disabled={isCreatingPendingEmployee}
+                                          className="w-full"
+                                          size="sm"
+                                        >
+                                          <UserCheck className="h-3 w-3 mr-2" />
+                                          {isCreatingPendingEmployee ? 'Creating...' : `Add "${customEmployeeName.trim()}"`}
+                                        </Button>
+                                        <p className="text-xs text-muted-foreground mt-2 text-center">
+                                          Will create pending employee requiring manager approval
+                                        </p>
+                                      </div>
+                                    ) : (
+                                      "No employees found."
+                                    )}
+                                  </CommandEmpty>
+                                  <CommandGroup>
+                                    {availableEmployees
+                                      .filter(emp => !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
+                                      .map(employee => (
+                                        <CommandItem
+                                          key={employee.id}
+                                          value={employee.name}
+                                          onSelect={() => {
+                                            assignWorker(employee.id, roleCode)
+                                            setOpenDropdowns(prev => ({ ...prev, [`${roleCode}-${index}`]: false }))
+                                            setCustomEmployeeName('')
+                                          }}
+                                        >
+                                          <div className="flex items-center justify-between w-full">
+                                            <div className="flex items-center gap-2">
+                                              <Avatar className="h-6 w-6">
+                                                <AvatarImage src={employee.avatar} />
+                                                <AvatarFallback className="text-xs">
+                                                  {employee.name.split(' ').map(n => n[0]).join('')}
+                                                </AvatarFallback>
+                                              </Avatar>
+                                              <span>{employee.name}</span>
+                                              {employee.status === 'pending_activation' && (
+                                                <Badge variant="outline" className="text-xs text-orange-600 border-orange-200">
+                                                  Pending
+                                                </Badge>
+                                              )}
+                                            </div>
+                                            {employee.role === 'Manager/Admin' && (
+                                              <Badge variant="secondary" className="text-xs">Manager</Badge>
+                                            )}
+                                          </div>
+                                        </CommandItem>
+                                      ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                         )}
                       </div>
                     ))}

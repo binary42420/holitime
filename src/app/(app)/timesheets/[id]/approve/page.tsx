@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useEffect, use } from "react"
+import React, { useRef, useState, useEffect, use } from "react"
 import Link from "next/link"
 import { notFound, useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
@@ -11,6 +11,7 @@ import { format, differenceInMinutes } from 'date-fns'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
 import SignaturePad, { type SignaturePadRef } from "@/components/signature-pad"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -245,44 +246,42 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
                 <TableHeader>
                 <TableRow>
                     <TableHead>Employee</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Time In</TableHead>
-                    <TableHead>Time Out</TableHead>
-                    <TableHead className="text-right">Total Hours</TableHead>
+                    <TableHead>JT</TableHead>
+                    <TableHead>IN 1</TableHead>
+                    <TableHead>OUT 1</TableHead>
+                    <TableHead>IN 2</TableHead>
+                    <TableHead>OUT 2</TableHead>
+                    <TableHead>IN 3</TableHead>
+                    <TableHead>OUT 3</TableHead>
+                    <TableHead>Total Hours</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
                 {shift.assignedPersonnel.filter((p: any) => p.timeEntries.length > 0).map((person: any) => (
                     <TableRow key={person.employee.id}>
                         <TableCell className="font-medium">{person.employee.name}</TableCell>
-                        <TableCell>{person.roleOnShift}</TableCell>
                         <TableCell>
-                          {person.timeEntries.map((entry: any, index: number) => {
-                            const display = getTimeEntryDisplay(entry.clockIn, entry.clockOut);
-                            return (
-                              <div key={index} className="text-sm">
+                          <Badge variant="outline">{person.roleCode}</Badge>
+                        </TableCell>
+                        {[1, 2, 3].map((entryNum) => {
+                          const entry = person.timeEntries.find((e: any) => e.entryNumber === entryNum)
+                          const display = getTimeEntryDisplay(entry?.clockIn, entry?.clockOut);
+                          return (
+                            <React.Fragment key={entryNum}>
+                              <TableCell className="text-sm">
                                 {display.displayClockIn}
-                                {index < person.timeEntries.length - 1 && <br />}
-                              </div>
-                            );
-                          })}
-                        </TableCell>
-                        <TableCell>
-                          {person.timeEntries.map((entry: any, index: number) => {
-                            const display = getTimeEntryDisplay(entry.clockIn, entry.clockOut);
-                            return (
-                              <div key={index} className="text-sm">
+                              </TableCell>
+                              <TableCell className="text-sm">
                                 {display.displayClockOut}
-                                {index < person.timeEntries.length - 1 && <br />}
-                              </div>
-                            );
-                          })}
-                        </TableCell>
-                        <TableCell className="text-right font-mono">{calculateTotalHours(person.timeEntries)}</TableCell>
+                              </TableCell>
+                            </React.Fragment>
+                          )
+                        })}
+                        <TableCell className="font-medium">{calculateTotalHours(person.timeEntries)}</TableCell>
                     </TableRow>
                 ))}
                 <TableRow className="border-t-2 font-semibold bg-muted/50">
-                  <TableCell colSpan={4} className="text-right">Total Hours:</TableCell>
+                  <TableCell colSpan={8} className="text-right">Total Hours:</TableCell>
                   <TableCell className="text-right font-mono">
                     {(() => {
                       const allTimeEntries = shift.assignedPersonnel

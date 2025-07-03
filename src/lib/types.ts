@@ -16,6 +16,7 @@ export interface User {
   // Employee permission fields
   crewChiefEligible?: boolean;
   forkOperatorEligible?: boolean;
+  oshaCompliant?: boolean;
 
   // Legacy fields - will be removed after full migration
   companyName?: string;
@@ -124,7 +125,49 @@ export interface Employee {
   avatar: string;
 }
 
-export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended';
+export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended' | 'no_show' | 'not_started';
+
+// Document Management Types
+export type DocumentStatus = 'pending_review' | 'approved' | 'rejected' | 'expired';
+
+export interface DocumentType {
+  id: string;
+  name: string;
+  description?: string;
+  isCertification: boolean;
+  requiresExpiration: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Document {
+  id: string;
+  userId: string;
+  documentTypeId: string;
+  originalFilename: string;
+  filePath: string;
+  fileSize: number;
+  mimeType: string;
+  status: DocumentStatus;
+  uploadedAt: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
+  reviewNotes?: string;
+  expirationDate?: string;
+  createdAt: string;
+  updatedAt: string;
+
+  // Joined fields
+  documentType?: DocumentType;
+  user?: User;
+  reviewer?: User;
+}
+
+export interface DocumentUpload {
+  file: File;
+  documentTypeId: string;
+  expirationDate?: string;
+}
 
 export type RoleCode = 'CC' | 'SH' | 'FO' | 'RFO' | 'RG' | 'GL';
 

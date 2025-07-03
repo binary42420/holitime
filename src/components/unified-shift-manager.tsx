@@ -127,6 +127,13 @@ const getStatusConfig = (status: string) => {
         icon: CheckCircle2,
         description: 'Shift completed'
       }
+    case 'no_show':
+      return {
+        label: 'No Show',
+        color: 'bg-red-100 text-red-800',
+        icon: UserX,
+        description: 'Did not show up for shift'
+      }
     default:
       return {
         label: status,
@@ -690,6 +697,7 @@ export default function UnifiedShiftManager({
                   <TableHead>OUT 2</TableHead>
                   <TableHead>IN 3</TableHead>
                   <TableHead>OUT 3</TableHead>
+                  <TableHead>Total Hours</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -748,6 +756,11 @@ export default function UnifiedShiftManager({
                       </TableCell>
                       <TableCell className="text-sm">
                         {formatTime12Hour(timeEntry3?.clockOut)}
+                      </TableCell>
+
+                      {/* Total Hours */}
+                      <TableCell className="text-sm font-medium">
+                        {calculateTotalHours(worker.timeEntries)}
                       </TableCell>
 
                       {/* Actions */}

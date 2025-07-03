@@ -277,12 +277,21 @@ function UsersPage({}: UsersPageProps) {
                     )}
                   </div>
                   {(user.role === 'Employee' || user.role === 'Crew Chief') && (
-                    <div className="mt-2 flex gap-2">
+                    <div className="mt-2 flex gap-2 items-center">
                       {user.crewChiefEligible && (
                         <Badge variant="outline" className="text-xs">Crew Chief</Badge>
                       )}
                       {user.forkOperatorEligible && (
                         <Badge variant="outline" className="text-xs">Forklift</Badge>
+                      )}
+                      {user.oshaCompliant && (
+                        <div className="flex items-center" title="OSHA Compliant">
+                          <img
+                            src="/images/osha-compliant.svg"
+                            alt="OSHA Compliant"
+                            className="w-4 h-4"
+                          />
+                        </div>
                       )}
                     </div>
                   )}

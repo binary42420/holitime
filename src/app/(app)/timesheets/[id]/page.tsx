@@ -76,6 +76,13 @@ export default function TimesheetViewPage() {
     return (end.getTime() - start.getTime()) / (1000 * 60 * 60)
   }
 
+  const formatTotalHours = (totalHours: number) => {
+    if (totalHours === 0) return '0h 0m'
+    const hours = Math.floor(totalHours)
+    const minutes = Math.round((totalHours - hours) * 60)
+    return `${hours}h ${minutes}m`
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
@@ -294,14 +301,14 @@ export default function TimesheetViewPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Worker</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Clock In 1</TableHead>
-                <TableHead>Clock Out 1</TableHead>
-                <TableHead>Clock In 2</TableHead>
-                <TableHead>Clock Out 2</TableHead>
-                <TableHead>Clock In 3</TableHead>
-                <TableHead>Clock Out 3</TableHead>
+                <TableHead>Employee</TableHead>
+                <TableHead>JT</TableHead>
+                <TableHead>IN 1</TableHead>
+                <TableHead>OUT 1</TableHead>
+                <TableHead>IN 2</TableHead>
+                <TableHead>OUT 2</TableHead>
+                <TableHead>IN 3</TableHead>
+                <TableHead>OUT 3</TableHead>
                 <TableHead>Total Hours</TableHead>
               </TableRow>
             </TableHeader>
@@ -337,7 +344,7 @@ export default function TimesheetViewPage() {
                       )
                     })}
                     <TableCell className="font-medium">
-                      {totalHours.toFixed(2)} hrs
+                      {formatTotalHours(totalHours)}
                     </TableCell>
                   </TableRow>
                 )

@@ -50,6 +50,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
     performance: 0,
     crewChiefEligible: false,
     forkOperatorEligible: false,
+    oshaCompliant: false,
     certifications: [] as string[],
     companyName: '',
     companyAddress: '',
@@ -67,6 +68,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
       role: user.role,
       crewChiefEligible: user.crewChiefEligible || false,
       forkOperatorEligible: user.forkOperatorEligible || false,
+      oshaCompliant: user.oshaCompliant || false,
       location: user.location || '',
       certifications: user.certifications || [],
       performance: user.performance || 0,
@@ -215,6 +217,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
     const eligibilities = []
     if (user.crewChiefEligible) eligibilities.push('CC')
     if (user.forkOperatorEligible) eligibilities.push('FO')
+    if (user.oshaCompliant) eligibilities.push('OSHA')
     return eligibilities.length > 0 ? eligibilities.join(', ') : 'None'
   }
 
@@ -296,6 +299,18 @@ function EmployeesPage({}: EmployeeManagementProps) {
           <CardContent>
             <div className="text-2xl font-bold">
               {users.filter(u => u.forkOperatorEligible).length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">OSHA Compliant</CardTitle>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {users.filter(u => u.oshaCompliant).length}
             </div>
           </CardContent>
         </Card>
@@ -383,15 +398,35 @@ function EmployeesPage({}: EmployeeManagementProps) {
                             <Checkbox
                               id={`fo-${user.id}`}
                               checked={editForm.forkOperatorEligible}
-                              onCheckedChange={(checked) => 
+                              onCheckedChange={(checked) =>
                                 setEditForm({ ...editForm, forkOperatorEligible: checked as boolean })
                               }
                             />
                             <Label htmlFor={`fo-${user.id}`} className="text-xs">Fork Operator</Label>
                           </div>
+                          <div className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`osha-${user.id}`}
+                              checked={editForm.oshaCompliant}
+                              onCheckedChange={(checked) =>
+                                setEditForm({ ...editForm, oshaCompliant: checked as boolean })
+                              }
+                            />
+                            <Label htmlFor={`osha-${user.id}`} className="text-xs">OSHA Compliant</Label>
+                          </div>
                         </div>
                       ) : (
-                        <span className="text-sm">{getEligibilityDisplay(user)}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">{getEligibilityDisplay(user)}</span>
+                          {user.oshaCompliant && (
+                            <img
+                              src="/images/osha-compliant.svg"
+                              alt="OSHA Compliant"
+                              className="w-4 h-4"
+                              title="OSHA Compliant"
+                            />
+                          )}
+                        </div>
                       )}
                     </TableCell>
 

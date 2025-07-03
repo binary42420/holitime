@@ -27,12 +27,12 @@ export async function GET(
     }
 
     const result = await query(`
-      SELECT 
-        id, name, email, role, avatar, location, 
-        certifications, performance, crew_chief_eligible, fork_operator_eligible,
+      SELECT
+        id, name, email, role, avatar, location,
+        certifications, performance, crew_chief_eligible, fork_operator_eligible, osha_compliant,
         company_name, contact_person, contact_email, contact_phone,
         created_at, updated_at, last_login, is_active
-      FROM users 
+      FROM users
       WHERE id = $1
     `, [id]);
 
@@ -58,6 +58,7 @@ export async function GET(
         performance: userData.performance,
         crewChiefEligible: userData.crew_chief_eligible,
         forkOperatorEligible: userData.fork_operator_eligible,
+        oshaCompliant: userData.osha_compliant,
         companyName: userData.company_name,
         contactPerson: userData.contact_person,
         contactEmail: userData.contact_email,
@@ -110,6 +111,7 @@ export async function PUT(
       performance,
       crewChiefEligible,
       forkOperatorEligible,
+      oshaCompliant,
       companyName,
       contactPerson,
       contactEmail,
@@ -162,6 +164,10 @@ export async function PUT(
       updateFields.push(`fork_operator_eligible = $${paramIndex++}`);
       updateValues.push(forkOperatorEligible);
     }
+    if (oshaCompliant !== undefined) {
+      updateFields.push(`osha_compliant = $${paramIndex++}`);
+      updateValues.push(oshaCompliant);
+    }
     if (companyName !== undefined) {
       updateFields.push(`company_name = $${paramIndex++}`);
       updateValues.push(companyName);
@@ -194,8 +200,8 @@ export async function PUT(
       UPDATE users 
       SET ${updateFields.join(', ')}
       WHERE id = $${paramIndex}
-      RETURNING id, name, email, role, avatar, location, 
-                certifications, performance, crew_chief_eligible, fork_operator_eligible,
+      RETURNING id, name, email, role, avatar, location,
+                certifications, performance, crew_chief_eligible, fork_operator_eligible, osha_compliant,
                 company_name, contact_person, contact_email, contact_phone
     `;
 
@@ -224,6 +230,7 @@ export async function PUT(
         performance: updatedUser.performance,
         crewChiefEligible: updatedUser.crew_chief_eligible,
         forkOperatorEligible: updatedUser.fork_operator_eligible,
+        oshaCompliant: updatedUser.osha_compliant,
         companyName: updatedUser.company_name,
         contactPerson: updatedUser.contact_person,
         contactEmail: updatedUser.contact_email,

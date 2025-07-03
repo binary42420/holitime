@@ -25,11 +25,14 @@ export async function GET(request: NextRequest) {
     const result = await query(`
       SELECT
         id, name, email, role, avatar, location,
-        certifications, performance, crew_chief_eligible, fork_operator_eligible,
+        certifications, performance, crew_chief_eligible, fork_operator_eligible, osha_compliant,
         company_name, contact_person, contact_email, contact_phone,
-        created_at, updated_at, last_login, is_active
+        created_at, updated_at, last_login, is_active, status
       FROM users
-      ORDER BY name ASC
+      WHERE status IN ('active', 'pending_activation')
+      ORDER BY
+        CASE WHEN status = 'active' THEN 0 ELSE 1 END,
+        name ASC
     `);
 
     const users = result.rows.map(row => ({
@@ -43,6 +46,7 @@ export async function GET(request: NextRequest) {
       performance: row.performance,
       crewChiefEligible: row.crew_chief_eligible,
       forkOperatorEligible: row.fork_operator_eligible,
+      oshaCompliant: row.osha_compliant,
       companyName: row.company_name,
       contactPerson: row.contact_person,
       contactEmail: row.contact_email,
@@ -51,6 +55,7 @@ export async function GET(request: NextRequest) {
       updatedAt: row.updated_at,
       lastLogin: row.last_login,
       isActive: row.is_active,
+      status: row.status,
     }));
 
     return NextResponse.json({
@@ -94,6 +99,7 @@ export async function POST(request: NextRequest) {
       performance,
       crewChiefEligible,
       forkOperatorEligible,
+      oshaCompliant,
       certifications,
       companyName,
       companyAddress,
@@ -139,13 +145,13 @@ export async function POST(request: NextRequest) {
     const insertQuery = `
       INSERT INTO users (
         name, email, password_hash, role, avatar, location,
-        performance, crew_chief_eligible, fork_operator_eligible, certifications,
+        performance, crew_chief_eligible, fork_operator_eligible, osha_compliant, certifications,
         company_name, company_address, contact_person, contact_email, contact_phone,
         created_at, updated_at, is_active
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW(), true
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, NOW(), NOW(), true
       ) RETURNING id, name, email, role, avatar, location,
-                  performance, crew_chief_eligible, fork_operator_eligible, certifications,
+                  performance, crew_chief_eligible, fork_operator_eligible, osha_compliant, certifications,
                   company_name, contact_person, contact_email, contact_phone
     `;
 
@@ -159,6 +165,7 @@ export async function POST(request: NextRequest) {
       performance || null,
       crewChiefEligible || false,
       forkOperatorEligible || false,
+      oshaCompliant || false,
       certifications || [],
       companyName || null,
       companyAddress || null,
@@ -183,6 +190,7 @@ export async function POST(request: NextRequest) {
         performance: newUser.performance,
         crewChiefEligible: newUser.crew_chief_eligible,
         forkOperatorEligible: newUser.fork_operator_eligible,
+        oshaCompliant: newUser.osha_compliant,
         certifications: newUser.certifications || [],
         companyName: newUser.company_name,
         contactPerson: newUser.contact_person,

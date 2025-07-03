@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -326,44 +326,42 @@ export default function ManagerApprovalPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Employee</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Clock In</TableHead>
-                <TableHead>Clock Out</TableHead>
-                <TableHead className="text-right">Total Hours</TableHead>
+                <TableHead>JT</TableHead>
+                <TableHead>IN 1</TableHead>
+                <TableHead>OUT 1</TableHead>
+                <TableHead>IN 2</TableHead>
+                <TableHead>OUT 2</TableHead>
+                <TableHead>IN 3</TableHead>
+                <TableHead>OUT 3</TableHead>
+                <TableHead>Total Hours</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {shift.assignedPersonnel.filter((p: any) => p.timeEntries.length > 0).map((person: any) => (
                 <TableRow key={person.employee.id}>
                   <TableCell className="font-medium">{person.employee.name}</TableCell>
-                  <TableCell>{person.roleOnShift}</TableCell>
                   <TableCell>
-                    {person.timeEntries.map((entry: any, index: number) => {
-                      const display = getTimeEntryDisplay(entry.clockIn, entry.clockOut);
-                      return (
-                        <div key={index} className="text-sm">
+                    <Badge variant="outline">{person.roleCode}</Badge>
+                  </TableCell>
+                  {[1, 2, 3].map((entryNum) => {
+                    const entry = person.timeEntries.find((e: any) => e.entryNumber === entryNum)
+                    const display = getTimeEntryDisplay(entry?.clockIn, entry?.clockOut);
+                    return (
+                      <React.Fragment key={entryNum}>
+                        <TableCell className="text-sm">
                           {display.displayClockIn}
-                          {index < person.timeEntries.length - 1 && <br />}
-                        </div>
-                      );
-                    })}
-                  </TableCell>
-                  <TableCell>
-                    {person.timeEntries.map((entry: any, index: number) => {
-                      const display = getTimeEntryDisplay(entry.clockIn, entry.clockOut);
-                      return (
-                        <div key={index} className="text-sm">
+                        </TableCell>
+                        <TableCell className="text-sm">
                           {display.displayClockOut}
-                          {index < person.timeEntries.length - 1 && <br />}
-                        </div>
-                      );
-                    })}
-                  </TableCell>
-                  <TableCell className="text-right font-mono">{calculateTotalHours(person.timeEntries)}</TableCell>
+                        </TableCell>
+                      </React.Fragment>
+                    )
+                  })}
+                  <TableCell className="font-medium">{calculateTotalHours(person.timeEntries)}</TableCell>
                 </TableRow>
               ))}
               <TableRow className="border-t-2 font-semibold bg-muted/50">
-                <TableCell colSpan={4} className="text-right">Total Hours:</TableCell>
+                <TableCell colSpan={8} className="text-right">Total Hours:</TableCell>
                 <TableCell className="text-right font-mono">
                   {(() => {
                     const allTimeEntries = shift.assignedPersonnel
