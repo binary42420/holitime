@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth-config';
 import { deleteJobCascade, getDeletionImpact } from '@/lib/services/cascade-deletion';
 
 // GET /api/cascade-delete/job/[id] - Get deletion impact preview

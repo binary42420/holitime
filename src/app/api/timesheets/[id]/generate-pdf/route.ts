@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/middleware';
 import { query } from '@/lib/db';
 import jsPDF from 'jspdf';
 import { formatTo12Hour, formatDate, getTimeEntryDisplay } from '@/lib/time-utils';
