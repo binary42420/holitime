@@ -201,7 +201,42 @@ export default function ShiftsPage() {
     return 'other'
   }
 
-  const filteredShifts = shifts
+  // Apply filtering logic
+  const filteredShifts = shifts.filter((shift: any) => {
+    // Date filtering
+    if (dateFilter !== 'all') {
+      const shiftCategory = getShiftCategory(shift.date)
+      if (shiftCategory !== dateFilter) {
+        return false
+      }
+    }
+
+    // Status filtering
+    if (statusFilter !== 'all' && shift.status !== statusFilter) {
+      return false
+    }
+
+    // Client filtering
+    if (clientFilter !== 'all' && shift.clientName !== clientFilter) {
+      return false
+    }
+
+    // Search term filtering
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      const matchesSearch =
+        shift.jobName?.toLowerCase().includes(searchLower) ||
+        shift.clientName?.toLowerCase().includes(searchLower) ||
+        shift.location?.toLowerCase().includes(searchLower) ||
+        shift.crewChief?.name?.toLowerCase().includes(searchLower)
+
+      if (!matchesSearch) {
+        return false
+      }
+    }
+
+    return true
+  })
 
   const getStatusBadge = (status: string) => {
     switch (status) {
