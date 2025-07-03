@@ -44,7 +44,7 @@ export interface EmailQueueItem {
 }
 
 class EnhancedEmailService {
-  private transporter: nodemailer.Transporter
+  private transporter!: nodemailer.Transporter
   private isConfigured: boolean = false
 
   constructor() {
@@ -71,7 +71,7 @@ class EnhancedEmailService {
         return
       }
 
-      this.transporter = nodemailer.createTransporter(smtpConfig)
+      this.transporter = nodemailer.createTransport(smtpConfig)
       this.isConfigured = true
 
       // Verify connection
@@ -263,7 +263,7 @@ class EnhancedEmailService {
       const newStatus = email.attempts >= email.max_attempts ? 'failed' : 'pending'
       await query(
         'UPDATE email_queue SET status = $1, error_message = $2 WHERE id = $3',
-        [newStatus, error.message, email.id]
+        [newStatus, (error as Error).message, email.id]
       )
     }
   }

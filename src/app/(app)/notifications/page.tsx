@@ -6,17 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  Bell, 
-  CheckCircle, 
-  Clock, 
-  AlertTriangle, 
+import {
+  Bell,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
   Mail,
   Calendar,
   FileText,
   Users,
   Settings,
-  MarkAsRead,
   Trash2,
   ExternalLink
 } from 'lucide-react'
@@ -313,7 +312,7 @@ export default function NotificationsPage() {
                               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
-                                  {formatTimeAgo(notification.created_at)}
+                                  {formatTimeAgo(new Date(notification.created_at).toISOString())}
                                 </span>
                                 {notification.is_email_sent && (
                                   <span className="flex items-center gap-1">

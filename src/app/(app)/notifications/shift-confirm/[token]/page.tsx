@@ -120,7 +120,7 @@ export default function ShiftConfirmPage() {
       console.error('Error responding to shift:', error)
       toast({
         title: 'Error',
-        description: error.message || 'Failed to submit response',
+        description: (error as Error).message || 'Failed to submit response',
         variant: 'destructive'
       })
     } finally {
