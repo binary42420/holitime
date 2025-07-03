@@ -1,0 +1,207 @@
+# AGGRESSIVE DOCKERIGNORE FOR FAST BUILDS
+
+# Dependencies (CRITICAL - exclude these)
+node_modules/
+npm-debug.log*
+jspm_packages/
+.pnpm-store/
+.yarn/
+
+# Build outputs and cache (CRITICAL)
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+.turbo/
+
+# Environment files (exclude all except production)
+.env*
+!.env.production
+
+# Version control (CRITICAL - huge space saver)
+.git/
+.gitignore
+.gitattributes
+
+# Documentation and markdown (not needed in container)
+README.md
+DEPLOYMENT.md
+*.md
+docs/
+
+# Backup directories (CRITICAL - exclude these)
+temp_app_backup/
+handsonlabor-website/
+
+# Scripts directory (not needed in production)
+scripts/
+
+# Development and testing files
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+__tests__/
+coverage/
+.nyc_output/
+jest.config.*
+cypress/
+.cypress/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS and system files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.temp
+
+# Logs and debugging
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Cache directories
+.npm/
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Package manager files (keep only what's needed)
+*.tgz
+.yarn-integrity
+
+# Build tool outputs
+.nuxt/
+.vuepress/dist/
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+
+# Docker and deployment files (don't include in build context)
+Dockerfile*
+docker-compose*.yml
+cloudbuild.yaml
+deploy*.sh
+deploy*.ps1
+*.dockerignore
+
+# Runtime and process files
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+
+# AI and development files
+src/ai/
+*.ai
+
+# Large media files (if any)
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm
+
+# Backup directories
+temp_app_backup
+handsonlabor-website/
+
+# AI and development files
+src/ai
+*.ai
+
+# Build artifacts and cache
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+.turbo/
+
+# Development and testing files
+scripts/
+docs/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+__tests__/
+coverage/
+.nyc_output/
+
+# Docker and deployment files
+Dockerfile*
+docker-compose*.yml
+cloudbuild.yaml
+deploy*.sh
+deploy*.ps1
+*.dockerignore
+
+# Package manager files (keep package.json and package-lock.json)
+yarn.lock
+pnpm-lock.yaml
+.pnpm-store/
+.yarn/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS and system files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.temp
+
+# Logs and debugging
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime and process files
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+.temp/
+
