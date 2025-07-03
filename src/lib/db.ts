@@ -50,22 +50,22 @@ export function getPool(): Pool {
       }
     }
 
-    // Enhanced pool configuration for Cloud Run with better error handling
+    // Optimized pool configuration for better stability and resource management
     pool = new Pool({
       connectionString,
       ssl: sslConfig,
-      max: process.env.NODE_ENV === 'production' ? 15 : 10, // Increased for better concurrency
-      min: 1, // Keep at least one connection alive
-      idleTimeoutMillis: 30000, // 30 seconds idle timeout (reduced)
-      connectionTimeoutMillis: 10000, // 10 seconds connection timeout
+      max: process.env.NODE_ENV === 'production' ? 8 : 5, // Reduced for better resource management
+      min: 0, // No minimum connections to allow pool to scale down
+      idleTimeoutMillis: 15000, // 15 seconds idle timeout (reduced for faster cleanup)
+      connectionTimeoutMillis: 8000, // 8 seconds connection timeout
       statement_timeout: 30000, // 30 second query timeout
       query_timeout: 30000,
-      // Additional optimizations for network stability
+      // Enhanced stability settings
       keepAlive: true,
-      keepAliveInitialDelayMillis: 5000,
-      allowExitOnIdle: process.env.NODE_ENV !== 'production', // Allow exit in development
+      keepAliveInitialDelayMillis: 3000, // Reduced initial delay
+      allowExitOnIdle: true, // Allow pool to exit when idle
       // Application identification
-      application_name: 'holitime-app',
+      application_name: 'holitime-app'
     });
 
     // Enhanced error handling with metrics
@@ -115,9 +115,41 @@ export async function query(
 
   const pool = getPool();
   let client: PoolClient | null = null;
-  
+  const maxRetries = options.retries || 2;
+  let lastError: Error | null = null;
+
+  // Retry logic for connection failures
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      client = await pool.connect();
+      break; // Success, exit retry loop
+    } catch (error: any) {
+      lastError = error;
+
+      // Check if this is a connection-related error that we should retry
+      const isRetryableError = error.code === '53300' || // too many connections
+                              error.code === 'ECONNREFUSED' ||
+                              error.code === 'ENOTFOUND' ||
+                              error.code === 'ETIMEDOUT' ||
+                              error.message?.includes('timeout') ||
+                              error.message?.includes('connection');
+
+      if (!isRetryableError || attempt === maxRetries) {
+        throw error; // Not retryable or max retries reached
+      }
+
+      // Wait before retrying (exponential backoff)
+      const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
+      console.warn(`Database connection attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  if (!client) {
+    throw lastError || new Error('Failed to acquire database connection');
+  }
+
   try {
-    client = await pool.connect();
     
     // Set statement timeout if specified
     if (options.timeout) {
