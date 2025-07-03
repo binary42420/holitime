@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import UnifiedShiftManager from "@/components/unified-shift-manager"
+import WorkerAssignmentDisplay from "@/components/worker-assignment-display"
 import { generateShiftEditUrl } from "@/lib/url-utils"
 import { LoadingSpinner } from "@/components/loading-states"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -145,9 +146,9 @@ export default function ShiftDetailsPage() {
             Back to Shifts
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">{shift.job.jobName}</h1>
+            <h1 className="text-2xl font-bold">{shift.jobName}</h1>
             <p className="text-muted-foreground">
-              {shift.clientName} • {new Date(shift.shiftDate).toLocaleDateString()} • {shift.startTime}
+              {shift.clientName} • {new Date(shift.date).toLocaleDateString()} • {shift.startTime}
             </p>
           </div>
         </div>
@@ -175,7 +176,7 @@ export default function ShiftDetailsPage() {
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
               <span>Date:</span>
-              <span className="font-medium">{new Date(shift.shiftDate).toLocaleDateString()}</span>
+              <span className="font-medium">{new Date(shift.date).toLocaleDateString()}</span>
             </div>
             <div className="flex justify-between items-center">
               <span>Time:</span>
@@ -229,31 +230,15 @@ export default function ShiftDetailsPage() {
         </Card>
       </div>
 
-      {/* Job Details */}
-      {shift.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Briefcase className="h-5 w-5" />
-              Job Description
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">{shift.description}</p>
-          </CardContent>
-        </Card>
-      )}
 
-      {/* Requirements */}
-      {shift.requirements && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Requirements</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">{shift.requirements}</p>
-          </CardContent>
-        </Card>
+
+      {/* Worker Assignment Display */}
+      {shiftId && (
+        <WorkerAssignmentDisplay
+          shiftId={shiftId}
+          assignedPersonnel={assignedPersonnel}
+          onUpdate={handleRefresh}
+        />
       )}
 
       {/* Unified Shift Manager */}
@@ -293,7 +278,7 @@ export default function ShiftDetailsPage() {
       <CrewChiefPermissionManager
         targetId={shiftId}
         targetType="shift"
-        targetName={`${shift.job.jobName} - ${new Date(shift.shiftDate).toLocaleDateString()} ${shift.startTime}`}
+        targetName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${shift.startTime}`}
         className="mt-6"
       />
 
@@ -301,7 +286,7 @@ export default function ShiftDetailsPage() {
       <DangerZone
         entityType="shift"
         entityId={shiftId}
-        entityName={`${shift.job.jobName} - ${new Date(shift.shiftDate).toLocaleDateString()} ${shift.startTime}`}
+        entityName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${shift.startTime}`}
         redirectTo="/shifts"
         className="mt-6"
       />

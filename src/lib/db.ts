@@ -70,18 +70,18 @@ export function getPool(): Pool {
 
     // Enhanced error handling with metrics
     pool.on('error', (err: Error) => {
-      console.error('Unexpected error on idle client', err);
+      console.error('Unexpected error on idle user session', err);
       poolStats.connectionErrors++;
       poolStats.lastError = err.message;
       poolStats.lastErrorTime = new Date();
     });
 
     pool.on('connect', () => {
-      console.log('New client connected to database');
+      console.log('New user connected to database');
     });
 
     pool.on('remove', (_client: PoolClient) => {
-      console.log('Client removed from pool');
+      console.log('User removed from pool');
     });
   }
   return pool;

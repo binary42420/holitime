@@ -81,7 +81,8 @@ export default function CrewChiefPermissionsPage() {
 
       if (usersRes.ok) {
         const usersData = await usersRes.json();
-        setUsers(usersData.filter((u: User) => ['Employee', 'Crew Chief'].includes(u.role)));
+        const users = usersData.users || [];
+        setUsers(users.filter((u: User) => ['Employee', 'Crew Chief'].includes(u.role)));
       }
 
       if (clientsRes.ok) {

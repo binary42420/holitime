@@ -18,6 +18,17 @@ import { useToast } from "@/hooks/use-toast"
 import { generateShiftUrl } from "@/lib/url-utils"
 import WorkerTypeSelector from "@/components/worker-type-selector"
 import { LoadingSpinner } from "@/components/loading-states"
+import type { WorkerRequirement, RoleCode } from "@/lib/types"
+
+// Role definitions for worker type conversion
+const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string }> = {
+  'CC': { name: 'Crew Chief', color: 'text-purple-700' },
+  'SH': { name: 'Stage Hand', color: 'text-blue-700' },
+  'FO': { name: 'Fork Operator', color: 'text-green-700' },
+  'RFO': { name: 'Reach Fork Operator', color: 'text-yellow-700' },
+  'RG': { name: 'Rigger', color: 'text-red-700' },
+  'GL': { name: 'General Laborer', color: 'text-gray-700' },
+}
 
 const shiftSchema = z.object({
   date: z.string().min(1, "Date is required"),
@@ -73,16 +84,27 @@ export default function EditShiftPage() {
   // Populate form when shift data loads
   useEffect(() => {
     if (shift) {
+      // Convert WorkerRequirement[] to WorkerTypeSelector format
+      const convertedRequirements = shift.workerRequirements?.map((req: WorkerRequirement) => ({
+        roleCode: req.roleCode,
+        roleName: ROLE_DEFINITIONS[req.roleCode as RoleCode]?.name || req.roleCode,
+        count: req.requiredCount,
+        color: ROLE_DEFINITIONS[req.roleCode as RoleCode]?.color || 'text-gray-700'
+      })) || []
+
+      setWorkerRequirements(convertedRequirements)
+
       form.reset({
-        date: shift.shiftDate ? new Date(shift.shiftDate).toISOString().split('T')[0] : '',
+        date: shift.date ? new Date(shift.date).toISOString().split('T')[0] : '',
         startTime: shift.startTime || '',
         endTime: shift.endTime || '',
         requestedWorkers: shift.requestedWorkers || 1,
-        crewChiefId: shift.crewChiefId || '',
+        crewChiefId: shift.crewChiefId || 'none',
         location: shift.location || '',
-        description: shift.description || '',
-        requirements: shift.requirements || '',
+        description: '',
+        requirements: '',
         notes: shift.notes || '',
+        workerRequirements: convertedRequirements,
       })
     }
   }, [shift, form])
@@ -175,7 +197,7 @@ export default function EditShiftPage() {
           <div>
             <h1 className="text-2xl font-bold">Edit Shift</h1>
             <p className="text-muted-foreground">
-              {shift.clientName} • {shift.job.jobName} • {new Date(shift.shiftDate).toLocaleDateString()}
+              {shift.clientName} • {shift.jobName} • {new Date(shift.date).toLocaleDateString()}
             </p>
           </div>
         </div>
@@ -244,7 +266,10 @@ export default function EditShiftPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="crewChiefId">Crew Chief</Label>
-                <Select onValueChange={(value) => form.setValue("crewChiefId", value)}>
+                <Select
+                  value={form.watch("crewChiefId")}
+                  onValueChange={(value) => form.setValue("crewChiefId", value)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select crew chief" />
                   </SelectTrigger>

@@ -164,6 +164,7 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Button
+                        type="button"
                         size="sm"
                         variant="outline"
                         onClick={() => updateRequirement(roleCode as RoleCode, currentCount - 1)}
@@ -176,6 +177,7 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
                         {currentCount}
                       </span>
                       <Button
+                        type="button"
                         size="sm"
                         variant="outline"
                         onClick={() => updateRequirement(roleCode as RoleCode, currentCount + 1)}
@@ -202,6 +204,7 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
           <Label className="text-sm font-medium">Quick Presets:</Label>
           <div className="flex flex-wrap gap-2">
             <Button
+              type="button"
               size="sm"
               variant="outline"
               onClick={() => {
@@ -215,6 +218,7 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
               Solo Crew Chief
             </Button>
             <Button
+              type="button"
               size="sm"
               variant="outline"
               onClick={() => {

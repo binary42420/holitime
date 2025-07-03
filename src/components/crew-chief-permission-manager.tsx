@@ -65,7 +65,8 @@ export function CrewChiefPermissionManager({
       
       if (usersRes.ok) {
         const usersData = await usersRes.json();
-        const eligible = usersData.filter((u: User) => 
+        const users = usersData.users || [];
+        const eligible = users.filter((u: User) =>
           ['Employee', 'Crew Chief'].includes(u.role)
         );
         setEligibleUsers(eligible);

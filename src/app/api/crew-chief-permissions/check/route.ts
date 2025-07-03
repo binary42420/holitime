@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth-config';
 import { checkCrewChiefPermission } from '@/lib/services/crew-chief-permissions';
 
 // GET /api/crew-chief-permissions/check - Check if user has crew chief permission for a shift

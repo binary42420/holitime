@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/middleware';
 import { getShiftById, updateShift, deleteShift } from '@/lib/services/shifts';
+import { updateWorkerRequirements } from '@/lib/services/worker-requirements';
 
 export async function GET(
   request: NextRequest,
@@ -16,7 +17,9 @@ export async function GET(
     }
 
     const { id } = await params;
+    console.log('Looking for shift with ID:', id);
     const shift = await getShiftById(id);
+    console.log('getShiftById result:', shift ? 'Found shift' : 'Shift not found');
     if (!shift) {
       return NextResponse.json(
         { error: 'Shift not found' },
@@ -73,7 +76,7 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { date, startTime, endTime, location, crewChiefId, requestedWorkers, notes } = body;
+    const { date, startTime, endTime, location, crewChiefId, requestedWorkers, notes, workerRequirements } = body;
 
     const shift = await updateShift(id, {
       date,
@@ -92,9 +95,23 @@ export async function PUT(
       );
     }
 
+    // Update worker requirements if provided
+    if (workerRequirements && Array.isArray(workerRequirements)) {
+      // Convert from WorkerTypeSelector format to WorkerRequirement format
+      const convertedRequirements = workerRequirements.map((req: any) => ({
+        roleCode: req.roleCode,
+        requiredCount: req.count
+      }));
+
+      await updateWorkerRequirements(id, convertedRequirements);
+    }
+
+    // Fetch the updated shift with worker requirements
+    const updatedShift = await getShiftById(id);
+
     return NextResponse.json({
       success: true,
-      shift,
+      shift: updatedShift,
     });
   } catch (error) {
     console.error('Error updating shift:', error);

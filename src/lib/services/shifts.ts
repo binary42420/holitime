@@ -54,7 +54,7 @@ function mapShiftRow(row: ShiftRow): Shift {
     status: row.status as Shift['status'],
     notes: row.notes || '',
     requestedWorkers: parseInt(row.requested_workers.toString()) || 1,
-    assignedCount: parseInt(row.assigned_count.toString()) || 0,
+    assignedCount: row.assigned_count ? parseInt(row.assigned_count.toString()) : 0,
     jobId: row.job_id,
     jobName: row.job_name,
     clientName: row.client_name,
@@ -231,20 +231,9 @@ export async function getAllShifts(options: ShiftQueryOptions = {}): Promise<{
 
 export async function getShiftById(id: string): Promise<Shift | null> {
   try {
+    console.log('getShiftById called with ID:', id);
+    // Use simpler query similar to getAllShifts that we know works
     const result = await query(`
-      ${SHIFT_PERSONNEL_CTE},
-      shift_requirements AS (
-        SELECT
-          wr.shift_id,
-          json_agg(
-            json_build_object(
-              'roleCode', wr.role_code,
-              'requiredCount', wr.required_count
-            )
-          ) as worker_requirements
-        FROM worker_requirements wr
-        GROUP BY wr.shift_id
-      )
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         s.requested_workers,
@@ -252,23 +241,57 @@ export async function getShiftById(id: string): Promise<Shift | null> {
         c.company_name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
-        sp.assigned_personnel,
-        sr.worker_requirements
+        (
+          SELECT COUNT(*)
+          FROM assigned_personnel ap
+          WHERE ap.shift_id = s.id AND ap.is_placeholder = false
+        ) + (CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN clients c ON j.client_id = c.id
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
-      LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
-      LEFT JOIN shift_requirements sr ON s.id = sr.shift_id
       WHERE s.id = $1
     `, [id]);
 
+    console.log('getShiftById query result:', result.rows.length, 'rows found');
     if (result.rows.length === 0) {
+      console.log('No shift found with ID:', id);
       return null;
     }
 
-    return mapShiftRow(result.rows[0]);
+    // Get assigned personnel separately for the simplified query
+    const assignedResult = await query(`
+      SELECT
+        json_agg(
+          json_build_object(
+            'employee', json_build_object(
+              'id', u.id,
+              'name', u.name,
+              'certifications', u.certifications,
+              'performance', u.performance,
+              'location', u.location,
+              'avatar', u.avatar
+            ),
+            'roleOnShift', ap.role_on_shift,
+            'roleCode', ap.role_code,
+            'status', ap.status,
+            'isPlaceholder', ap.is_placeholder
+          )
+        ) as assigned_personnel
+      FROM assigned_personnel ap
+      LEFT JOIN users u ON ap.employee_id = u.id
+      WHERE ap.shift_id = $1
+    `, [id]);
+
+    const row = result.rows[0];
+    row.assigned_personnel = assignedResult.rows[0]?.assigned_personnel || [];
+
+    // Get worker requirements for this shift
+    const workerRequirements = await getWorkerRequirements(id);
+    row.worker_requirements = workerRequirements;
+
+    return mapShiftRow(row);
   } catch (error) {
     console.error('Error getting shift by ID:', error);
     return null;
