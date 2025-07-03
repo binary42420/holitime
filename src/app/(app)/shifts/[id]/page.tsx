@@ -8,7 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase, Download } from "lucide-react"
+import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase, Download, ExternalLink } from "lucide-react"
+import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import UnifiedShiftManager from "@/components/unified-shift-manager"
 import WorkerAssignmentDisplay from "@/components/worker-assignment-display"
@@ -24,6 +25,8 @@ export default function ShiftDetailsPage() {
   const router = useRouter()
   const { toast } = useToast()
   const [shiftId, setShiftId] = useState<string>('')
+  const [timesheetStatus, setTimesheetStatus] = useState<string | null>(null)
+  const [timesheetId, setTimesheetId] = useState<string | null>(null)
 
   // Unwrap params
   useEffect(() => {
@@ -48,13 +51,112 @@ export default function ShiftDetailsPage() {
   const handleRefresh = useCallback(() => {
     if (refetch) refetch()
     if (refetchAssigned) refetchAssigned()
-  }, [refetch, refetchAssigned])
+
+    // Also refresh timesheet status
+    const fetchTimesheetStatus = async () => {
+      if (!shiftId) return
+
+      try {
+        const response = await fetch(`/api/timesheets?shiftId=${shiftId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.timesheets && data.timesheets.length > 0) {
+            const timesheet = data.timesheets[0]
+            setTimesheetStatus(timesheet.status)
+            setTimesheetId(timesheet.id)
+          } else {
+            setTimesheetStatus(null)
+            setTimesheetId(null)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching timesheet status:', error)
+      }
+    }
+
+    fetchTimesheetStatus()
+  }, [refetch, refetchAssigned, shiftId])
 
   useEffect(() => {
     if (shift?.notes) {
       setNotes(shift.notes)
     }
   }, [shift?.notes])
+
+  // Fetch timesheet status
+  useEffect(() => {
+    const fetchTimesheetStatus = async () => {
+      if (!shiftId) return
+
+      try {
+        const response = await fetch(`/api/timesheets?shiftId=${shiftId}`)
+        if (response.ok) {
+          const data = await response.json()
+          if (data.timesheets && data.timesheets.length > 0) {
+            const timesheet = data.timesheets[0]
+            setTimesheetStatus(timesheet.status)
+            setTimesheetId(timesheet.id)
+          } else {
+            setTimesheetStatus(null)
+            setTimesheetId(null)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching timesheet status:', error)
+      }
+    }
+
+    fetchTimesheetStatus()
+  }, [shiftId])
+
+  // Get management status for header badge (matches shift management section)
+  const getManagementStatus = () => {
+    if (!timesheetStatus) {
+      return {
+        label: 'No Timesheet',
+        variant: 'outline' as const,
+        clickable: false
+      }
+    }
+
+    switch (timesheetStatus) {
+      case 'pending_client_approval':
+        return {
+          label: 'Pending Client Approval',
+          variant: 'default' as const,
+          clickable: true,
+          url: `/timesheets/${timesheetId}/client-review`
+        }
+      case 'pending_final_approval':
+        return {
+          label: 'Manager Approval Required',
+          variant: 'destructive' as const,
+          clickable: true,
+          url: `/timesheets/${timesheetId}/manager-approval`
+        }
+      case 'completed':
+        return {
+          label: 'Completed',
+          variant: 'secondary' as const,
+          clickable: true,
+          url: `/timesheets/${timesheetId}/review`
+        }
+      default:
+        return {
+          label: timesheetStatus,
+          variant: 'outline' as const,
+          clickable: true,
+          url: `/timesheets/${timesheetId}/review`
+        }
+    }
+  }
+
+  const handleManagementStatusClick = () => {
+    const status = getManagementStatus()
+    if (status.clickable && status.url) {
+      window.open(status.url, '_blank')
+    }
+  }
 
   const handleNotesSubmit = async () => {
     if (!shiftId) return
@@ -160,7 +262,20 @@ export default function ShiftDetailsPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {getStatusBadge(shift.status)}
+          {/* Management Status Badge - Clickable and matches shift management section */}
+          {(() => {
+            const managementStatus = getManagementStatus()
+            return (
+              <Badge
+                variant={managementStatus.variant}
+                className={managementStatus.clickable ? 'cursor-pointer hover:opacity-80' : ''}
+                onClick={managementStatus.clickable ? handleManagementStatusClick : undefined}
+              >
+                {managementStatus.label}
+                {managementStatus.clickable && <ExternalLink className="ml-1 h-3 w-3" />}
+              </Badge>
+            )
+          })()}
           {(shift.status === 'Completed' || shift.status === 'Pending Client Approval') && (
             <Button
               variant="outline"
@@ -218,6 +333,26 @@ export default function ShiftDetailsPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
+              <span>Job Name:</span>
+              <Link
+                href={`/jobs/${shift.jobId}`}
+                className="font-medium text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+              >
+                {shift.jobName}
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="flex justify-between items-center">
+              <span>Company:</span>
+              <Link
+                href={`/clients/${shift.clientId}`}
+                className="font-medium text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+              >
+                {shift.clientName}
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="flex justify-between items-center">
               <span>Date:</span>
               <span className="font-medium">{new Date(shift.date).toLocaleDateString()}</span>
             </div>
@@ -230,7 +365,7 @@ export default function ShiftDetailsPage() {
               <span className="font-medium">{shift.location}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span>Status:</span>
+              <span>Shift Status:</span>
               {getStatusBadge(shift.status)}
             </div>
           </CardContent>

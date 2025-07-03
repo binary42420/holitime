@@ -68,7 +68,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
       let sheetsData: any = null
 
       // If we have an access token, try OAuth method first (more reliable)
-      if (accessToken) {
+      if (accessToken && typeof accessToken === 'string' && accessToken.length > 0) {
         try {
           console.log('Trying OAuth method first...')
           console.log('OAuth token preview:', accessToken.substring(0, 20) + '...')
@@ -82,12 +82,12 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
 
           if (response.ok) {
             result = await response.json()
-            if (result.success && result.data) {
+            if (result && result.success && result.data) {
               sheetsData = result.data
               console.log('OAuth method successful')
             }
           } else {
-            const errorData = await response.json()
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
             console.log('OAuth method failed:', errorData.error)
           }
         } catch (error) {
@@ -120,7 +120,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
         console.log('OAuth method failed, but skipping API key since OAuth should be sufficient')
       }
 
-      if (!sheetsData) {
+      if (!sheetsData || typeof sheetsData !== 'object') {
         if (accessToken) {
           throw new Error('Failed to access Google Sheets using OAuth authentication. Please verify: 1) The sheet ID is correct, 2) You have permission to access the sheet, 3) The sheet exists and is not deleted.')
         } else {
@@ -128,10 +128,15 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
         }
       }
 
+      // Validate sheetsData structure
+      if (!sheetsData.title && !sheetsData.properties?.title) {
+        console.warn('Sheets data missing title, using fallback')
+      }
+
       // Create a file object similar to Google Drive picker
       const mockFile = {
         id: extractedId,
-        name: sheetsData.title || `Google Sheets (${extractedId})`,
+        name: sheetsData.title || sheetsData.properties?.title || `Google Sheets (${extractedId})`,
         mimeType: 'application/vnd.google-apps.spreadsheet',
         modifiedTime: new Date().toISOString(),
         webViewLink: `https://docs.google.com/spreadsheets/d/${extractedId}/edit`,

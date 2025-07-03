@@ -98,12 +98,18 @@ export default function ImportPageClient() {
         setAccessToken(accessToken);
       };
 
-      // Handle popup being closed manually
+      // Handle popup being closed manually with better error handling
       const checkClosed = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(checkClosed);
-          window.removeEventListener("message", handleCallback);
-          setLoading(false);
+        try {
+          if (popup.closed) {
+            clearInterval(checkClosed);
+            window.removeEventListener("message", handleCallback);
+            setLoading(false);
+          }
+        } catch (error) {
+          // Handle COOP errors when checking popup.closed
+          console.warn('Unable to check popup status due to COOP policy:', error);
+          // Continue checking, but don't throw error
         }
       }, 1000);
 

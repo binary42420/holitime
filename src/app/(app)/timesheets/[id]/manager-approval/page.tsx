@@ -64,7 +64,14 @@ export default function ManagerApprovalPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { data: session } = useSession()
-  const timesheetId = params.id as string
+  const [timesheetId, setTimesheetId] = useState<string>('')
+
+  // Unwrap params
+  useEffect(() => {
+    if (params.id) {
+      setTimesheetId(params.id as string)
+    }
+  }, [params.id])
 
   const [data, setData] = useState<TimesheetData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -76,14 +83,16 @@ export default function ManagerApprovalPage() {
   const isManager = session?.user?.role === 'Manager/Admin'
 
   const fetchTimesheetData = async () => {
+    if (!timesheetId) return
+
     try {
       setLoading(true)
       const response = await fetch(`/api/timesheets/${timesheetId}`)
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch timesheet data')
       }
-      
+
       const result = await response.json()
       setData(result)
     } catch (err) {
@@ -94,7 +103,9 @@ export default function ManagerApprovalPage() {
   }
 
   useEffect(() => {
-    fetchTimesheetData()
+    if (timesheetId) {
+      fetchTimesheetData()
+    }
   }, [timesheetId])
 
   const calculateTotalHours = (timeEntries: { clockIn?: string; clockOut?: string }[]) => {
@@ -182,6 +193,54 @@ export default function ManagerApprovalPage() {
   }
 
   const { timesheet, shift, client, job } = data
+
+  // Additional safety check - ensure all required data is present
+  if (!timesheet || !shift || !client || !job) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <p className="text-red-600">Incomplete timesheet data. Please try refreshing the page.</p>
+              <Button onClick={() => window.location.reload()}>Refresh Page</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Validate data structure
+  if (!timesheet || !shift || !client || !job) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <p className="text-red-600">Invalid timesheet data structure</p>
+              <Button onClick={() => router.back()}>Go Back</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Ensure assignedPersonnel exists
+  if (!shift?.assignedPersonnel || !Array.isArray(shift.assignedPersonnel)) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center space-y-4">
+              <p className="text-red-600">No assigned personnel data found</p>
+              <Button onClick={() => router.back()}>Go Back</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   // Check if user has permission
   if (!isManager) {
@@ -337,14 +396,16 @@ export default function ManagerApprovalPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {shift.assignedPersonnel.filter((p: any) => p.timeEntries.length > 0).map((person: any) => (
-                <TableRow key={person.employee.id}>
-                  <TableCell className="font-medium">{person.employee.name}</TableCell>
+              {(shift?.assignedPersonnel || [])
+                .filter((p: any) => p && p.timeEntries && Array.isArray(p.timeEntries) && p.timeEntries.length > 0)
+                .map((person: any) => (
+                <TableRow key={person.employee?.id || person.id}>
+                  <TableCell className="font-medium">{person.employee?.name || 'Unknown Employee'}</TableCell>
                   <TableCell>
-                    <Badge variant="outline">{person.roleCode}</Badge>
+                    <Badge variant="outline">{person.roleCode || person.role_on_shift || 'Worker'}</Badge>
                   </TableCell>
                   {[1, 2, 3].map((entryNum) => {
-                    const entry = person.timeEntries.find((e: any) => e.entryNumber === entryNum)
+                    const entry = person.timeEntries?.find((e: any) => e && e.entryNumber === entryNum)
                     const display = getTimeEntryDisplay(entry?.clockIn, entry?.clockOut);
                     return (
                       <React.Fragment key={entryNum}>
@@ -357,16 +418,16 @@ export default function ManagerApprovalPage() {
                       </React.Fragment>
                     )
                   })}
-                  <TableCell className="font-medium">{calculateTotalHours(person.timeEntries)}</TableCell>
+                  <TableCell className="font-medium">{calculateTotalHours(person.timeEntries || [])}</TableCell>
                 </TableRow>
               ))}
               <TableRow className="border-t-2 font-semibold bg-muted/50">
                 <TableCell colSpan={8} className="text-right">Total Hours:</TableCell>
                 <TableCell className="text-right font-mono">
                   {(() => {
-                    const allTimeEntries = shift.assignedPersonnel
-                      .filter((p: any) => p.timeEntries.length > 0)
-                      .flatMap((p: any) => p.timeEntries);
+                    const allTimeEntries = (shift?.assignedPersonnel || [])
+                      .filter((p: any) => p && p.timeEntries && Array.isArray(p.timeEntries) && p.timeEntries.length > 0)
+                      .flatMap((p: any) => p.timeEntries || []);
                     return calculateTotalHours(allTimeEntries);
                   })()}
                 </TableCell>

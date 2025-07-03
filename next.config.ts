@@ -9,6 +9,38 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async headers() {
+    return [
+      {
+        // Apply headers to all routes
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'unsafe-none',
+          },
+        ],
+      },
+      {
+        // Special headers for OAuth callback page
+        source: '/google-drive-callback',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'unsafe-none',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'unsafe-none',
+          },
+        ],
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {

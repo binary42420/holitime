@@ -71,11 +71,11 @@ export async function POST(
       timesheetId = newTimesheetResult.rows[0].id;
     }
 
-    // Update shift status to "Pending Client Approval" as per requirements
-    console.log(`SIMPLE Updating shift status to 'Pending Client Approval' for shift:`, shiftId);
+    // Update shift status to "Completed" when timesheet is finalized
+    console.log(`SIMPLE Updating shift status to 'Completed' for shift:`, shiftId);
     await query(`
       UPDATE shifts
-      SET status = 'Pending Client Approval'
+      SET status = 'Completed'
       WHERE id = $1
     `, [shiftId]);
 

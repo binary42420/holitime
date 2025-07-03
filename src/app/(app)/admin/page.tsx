@@ -23,6 +23,7 @@ import {
 
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
+import QuickStats from '@/components/quick-stats';
 
 function AdminPage() {
   const { user } = useUser()
@@ -179,31 +180,26 @@ function AdminPage() {
         })}
       </div>
 
+      {/* Quick Stats */}
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight mb-4">Quick Stats</h2>
+          <QuickStats />
+        </div>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5" />
-              Quick Stats
+              System Overview
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Active Shifts Today</span>
-              <Badge variant="default">12</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Pending Timesheets</span>
-              <Badge variant="destructive">5</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Total Employees</span>
-              <Badge variant="secondary">48</Badge>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Active Jobs</span>
-              <Badge variant="default">8</Badge>
-            </div>
+            <p className="text-sm text-muted-foreground">
+              Real-time statistics are displayed above. Use the navigation cards below to manage different aspects of the system.
+            </p>
           </CardContent>
         </Card>
 
