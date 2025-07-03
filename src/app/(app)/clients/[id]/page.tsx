@@ -7,11 +7,13 @@ import { useApi } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Building2, Phone, Mail, MapPin, Briefcase, Plus, Calendar, Users } from "lucide-react"
+import { ArrowLeft, Building2, Phone, Mail, MapPin, Briefcase, Plus, Calendar, Users, FileText, Download, UserCheck, CheckCircle, Clock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateClientEditUrl } from "@/lib/url-utils"
 import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"
 import { DangerZone } from "@/components/danger-zone"
+import { TimesheetStatusIndicator } from "@/components/timesheet-status-indicator"
+import Link from "next/link"
 
 interface ClientDetailPageProps {
   params: { id: string }
@@ -36,6 +38,56 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
   const { data: shiftsData, loading: shiftsLoading, error: shiftsError } = useApi<{ shifts: any[] }>(
     clientId ? `/api/shifts?clientId=${clientId}` : null
   );
+
+  // Helper function to get timesheet link and text based on status
+  const getTimesheetAction = (shift: any) => {
+    if (!shift.timesheetId) {
+      return {
+        text: 'No Timesheet',
+        href: `/shifts/${shift.id}`,
+        variant: 'outline' as const,
+        icon: FileText
+      }
+    }
+
+    switch (shift.timesheetStatus) {
+      case 'Pending Finalization':
+        return {
+          text: 'Finalize',
+          href: `/shifts/${shift.id}`,
+          variant: 'default' as const,
+          icon: FileText
+        }
+      case 'Awaiting Client Approval':
+        return {
+          text: 'Client Approval',
+          href: `/timesheets/${shift.timesheetId}/approve`,
+          variant: 'default' as const,
+          icon: Clock
+        }
+      case 'Awaiting Manager Approval':
+        return {
+          text: 'Manager Approval',
+          href: `/timesheets/${shift.timesheetId}/manager-approval`,
+          variant: 'secondary' as const,
+          icon: UserCheck
+        }
+      case 'Approved':
+        return {
+          text: 'View PDF',
+          href: `/timesheets/${shift.timesheetId}`,
+          variant: 'outline' as const,
+          icon: Download
+        }
+      default:
+        return {
+          text: 'View Timesheet',
+          href: `/timesheets/${shift.timesheetId}`,
+          variant: 'outline' as const,
+          icon: FileText
+        }
+    }
+  }
 
   const client = clientData?.client;
   const jobs = jobsData?.jobs || [];
@@ -235,18 +287,70 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
               {shifts.map((shift:any) => (
                 <div
                   key={shift.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                  onClick={() => router.push(`/shifts/${shift.id}`)}
+                  className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
-                  <div className="space-y-1">
-                    <h3 className="font-medium">{shift.jobName || 'No Job Assigned'}</h3>
-                    <p className="text-sm text-muted-foreground">{new Date(shift.startTime).toLocaleString()} - {new Date(shift.endTime).toLocaleString()}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={shift.status === 'Completed' ? 'default' : 'secondary'}>
-                      {shift.status}
-                    </Badge>
-                    <Button variant="outline" size="sm">View</Button>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-medium">{shift.jobName || 'No Job Assigned'}</h3>
+                        <Badge variant={
+                          shift.status === 'Completed' ? 'default' :
+                          shift.status === 'In Progress' ? 'destructive' :
+                          shift.status === 'Cancelled' ? 'outline' :
+                          'secondary'
+                        }>
+                          {shift.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(shift.date).toLocaleDateString()} • {shift.startTime} - {shift.endTime}
+                      </p>
+
+                      {/* Workers Assigned and Timesheet Status Row */}
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-4">
+                          {/* Workers Assigned */}
+                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <Users className="h-4 w-4" />
+                            <span>{shift.assignedCount || 0} / {shift.requestedWorkers || 1} workers</span>
+                          </div>
+
+                          {/* Timesheet Status */}
+                          <TimesheetStatusIndicator
+                            status={shift.timesheetStatus || 'Pending Finalization'}
+                            size="sm"
+                          />
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2">
+                          {(() => {
+                            const timesheetAction = getTimesheetAction(shift);
+                            const Icon = timesheetAction.icon;
+                            return (
+                              <Button
+                                variant={timesheetAction.variant}
+                                size="sm"
+                                asChild
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Link href={timesheetAction.href}>
+                                  <Icon className="h-4 w-4 mr-1" />
+                                  {timesheetAction.text}
+                                </Link>
+                              </Button>
+                            );
+                          })()}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => router.push(`/shifts/${shift.id}`)}
+                          >
+                            View Shift
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
