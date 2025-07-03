@@ -100,7 +100,7 @@ export const authOptions: NextAuthOptions = {
           if (dbUser) {
             token.id = dbUser.id;
             token.role = dbUser.role;
-            token.clientId = dbUser.clientId || undefined;
+            token.clientCompanyId = dbUser.clientCompanyId || undefined;
           }
         }
         return token;
@@ -116,7 +116,7 @@ export const authOptions: NextAuthOptions = {
         if (token && session.user) {
           session.user.id = token.id as string;
           session.user.role = token.role as string;
-          session.user.clientId = token.clientId as string;
+          session.user.clientCompanyId = token.clientCompanyId as string;
         }
         return session;
       } catch (error) {

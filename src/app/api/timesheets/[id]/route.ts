@@ -19,11 +19,11 @@ export async function GET(
 
     // Get timesheet with all related data
     const timesheetResult = await query(`
-      SELECT 
+      SELECT
         t.*,
         s.id as shift_id, s.date, s.start_time, s.end_time, s.location, s.status as shift_status,
         j.id as job_id, j.name as job_name,
-        c.id as client_id, c.name as client_name, c.contact_person, c.contact_email,
+        c.id as client_company_id, c.company_name as client_name, c.contact_phone, c.contact_email,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         sub.name as submitted_by_name,
         ca.name as client_approved_by_name,

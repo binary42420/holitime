@@ -85,9 +85,9 @@ export async function getJobById(id: string): Promise<Job | null> {
 export async function getJobsByClientId(clientId: string): Promise<Job[]> {
   try {
     const result = await query(`
-      SELECT 
+      SELECT
         j.id, j.name, j.description, j.client_id,
-        COALESCE(c.company_name, c.name) as client_name,
+        c.company_name as client_name,
         COUNT(s.id) as shift_count,
         MIN(s.date) as start_date,
         MAX(s.date) as end_date,
@@ -97,10 +97,10 @@ export async function getJobsByClientId(clientId: string): Promise<Job[]> {
           ELSE 'Planning'
         END as status
       FROM jobs j
-      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      JOIN clients c ON j.client_id = c.id
       LEFT JOIN shifts s ON j.id = s.job_id
       WHERE j.client_id = $1
-      GROUP BY j.id, j.name, j.description, j.client_id, c.name, c.company_name
+      GROUP BY j.id, j.name, j.description, j.client_id, c.company_name
       ORDER BY j.created_at DESC
     `, [clientId]);
 

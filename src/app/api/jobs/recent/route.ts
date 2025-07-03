@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
         j.client_id,
         j.created_at,
         j.updated_at,
-        COALESCE(c.name, c.company_name) as client_name,
+        c.company_name as client_name,
         COUNT(s.id) as shift_count,
         COALESCE(MAX(s.date), j.created_at) as last_activity,
         COUNT(CASE WHEN s.date >= CURRENT_DATE THEN 1 END) as upcoming_shifts,
@@ -33,9 +33,9 @@ export async function GET(request: NextRequest) {
           ELSE 'Planning'
         END as status
       FROM jobs j
-      LEFT JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      LEFT JOIN clients c ON j.client_id = c.id
       LEFT JOIN shifts s ON j.id = s.job_id
-      GROUP BY j.id, j.name, j.description, j.client_id, j.created_at, j.updated_at, c.name, c.company_name
+      GROUP BY j.id, j.name, j.description, j.client_id, j.created_at, j.updated_at, c.company_name
       ORDER BY last_activity DESC, j.created_at DESC
       LIMIT 50
     `);

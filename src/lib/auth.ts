@@ -20,7 +20,7 @@ export interface RegisterData {
   password: string;
   name: string;
   role: 'Employee' | 'Crew Chief' | 'Manager/Admin' | 'Client' | 'User';
-  clientId?: string;
+  clientCompanyId?: string;
   companyName?: string;
   phone?: string;
 }
@@ -36,9 +36,9 @@ export function generateToken(user: User): string {
     id: user.id,
     email: user.email,
     role: user.role,
-    clientId: user.clientId,
+    clientCompanyId: user.clientCompanyId,
   };
-  
+
   return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
@@ -52,7 +52,7 @@ export function verifyToken(token: string): User | null {
       name: '', // Will be filled from database
       avatar: '', // Will be filled from database
       role: decoded.role,
-      clientId: decoded.clientId,
+      clientCompanyId: decoded.clientCompanyId,
     };
   } catch (error) {
     return null;
@@ -63,7 +63,7 @@ export function verifyToken(token: string): User | null {
 export async function getUserByEmail(email: string): Promise<AuthUser | null> {
   try {
     const result = await query(
-      'SELECT id, email, password_hash, name, role, avatar, is_active FROM users WHERE email = $1 AND is_active = true',
+      'SELECT id, email, password_hash, name, role, avatar, client_company_id, is_active FROM users WHERE email = $1 AND is_active = true',
       [email]
     );
 
@@ -79,7 +79,7 @@ export async function getUserByEmail(email: string): Promise<AuthUser | null> {
       name: row.name,
       role: row.role,
       avatar: row.avatar || '',
-      clientId: row.role === 'Client' ? row.id : null,
+      clientCompanyId: row.client_company_id,
     };
   } catch (error) {
     console.error('Error getting user by email:', error);
@@ -91,7 +91,7 @@ export async function getUserByEmail(email: string): Promise<AuthUser | null> {
 export async function getUserById(id: string): Promise<User | null> {
   try {
     const result = await query(
-      'SELECT id, email, name, role, avatar FROM users WHERE id = $1 AND is_active = true',
+      'SELECT id, email, name, role, avatar, client_company_id FROM users WHERE id = $1 AND is_active = true',
       [id]
     );
 
@@ -106,7 +106,7 @@ export async function getUserById(id: string): Promise<User | null> {
       name: row.name,
       role: row.role,
       avatar: row.avatar || '',
-      clientId: row.role === 'Client' ? row.id : null,
+      clientCompanyId: row.client_company_id,
     };
   } catch (error) {
     console.error('Error getting user by ID:', error);
@@ -119,15 +119,16 @@ export async function createUser(userData: RegisterData): Promise<User | null> {
   try {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     const result = await query(
-      `INSERT INTO users (email, password_hash, name, role, avatar, company_name, contact_phone)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING id, email, name, role, avatar, company_name, contact_phone`,
+      `INSERT INTO users (email, password_hash, name, role, avatar, client_company_id, company_name, contact_phone)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, email, name, role, avatar, client_company_id, company_name, contact_phone`,
       [
         userData.email,
         hashedPassword,
         userData.name,
         userData.role,
         `https://i.pravatar.cc/32?u=${userData.email}`,
+        userData.clientCompanyId || null,
         userData.companyName || null,
         userData.phone || null
       ]
@@ -144,7 +145,7 @@ export async function createUser(userData: RegisterData): Promise<User | null> {
       name: row.name,
       role: row.role,
       avatar: row.avatar,
-      clientId: row.role === 'Client' ? row.id : null,
+      clientCompanyId: row.client_company_id,
     };
   } catch (error) {
     console.error('Error creating user:', error);

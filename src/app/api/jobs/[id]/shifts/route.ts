@@ -22,17 +22,17 @@ export async function GET(
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
         s.requested_workers,
         j.name as job_name,
-        COALESCE(c.company_name, c.name) as client_name,
+        c.company_name as client_name,
         cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         COUNT(ap.id) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
-      JOIN users c ON j.client_id = c.id AND c.role = 'Client'
+      JOIN clients c ON j.client_id = c.id
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN assigned_personnel ap ON s.id = ap.shift_id
       WHERE s.job_id = $1
       GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-               s.requested_workers, j.name, c.company_name, c.name, cc.name, cc.avatar
+               s.requested_workers, j.name, c.company_name, cc.name, cc.avatar
       ORDER BY s.date ASC, s.start_time ASC
     `, [id]);
 
