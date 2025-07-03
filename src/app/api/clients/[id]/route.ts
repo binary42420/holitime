@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/middleware';
-import { getClientById, updateClient, deleteClient } from '@/lib/services/clients';
+import { getClientById, getClientCompanyById, updateClient, deleteClient } from '@/lib/services/clients';
 
 export async function GET(
   request: NextRequest,
@@ -16,7 +16,33 @@ export async function GET(
     }
 
     const { id } = await params;
-    const client = await getClientById(id);
+
+    // Try to get client by user ID first (contact person)
+    let client = await getClientById(id);
+
+    // If not found, try to get by client company ID
+    if (!client) {
+      const clientCompany = await getClientCompanyById(id);
+      if (clientCompany) {
+        // Convert client company to client format for backward compatibility
+        client = {
+          id: clientCompany.id,
+          clientCompanyId: clientCompany.id,
+          companyName: clientCompany.companyName,
+          companyAddress: clientCompany.companyAddress,
+          contactPhone: clientCompany.contactPhone,
+          contactEmail: clientCompany.contactEmail,
+          notes: clientCompany.notes,
+          // Default values for missing fields
+          name: clientCompany.companyName,
+          email: clientCompany.contactEmail,
+          address: clientCompany.companyAddress,
+          phone: clientCompany.contactPhone,
+          contactPerson: 'N/A',
+        };
+      }
+    }
+
     if (!client) {
       return NextResponse.json(
         { error: 'Client not found' },

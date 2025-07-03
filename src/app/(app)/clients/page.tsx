@@ -84,7 +84,7 @@ function ClientsPage() {
                 clientsData.clients.map(client => (
                   <TableRow
                     key={client.id}
-                    onClick={() => router.push(generateClientUrl(client.id))}
+                    onClick={() => router.push(generateClientUrl(client.clientCompanyId || client.id))}
                     className="cursor-pointer hover:bg-muted/50"
                   >
                     <TableCell className="font-medium">{client.companyName || client.name}</TableCell>
