@@ -328,7 +328,7 @@ export default function UnifiedShiftManagerEnhanced({
 
   const finalizeTimesheetMutation = useMutation(
     async () => {
-      const response = await fetch(`/api/shifts/${shiftId}/finalize-timesheet`, {
+      const response = await fetch(`/api/shifts/${shiftId}/finalize-timesheet-simple`, {
         method: 'POST'
       })
       

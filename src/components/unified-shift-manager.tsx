@@ -422,7 +422,7 @@ export default function UnifiedShiftManager({
 
     try {
       const response = await executeWithRetry(async () => {
-        return fetch(`/api/shifts/${shiftId}/finalize-timesheet`, {
+        return fetch(`/api/shifts/${shiftId}/finalize-timesheet-simple`, {
           method: 'POST'
         })
       })

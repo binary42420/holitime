@@ -356,7 +356,7 @@ export default function UnifiedShiftManagerEnhanced({
     setProcessingAction('Finalizing timesheet...')
 
     try {
-      const response = await fetch(`/api/shifts/${shiftId}/finalize-timesheet`, {
+      const response = await fetch(`/api/shifts/${shiftId}/finalize-timesheet-simple`, {
         method: 'POST'
       })
       
