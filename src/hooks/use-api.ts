@@ -55,6 +55,9 @@ export function useApi<T>(
   const abortControllerRef = useRef<AbortController | null>(null);
   const mountedRef = useRef(true);
 
+  // Reset mounted ref on each render to handle React Strict Mode
+  mountedRef.current = true;
+
   // Check cache first
   const getCachedData = useCallback((cacheKey: string) => {
     const cached = cache.get(cacheKey);
@@ -89,7 +92,7 @@ export function useApi<T>(
     }
 
     const cacheKey = url;
-    
+
     // Check cache unless forcing refresh
     if (!forceRefresh) {
       const cached = getCachedData(cacheKey);
@@ -101,7 +104,7 @@ export function useApi<T>(
           error: null,
           isStale: cached.isStale,
         }));
-        
+
         // If data is stale, fetch in background
         if (!cached.isStale) {
           return;
@@ -148,7 +151,7 @@ export function useApi<T>(
       // Only update state if component is still mounted
       if (mountedRef.current) {
         const data = result.success !== undefined ? result : result;
-        
+
         // Cache the result
         cache.set(cacheKey, {
           data,

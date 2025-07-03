@@ -469,28 +469,75 @@ export default function ShiftsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-              <TableRow>
-                <TableCell colSpan={canManage ? 7 : 6} className="h-24 text-center">
-                  <h3 className="text-lg font-semibold">No shifts found</h3>
-                  <p className="text-muted-foreground">
-                    Try adjusting your search or filter criteria.
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="mt-4"
-                    onClick={() => {
-                      setSearchTerm("")
-                      setStatusFilter("all")
-                      setDateFilter("today")
-                      setClientFilter("all")
-                    }}
-                  >
-                    Clear Filters
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ) : (
+                {filteredShifts.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={canManage ? 7 : 6} className="h-24 text-center">
+                      <h3 className="text-lg font-semibold">No shifts found</h3>
+                      <p className="text-muted-foreground">
+                        Try adjusting your search or filter criteria.
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-4"
+                        onClick={() => {
+                          setSearchTerm("")
+                          setStatusFilter("all")
+                          setDateFilter("today")
+                          setClientFilter("all")
+                        }}
+                      >
+                        Clear Filters
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredShifts.map((shift: any) => (
+                    <TableRow key={shift.id}>
+                      <TableCell>
+                        <div className="font-medium">
+                          {format(new Date(shift.date), 'MMM d, yyyy')}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {shift.startTime} - {shift.endTime}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">{shift.jobName}</div>
+                        <div className="text-sm text-muted-foreground">{shift.clientName}</div>
+                      </TableCell>
+                      <TableCell>{shift.location}</TableCell>
+                      <TableCell>
+                        {shift.crewChief ? (
+                          <div className="flex items-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarImage src={shift.crewChief.avatar} />
+                              <AvatarFallback>{shift.crewChief.name?.charAt(0)}</AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm">{shift.crewChief.name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">Unassigned</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {shift.assignedCount || 0} / {shift.requestedWorkers || 1}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {getStatusBadge(shift.status)}
+                      </TableCell>
+                      {canManage && (
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           )}
