@@ -240,7 +240,7 @@ export default function ComprehensiveTimesheetManager({
         return
       }
 
-      const response = await fetch(`/api/shifts/${shiftId}/assign`, {
+      const response = await fetch(`/api/shifts/${shiftId}/assign-worker`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -408,7 +408,7 @@ export default function ComprehensiveTimesheetManager({
 
     setIsProcessing(true)
     try {
-      const response = await fetch(`/api/shifts/${shiftId}/finalize-timesheet`, {
+      const response = await fetch(`/api/shifts/${shiftId}/finalize-timesheet-simple`, {
         method: 'POST'
       })
 

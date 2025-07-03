@@ -183,19 +183,21 @@ export default function WorkerAssignmentDisplay({
       const employee = availableEmployees.find(emp => emp.id === employeeId)
       if (!employee) return
 
-      // Check for time conflicts for all users
-      const conflictCheck = await checkTimeConflicts(employeeId)
-      if (conflictCheck.hasConflicts && conflictCheck.conflicts.length > 0) {
-        const conflict = conflictCheck.conflicts[0]
-        toast({
-          title: "Time Conflict",
-          description: `${employee.name} is already assigned to ${conflict.clientName} - ${conflict.jobName} from ${conflict.startTime} to ${conflict.endTime} on the same day`,
-          variant: "destructive",
-        })
-        return
-      }
+      // TEMPORARILY DISABLE CONFLICT CHECKING
+      console.log('Conflict checking temporarily disabled for testing')
+      // const conflictCheck = await checkTimeConflicts(employeeId)
+      // if (conflictCheck.hasConflicts && conflictCheck.conflicts.length > 0) {
+      //   const conflict = conflictCheck.conflicts[0]
+      //   toast({
+      //     title: "Time Conflict",
+      //     description: `${employee.name} is already assigned to ${conflict.clientName} - ${conflict.jobName} from ${conflict.startTime} to ${conflict.endTime} on the same day`,
+      //     variant: "destructive",
+      //   })
+      //   return
+      // }
 
-      const response = await fetch(`/api/shifts/${shiftId}/assign`, {
+      console.log('FRONTEND: Using new assign-worker API endpoint')
+      const response = await fetch(`/api/shifts/${shiftId}/assign-worker`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

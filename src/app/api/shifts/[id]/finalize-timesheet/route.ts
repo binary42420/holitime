@@ -10,10 +10,7 @@ export async function POST(
 
   return withCrewChiefPermission(shiftId, async (session, permissionCheck) => {
     try {
-
-    const { id: shiftId } = await params
-
-    console.log(`Finalize timesheet request:`, { shiftId })
+      console.log(`Finalize timesheet request (UPDATED):`, { shiftId, userId: session.user.id })
 
     // Check if all workers have ended their shifts
     const activeWorkersResult = await query(`
@@ -47,14 +44,14 @@ export async function POST(
             submitted_by = $1,
             submitted_at = NOW()
         WHERE id = $2
-      `, [user.id, timesheetId])
+      `, [session.user.id, timesheetId])
     } else {
       // Create new timesheet
       const newTimesheetResult = await query(`
         INSERT INTO timesheets (shift_id, status, submitted_by, submitted_at)
         VALUES ($1, 'pending_client_approval', $2, NOW())
         RETURNING id
-      `, [shiftId, user.id])
+      `, [shiftId, session.user.id])
       timesheetId = newTimesheetResult.rows[0].id
     }
 

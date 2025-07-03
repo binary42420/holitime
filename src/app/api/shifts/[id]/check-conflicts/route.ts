@@ -60,8 +60,6 @@ export async function POST(
       shiftId: row.shift_id,
       startTime: row.start_time,
       endTime: row.end_time,
-      jobName: row.job_name,
-      clientName: row.client_name,
       roleOnShift: row.role_on_shift
     }))
 

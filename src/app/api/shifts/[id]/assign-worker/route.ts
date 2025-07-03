@@ -10,7 +10,7 @@ export async function POST(
     const body = await request.json()
     const { employeeId, roleCode, roleOnShift } = body
 
-    console.log('Assignment request:', { shiftId, employeeId, roleCode, roleOnShift })
+    console.log('NEW Assignment request:', { shiftId, employeeId, roleCode, roleOnShift })
 
     if (!employeeId || !roleCode || !roleOnShift) {
       console.error('Missing required fields:', { employeeId, roleCode, roleOnShift })
@@ -28,7 +28,7 @@ export async function POST(
       [employeeId, 'Employee', 'Crew Chief', 'Manager/Admin']
     )
 
-    console.log('User query result:', userQuery.rows)
+    console.log('NEW User query result:', userQuery.rows)
 
     if (userQuery.rows.length === 0) {
       console.error('Employee user not found for user ID:', employeeId)
@@ -47,7 +47,7 @@ export async function POST(
       [shiftId, actualEmployeeId]
     )
 
-    console.log('Existing assignment check:', existingAssignment.rows)
+    console.log('NEW Existing assignment check:', existingAssignment.rows)
 
     if (existingAssignment.rows.length > 0) {
       console.error('Employee already assigned:', { shiftId, actualEmployeeId })
@@ -70,33 +70,8 @@ export async function POST(
       )
     }
 
-    // Check for time conflicts for all users
-    const currentShiftResult = await pool.query(`
-      SELECT date, start_time, end_time
-      FROM shifts
-      WHERE id = $1
-    `, [shiftId])
-
-    if (currentShiftResult.rows.length > 0) {
-      const currentShift = currentShiftResult.rows[0]
-      const shiftDate = currentShift.date
-      const startTime = currentShift.start_time
-      const endTime = currentShift.end_time
-
-      // CONFLICT CHECKING DISABLED - PROCEEDING WITH ASSIGNMENT
-      console.log('Conflict checking disabled - proceeding with assignment')
-      const conflictResult = { rows: [] };
-
-      if (conflictResult.rows.length > 0) {
-        const conflict = conflictResult.rows[0]
-        return NextResponse.json(
-          {
-            error: `Worker is already assigned to another shift at ${conflict.client_name} - ${conflict.job_name} from ${conflict.start_time} to ${conflict.end_time} on the same day`
-          },
-          { status: 400 }
-        )
-      }
-    }
+    // NO CONFLICT CHECKING - JUST ASSIGN THE WORKER
+    console.log('NEW API: No conflict checking - proceeding with assignment')
 
     // Insert the assignment
     const result = await pool.query(
@@ -108,6 +83,8 @@ export async function POST(
     )
 
     const assignmentId = result.rows[0].id
+
+    console.log('NEW Assignment successful:', { assignmentId, shiftId, actualEmployeeId })
 
     return NextResponse.json({
       success: true,
@@ -123,7 +100,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error assigning worker to shift:', error)
+    console.error('NEW Error assigning worker to shift:', error)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

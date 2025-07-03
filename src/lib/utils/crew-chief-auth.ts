@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { authOptions } from '@/lib/auth-config';
 import { checkCrewChiefPermission } from '@/lib/services/crew-chief-permissions';
 import type { CrewChiefPermissionCheck } from '@/lib/types';
 
