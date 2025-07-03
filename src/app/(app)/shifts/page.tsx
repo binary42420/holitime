@@ -55,6 +55,11 @@ export default function ShiftsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [dateFilter, setDateFilter] = useState("today") // Default to today
   const [clientFilter, setClientFilter] = useState("all")
+
+  // Handle row click to navigate to shift details
+  const handleRowClick = (shiftId: string) => {
+    router.push(`/shifts/${shiftId}`)
+  }
   const [showFilters, setShowFilters] = useState(false) // Collapsible filters
 
   const canManage = user?.role === 'Manager/Admin' || user?.role === 'Crew Chief'
@@ -528,7 +533,11 @@ export default function ShiftsPage() {
                   </TableRow>
                 ) : (
                   filteredShifts.map((shift: any) => (
-                    <TableRow key={shift.id}>
+                    <TableRow
+                      key={shift.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleRowClick(shift.id)}
+                    >
                       <TableCell>
                         <div className="font-medium">
                           {format(new Date(shift.date), 'MMM d, yyyy')}
@@ -565,9 +574,53 @@ export default function ShiftsPage() {
                       </TableCell>
                       {canManage && (
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => e.stopPropagation()} // Prevent row click
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation()
+                                router.push(`/shifts/${shift.id}`)
+                              }}>
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation()
+                                router.push(`/shifts/${shift.id}/edit`)
+                              }}>
+                                Edit Shift
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation()
+                                // TODO: Add assign workers functionality
+                                toast({
+                                  title: "Feature Coming Soon",
+                                  description: "Worker assignment functionality will be available soon.",
+                                })
+                              }}>
+                                Assign Workers
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={(e) => {
+                                e.stopPropagation()
+                                // TODO: Add duplicate shift functionality
+                                toast({
+                                  title: "Feature Coming Soon",
+                                  description: "Duplicate shift functionality will be available soon.",
+                                })
+                              }}>
+                                Duplicate Shift
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       )}
                     </TableRow>
