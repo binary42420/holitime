@@ -247,9 +247,31 @@ export default function GoogleSheetsGeminiProcessor({
       })
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to process Google Sheets'
+      console.error('Google Sheets processing error:', error)
+
+      let errorMessage = 'Failed to process Google Sheets'
+
+      if (error instanceof Error) {
+        errorMessage = error.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = String(error.message)
+      }
+
+      // Add more context to common errors
+      if (errorMessage.includes('fetch')) {
+        errorMessage = `Network error: ${errorMessage}. Please check your internet connection and try again.`
+      } else if (errorMessage.includes('API key')) {
+        errorMessage = `API configuration error: ${errorMessage}. Please contact support.`
+      } else if (errorMessage.includes('rate limit')) {
+        errorMessage = `${errorMessage} Please wait a few minutes before trying again.`
+      } else if (errorMessage.includes('authentication')) {
+        errorMessage = `${errorMessage} Please check your Google account permissions.`
+      }
+
       setError(errorMessage)
-      
+
       // Mark current step as error
       const currentStepId = processingSteps[currentStep]?.id
       if (currentStepId) {
@@ -259,7 +281,8 @@ export default function GoogleSheetsGeminiProcessor({
       toast({
         title: 'Processing Failed',
         description: errorMessage,
-        variant: 'destructive'
+        variant: 'destructive',
+        duration: 10000 // Longer duration for error messages
       })
     } finally {
       setIsProcessing(false)

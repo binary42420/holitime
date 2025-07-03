@@ -16,6 +16,7 @@ import GoogleDrivePicker from "./google-drive-picker";
 import CSVImport from "./csv-import";
 import GoogleSheetsGeminiProcessor from "./google-sheets-gemini-processor";
 import GoogleSheetsIdInput from "./google-sheets-id-input";
+import ErrorBoundary from "./error-boundary";
 
 interface DriveFile {
   id: string;
@@ -339,11 +340,13 @@ export default function ImportPageClient() {
                     </div>
                   </div>
 
-                  <GoogleSheetsGeminiProcessor
-                    selectedFile={selectedFile}
-                    onCSVGenerated={handleCSVGenerated}
-                    accessToken={accessToken || undefined}
-                  />
+                  <ErrorBoundary>
+                    <GoogleSheetsGeminiProcessor
+                      selectedFile={selectedFile}
+                      onCSVGenerated={handleCSVGenerated}
+                      accessToken={accessToken || undefined}
+                    />
+                  </ErrorBoundary>
                 </div>
               )}
             </CardContent>
