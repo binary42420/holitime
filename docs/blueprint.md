@@ -12,13 +12,12 @@
 - **Database**: SQLite with Drizzle ORM
 - **Authentication**: NextAuth.js with role-based access control
 - **Deployment**: Docker containerized on Google Cloud Run
-- **Mobile**: Capacitor for iOS/Android builds (connects to deployed API)
 
 ## Core Features:
 
 - **Modernized Homepage Dashboard**: Upgraded Homepage: Modernized version of handsonlabor.com, incorporating key branding elements and improved navigation. Includes a dashboard summarizing employee schedules and important company announcements.
 - **Shift Dashboard**: Comprehensive dashboard displaying upcoming and past shift details for employees (client company, address, contact info, crew chief contact). Managers can view all shifts. Includes filtering/sorting and real-time updates.
-- **Role-Based Access Control**: Three-tier authentication system: Employee, Crew Chief, Manager/Admin. Employee: view shifts, clock in/out, submit timesheets. Crew Chief: employee features + manage shift personnel, edit timesheets. Manager/Admin: full access.
+- **Role-Based Access Control**: Four-tier authentication system: Employee, Crew Chief, Manager/Admin, Client. Employee: view shifts, clock in/out, submit timesheets. Crew Chief: employee features + manage shift personnel, edit timesheets. Manager/Admin: full system access including user management, job creation, and system administration. Client: view company jobs, approve timesheets, manage job requirements.
 - **Shift Management Interface**: Dedicated crew chief interface for shift oversight. Displays shift information with assigned personnel, enables editing of employee clock in/out times with audit trail, includes shift notes and employee check-in status tracking.
 - **Client Management System**: CRUD interface for client company management. Stores client details, implements client-specific job/shift creation, and tracks client communication history.
 - **Document Storage & HR Functions**: Secure document upload and storage system for employee and client documents. Includes employee document management (certifications, training records) and client document storage (contracts, insurance). GDPR compliant.
@@ -26,14 +25,11 @@
 
 ## Technical Configuration:
 
-### Build Configurations:
-- **Web/Production**: `next.config.ts` (standalone output for Cloud Run)
-- **Mobile/Capacitor**: `next.config.capacitor.ts.old` (static export for mobile apps)
-- **Smart Build System**: Automatically detects environment and uses appropriate config
+### Build Configuration:
+- **Production**: `next.config.ts` (standalone output for Cloud Run)
 
 ### Environment Variables:
 - **Production**: `NEXT_PUBLIC_API_URL` points to Cloud Run service
-- **Mobile**: `NEXT_PUBLIC_IS_MOBILE=true` for Capacitor builds
 - **Authentication**: NextAuth configuration for role-based access
 
 ### Dependencies:
@@ -41,7 +37,6 @@
 - **UI Framework**: Tailwind CSS with shadcn/ui components
 - **Database**: Drizzle ORM with SQLite
 - **Authentication**: NextAuth.js with custom providers
-- **Mobile**: Capacitor for cross-platform mobile deployment
 
 ### Deployment Notes:
 - **Docker**: Multi-stage build with Node.js 20 Alpine
@@ -53,12 +48,11 @@
 
 ### Build System Improvements:
 - **Fixed Cloud Run Deployment**: Resolved Next.js 15 compatibility issues
-- **Smart Build Detection**: Implemented environment-aware build system
-- **Configuration Management**: Separated web and mobile build configurations
+- **Configuration Management**: Streamlined build configuration
 - **Dependency Resolution**: Fixed OpenTelemetry and Handlebars webpack issues
 
 ### Architecture Changes:
-- **Dual Configuration**: Web (standalone)
+- **Standalone Configuration**: Web-only build for production deployment
 - **Docker Optimization**: Multi-stage builds with proper Node.js 20 support
 
 ### Known Issues Resolved:
@@ -89,16 +83,8 @@
 ### Local Development:
 ```bash
 npm run dev          # Start development server
-npm run build        # Smart build (detects environment)
-npx next build       # Direct Next.js build (bypasses smart detection)
-```
-
-### Mobile Development:
-```bash
-npm run build:mobile # Build for Capacitor (static export)
-npx cap sync         # Sync with Capacitor
-npx cap run android  # Run on Android
-npx cap run ios      # Run on iOS
+npm run build        # Build for production
+npm start            # Start production server
 ```
 
 ### Deployment:
