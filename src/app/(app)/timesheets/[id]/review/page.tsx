@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator'
 import { Clock, User, MapPin, Calendar, Building, FileText, Download } from 'lucide-react'
 import { format } from 'date-fns'
 import SignatureCaptureModal from '@/components/signature-capture-modal'
+import TimesheetExportDialog from '@/components/timesheet-export-dialog'
 import { useToast } from '@/hooks/use-toast'
 import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
 
@@ -306,6 +307,10 @@ export default function TimesheetReviewPage() {
           <Badge variant={getStatusBadgeVariant(data.timesheet.status)}>
             {getStatusLabel(data.timesheet.status)}
           </Badge>
+          <TimesheetExportDialog
+            timesheetId={data.timesheet.id}
+            timesheetStatus={data.timesheet.status}
+          />
           <Button
             variant="outline"
             size="sm"
