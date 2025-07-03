@@ -13,7 +13,24 @@
     "migrate": "tsx scripts/migrate.js",
     "db:setup": "npm run migrate",
     "deploy": "powershell -ExecutionPolicy Bypass -File deploy-cloud-run.ps1 -ProjectId handsonlabor",
-    "deploy:bash": "./deploy.sh"
+    "deploy:bash": "./deploy.sh",
+    "test:e2e": "node scripts/run-e2e-tests.js",
+    "test:e2e:headed": "node scripts/run-e2e-tests.js --headed",
+    "test:e2e:debug": "node scripts/run-e2e-tests.js --headed --debug",
+    "test:e2e:mobile": "node scripts/run-e2e-tests.js --project 'Mobile Chrome'",
+    "test:e2e:firefox": "node scripts/run-e2e-tests.js --browser firefox",
+    "test:e2e:webkit": "node scripts/run-e2e-tests.js --browser webkit",
+    "test:e2e:all-browsers": "node scripts/run-e2e-tests.js --browser all",
+    "test:e2e:user-management": "node scripts/run-e2e-tests.js --grep 'User Management'",
+    "test:e2e:shift-management": "node scripts/run-e2e-tests.js --grep 'Shift Management'",
+    "test:e2e:client-management": "node scripts/run-e2e-tests.js --grep 'Client Management'",
+    "test:e2e:email-notifications": "node scripts/run-e2e-tests.js --grep 'Email Notifications'",
+    "test:e2e:api-endpoints": "node scripts/run-e2e-tests.js --grep 'API Endpoints'",
+    "test:e2e:mobile-responsiveness": "node scripts/run-e2e-tests.js --grep 'Mobile Responsiveness'",
+    "test:e2e:accessibility": "node scripts/run-e2e-tests.js --grep 'Accessibility'",
+    "test:install": "npx playwright install",
+    "test:report": "npx playwright show-report",
+    "db:seed:test": "tsx scripts/seed-test-data.js"
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.10.0",
@@ -77,6 +94,8 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@faker-js/faker": "^9.4.0",
+    "@playwright/test": "^1.49.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

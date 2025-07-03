@@ -51,10 +51,38 @@ export default function ShiftsPage() {
   const router = useRouter()
   const { toast } = useToast()
 
+  // State persistence for filters
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [dateFilter, setDateFilter] = useState("today") // Default to today
-  const [clientFilter, setClientFilter] = useState("all")
+  const [statusFilter, setStatusFilter] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('shifts-status-filter') || "all"
+    }
+    return "all"
+  })
+  const [dateFilter, setDateFilter] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('shifts-date-filter') || "today"
+    }
+    return "today"
+  })
+  const [clientFilter, setClientFilter] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('shifts-client-filter') || "all"
+    }
+    return "all"
+  })
+  const [locationFilter, setLocationFilter] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('shifts-location-filter') || "all"
+    }
+    return "all"
+  })
+  const [crewChiefFilter, setCrewChiefFilter] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('shifts-crew-chief-filter') || "all"
+    }
+    return "all"
+  })
 
   // Handle row click to navigate to shift details
   const handleRowClick = (shiftId: string) => {
@@ -73,6 +101,37 @@ export default function ShiftsPage() {
   useEffect(() => {
     refetch()
   }, [dateFilter])
+
+  // Save filter state to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('shifts-status-filter', statusFilter)
+    }
+  }, [statusFilter])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('shifts-date-filter', dateFilter)
+    }
+  }, [dateFilter])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('shifts-client-filter', clientFilter)
+    }
+  }, [clientFilter])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('shifts-location-filter', locationFilter)
+    }
+  }, [locationFilter])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('shifts-crew-chief-filter', crewChiefFilter)
+    }
+  }, [crewChiefFilter])
 
   const ShiftsTableSkeleton = () => (
     <Table>
@@ -307,6 +366,8 @@ export default function ShiftsPage() {
   }
 
   const uniqueClients = [...new Set(shifts.map(s => s.clientName))].filter(Boolean)
+  const uniqueLocations = [...new Set(shifts.map(s => s.location))].filter(Boolean)
+  const uniqueCrewChiefs = [...new Set(shifts.map(s => s.crewChiefName))].filter(Boolean)
 
   const getPageTitle = () => {
     switch (dateFilter) {
@@ -397,6 +458,8 @@ export default function ShiftsPage() {
             setStatusFilter("all")
             setDateFilter("today")
             setClientFilter("all")
+            setLocationFilter("all")
+            setCrewChiefFilter("all")
           }}
           disabled={loading}
         >
@@ -425,7 +488,7 @@ export default function ShiftsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -459,6 +522,28 @@ export default function ShiftsPage() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={locationFilter} onValueChange={setLocationFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Locations" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Locations</SelectItem>
+                  {uniqueLocations.map(location => (
+                    <SelectItem key={location} value={location}>{location}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={crewChiefFilter} onValueChange={setCrewChiefFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All Crew Chiefs" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Crew Chiefs</SelectItem>
+                  {uniqueCrewChiefs.map(crewChief => (
+                    <SelectItem key={crewChief} value={crewChief}>{crewChief || 'Unassigned'}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <Button
                 variant="outline"
                 onClick={() => {
@@ -466,6 +551,8 @@ export default function ShiftsPage() {
                   setStatusFilter("all")
                   setDateFilter("today")
                   setClientFilter("all")
+                  setLocationFilter("all")
+                  setCrewChiefFilter("all")
                 }}
               >
                 Reset Filters

@@ -1,8 +1,9 @@
 {
-  "/_not-found/page": "app/_not-found/page.js",
-  "/page": "app/page.js",
-  "/request-staff/page": "app/request-staff/page.js",
+  "/not-found": "app/not-found.js",
+  "/services/temp-to-hire/page": "app/services/temp-to-hire/page.js",
   "/client-portal/page": "app/client-portal/page.js",
-  "/about/page": "app/about/page.js",
-  "/industries/entertainment/page": "app/industries/entertainment/page.js"
+  "/services/page": "app/services/page.js",
+  "/services/payroll/page": "app/services/payroll/page.js",
+  "/success-stories/page": "app/success-stories/page.js",
+  "/page": "app/page.js"
 }

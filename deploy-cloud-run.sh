@@ -9,7 +9,8 @@ set -e  # Exit on any error
 PROJECT_ID="handsonlabor"
 SERVICE_NAME="holitime"
 REGION="us-central1"  # Change to your preferred region
-IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
+REPOSITORY="cloud-run-source-deploy"
+IMAGE_NAME="us-central1-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE_NAME}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -52,11 +53,11 @@ gcloud config set project ${PROJECT_ID}
 echo -e "${YELLOW}🔧 Enabling required Google Cloud APIs...${NC}"
 gcloud services enable cloudbuild.googleapis.com
 gcloud services enable run.googleapis.com
-gcloud services enable containerregistry.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
 
 # Configure Docker to use gcloud as a credential helper
 echo -e "${YELLOW}🐳 Configuring Docker authentication...${NC}"
-gcloud auth configure-docker
+gcloud auth configure-docker us-central1-docker.pkg.dev
 
 # Clean up Docker to free space
 echo -e "${YELLOW}🧹 Cleaning up Docker...${NC}"
@@ -74,8 +75,8 @@ docker build \
   --no-cache \
   -t ${IMAGE_NAME} .
 
-# Push the image to Google Container Registry
-echo -e "${YELLOW}📤 Pushing image to Google Container Registry...${NC}"
+# Push the image to Google Artifact Registry
+echo -e "${YELLOW}📤 Pushing image to Google Artifact Registry...${NC}"
 docker push ${IMAGE_NAME}
 
 # Deploy to Cloud Run

@@ -1,340 +1,361 @@
-"use client"
+'use client'
 
-import React, { useState } from "react"
-import { useRouter } from "next/navigation"
-import { format } from "date-fns"
-import Link from "next/link"
-import { useUser } from "@/hooks/use-user"
-import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Progress } from '@/components/ui/progress'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   FileText,
-  Download,
-  Eye,
   Upload,
+  CheckCircle,
+  Clock,
+  AlertTriangle,
+  XCircle,
   Search,
   Filter,
-  MoreHorizontal,
-  Edit,
-  Trash2,
-  FileCheck,
-  FilePenLine,
-  FileImage,
-  FileSpreadsheet,
   Plus,
-  Folder,
-  Clock,
-  User,
-  PenTool
-} from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+  Settings,
+  Users,
+  BarChart3,
+  Download,
+  Eye,
+  Edit,
+  Trash2
+} from 'lucide-react'
+import Link from 'next/link'
+import { DocumentAssignment, DocumentStatus, Priority } from '@/types/documents'
+import { useToast } from '@/hooks/use-toast'
+
+interface DocumentStats {
+  total: number
+  completed: number
+  pending: number
+  overdue: number
+  compliance_rate: number
+}
 
 export default function DocumentsPage() {
-  const { user } = useUser()
-  const router = useRouter()
+  const { data: session } = useSession()
   const { toast } = useToast()
-
-  const documents = [
-    {
-      id: "1",
-      name: "Safety Training Certificate",
-      description: "Required safety training documentation",
-      category: "Training",
-      type: "PDF",
-      status: "Active",
-      updatedAt: "2024-01-15T10:00:00Z",
-      ownerName: "John Smith"
-    },
-    {
-      id: "2",
-      name: "Equipment Inspection Form",
-      description: "Daily equipment safety checklist",
-      category: "Safety",
-      type: "Form",
-      status: "Requires Signature",
-      updatedAt: "2024-01-14T15:30:00Z",
-      ownerName: "Maria Garcia"
-    },
-    {
-      id: "3",
-      name: "Project Specifications",
-      description: "Technical requirements and specifications",
-      category: "Project",
-      type: "PDF",
-      status: "Active",
-      updatedAt: "2024-01-13T09:15:00Z",
-      ownerName: "Sam Chen"
-    },
-    {
-      id: "4",
-      name: "Time Sheet Template",
-      description: "Standard timesheet template for workers",
-      category: "Template",
-      type: "Form",
-      status: "Active",
-      updatedAt: "2024-01-10T12:00:00Z",
-      ownerName: "Admin"
-    }
-  ]
-
-  const [searchTerm, setSearchTerm] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [typeFilter, setTypeFilter] = useState("all")
-
-  const canManage = user?.role === 'Manager/Admin'
-
-  const filteredDocuments = documents.filter(doc => {
-    const matchesSearch =
-      doc.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      doc.category?.toLowerCase().includes(searchTerm.toLowerCase())
-
-    const matchesCategory = categoryFilter === 'all' || doc.category === categoryFilter
-    const matchesStatus = statusFilter === 'all' || doc.status === statusFilter
-    const matchesType = typeFilter === 'all' || doc.type === typeFilter
-
-    return matchesSearch && matchesCategory && matchesStatus && matchesType
+  const [assignments, setAssignments] = useState<DocumentAssignment[]>([])
+  const [stats, setStats] = useState<DocumentStats>({
+    total: 0,
+    completed: 0,
+    pending: 0,
+    overdue: 0,
+    compliance_rate: 0
   })
+  const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [statusFilter, setStatusFilter] = useState<DocumentStatus | 'all'>('all')
+  const [priorityFilter, setPriorityFilter] = useState<Priority | 'all'>('all')
+  const [activeTab, setActiveTab] = useState('my-documents')
 
-  const getStatusBadge = (status: string) => {
+  useEffect(() => {
+    fetchDocuments()
+  }, [statusFilter, priorityFilter, searchTerm])
+
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams()
+
+      if (statusFilter !== 'all') {
+        params.append('status', statusFilter)
+      }
+      if (priorityFilter !== 'all') {
+        params.append('priority', priorityFilter)
+      }
+      if (searchTerm) {
+        params.append('search', searchTerm)
+      }
+
+      const response = await fetch(`/api/documents/assignments?${params}`)
+      if (!response.ok) throw new Error('Failed to fetch documents')
+
+      const data = await response.json()
+      setAssignments(data.assignments || [])
+
+      // Calculate stats
+      const total = data.assignments?.length || 0
+      const completed = data.assignments?.filter((a: DocumentAssignment) => a.status === 'approved').length || 0
+      const pending = data.assignments?.filter((a: DocumentAssignment) =>
+        ['not_started', 'in_progress', 'under_review'].includes(a.status)
+      ).length || 0
+      const overdue = data.assignments?.filter((a: DocumentAssignment) =>
+        a.due_date && new Date(a.due_date) < new Date() && a.status !== 'approved'
+      ).length || 0
+
+      setStats({
+        total,
+        completed,
+        pending,
+        overdue,
+        compliance_rate: total > 0 ? Math.round((completed / total) * 100) : 0
+      })
+    } catch (error) {
+      console.error('Error fetching documents:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to load documents',
+        variant: 'destructive'
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const getStatusIcon = (status: DocumentStatus) => {
     switch (status) {
-      case 'Active':
-        return <Badge variant="default"><FileCheck className="mr-1 h-3 w-3" />Active</Badge>
-      case 'Draft':
-        return <Badge variant="secondary"><FilePenLine className="mr-1 h-3 w-3" />Draft</Badge>
-      case 'Pending Review':
-        return <Badge variant="outline"><Clock className="mr-1 h-3 w-3" />Pending Review</Badge>
-      case 'Requires Signature':
-        return <Badge variant="destructive"><PenTool className="mr-1 h-3 w-3" />Needs Signature</Badge>
-      case 'Archived':
-        return <Badge variant="outline">Archived</Badge>
+      case 'approved':
+        return <CheckCircle className="h-4 w-4 text-green-500" />
+      case 'completed':
+      case 'under_review':
+        return <Clock className="h-4 w-4 text-blue-500" />
+      case 'in_progress':
+        return <Edit className="h-4 w-4 text-yellow-500" />
+      case 'rejected':
+        return <XCircle className="h-4 w-4 text-red-500" />
+      case 'expired':
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <FileText className="h-4 w-4 text-gray-500" />
     }
   }
 
-  const getTypeIcon = (type: string) => {
-    switch (type.toLowerCase()) {
-      case 'pdf':
-        return <FileText className="h-4 w-4 text-red-600" />
-      case 'image':
-        return <FileImage className="h-4 w-4 text-green-600" />
-      case 'spreadsheet':
-        return <FileSpreadsheet className="h-4 w-4 text-green-600" />
-      case 'form':
-        return <FilePenLine className="h-4 w-4 text-blue-600" />
+  const getStatusColor = (status: DocumentStatus) => {
+    switch (status) {
+      case 'approved':
+        return 'bg-green-100 text-green-800'
+      case 'completed':
+      case 'under_review':
+        return 'bg-blue-100 text-blue-800'
+      case 'in_progress':
+        return 'bg-yellow-100 text-yellow-800'
+      case 'rejected':
+        return 'bg-red-100 text-red-800'
+      case 'expired':
+        return 'bg-orange-100 text-orange-800'
       default:
-        return <FileText className="h-4 w-4 text-gray-600" />
+        return 'bg-gray-100 text-gray-800'
     }
   }
 
-  const uniqueCategories = [...new Set(documents.map(d => d.category))].filter(Boolean)
-  const uniqueTypes = [...new Set(documents.map(d => d.type))].filter(Boolean)
+  const getPriorityColor = (priority: Priority) => {
+    switch (priority) {
+      case 'urgent':
+        return 'bg-red-100 text-red-800'
+      case 'high':
+        return 'bg-orange-100 text-orange-800'
+      case 'normal':
+        return 'bg-blue-100 text-blue-800'
+      case 'low':
+        return 'bg-gray-100 text-gray-800'
+      default:
+        return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  const isAdmin = session?.user?.role === 'Manager/Admin'
+  const isCrewChief = session?.user?.role === 'Crew Chief'
+  const canManageDocuments = isAdmin || isCrewChief
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="container mx-auto p-6 space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Documents</h1>
+          <h1 className="text-3xl font-bold">Document Management</h1>
           <p className="text-muted-foreground">
-            Manage and access important documents, forms, and files
+            Manage employee onboarding documents and compliance
           </p>
         </div>
-        <div className="flex gap-2">
-          {canManage && (
+        <div className="flex items-center gap-2">
+          {canManageDocuments && (
             <>
-              <Button variant="outline" onClick={() => router.push('/documents/templates')}>
-                <Folder className="mr-2 h-4 w-4" />
-                Templates
-              </Button>
-              <Button onClick={() => router.push('/documents/upload')}>
-                <Upload className="mr-2 h-4 w-4" />
-                Upload Document
-              </Button>
+              <Link href="/documents/admin">
+                <Button variant="outline">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Admin Panel
+                </Button>
+              </Link>
+              <Link href="/documents/templates">
+                <Button variant="outline">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Templates
+                </Button>
+              </Link>
             </>
           )}
+          <Link href="/documents/my-documents">
+            <Button>
+              <Eye className="h-4 w-4 mr-2" />
+              My Documents
+            </Button>
+          </Link>
         </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <Clock className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats.pending}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Overdue</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Compliance Rate</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.compliance_rate}%</div>
+            <Progress value={stats.compliance_rate} className="mt-2" />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Filters
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search documents..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-8"
-              />
-            </div>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                {uniqueCategories.map(category => (
-                  <SelectItem key={category} value={category}>{category}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Draft">Draft</SelectItem>
-                <SelectItem value="Pending Review">Pending Review</SelectItem>
-                <SelectItem value="Requires Signature">Requires Signature</SelectItem>
-                <SelectItem value="Archived">Archived</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                {uniqueTypes.map(type => (
-                  <SelectItem key={type} value={type}>{type}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm("")
-                setCategoryFilter("all")
-                setStatusFilter("all")
-                setTypeFilter("all")
-              }}
-            >
-              Clear Filters
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Documents Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            All Documents
-          </CardTitle>
+          <CardTitle>Document Assignments</CardTitle>
           <CardDescription>
-            {filteredDocuments.length} of {documents.length} documents
+            View and manage document assignments
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Document</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Modified</TableHead>
-                <TableHead>Owner</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredDocuments.map((doc) => (
-                <TableRow
-                  key={doc.id}
-                  onClick={() => router.push(`/documents/${doc.id}`)}
-                  className="cursor-pointer hover:bg-muted/50"
-                >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      {getTypeIcon(doc.type)}
-                      <div>
-                        <div className="font-medium">{doc.name}</div>
-                        {doc.description && (
-                          <div className="text-sm text-muted-foreground">{doc.description}</div>
-                        )}
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search documents..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as DocumentStatus | 'all')}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="not_started">Not Started</SelectItem>
+                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="under_review">Under Review</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="expired">Expired</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={priorityFilter} onValueChange={(value) => setPriorityFilter(value as Priority | 'all')}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Priorities</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="normal">Normal</SelectItem>
+                <SelectItem value="low">Low</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Document List */}
+          <div className="space-y-4">
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="mt-2 text-muted-foreground">Loading documents...</p>
+              </div>
+            ) : assignments.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">No documents found</p>
+              </div>
+            ) : (
+              assignments.map((assignment) => (
+                <Card key={assignment.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4">
+                        {getStatusIcon(assignment.status)}
+                        <div>
+                          <h3 className="font-semibold">{assignment.template?.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {assignment.user?.name} • {assignment.template?.document_type}
+                          </p>
+                          {assignment.due_date && (
+                            <p className="text-xs text-muted-foreground">
+                              Due: {new Date(assignment.due_date).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Badge className={getStatusColor(assignment.status)}>
+                          {assignment.status.replace('_', ' ')}
+                        </Badge>
+                        <Badge className={getPriorityColor(assignment.priority)}>
+                          {assignment.priority}
+                        </Badge>
+                        <Link href={`/documents/assignments/${assignment.id}`}>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                        </Link>
                       </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{doc.category}</Badge>
-                  </TableCell>
-                  <TableCell className="capitalize">{doc.type}</TableCell>
-                  <TableCell>{getStatusBadge(doc.status)}</TableCell>
-                  <TableCell>
-                    <div className="text-sm">
-                      {doc.updatedAt ? format(new Date(doc.updatedAt), 'MMM d, yyyy') : 'N/A'}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">{doc.ownerName || 'Unknown'}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => router.push(`/documents/${doc.id}`)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Document
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push(`/documents/${doc.id}/edit`)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit/Fill Form
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Download className="mr-2 h-4 w-4" />
-                          Download
-                        </DropdownMenuItem>
-                        {canManage && (
-                          <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete Document
-                            </DropdownMenuItem>
-                          </>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

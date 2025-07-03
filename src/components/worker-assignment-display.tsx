@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Users, Plus, Minus, UserPlus, X } from "lucide-react"
+import { Users, Plus, Minus, UserPlus, X, Clock, UserX, AlertTriangle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { RoleCode } from "@/lib/types"
 import { useApi } from "@/hooks/use-api"
@@ -30,6 +30,11 @@ interface WorkerAssignmentDisplayProps {
   shiftId: string;
   assignedPersonnel: AssignedWorker[];
   onUpdate: () => void;
+  shift?: {
+    startTime: string;
+    endTime: string;
+    date: string;
+  };
 }
 
 type WorkerSlot =
@@ -75,10 +80,11 @@ const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string; bgColor:
   },
 } as const
 
-export default function WorkerAssignmentDisplay({ 
-  shiftId, 
-  assignedPersonnel, 
-  onUpdate 
+export default function WorkerAssignmentDisplay({
+  shiftId,
+  assignedPersonnel,
+  onUpdate,
+  shift
 }: WorkerAssignmentDisplayProps) {
   const { toast } = useToast()
   const [workerRequirements, setWorkerRequirements] = useState<WorkerRequirement[]>([])
@@ -253,6 +259,93 @@ export default function WorkerAssignmentDisplay({
     }
   }
 
+  const clockOutAllEmployees = async () => {
+    const clockedInWorkers = assignedPersonnel.filter(worker =>
+      worker.status === 'Clocked In' || worker.status === 'Working'
+    )
+
+    if (clockedInWorkers.length === 0) {
+      toast({
+        title: "No Workers to Clock Out",
+        description: "All workers are already clocked out or haven't clocked in yet.",
+      })
+      return
+    }
+
+    if (!confirm(`Are you sure you want to clock out all ${clockedInWorkers.length} workers?`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}/clock-out-all`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to clock out workers')
+      }
+
+      toast({
+        title: "Workers Clocked Out",
+        description: `Successfully clocked out ${clockedInWorkers.length} workers.`,
+      })
+
+      onUpdate()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clock out workers. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const markNoShow = async (assignmentId: string, workerName: string) => {
+    // Check if it's within 30 minutes of shift start
+    const now = new Date()
+    const today = new Date().toDateString()
+    const shiftStart = new Date(`${today} ${shift?.startTime || '00:00'}`)
+    const timeDiff = (now.getTime() - shiftStart.getTime()) / (1000 * 60) // minutes
+
+    if (timeDiff < 30) {
+      toast({
+        title: "Cannot Mark No Show",
+        description: "Workers can only be marked as no-show after 30 minutes from shift start time.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!confirm(`Mark ${workerName} as no-show? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}/assignments/${assignmentId}/no-show`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to mark worker as no-show')
+      }
+
+      toast({
+        title: "Worker Marked as No-Show",
+        description: `${workerName} has been marked as no-show.`,
+      })
+
+      onUpdate()
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to mark worker as no-show. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
   const getRequiredCount = (roleCode: RoleCode): number => {
     return workerRequirements.find(req => req.roleCode === roleCode)?.requiredCount || 0
   }
@@ -337,13 +430,28 @@ export default function WorkerAssignmentDisplay({
       {/* Worker Assignment Table Section */}
       <Card className="w-full">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
-            Worker Assignments
-          </CardTitle>
-          <CardDescription>
-            Assign specific workers to each required position
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5" />
+                Worker Assignments
+              </CardTitle>
+              <CardDescription>
+                Assign specific workers to each required position
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clockOutAllEmployees}
+                className="flex items-center gap-2"
+              >
+                <Clock className="h-4 w-4" />
+                Clock Out All
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -379,19 +487,36 @@ export default function WorkerAssignmentDisplay({
                                   {slot.worker.employeeName.split(' ').map((n: string) => n[0]).join('')}
                                 </AvatarFallback>
                               </Avatar>
-                              <div>
+                              <div className="flex-1">
                                 <div className="font-medium text-sm">{slot.worker.employeeName}</div>
                                 <div className={`text-xs ${roleDef.color}`}>{slot.worker.roleOnShift}</div>
+                                {slot.worker.status && (
+                                  <Badge variant="outline" className="text-xs mt-1">
+                                    {slot.worker.status}
+                                  </Badge>
+                                )}
                               </div>
                             </div>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => unassignWorker(slot.worker.id, slot.worker.employeeName)}
-                              className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => markNoShow(slot.worker.id, slot.worker.employeeName)}
+                                className="h-6 px-2 text-xs text-orange-600 hover:text-orange-700"
+                                title="Mark as No Show"
+                              >
+                                <UserX className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => unassignWorker(slot.worker.id, slot.worker.employeeName)}
+                                className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                                title="Remove Worker"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
                           </div>
                         ) : (
                           <Select onValueChange={(employeeId) => assignWorker(employeeId, roleCode)}>

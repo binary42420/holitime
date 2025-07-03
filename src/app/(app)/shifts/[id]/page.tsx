@@ -274,6 +274,7 @@ export default function ShiftDetailsPage() {
           shiftId={shiftId}
           assignedPersonnel={assignedPersonnel}
           onUpdate={handleRefresh}
+          shift={shift}
         />
       )}
 

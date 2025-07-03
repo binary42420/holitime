@@ -61,11 +61,11 @@ function AdminPage() {
       title: "User Management",
       description: "Manage user accounts and reset passwords",
       icon: UserCog,
-      href: "/admin/users",
+      href: "/users",
       actions: [
-        { label: "View All Users", href: "/admin/users" },
-        { label: "Reset Passwords", href: "/admin/users" },
-        { label: "User Roles", href: "/admin/users" }
+        { label: "View All Users", href: "/users" },
+        { label: "Send User Invite", href: "/users?action=invite" },
+        { label: "User Roles", href: "/users" }
       ]
     },
     {

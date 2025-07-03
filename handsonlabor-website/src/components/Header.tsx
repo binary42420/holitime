@@ -167,8 +167,8 @@ export default function Header() {
               <Phone className="h-4 w-4" />
               (619) 299-5991
             </a>
-            <Link href="/request-staff" className="btn-primary">
-              Request Staff
+            <Link href="/client-portal" className="btn-primary">
+              Client Portal
             </Link>
           </div>
         </div>
@@ -264,11 +264,11 @@ export default function Header() {
                       (619) 299-5991
                     </a>
                     <Link
-                      href="/request-staff"
+                      href="/client-portal"
                       className="btn-primary w-full text-center"
                       onClick={() => setMobileMenuOpen(false)}
                     >
-                      Request Staff
+                      Client Portal
                     </Link>
                     <Link
                       href="/find-work"

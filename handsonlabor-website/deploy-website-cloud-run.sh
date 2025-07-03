@@ -9,7 +9,8 @@ set -e  # Exit on any error
 PROJECT_ID="handsonlabor"
 SERVICE_NAME="handsonlabor-website"
 REGION="us-central1"
-IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
+REPOSITORY="cloud-run-source-deploy"
+IMAGE_NAME="us-central1-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE_NAME}"
 
 # Colors for output
 RED='
@@ -57,18 +58,18 @@ gcloud config set project ${PROJECT_ID}
 echo -e "${YELLOW}🔧 Enabling required Google Cloud APIs...${NC}"
 gcloud services enable cloudbuild.googleapis.com
 gcloud services enable run.googleapis.com
-gcloud services enable containerregistry.googleapis.com
+gcloud services enable artifactregistry.googleapis.com
 
 # Configure Docker to use gcloud as a credential helper
 echo -e "${YELLOW}🐳 Configuring Docker authentication...${NC}"
-gcloud auth configure-docker
+gcloud auth configure-docker us-central1-docker.pkg.dev
 
 # Build the Docker image
 echo -e "${YELLOW}🏗️  Building Docker image...${NC}"
 docker build -t ${IMAGE_NAME} .
 
-# Push the image to Google Container Registry
-echo -e "${YELLOW}📤 Pushing image to Google Container Registry...${NC}"
+# Push the image to Google Artifact Registry
+echo -e "${YELLOW}📤 Pushing image to Google Artifact Registry...${NC}"
 docker push ${IMAGE_NAME}
 
 # Deploy to Cloud Run

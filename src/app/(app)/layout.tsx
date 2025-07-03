@@ -92,9 +92,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             )}
             {user?.role === 'Manager/Admin' && (
               <SidebarMenuItem>
-                <SidebarMenuButton href="/employees" tooltip="Employees" isActive={isActive('/employees')}>
+                <SidebarMenuButton href="/users" tooltip="Users" isActive={isActive('/users')}>
                   <Users />
-                  Employees
+                  Users
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}

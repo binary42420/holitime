@@ -10,7 +10,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Building2, Calendar, ExternalLink } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu"
+import { Plus, Building2, Calendar, ExternalLink, MoreHorizontal, Eye, Briefcase, Clock } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateClientUrl } from "@/lib/url-utils"
 
@@ -137,11 +145,29 @@ function ClientsPage() {
                     </TableCell>
                     {canEdit && (
                       <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link href={generateClientUrl(client.id)}>
-                            <ExternalLink className="h-4 w-4" />
-                          </Link>
-                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => router.push(generateClientUrl(client.clientCompanyId || client.id))}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Client Details
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => router.push(`/admin/jobs/new?clientId=${client.clientCompanyId || client.id}`)}>
+                              <Briefcase className="mr-2 h-4 w-4" />
+                              Create Job for {client.companyName || client.name}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => router.push(`/admin/shifts/new?clientId=${client.clientCompanyId || client.id}`)}>
+                              <Clock className="mr-2 h-4 w-4" />
+                              Create Shift for {client.companyName || client.name}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     )}
                   </TableRow>
