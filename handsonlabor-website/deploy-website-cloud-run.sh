@@ -13,16 +13,11 @@ REPOSITORY="cloud-run-source-deploy"
 IMAGE_NAME="us-central1-docker.pkg.dev/${PROJECT_ID}/${REPOSITORY}/${SERVICE_NAME}"
 
 # Colors for output
-RED='
-033[0;31m'
-GREEN='
-033[0;32m'
-YELLOW='
-033[1;33m'
-BLUE='
-033[0;34m'
-NC='
-033[0m' # No Color
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
 echo -e "${BLUE}🚀 Starting Handsonlabor Website deployment to Google Cloud Run${NC}"
 

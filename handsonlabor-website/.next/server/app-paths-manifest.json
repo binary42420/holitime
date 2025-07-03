@@ -1,9 +1,19 @@
 {
-  "/not-found": "app/not-found.js",
+  "/_not-found": "app/_not-found.js",
+  "/industries/construction/page": "app/industries/construction/page.js",
+  "/contact/page": "app/contact/page.js",
+  "/page": "app/page.js",
+  "/industries/general/page": "app/industries/general/page.js",
+  "/services/on-demand/page": "app/services/on-demand/page.js",
+  "/request-staff/page": "app/request-staff/page.js",
+  "/industries/warehouse/page": "app/industries/warehouse/page.js",
+  "/industries/page": "app/industries/page.js",
+  "/services/payroll/page": "app/services/payroll/page.js",
+  "/services/page": "app/services/page.js",
+  "/services/temporary/page": "app/services/temporary/page.js",
   "/services/temp-to-hire/page": "app/services/temp-to-hire/page.js",
   "/client-portal/page": "app/client-portal/page.js",
-  "/services/page": "app/services/page.js",
-  "/services/payroll/page": "app/services/payroll/page.js",
-  "/success-stories/page": "app/success-stories/page.js",
-  "/page": "app/page.js"
+  "/industries/entertainment/page": "app/industries/entertainment/page.js",
+  "/about/page": "app/about/page.js",
+  "/success-stories/page": "app/success-stories/page.js"
 }

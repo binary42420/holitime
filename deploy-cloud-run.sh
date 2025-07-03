@@ -104,6 +104,12 @@ gcloud run deploy ${SERVICE_NAME} \n
   --set-env-vars "GOOGLE_CLIENT_ID=369017734615-d69l9fi2bphahlk815ji447ri2m3qjjp.apps.googleusercontent.com" \n
   --set-env-vars "GOOGLE_CLIENT_SECRET=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" \n
   --set-env-vars "GOOGLE_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k" \n
+  --set-env-vars "GOOGLE_AI_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k" \n
+  --set-env-vars "GEMINI_API_KEY=AIzaSyDAUHnUgtT1SXmZt6J1Rs6JqirVMSHQNtc" \n
+  --set-env-vars "SMTP_HOST=smtp.gmail.com" \n
+  --set-env-vars "SMTP_PORT=587" \n
+  --set-env-vars "SMTP_USER=ryley92@gmail.com" \n
+  --set-env-vars "SMTP_PASS=HdfatbOY123!!!!" \n
   --set-env-vars "JWT_SECRET=holitime-jwt-secret-key-for-production-2024" \n
 ${NC}"
 gcloud run deploy ${SERVICE_NAME} \
@@ -129,6 +135,12 @@ gcloud run deploy ${SERVICE_NAME} \
   --set-env-vars "GOOGLE_CLIENT_ID=369017734615-d69l9fi2bphahlk815ji447ri2m3qjjp.apps.googleusercontent.com" \
   --set-env-vars "GOOGLE_CLIENT_SECRET=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" \
   --set-env-vars "GOOGLE_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k" \
+  --set-env-vars "GOOGLE_AI_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k" \
+  --set-env-vars "GEMINI_API_KEY=AIzaSyDAUHnUgtT1SXmZt6J1Rs6JqirVMSHQNtc" \
+  --set-env-vars "SMTP_HOST=smtp.gmail.com" \
+  --set-env-vars "SMTP_PORT=587" \
+  --set-env-vars "SMTP_USER=ryley92@gmail.com" \
+  --set-env-vars "SMTP_PASS=HdfatbOY123!!!!" \
   --set-env-vars "JWT_SECRET=holitime-jwt-secret-key-for-production-2024"
 
 # Get the service URL

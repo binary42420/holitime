@@ -96,7 +96,10 @@ export default function GoogleSheetsGeminiProcessor({
   }
 
   const processWithGemini = async () => {
-    if (!selectedFile) return
+    if (!selectedFile) {
+      setError('No file selected')
+      return
+    }
 
     setIsProcessing(true)
     setError(null)
@@ -114,27 +117,43 @@ export default function GoogleSheetsGeminiProcessor({
       let sheetsResponse: Response
       let sheetsData: any
 
-      if (accessToken) {
-        console.log('Using OAuth method for data extraction...')
-        sheetsResponse = await fetch(`/api/import/google-sheets/fetch-with-oauth/${selectedFile.id}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ accessToken })
-        })
-      } else {
-        console.log('Using API key method for data extraction...')
-        sheetsResponse = await fetch(`/api/import/google-sheets/fetch/${selectedFile.id}`)
-      }
+      try {
+        if (accessToken) {
+          console.log('Using OAuth method for data extraction...')
+          sheetsResponse = await fetch(`/api/import/google-sheets/fetch-with-oauth/${selectedFile.id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ accessToken })
+          })
+        } else {
+          console.log('Using API key method for data extraction...')
+          sheetsResponse = await fetch(`/api/import/google-sheets/fetch/${selectedFile.id}`)
+        }
 
-      if (!sheetsResponse.ok) {
-        const errorData = await sheetsResponse.json()
-        throw new Error(errorData.error || 'Failed to fetch Google Sheets data')
-      }
+        if (!sheetsResponse.ok) {
+          const errorText = await sheetsResponse.text()
+          let errorData: any
+          try {
+            errorData = JSON.parse(errorText)
+          } catch {
+            errorData = { error: errorText || `HTTP ${sheetsResponse.status}: ${sheetsResponse.statusText}` }
+          }
+          throw new Error(errorData.error || 'Failed to fetch Google Sheets data')
+        }
 
-      const sheetsResult = await sheetsResponse.json()
-      sheetsData = sheetsResult.data || sheetsResult
+        const sheetsResult = await sheetsResponse.json()
+        sheetsData = sheetsResult.data || sheetsResult
+
+        if (!sheetsData || !sheetsData.sheets || sheetsData.sheets.length === 0) {
+          throw new Error('No sheet data found in the Google Sheets document')
+        }
+
+      } catch (fetchError) {
+        console.error('Error fetching sheets data:', fetchError)
+        throw new Error(`Failed to fetch Google Sheets data: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`)
+      }
 
       updateStepStatus('fetch', 'completed', 100)
       setCurrentStep(1)
@@ -154,26 +173,58 @@ export default function GoogleSheetsGeminiProcessor({
       setCurrentStep(3)
 
       // Enhanced Gemini processing with better prompts
-      const geminiResponse = await fetch('/api/import/google-sheets/gemini', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          googleSheetsId: selectedFile.id,
-          sheetsData: sheetsData,
-          prompt: generateEnhancedPrompt(sheetsData),
-          options: {
-            temperature: 0.1, // Low temperature for consistent results
-            maxTokens: 4000,
-            model: 'gemini-1.5-flash' // Use latest model
-          }
-        })
-      })
+      let geminiResponse: Response
+      let geminiResult: any
 
-      if (!geminiResponse.ok) {
-        const errorData = await geminiResponse.json()
-        throw new Error(errorData.error || 'Failed to process with Gemini')
+      try {
+        console.log('Starting Gemini processing...')
+        geminiResponse = await fetch('/api/import/google-sheets/gemini', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            googleSheetsId: selectedFile.id,
+            sheetsData: sheetsData,
+            prompt: generateEnhancedPrompt(sheetsData),
+            options: {
+              temperature: 0.1, // Low temperature for consistent results
+              maxTokens: 4000,
+              model: 'gemini-1.5-flash' // Use latest model
+            }
+          })
+        })
+
+        if (!geminiResponse.ok) {
+          const errorText = await geminiResponse.text()
+          let errorData: any
+          try {
+            errorData = JSON.parse(errorText)
+          } catch {
+            errorData = { error: errorText || `HTTP ${geminiResponse.status}: ${geminiResponse.statusText}` }
+          }
+
+          // Provide more specific error messages
+          if (geminiResponse.status === 401) {
+            throw new Error('Gemini API authentication failed. Please check your API key configuration.')
+          } else if (geminiResponse.status === 403) {
+            throw new Error('Gemini API access forbidden. Please check your API key permissions.')
+          } else if (geminiResponse.status === 429) {
+            throw new Error('Gemini API rate limit exceeded. Please try again later.')
+          } else {
+            throw new Error(errorData.error || 'Failed to process with Gemini AI')
+          }
+        }
+
+        geminiResult = await geminiResponse.json()
+
+        if (!geminiResult.success) {
+          throw new Error(geminiResult.error || 'Gemini processing failed')
+        }
+
+      } catch (geminiError) {
+        console.error('Error in Gemini processing:', geminiError)
+        throw new Error(`Gemini AI processing failed: ${geminiError instanceof Error ? geminiError.message : 'Unknown error'}`)
       }
 
       updateStepStatus('transform', 'completed', 100)
