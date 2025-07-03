@@ -1,5 +1,3 @@
-"use client"
-
 interface CacheEntry<T> {
   data: T
   timestamp: number
