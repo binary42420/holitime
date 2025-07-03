@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
-import { withCrewChiefPermission } from '@/lib/auth-utils'
+import { withCrewChiefPermission } from '@/lib/utils/crew-chief-auth'
 
 export async function POST(
   request: NextRequest,

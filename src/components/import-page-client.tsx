@@ -70,17 +70,19 @@ export default function ImportPageClient() {
         if (event.origin !== window.location.origin) return;
 
         if (event.data?.type === "GOOGLE_AUTH_ERROR") {
-          window.removeEventListener("message", handleCallback);
-          popup?.close();
+          cleanup();
           throw new Error(event.data.error || "Google authentication failed");
         }
 
         if (event.data?.type !== "GOOGLE_AUTH_SUCCESS") return;
 
-        window.removeEventListener("message", handleCallback);
-        popup?.close();
+        cleanup();
 
         const { code } = event.data;
+
+        if (!code) {
+          throw new Error("No authorization code received from Google");
+        }
 
         // Exchange code for tokens
         const tokenResponse = await fetch("/api/import/google-drive/callback", {
@@ -90,20 +92,42 @@ export default function ImportPageClient() {
         });
 
         if (!tokenResponse.ok) {
-          const errorData = await tokenResponse.json();
+          const errorData = await tokenResponse.json().catch(() => ({ error: 'Unknown error' }));
           throw new Error(errorData.error || "Failed to exchange auth code");
         }
 
-        const { accessToken } = await tokenResponse.json();
-        setAccessToken(accessToken);
+        const tokenData = await tokenResponse.json();
+        if (!tokenData.accessToken) {
+          throw new Error("No access token received from server");
+        }
+
+        setAccessToken(tokenData.accessToken);
       };
+
+      // Cleanup function
+      const cleanup = () => {
+        window.removeEventListener("message", handleCallback);
+        clearInterval(checkClosed);
+        clearTimeout(authTimeout);
+        try {
+          popup?.close();
+        } catch (error) {
+          console.warn('Unable to close popup due to COOP policy:', error);
+        }
+      };
+
+      // Add timeout for authentication (5 minutes)
+      const authTimeout = setTimeout(() => {
+        cleanup();
+        setError("Authentication timed out. Please try again.");
+        setLoading(false);
+      }, 5 * 60 * 1000);
 
       // Handle popup being closed manually with better error handling
       const checkClosed = setInterval(() => {
         try {
           if (popup.closed) {
-            clearInterval(checkClosed);
-            window.removeEventListener("message", handleCallback);
+            cleanup();
             setLoading(false);
           }
         } catch (error) {
@@ -115,8 +139,15 @@ export default function ImportPageClient() {
 
       window.addEventListener("message", handleCallback);
     } catch (err) {
+      console.error('Google authentication error:', err);
       setError(err instanceof Error ? err.message : "Failed to authenticate with Google");
       setLoading(false);
+      // Ensure cleanup happens even on error
+      try {
+        window.removeEventListener("message", handleCallback);
+      } catch (cleanupError) {
+        console.warn('Error during cleanup:', cleanupError);
+      }
     }
   };
 

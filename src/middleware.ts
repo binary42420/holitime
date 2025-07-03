@@ -14,7 +14,15 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/import') ||
     pathname.startsWith('/google-drive-callback')
   ) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+
+    // Add special headers for OAuth callback to prevent COOP issues
+    if (pathname.startsWith('/google-drive-callback')) {
+      response.headers.set('Cross-Origin-Opener-Policy', 'unsafe-none');
+      response.headers.set('Cross-Origin-Embedder-Policy', 'unsafe-none');
+    }
+
+    return response;
   }
 
   // Check for authentication token
