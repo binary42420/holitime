@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, FileSignature, MapPin, User, Pencil, Save, RefreshCw } from "lucide-react"
+import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
 
 export default function ApproveTimesheetPage({ params }: { params: Promise<{ id: string }> }) {
   const { user } = useUser()
@@ -63,17 +64,7 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
   }
 
   const calculateTotalHours = (timeEntries: { clockIn?: string; clockOut?: string }[]) => {
-    const totalMinutes = timeEntries.reduce((acc, entry) => {
-      if (entry.clockIn && entry.clockOut) {
-        const [inHours, inMinutes] = entry.clockIn.split(':').map(Number);
-        const [outHours, outMinutes] = entry.clockOut.split(':').map(Number);
-        const startDate = new Date(0, 0, 0, inHours, inMinutes);
-        const endDate = new Date(0, 0, 0, outHours, outMinutes);
-        return acc + differenceInMinutes(endDate, startDate);
-      }
-      return acc;
-    }, 0);
-    return (totalMinutes / 60).toFixed(2);
+    return calculateTotalRoundedHours(timeEntries);
   }
 
   const handleApproval = async (approvalType: 'client' | 'manager') => {
@@ -221,18 +212,32 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
           </div>
         </CardHeader>
         <CardContent>
-            <div className="grid grid-cols-3 gap-6 text-sm mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm mb-6">
                 <div className="space-y-1">
                     <p className="text-muted-foreground">Client</p>
-                    <p className="font-medium">{client.name}</p>
+                    <p className="font-medium">{client?.name || 'N/A'}</p>
                 </div>
                 <div className="space-y-1">
                     <p className="text-muted-foreground">Location</p>
-                    <p className="font-medium">{shift.location}</p>
+                    <p className="font-medium">{shift?.location || 'N/A'}</p>
                 </div>
                 <div className="space-y-1">
+                    <p className="text-muted-foreground">Shift Date</p>
+                    <p className="font-medium">{formatDate(shift?.date)}</p>
+                </div>
+                <div className="space-y-1">
+                    <p className="text-muted-foreground">Start Time</p>
+                    <p className="font-medium">{formatTo12Hour(shift?.startTime)}</p>
+                </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm mb-6">
+                <div className="space-y-1">
                     <p className="text-muted-foreground">Crew Chief</p>
-                    <p className="font-medium">{shift.crewChief.name}</p>
+                    <p className="font-medium">{shift?.crewChief?.name || 'Not Assigned'}</p>
+                </div>
+                <div className="space-y-1">
+                    <p className="text-muted-foreground">Job</p>
+                    <p className="font-medium">{job?.name || shift?.jobName || 'N/A'}</p>
                 </div>
             </div>
             <Separator className="my-4" />
@@ -251,11 +256,42 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
                     <TableRow key={person.employee.id}>
                         <TableCell className="font-medium">{person.employee.name}</TableCell>
                         <TableCell>{person.roleOnShift}</TableCell>
-                        <TableCell>{person.timeEntries.map((t: any) => t.clockIn).join(', ')}</TableCell>
-                        <TableCell>{person.timeEntries.map((t: any) => t.clockOut).join(', ')}</TableCell>
+                        <TableCell>
+                          {person.timeEntries.map((entry: any, index: number) => {
+                            const display = getTimeEntryDisplay(entry.clockIn, entry.clockOut);
+                            return (
+                              <div key={index} className="text-sm">
+                                {display.displayClockIn}
+                                {index < person.timeEntries.length - 1 && <br />}
+                              </div>
+                            );
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          {person.timeEntries.map((entry: any, index: number) => {
+                            const display = getTimeEntryDisplay(entry.clockIn, entry.clockOut);
+                            return (
+                              <div key={index} className="text-sm">
+                                {display.displayClockOut}
+                                {index < person.timeEntries.length - 1 && <br />}
+                              </div>
+                            );
+                          })}
+                        </TableCell>
                         <TableCell className="text-right font-mono">{calculateTotalHours(person.timeEntries)}</TableCell>
                     </TableRow>
                 ))}
+                <TableRow className="border-t-2 font-semibold bg-muted/50">
+                  <TableCell colSpan={4} className="text-right">Total Hours:</TableCell>
+                  <TableCell className="text-right font-mono">
+                    {(() => {
+                      const allTimeEntries = shift.assignedPersonnel
+                        .filter((p: any) => p.timeEntries.length > 0)
+                        .flatMap((p: any) => p.timeEntries);
+                      return calculateTotalHours(allTimeEntries);
+                    })()}
+                  </TableCell>
+                </TableRow>
                 </TableBody>
             </Table>
         </CardContent>

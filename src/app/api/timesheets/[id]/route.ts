@@ -32,7 +32,7 @@ export async function GET(
       JOIN shifts s ON t.shift_id = s.id
       JOIN jobs j ON s.job_id = j.id
       JOIN clients c ON j.client_id = c.id
-      JOIN users cc ON s.crew_chief_id = cc.id
+      LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN users sub ON t.submitted_by = sub.id
       LEFT JOIN users ca ON t.client_approved_by = ca.id
       LEFT JOIN users ma ON t.manager_approved_by = ma.id

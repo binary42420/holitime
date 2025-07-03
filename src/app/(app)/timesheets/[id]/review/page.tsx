@@ -10,9 +10,7 @@ import { Clock, User, MapPin, Calendar, Building, FileText, Download } from 'luc
 import { format } from 'date-fns'
 import SignatureCaptureModal from '@/components/signature-capture-modal'
 import { useToast } from '@/hooks/use-toast'
-import { TimesheetStatusIndicator, TimesheetWorkflowIndicator } from '@/components/timesheet-status-indicator'
-import { FullPageLoading, ProcessingOverlay } from '@/components/loading-states'
-import { ErrorState, NotFoundState, PermissionDeniedState } from '@/components/error-states'
+import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
 
 interface TimeEntry {
   id: string
@@ -262,27 +260,36 @@ export default function TimesheetReviewPage() {
   }
 
   if (loading) {
-    return <FullPageLoading title="Loading Timesheet" description="Please wait while we fetch the timesheet details..." />
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg">Loading timesheet...</div>
+        </div>
+      </div>
+    )
   }
 
   if (error) {
-    if (error.includes('Access denied') || error.includes('permission')) {
-      return <PermissionDeniedState description={error} />
-    }
     return (
-      <ErrorState
-        title="Failed to Load Timesheet"
-        description={error}
-        action={{
-          label: "Try Again",
-          onClick: fetchTimesheetData
-        }}
-      />
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <p className="text-red-600 mb-4">{error}</p>
+              <Button onClick={() => router.back()}>Go Back</Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     )
   }
 
   if (!data) {
-    return <NotFoundState title="Timesheet Not Found" description="The timesheet you're looking for doesn't exist or has been removed." />
+    return (
+      <div className="container mx-auto py-6">
+        <div className="text-center">Timesheet not found</div>
+      </div>
+    )
   }
 
   return (
@@ -296,7 +303,9 @@ export default function TimesheetReviewPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <TimesheetStatusIndicator status={data.timesheet.status} />
+          <Badge variant={getStatusBadgeVariant(data.timesheet.status)}>
+            {getStatusLabel(data.timesheet.status)}
+          </Badge>
           <Button
             variant="outline"
             size="sm"
@@ -309,17 +318,14 @@ export default function TimesheetReviewPage() {
         </div>
       </div>
 
-      {/* Workflow Status */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-2">
-          {/* Shift Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Shift Information
-              </CardTitle>
-            </CardHeader>
+      {/* Shift Information */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            Shift Information
+          </CardTitle>
+        </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="text-sm font-medium text-muted-foreground">Date</label>
@@ -346,19 +352,7 @@ export default function TimesheetReviewPage() {
             </p>
           </div>
         </CardContent>
-        </Card>
-        </div>
-
-        {/* Workflow Indicator */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Approval Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TimesheetWorkflowIndicator currentStatus={data.timesheet.status} />
-          </CardContent>
-        </Card>
-      </div>
+      </Card>
 
       {/* Client Information */}
       <Card>
@@ -485,13 +479,6 @@ export default function TimesheetReviewPage() {
             : 'Please sign below to provide final approval for this timesheet'
         }
         loading={submitting}
-      />
-
-      {/* Processing Overlay */}
-      <ProcessingOverlay
-        isVisible={submitting}
-        title={approvalType === 'client' ? 'Processing Client Approval...' : 'Processing Final Approval...'}
-        description="Please wait while we save your signature and update the timesheet status."
       />
     </div>
   )
