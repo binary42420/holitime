@@ -41,16 +41,15 @@ export async function GET(request: NextRequest) {
     // Get total employees (excluding clients)
     const totalEmployeesResult = await query(`
       SELECT COUNT(*) as count
-      FROM users 
+      FROM users
       WHERE role IN ('Employee', 'Crew Chief', 'Manager/Admin')
-      AND status = 'active'
+      AND is_active = true
     `)
 
-    // Get active jobs
-    const activeJobsResult = await query(`
+    // Get total jobs (jobs table doesn't have status column)
+    const totalJobsResult = await query(`
       SELECT COUNT(*) as count
-      FROM jobs 
-      WHERE status = 'Active'
+      FROM jobs
     `)
 
     // Get upcoming shifts (next 7 days)
@@ -75,11 +74,10 @@ export async function GET(request: NextRequest) {
       AND (ap.assigned_count IS NULL OR ap.assigned_count < s.requested_workers)
     `)
 
-    // Get total clients
+    // Get total clients (clients table doesn't have status column)
     const totalClientsResult = await query(`
       SELECT COUNT(*) as count
       FROM clients
-      WHERE status = 'active'
     `)
 
     // Get overdue timesheets (more than 3 days old and still pending)
@@ -96,7 +94,7 @@ export async function GET(request: NextRequest) {
       activeShiftsToday: parseInt(activeShiftsResult.rows[0].count),
       pendingTimesheets: parseInt(pendingTimesheetsResult.rows[0].count),
       totalEmployees: parseInt(totalEmployeesResult.rows[0].count),
-      activeJobs: parseInt(activeJobsResult.rows[0].count),
+      totalJobs: parseInt(totalJobsResult.rows[0].count),
       upcomingShifts: parseInt(upcomingShiftsResult.rows[0].count),
       understaffedShifts: parseInt(understaffedShiftsResult.rows[0].count),
       totalClients: parseInt(totalClientsResult.rows[0].count),

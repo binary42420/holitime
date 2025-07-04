@@ -7,19 +7,20 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Hands On Labor - Workforce Management',
   description: 'Mobile-first workforce management for construction teams',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
-  themeColor: '#2563eb',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'HoliTime',
   },
   manifest: '/manifest.json',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: '#2563eb',
 };
 
 export default function RootLayout({
