@@ -207,32 +207,38 @@ export default function TimesheetViewPage() {
   const { shift, assignedPersonnel } = timesheetData
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => router.push('/timesheets')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Timesheets
-          </Button>
+    <div className="space-y-4 md:space-y-6">
+      {/* Mobile-First Header */}
+      <div className="space-y-3">
+        <Button
+          variant="ghost"
+          size="mobile"
+          onClick={() => router.push('/timesheets')}
+          className="self-start -ml-2"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Timesheets
+        </Button>
+
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Timesheet Details</h1>
-            <p className="text-muted-foreground">
-              View timesheet information and approval status
+            <h1 className="text-2xl md:text-3xl font-bold font-headline">Timesheet Details 📋</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              {shift.jobName} • {format(new Date(shift.date), 'MMM d, yyyy')}
             </p>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {getStatusBadge(timesheetData.status)}
-          <Button
-            variant="outline"
-            onClick={downloadPDF}
-            className="w-full md:w-auto min-h-[48px] text-base font-medium"
-            size="lg"
-          >
-            <Download className="h-5 w-5 mr-2" />
-            Download PDF
-          </Button>
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
+            {getStatusBadge(timesheetData.status)}
+            <Button
+              variant="outline"
+              size="mobile"
+              onClick={downloadPDF}
+              className="w-full md:w-auto"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download PDF
+            </Button>
+          </div>
         </div>
       </div>
 
