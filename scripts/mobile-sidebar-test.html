@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Sidebar Test - HoliTime</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status.pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .instructions {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .device-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            margin-right: 8px;
+        }
+        .checklist li.checked:before {
+            content: "☑ ";
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Mobile Sidebar Functionality Test</h1>
+        <p>This page helps verify that the mobile sidebar fix is working correctly on the HoliTime workforce management application.</p>
+
+        <div class="test-section">
+            <h3>📱 Device Information</h3>
+            <div class="device-info" id="deviceInfo">
+                Loading device information...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 Mobile Sidebar Test Instructions</h3>
+            <div class="instructions">
+                <p><strong>To test the mobile sidebar functionality:</strong></p>
+                <ol>
+                    <li>Open the HoliTime application on a mobile device or in mobile view</li>
+                    <li>Look for the hamburger menu button (☰) in the top-left corner</li>
+                    <li>Follow the checklist below to verify all functionality</li>
+                </ol>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>✅ Mobile Sidebar Functionality Checklist</h3>
+            <ul class="checklist">
+                <li onclick="toggleCheck(this)">Hamburger menu button is visible on mobile</li>
+                <li onclick="toggleCheck(this)">Clicking hamburger button opens sidebar</li>
+                <li onclick="toggleCheck(this)">Sidebar slides in smoothly from the left</li>
+                <li onclick="toggleCheck(this)">Background overlay appears behind sidebar</li>
+                <li onclick="toggleCheck(this)">All navigation menu items are visible</li>
+                <li onclick="toggleCheck(this)">Menu items are touch-friendly (easy to tap)</li>
+                <li onclick="toggleCheck(this)">Clicking a menu item navigates correctly</li>
+                <li onclick="toggleCheck(this)">Sidebar closes after navigation</li>
+                <li onclick="toggleCheck(this)">Clicking overlay background closes sidebar</li>
+                <li onclick="toggleCheck(this)">X close button works in mobile header</li>
+                <li onclick="toggleCheck(this)">Swiping left closes the sidebar</li>
+                <li onclick="toggleCheck(this)">Escape key closes the sidebar</li>
+                <li onclick="toggleCheck(this)">Sidebar works in portrait orientation</li>
+                <li onclick="toggleCheck(this)">Sidebar works in landscape orientation</li>
+                <li onclick="toggleCheck(this)">No horizontal scrolling issues</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Quick Tests</h3>
+            <button onclick="testViewport()">Test Viewport Detection</button>
+            <button onclick="testTouchSupport()">Test Touch Support</button>
+            <button onclick="testOrientation()">Test Orientation</button>
+            <div id="testResults" style="margin-top: 15px;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Expected Results</h3>
+            <div class="instructions">
+                <h4>✅ Working Mobile Sidebar Should:</h4>
+                <ul>
+                    <li>Open smoothly when hamburger button is tapped</li>
+                    <li>Display all navigation options (Dashboard, Shifts, Timesheets, etc.)</li>
+                    <li>Close when tapping outside, using close button, or swiping left</li>
+                    <li>Navigate to selected pages and auto-close</li>
+                    <li>Work consistently across different mobile devices</li>
+                </ul>
+
+                <h4>❌ Issues to Report:</h4>
+                <ul>
+                    <li>Sidebar doesn't open when hamburger button is tapped</li>
+                    <li>Sidebar appears but navigation items are not clickable</li>
+                    <li>Sidebar doesn't close with any of the close methods</li>
+                    <li>Layout issues or horizontal scrolling</li>
+                    <li>Performance issues or laggy animations</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🚀 Next Steps</h3>
+            <p>If all tests pass, the mobile sidebar functionality is working correctly!</p>
+            <p>If any tests fail, please report the specific issues along with:</p>
+            <ul>
+                <li>Device type and operating system</li>
+                <li>Browser name and version</li>
+                <li>Screen size and orientation</li>
+                <li>Specific steps that don't work</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Display device information
+        function updateDeviceInfo() {
+            const info = {
+                'User Agent': navigator.userAgent,
+                'Screen Size': `${screen.width} x ${screen.height}`,
+                'Viewport Size': `${window.innerWidth} x ${window.innerHeight}`,
+                'Device Pixel Ratio': window.devicePixelRatio,
+                'Touch Support': 'ontouchstart' in window ? 'Yes' : 'No',
+                'Mobile Detection': window.innerWidth < 768 ? 'Mobile' : 'Desktop',
+                'Orientation': screen.orientation ? screen.orientation.type : 'Unknown'
+            };
+
+            const deviceInfoEl = document.getElementById('deviceInfo');
+            deviceInfoEl.innerHTML = Object.entries(info)
+                .map(([key, value]) => `<strong>${key}:</strong> ${value}`)
+                .join('<br>');
+        }
+
+        // Toggle checklist items
+        function toggleCheck(item) {
+            item.classList.toggle('checked');
+        }
+
+        // Test functions
+        function testViewport() {
+            const isMobile = window.innerWidth < 768;
+            const result = `Viewport: ${window.innerWidth}px x ${window.innerHeight}px - ${isMobile ? 'Mobile' : 'Desktop'} mode`;
+            document.getElementById('testResults').innerHTML = `<div class="status ${isMobile ? 'pass' : 'fail'}">${result}</div>`;
+        }
+
+        function testTouchSupport() {
+            const hasTouch = 'ontouchstart' in window;
+            const result = `Touch Support: ${hasTouch ? 'Available' : 'Not Available'}`;
+            document.getElementById('testResults').innerHTML = `<div class="status ${hasTouch ? 'pass' : 'fail'}">${result}</div>`;
+        }
+
+        function testOrientation() {
+            const orientation = screen.orientation ? screen.orientation.type : 'Unknown';
+            const result = `Orientation: ${orientation}`;
+            document.getElementById('testResults').innerHTML = `<div class="status pass">${result}</div>`;
+        }
+
+        // Initialize
+        updateDeviceInfo();
+        
+        // Update on resize/orientation change
+        window.addEventListener('resize', updateDeviceInfo);
+        window.addEventListener('orientationchange', () => {
+            setTimeout(updateDeviceInfo, 100);
+        });
+    </script>
+</body>
+</html>

@@ -315,7 +315,8 @@ const Sidebar = React.forwardRef<
             {children}
           </div>
         </div>
-      </div>
+        </div>
+      </>
     )
   }
 )
