@@ -133,20 +133,81 @@ export async function POST(
 
       // Generate PDF after final approval
       try {
-        const generatePdfResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/timesheets/${id}/generate-pdf`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${user.id}`, // Simple auth for internal call
-          },
-        });
+        // Import the PDF generation logic directly instead of making HTTP call
+        const { generateTimesheetPDF } = await import('@/lib/pdf-generator');
 
-        if (generatePdfResponse.ok) {
-          console.log(`PDF generated for completed timesheet ${id}`);
-        } else {
-          console.warn(`Failed to generate PDF for timesheet ${id}`);
+        // Get timesheet data for PDF generation
+        const pdfDataResult = await query(`
+          SELECT
+            t.*,
+            s.date as shift_date,
+            s.start_time,
+            s.end_time,
+            s.location,
+            j.name as job_name,
+            j.po_number,
+            c.company_name as client_name,
+            cc.name as crew_chief_name
+          FROM timesheets t
+          JOIN shifts s ON t.shift_id = s.id
+          JOIN jobs j ON s.job_id = j.id
+          JOIN clients c ON j.client_id = c.id
+          LEFT JOIN users cc ON s.crew_chief_id = cc.id
+          WHERE t.id = $1
+        `, [id]);
+
+        if (pdfDataResult.rows.length > 0) {
+          const timesheetData = pdfDataResult.rows[0];
+
+          // Get assigned personnel and time entries
+          const personnelResult = await query(`
+            SELECT
+              ap.id, ap.role_on_shift, ap.role_code,
+              u.name as employee_name,
+              COALESCE(
+                json_agg(
+                  json_build_object(
+                    'entryNumber', te.entry_number,
+                    'clockIn', te.clock_in,
+                    'clockOut', te.clock_out
+                  ) ORDER BY te.entry_number
+                ) FILTER (WHERE te.id IS NOT NULL),
+                '[]'::json
+              ) as time_entries
+            FROM assigned_personnel ap
+            JOIN users u ON ap.employee_id = u.id
+            LEFT JOIN time_entries te ON ap.id = te.assigned_personnel_id
+            WHERE ap.shift_id = $1
+            GROUP BY ap.id, ap.role_on_shift, ap.role_code, u.name
+            ORDER BY u.name ASC
+          `, [timesheet.shift_id]);
+
+          // Generate PDF
+          const pdfData = {
+            timesheet: timesheetData,
+            assignedPersonnel: personnelResult.rows
+          };
+
+          const pdf = generateTimesheetPDF(pdfData);
+          const pdfBuffer = Buffer.from(pdf.output('arraybuffer'));
+
+          // Store PDF in database
+          const filename = `timesheet-${timesheetData.client_name.replace(/\s+/g, '-')}-${timesheetData.shift_date}.pdf`;
+
+          await query(`
+            UPDATE timesheets
+            SET pdf_data = $1,
+                pdf_filename = $2,
+                pdf_content_type = 'application/pdf',
+                pdf_generated_at = NOW()
+            WHERE id = $3
+          `, [pdfBuffer, filename, id]);
+
+          console.log(`PDF generated and stored for completed timesheet ${id}`);
         }
       } catch (error) {
-        console.warn(`Error generating PDF for timesheet ${id}:`, error);
+        console.error(`Error generating PDF for timesheet ${id}:`, error);
+        // Don't fail the approval if PDF generation fails
       }
 
       // Update shift status to completed

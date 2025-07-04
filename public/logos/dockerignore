@@ -1,0 +1,120 @@
+# Node.js specific files and directories
+# These are generated/installed inside the container by the Dockerfile
+# and should not be copied from the local context.
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+# Exclude other package manager lock files if you're primarily using npm (package-lock.json)
+pnpm-lock.yaml
+yarn.lock
+.pnpm-store/
+.yarn/
+
+# Build outputs and cache directories specific to Next.js and similar tools
+# These are either built inside the container or are temporary.
+.next/             # Next.js build output (copied from builder stage by Dockerfile)
+out/               # Common static export directory
+dist/              # Common build output directory
+build/             # Common build output directory
+.turbo/            # Turborepo cache
+*.tsbuildinfo      # TypeScript build info
+.nuxt/             # Nuxt.js build output
+.vuepress/dist/    # VuePress build output
+.serverless/       # Serverless framework artifacts
+.fusebox/          # FuseBox cache
+.dynamodb/         # Local DynamoDB files
+.tern-port         # Tern.js (IDE helper)
+
+# Environment files
+# Sensitive environment variables should be passed via --set-env-vars
+# on `gcloud run deploy`, not baked into the image.
+.env
+.env.local
+.env.development
+.env.test
+.env.production    # Even if present, prefer --set-env-vars
+
+# Version control
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Operating System generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temporary application files
+logs/
+*.log
+tmp/
+temp/
+.tmp/
+.temp/
+*.tmp
+*.temp
+
+# Development, testing, and documentation related files
+scripts/           # Unless specific scripts are needed at runtime
+docs/
+README.md          # Not needed in the final image
+DEPLOYMENT.md      # Not needed in the final image
+*.md               # Exclude all markdown files (unless your app serves them)
+__tests__/
+coverage/
+.nyc_output/
+jest.config.*
+cypress/
+.cypress/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Cache directories for various tools
+.npm/
+.cache/
+.parcel-cache/
+.eslintcache
+
+# Docker and deployment related files
+# These are part of your project but not part of the final Docker image.
+Dockerfile*
+docker-compose*.yml
+cloudbuild.yaml
+deploy*.sh
+deploy*.ps1
+*.dockerignore
+
+# Runtime and process-related files
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Optional REPL history (Node.js interactive shell)
+.node_repl_history
+
+# Project-specific backup or large files (from your original list)
+temp_app_backup/
+handsonlabor-website/ # Assuming this is a sub-project or old backup directory
+src/ai/               # If these are AI models/data not needed for runtime
+*.ai                  # General AI files
+*.mp4                 # Large media files (if not served by the app)
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm

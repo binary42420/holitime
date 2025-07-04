@@ -12,6 +12,8 @@ import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase, Downlo
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
 import UnifiedShiftManager from "@/components/unified-shift-manager"
+import { MobileShiftManager } from "@/components/mobile-shift-manager"
+import { MobileShiftDetails } from "@/components/mobile-shift-details"
 import WorkerAssignmentDisplay from "@/components/worker-assignment-display"
 import { generateShiftEditUrl } from "@/lib/url-utils"
 import { LoadingSpinner } from "@/components/loading-states"

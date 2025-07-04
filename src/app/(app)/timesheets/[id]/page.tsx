@@ -22,7 +22,9 @@ import {
   AlertCircle
 } from "lucide-react"
 import { useApi } from "@/hooks/use-api"
-import { format } from "date-fns"
+import { format, isValid, parseISO } from "date-fns"
+import { formatTo12Hour, getTimeEntryDisplay, calculateTotalRoundedHours } from "@/lib/time-utils"
+import { MobileTimeEntryDisplay } from "@/components/mobile-timesheet-card"
 
 interface TimesheetData {
   id: string
@@ -82,24 +84,56 @@ export default function TimesheetViewPage() {
       clientName: rawData.timesheet.shift.client.name,
       crewChiefName: rawData.timesheet.shift.crewChief.name,
     },
-    assignedPersonnel: rawData.timesheet.shift.assignedPersonnel.map((p: any) => ({
+    assignedPersonnel: rawData.timesheet.assignedPersonnel?.map((p: any) => ({
       id: p.id,
-      employeeName: p.employee.name,
-      employeeAvatar: p.employee.avatar,
+      employeeName: p.employeeName,
+      employeeAvatar: p.employeeAvatar,
       roleOnShift: p.roleOnShift,
       roleCode: p.roleCode,
-      timeEntries: p.timeEntries.map((te: any) => ({
+      timeEntries: (p.timeEntries || []).map((te: any) => ({
         id: te.id,
-        entryNumber: te.entry_number,
-        clockIn: te.clock_in,
-        clockOut: te.clock_out,
+        entryNumber: te.entryNumber,
+        clockIn: te.clockIn,
+        clockOut: te.clockOut,
       })),
-    })),
+    })) || [],
   } : null
+
+  // Robust date formatting function with mobile optimization
+  const formatApprovalDate = (dateString?: string) => {
+    if (!dateString) return 'Not yet approved'
+
+    try {
+      // Handle various date formats
+      let date: Date
+
+      // Try parsing as ISO string first
+      if (typeof dateString === 'string' && (dateString.includes('T') || dateString.includes('Z'))) {
+        date = parseISO(dateString)
+      } else {
+        date = new Date(dateString)
+      }
+
+      // Validate the date
+      if (!isValid(date)) {
+        console.warn('Invalid date received:', dateString)
+        return 'Invalid date'
+      }
+
+      // Mobile: shorter format, Desktop: full format
+      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+        return format(date, 'MMM d, yyyy h:mm a')
+      }
+      return format(date, 'MMMM d, yyyy \'at\' h:mm a')
+    } catch (error) {
+      console.error('Error formatting approval date:', dateString, error)
+      return 'Invalid date'
+    }
+  }
 
   const formatTime = (timeString?: string) => {
     if (!timeString) return '-'
-    return format(new Date(timeString), 'h:mm a')
+    return formatTo12Hour(timeString)
   }
 
   const calculateHours = (clockIn?: string, clockOut?: string) => {
@@ -190,8 +224,13 @@ export default function TimesheetViewPage() {
         </div>
         <div className="flex items-center gap-2">
           {getStatusBadge(timesheetData.status)}
-          <Button variant="outline" onClick={downloadPDF}>
-            <Download className="h-4 w-4 mr-2" />
+          <Button
+            variant="outline"
+            onClick={downloadPDF}
+            className="w-full md:w-auto min-h-[48px] text-base font-medium"
+            size="lg"
+          >
+            <Download className="h-5 w-5 mr-2" />
             Download PDF
           </Button>
         </div>
@@ -230,7 +269,7 @@ export default function TimesheetViewPage() {
                   <span className="font-medium text-green-700">Approved</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(timesheetData.clientApprovedAt), 'MMMM d, yyyy at h:mm a')}
+                  {formatApprovalDate(timesheetData.clientApprovedAt)}
                 </p>
                 {timesheetData.clientSignature && (
                   <div className="mt-2">
@@ -268,7 +307,7 @@ export default function TimesheetViewPage() {
                   <span className="font-medium text-green-700">Approved</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(timesheetData.managerApprovedAt), 'MMMM d, yyyy at h:mm a')}
+                  {formatApprovalDate(timesheetData.managerApprovedAt)}
                 </p>
               </div>
             ) : (
@@ -331,59 +370,80 @@ export default function TimesheetViewPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>JT</TableHead>
-                <TableHead>IN 1</TableHead>
-                <TableHead>OUT 1</TableHead>
-                <TableHead>IN 2</TableHead>
-                <TableHead>OUT 2</TableHead>
-                <TableHead>IN 3</TableHead>
-                <TableHead>OUT 3</TableHead>
-                <TableHead>Total Hours</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {assignedPersonnel.map((worker) => {
-                const totalHours = worker.timeEntries.reduce((sum, entry) => 
-                  sum + calculateHours(entry.clockIn, entry.clockOut), 0
-                )
-                
-                return (
-                  <TableRow key={worker.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={worker.employeeAvatar} />
-                          <AvatarFallback>
-                            {worker.employeeName.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{worker.employeeName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{worker.roleCode}</Badge>
-                    </TableCell>
-                    {[1, 2, 3].map((entryNum) => {
-                      const entry = worker.timeEntries.find(e => e.entryNumber === entryNum)
-                      return (
-                        <React.Fragment key={entryNum}>
-                          <TableCell>{formatTime(entry?.clockIn)}</TableCell>
-                          <TableCell>{formatTime(entry?.clockOut)}</TableCell>
-                        </React.Fragment>
-                      )
-                    })}
-                    <TableCell className="font-medium">
-                      {formatTotalHours(totalHours)}
+          {/* Desktop Table View */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>JT</TableHead>
+                  <TableHead>IN 1</TableHead>
+                  <TableHead>OUT 1</TableHead>
+                  <TableHead>IN 2</TableHead>
+                  <TableHead>OUT 2</TableHead>
+                  <TableHead>IN 3</TableHead>
+                  <TableHead>OUT 3</TableHead>
+                  <TableHead>Total Hours</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {assignedPersonnel.length > 0 ? assignedPersonnel.map((worker) => {
+                  // Calculate total hours using the proper time utilities
+                  const totalHours = calculateTotalRoundedHours(worker.timeEntries.map(entry => ({
+                    clockIn: entry.clockIn,
+                    clockOut: entry.clockOut
+                  })))
+
+                  return (
+                    <TableRow key={worker.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={worker.employeeAvatar} />
+                            <AvatarFallback>
+                              {worker.employeeName.split(' ').map(n => n[0]).join('')}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{worker.employeeName}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{worker.roleCode}</Badge>
+                      </TableCell>
+                      {[1, 2, 3].map((entryNum) => {
+                        const entry = worker.timeEntries.find(e => e.entryNumber === entryNum)
+                        const display = getTimeEntryDisplay(entry?.clockIn, entry?.clockOut)
+                        return (
+                          <React.Fragment key={entryNum}>
+                            <TableCell className="text-sm">
+                              {display.displayClockIn}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {display.displayClockOut}
+                            </TableCell>
+                          </React.Fragment>
+                        )
+                      })}
+                      <TableCell className="font-medium">
+                        {totalHours}
+                      </TableCell>
+                    </TableRow>
+                  )
+                }) : (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                      No time entries found for this timesheet
                     </TableCell>
                   </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden">
+            <MobileTimeEntryDisplay assignedPersonnel={assignedPersonnel} />
+          </div>
         </CardContent>
       </Card>
     </div>

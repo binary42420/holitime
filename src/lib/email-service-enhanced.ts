@@ -49,9 +49,12 @@ class EnhancedEmailService {
   private isConfigured: boolean = false
 
   constructor() {
-    this.initializeTransporter().catch(error => {
-      console.error('Email service initialization failed:', error)
-    })
+    // Only initialize during runtime, not build time
+    if (typeof window !== 'undefined' || process.env.NODE_ENV === 'production') {
+      this.initializeTransporter().catch(error => {
+        console.error('Email service initialization failed:', error)
+      })
+    }
   }
 
   private async initializeTransporter() {
@@ -71,7 +74,9 @@ class EnhancedEmailService {
       }
 
       // Fallback to SMTP (App Password or regular SMTP)
-      console.log('🔧 Initializing SMTP...')
+      if (typeof window !== 'undefined' || process.env.NODE_ENV === 'production') {
+        console.log('🔧 Initializing SMTP...')
+      }
       this.initializeSMTP()
     } catch (error) {
       console.error('Failed to initialize email transporter:', error)
@@ -159,7 +164,10 @@ class EnhancedEmailService {
     }
 
     if (!smtpConfig.auth.user || !smtpConfig.auth.pass) {
-      console.warn('SMTP configuration incomplete. Email service will be disabled.')
+      // Only warn in production, not during build
+      if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined') {
+        console.warn('SMTP configuration incomplete. Email service will be disabled.')
+      }
       return
     }
 
