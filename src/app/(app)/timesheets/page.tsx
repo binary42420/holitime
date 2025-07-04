@@ -140,17 +140,18 @@ export default function TimesheetsPage() {
     // Show PDF download for completed timesheets
     if (timesheet.status === 'completed' || timesheet.status === 'Approved') {
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
           <Button
-            size="sm"
+            size="mobile"
             variant="outline"
+            className="w-full md:w-auto"
             onClick={() => handleDownloadPDF(timesheet.id, timesheet.shift.clientName, timesheet.shift.date)}
           >
             <Download className="mr-2 h-4 w-4" />
-            PDF
+            Download PDF
           </Button>
-          <Button size="sm" variant="outline" asChild>
-            <Link href={`/timesheets/${timesheet.id}`}>View</Link>
+          <Button size="mobile" variant="outline" className="w-full md:w-auto" asChild>
+            <Link href={`/timesheets/${timesheet.id}`}>View Details</Link>
           </Button>
         </div>
       )
@@ -158,15 +159,36 @@ export default function TimesheetsPage() {
 
     if (user?.role === 'Manager/Admin') {
       if (timesheet.status === 'pending_final_approval' || timesheet.status === 'Awaiting Manager Approval') {
-        return <Button size="sm" asChild><Link href={`/timesheets/${timesheet.id}/manager-approval`}><Check className="mr-2 h-4 w-4" />Final Approval</Link></Button>
+        return (
+          <Button size="mobile" className="w-full md:w-auto" asChild>
+            <Link href={`/timesheets/${timesheet.id}/manager-approval`}>
+              <Check className="mr-2 h-4 w-4" />
+              Final Approval
+            </Link>
+          </Button>
+        )
       }
       if (timesheet.status === 'pending_client_approval' || timesheet.status === 'Awaiting Client Approval') {
-        return <Button size="sm" asChild><Link href={`/timesheets/${timesheet.id}/approve`}><FileSignature className="mr-2 h-4 w-4" />Client Approval</Link></Button>
+        return (
+          <Button size="mobile" className="w-full md:w-auto" asChild>
+            <Link href={`/timesheets/${timesheet.id}/approve`}>
+              <FileSignature className="mr-2 h-4 w-4" />
+              Client Approval
+            </Link>
+          </Button>
+        )
       }
     }
 
     if (user?.role === 'Crew Chief' && (timesheet.status === 'pending_client_approval' || timesheet.status === 'Awaiting Client Approval')) {
-       return <Button size="sm" asChild><Link href={`/timesheets/${timesheet.id}/approve`}><FileSignature className="mr-2 h-4 w-4" />Client Approval</Link></Button>
+       return (
+         <Button size="mobile" className="w-full md:w-auto" asChild>
+           <Link href={`/timesheets/${timesheet.id}/approve`}>
+             <FileSignature className="mr-2 h-4 w-4" />
+             Client Approval
+           </Link>
+         </Button>
+       )
     }
 
     // This is a demo feature allowing client view without separate login
@@ -269,6 +291,7 @@ export default function TimesheetsPage() {
                                 ))}
                             </TableBody>
                         </Table>
+                        </div>
                     </CardContent>
                 </Card>
             </TabsContent>
