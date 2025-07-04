@@ -97,97 +97,159 @@ export default function JobsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-headline">Jobs</h1>
-          <p className="text-muted-foreground">
-            Recent jobs sorted by activity and scheduled shifts
-          </p>
+    <div className="space-y-4 md:space-y-6">
+      {/* Mobile-First Header */}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-headline">Jobs 💼</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Manage your construction projects
+            </p>
+          </div>
+          {canManage && (
+            <Button size="mobile" className="w-full md:w-auto" onClick={() => router.push('/admin/jobs/new')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Job
+            </Button>
+          )}
         </div>
-        {canManage && (
-          <Button onClick={() => router.push('/admin/jobs/new')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Job
-          </Button>
-        )}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search jobs, clients, or descriptions..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+      {/* Mobile-First Filters */}
+      <Card className="card-mobile">
+        <CardContent className="pt-4">
+          <div className="space-y-3">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search jobs, clients, or descriptions..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-12"
+              />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px]">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="Planning">Planning</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={clientFilter} onValueChange={setClientFilter}>
-              <SelectTrigger className="w-[180px]">
-                <Building2 className="mr-2 h-4 w-4" />
-                <SelectValue placeholder="Client" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Clients</SelectItem>
-                {uniqueClients.map(client => (
-                  <SelectItem key={client} value={client}>{client}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+
+            {/* Filter Dropdowns */}
+            <div className="grid grid-cols-2 gap-3">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-12">
+                  <Filter className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="Planning">Planning</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger className="h-12">
+                  <Building2 className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="Client" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Clients</SelectItem>
+                  {uniqueClients.map(client => (
+                    <SelectItem key={client} value={client}>{client}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Jobs Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Briefcase className="h-5 w-5" />
-            Recent Jobs
-            <Badge variant="secondary">{filteredJobs.length}</Badge>
-          </CardTitle>
-          <CardDescription>
-            Jobs sorted by most recent activity and scheduled shifts
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredJobs.length === 0 ? (
-            <div className="text-center py-8">
+      {/* Jobs List - Mobile First */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg md:text-xl font-semibold flex items-center gap-2">
+            <Briefcase className="h-5 w-5 text-blue-600" />
+            Jobs
+            <Badge variant="secondary" className="text-xs">{filteredJobs.length}</Badge>
+          </h2>
+        </div>
+
+        {filteredJobs.length === 0 ? (
+          <Card className="card-mobile">
+            <CardContent className="pt-6 text-center">
               <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Jobs Found</h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm || statusFilter !== "all" || clientFilter !== "all" 
+                {searchTerm || statusFilter !== "all" || clientFilter !== "all"
                   ? "No jobs match your current filters."
                   : "Get started by creating your first job."
                 }
               </p>
               {canManage && (
-                <Button onClick={() => router.push('/admin/jobs/new')}>
+                <Button size="mobile" onClick={() => router.push('/admin/jobs/new')}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Job
                 </Button>
               )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {/* Mobile: Card Layout */}
+            <div className="md:hidden space-y-3">
+              {filteredJobs.map((job) => (
+                <Card key={job.id} className="card-mobile">
+                  <CardContent className="pt-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="space-y-1">
+                        <h3 className="font-medium text-base">{job.name}</h3>
+                        <p className="text-sm text-muted-foreground">{job.clientName}</p>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Building2 className="h-3 w-3" />
+                          {job.location}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Activity className="h-3 w-3" />
+                          {getActivityText(job.lastActivity)}
+                        </div>
+                      </div>
+                      <div className="text-right space-y-1">
+                        <Badge
+                          variant={job.status === 'Active' ? 'default' : 'secondary'}
+                          className="text-xs"
+                        >
+                          {job.status}
+                        </Badge>
+                        <p className="text-xs text-muted-foreground">
+                          {job.upcomingShifts} shifts
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="mobile" variant="outline" className="flex-1" asChild>
+                        <a href={`/jobs/${job.id}`}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View
+                        </a>
+                      </Button>
+                      {canManage && (
+                        <Button size="mobile" variant="outline" className="flex-1" asChild>
+                          <a href={`/admin/jobs/${job.id}/edit`}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
+                          </a>
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          ) : (
-            <Table>
+
+            {/* Desktop: Table Layout */}
+            <div className="hidden md:block">
+              <Card>
+                <CardContent className="pt-6">
+                  <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Job Name</TableHead>
@@ -280,9 +342,12 @@ export default function JobsPage() {
                 ))}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

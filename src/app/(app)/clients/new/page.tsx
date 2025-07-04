@@ -119,55 +119,60 @@ function NewClientPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
+    <div className="space-y-4 md:space-y-6">
+      {/* Mobile-First Header */}
+      <div className="space-y-3">
         <Button
           variant="ghost"
-          size="sm"
+          size="mobile"
           onClick={() => router.back()}
-          className="flex items-center gap-2"
+          className="self-start -ml-2"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold font-headline">New Client</h1>
+        <h1 className="text-2xl md:text-3xl font-bold font-headline">New Client 🏢</h1>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Client Information</CardTitle>
-          <CardDescription>
+      {/* Mobile-First Form */}
+      <Card className="card-mobile">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">Client Information</CardTitle>
+          <CardDescription className="text-sm">
             Enter the details for the new client company.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+            {/* Mobile-First Form Grid */}
+            <div className="space-y-4 md:grid md:grid-cols-2 md:gap-6 md:space-y-0">
               <div className="space-y-2">
-                <Label htmlFor="name">Company Name *</Label>
+                <Label htmlFor="name" className="text-base font-medium">Company Name *</Label>
                 <Input
                   id="name"
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Enter company name"
+                  className="h-12 text-base"
                   required
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contactPerson">Contact Person</Label>
+                <Label htmlFor="contactPerson" className="text-base font-medium">Contact Person</Label>
                 <Input
                   id="contactPerson"
                   name="contactPerson"
                   value={formData.contactPerson}
                   onChange={handleChange}
                   placeholder="Enter contact person name"
+                  className="h-12 text-base"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contactEmail">Contact Email</Label>
+                <Label htmlFor="contactEmail" className="text-base font-medium">Contact Email</Label>
                 <Input
                   id="contactEmail"
                   name="contactEmail"
@@ -175,6 +180,7 @@ function NewClientPage() {
                   value={formData.contactEmail}
                   onChange={handleChange}
                   placeholder="Enter contact email"
+                  className="h-12 text-base"
                 />
               </div>
 
@@ -218,19 +224,23 @@ function NewClientPage() {
               />
             </div>
 
-            <div className="flex justify-end gap-4">
+            {/* Mobile-First Action Buttons */}
+            <div className="flex flex-col md:flex-row md:justify-end gap-3 md:gap-4">
               <Button
                 type="button"
                 variant="outline"
+                size="mobile"
                 onClick={() => router.back()}
                 disabled={loading}
+                className="w-full md:w-auto"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
+                size="mobile"
                 disabled={loading || !formData.name.trim()}
-                className="flex items-center gap-2"
+                className="w-full md:w-auto flex items-center justify-center gap-2"
               >
                 <Save className="h-4 w-4" />
                 {loading ? 'Creating...' : 'Create Client'}

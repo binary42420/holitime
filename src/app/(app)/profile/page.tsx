@@ -193,50 +193,52 @@ export default function ProfilePage() {
   const completionRate = calculateCompletionRate()
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">My Profile</h1>
-          <p className="text-muted-foreground">
-            Manage your personal information and preferences
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {editing ? (
-            <>
-              <Button variant="outline" onClick={() => setEditing(false)}>
-                Cancel
+    <div className="space-y-4 md:space-y-6">
+      {/* Mobile-First Header */}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-headline">My Profile 👤</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Manage your information
+            </p>
+          </div>
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
+            {editing ? (
+              <>
+                <Button size="mobile" variant="outline" onClick={() => setEditing(false)}>
+                  Cancel
+                </Button>
+                <Button size="mobile" onClick={saveProfile} disabled={saving}>
+                  {saving ? 'Saving...' : 'Save Changes'}
+                  <Save className="h-4 w-4 ml-2" />
+                </Button>
+              </>
+            ) : (
+              <Button size="mobile" onClick={() => setEditing(true)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Profile
               </Button>
-              <Button onClick={saveProfile} disabled={saving}>
-                {saving ? 'Saving...' : 'Save Changes'}
-                <Save className="h-4 w-4 ml-2" />
-              </Button>
-            </>
-          ) : (
-            <Button onClick={() => setEditing(true)}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Profile
-            </Button>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Profile Completion */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      {/* Mobile-First Profile Completion */}
+      <Card className="card-mobile">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
             <CheckCircle className="h-5 w-5 text-green-500" />
             Profile Completion
           </CardTitle>
-          <CardDescription>
-            Complete your profile to improve job matching and communication
+          <CardDescription className="text-sm">
+            Complete your profile for better job matching
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4">
-            <Progress value={completionRate} className="flex-1" />
-            <span className="text-sm font-medium">{completionRate}%</span>
+          <div className="flex items-center gap-3 md:gap-4">
+            <Progress value={completionRate} className="flex-1 h-3" />
+            <span className="text-sm md:text-base font-medium">{completionRate}%</span>
           </div>
           {completionRate < 100 && (
             <p className="text-sm text-muted-foreground mt-2">

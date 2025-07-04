@@ -50,20 +50,23 @@ function ClientsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-headline">Clients</h1>
-          <p className="text-muted-foreground">
-            Manage client companies and view their job history
-          </p>
+    <div className="space-y-4 md:space-y-6">
+      {/* Mobile-First Header */}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-headline">Clients 🏢</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Manage your client companies
+            </p>
+          </div>
+          {canEdit && (
+            <Button size="mobile" className="w-full md:w-auto" onClick={() => router.push('/clients/new')}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Client
+            </Button>
+          )}
         </div>
-        {canEdit && (
-          <Button onClick={() => router.push('/clients/new')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Client
-          </Button>
-        )}
       </div>
 
       <Card>

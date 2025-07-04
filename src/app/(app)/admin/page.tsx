@@ -138,37 +138,42 @@ function AdminPage() {
   ]
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold font-headline">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
-            Manage all aspects of the timecard system
-          </p>
+    <div className="space-y-4 md:space-y-6">
+      {/* Mobile-First Header */}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-headline">Admin Dashboard ⚙️</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Manage all aspects of the system
+            </p>
+          </div>
+          <Badge variant="secondary" className="text-sm">
+            Administrator Access
+          </Badge>
         </div>
-        <Badge variant="secondary" className="text-sm">
-          Administrator Access
-        </Badge>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {/* Admin Sections - Mobile First Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {adminSections.map((section) => {
           const Icon = section.icon
           return (
-            <Card key={section.title} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Icon className="h-5 w-5" />
+            <Card key={section.title} className="card-mobile hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Icon className="h-5 w-5 text-blue-600" />
                   {section.title}
                 </CardTitle>
-                <CardDescription>{section.description}</CardDescription>
+                <CardDescription className="text-sm">{section.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 {section.actions.map((action) => (
                   <Button
                     key={action.label}
                     variant="ghost"
-                    className="w-full justify-start"
+                    size="mobile"
+                    className="w-full justify-start h-10"
                     onClick={() => router.push(action.href)}
                   >
                     {action.label}

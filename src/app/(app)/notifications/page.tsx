@@ -210,31 +210,33 @@ export default function NotificationsPage() {
   })
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Notifications</h1>
-          <p className="text-muted-foreground">
-            Stay updated with your assignments and important messages
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <Button variant="outline" onClick={markAllAsRead}>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Mark All Read ({unreadCount})
-            </Button>
-          )}
-          <Badge variant="secondary">
-            {unreadCount} unread
-          </Badge>
+    <div className="space-y-4 md:space-y-6">
+      {/* Mobile-First Header */}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-headline">Notifications 🔔</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Stay updated with assignments
+            </p>
+          </div>
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
+            {unreadCount > 0 && (
+              <Button size="mobile" variant="outline" onClick={markAllAsRead}>
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Mark All Read ({unreadCount})
+              </Button>
+            )}
+            <Badge variant="secondary" className="text-center py-2">
+              {unreadCount} unread
+            </Badge>
+          </div>
         </div>
       </div>
 
-      {/* Notification Tabs */}
+      {/* Mobile-First Notification Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 gap-1 h-auto p-1">
           <TabsTrigger value="all">
             All ({notifications.length})
           </TabsTrigger>
@@ -286,36 +288,40 @@ export default function NotificationsPage() {
                   </div>
                 ) : (
                   filteredNotifications.map((notification) => (
-                    <Card 
-                      key={notification.id} 
-                      className={`transition-all hover:shadow-md ${
+                    <Card
+                      key={notification.id}
+                      className={`card-mobile transition-all hover:shadow-md ${
                         !notification.is_read ? 'border-l-4 border-l-blue-500 bg-blue-50/50' : ''
                       }`}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start space-x-3 flex-1">
-                            {getNotificationIcon(notification.type)}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h3 className="font-semibold text-sm">{notification.title}</h3>
-                                <Badge className={getPriorityColor(notification.priority)} variant="secondary">
-                                  {notification.priority}
-                                </Badge>
-                                {!notification.is_read && (
-                                  <Badge variant="default" className="text-xs">New</Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground mb-2">
-                                {notification.message}
-                              </p>
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  {formatTimeAgo(new Date(notification.created_at).toISOString())}
-                                </span>
-                                {notification.is_email_sent && (
+                      <CardContent className="pt-4">
+                        <div className="space-y-3">
+                          {/* Mobile-First Header */}
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3 flex-1">
+                              {getNotificationIcon(notification.type)}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
+                                  <h3 className="font-semibold text-base">{notification.title}</h3>
+                                  <div className="flex items-center gap-2">
+                                    <Badge className={getPriorityColor(notification.priority)} variant="secondary">
+                                      {notification.priority}
+                                    </Badge>
+                                    {!notification.is_read && (
+                                      <Badge variant="default" className="text-xs">New</Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-3">
+                                  {notification.message}
+                                </p>
+                                <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 text-xs text-muted-foreground">
                                   <span className="flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    {formatTimeAgo(new Date(notification.created_at).toISOString())}
+                                  </span>
+                                  {notification.is_email_sent && (
+                                    <span className="flex items-center gap-1">
                                     <Mail className="h-3 w-3" />
                                     Email sent
                                   </span>

@@ -163,59 +163,71 @@ function UsersPage({}: UsersPageProps) {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground">
-            Manage user roles, permissions, and access settings
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Users className="h-3 w-3" />
-            {users.length} Total Users
-          </Badge>
-          <Button onClick={openCreateDialog} className="flex items-center gap-2">
-            <UserPlus className="h-4 w-4" />
-            Add User
-          </Button>
+    <div className="space-y-4 md:space-y-6">
+      {/* Mobile-First Header */}
+      <div className="space-y-3">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold font-headline">User Management 👥</h1>
+            <p className="text-sm md:text-base text-muted-foreground">
+              Manage workers and permissions
+            </p>
+          </div>
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
+            <Badge variant="outline" className="flex items-center justify-center gap-1 h-10">
+              <Users className="h-3 w-3" />
+              {users.length} Total Users
+            </Badge>
+            <Button size="mobile" onClick={openCreateDialog} className="flex items-center justify-center gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add User
+            </Button>
+          </div>
         </div>
       </div>
 
-      {/* Filter Tabs */}
+      {/* Mobile-First Filter Tabs */}
       <Tabs value={activeFilter} onValueChange={(value) => setActiveFilter(value as UserFilter)}>
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-1">
-          <TabsTrigger value="all" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            All Users ({counts.all})
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5 gap-1 h-auto p-1">
+          <TabsTrigger value="all" className="flex items-center gap-1 md:gap-2 h-10 text-xs md:text-sm">
+            <Users className="h-3 w-3 md:h-4 md:w-4" />
+            <span className="hidden md:inline">All Users</span>
+            <span className="md:hidden">All</span>
+            <span className="text-xs">({counts.all})</span>
           </TabsTrigger>
-          <TabsTrigger value="employees" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Employees ({counts.employees})
+          <TabsTrigger value="employees" className="flex items-center gap-1 md:gap-2 h-10 text-xs md:text-sm">
+            <User className="h-3 w-3 md:h-4 md:w-4" />
+            <span className="hidden md:inline">Employees</span>
+            <span className="md:hidden">Workers</span>
+            <span className="text-xs">({counts.employees})</span>
           </TabsTrigger>
-          <TabsTrigger value="clients" className="flex items-center gap-2">
-            <Building2 className="h-4 w-4" />
-            Clients ({counts.clients})
+          <TabsTrigger value="clients" className="flex items-center gap-1 md:gap-2 h-10 text-xs md:text-sm">
+            <Building2 className="h-3 w-3 md:h-4 md:w-4" />
+            <span className="hidden md:inline">Clients</span>
+            <span className="md:hidden">Clients</span>
+            <span className="text-xs">({counts.clients})</span>
           </TabsTrigger>
-          <TabsTrigger value="admins" className="flex items-center gap-2">
-            <Shield className="h-4 w-4" />
-            Admins ({counts.admins})
+          <TabsTrigger value="admins" className="flex items-center gap-1 md:gap-2 h-10 text-xs md:text-sm">
+            <Shield className="h-3 w-3 md:h-4 md:w-4" />
+            <span className="hidden md:inline">Admins</span>
+            <span className="md:hidden">Admin</span>
+            <span className="text-xs">({counts.admins})</span>
           </TabsTrigger>
-          <TabsTrigger value="crew-chiefs" className="flex items-center gap-2">
-            <UserCheck className="h-4 w-4" />
-            Crew Chiefs ({counts.crewChiefs})
+          <TabsTrigger value="crew-chiefs" className="flex items-center gap-1 md:gap-2 h-10 text-xs md:text-sm">
+            <UserCheck className="h-3 w-3 md:h-4 md:w-4" />
+            <span className="hidden md:inline">Crew Chiefs</span>
+            <span className="md:hidden">Chiefs</span>
+            <span className="text-xs">({counts.crewChiefs})</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeFilter} className="space-y-4">
-          {/* Users Grid */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {/* Mobile-First Users Grid */}
+          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filteredUsers.map((user) => (
-              <Card 
-                key={user.id} 
-                className="cursor-pointer hover:shadow-md transition-shadow"
+              <Card
+                key={user.id}
+                className="card-mobile cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => handleUserClick(user.id)}
               >
                 <CardHeader className="pb-3">
