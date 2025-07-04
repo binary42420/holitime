@@ -248,36 +248,45 @@ export default function ShiftDetailsPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/shifts')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Shifts
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold">{shift.jobName}</h1>
-            <p className="text-muted-foreground">
-              {shift.clientName} • {new Date(shift.date).toLocaleDateString()} • {shift.startTime}
-            </p>
+    <div className="space-y-4 md:space-y-6">
+      {/* Mobile-First Header */}
+      <div className="space-y-4">
+        {/* Mobile: Stack vertically, Desktop: Side by side */}
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+          <div className="space-y-3">
+            <Button
+              variant="ghost"
+              size="mobile"
+              onClick={() => router.push('/shifts')}
+              className="self-start -ml-2"
+            >
+              <ArrowLeft className="mr-2 h-5 w-5" />
+              Back to Shifts
+            </Button>
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold leading-tight">{shift.jobName}</h1>
+              <div className="space-y-1 text-sm md:text-base text-muted-foreground">
+                <p>{shift.clientName}</p>
+                <p>{new Date(shift.date).toLocaleDateString()} • {shift.startTime}</p>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {/* Management Status Badge - Clickable and matches shift management section */}
-          {(() => {
-            const managementStatus = getManagementStatus()
-            return (
-              <Badge
-                variant={managementStatus.variant}
-                className={managementStatus.clickable ? 'cursor-pointer hover:opacity-80' : ''}
-                onClick={managementStatus.clickable ? handleManagementStatusClick : undefined}
-              >
-                {managementStatus.label}
-                {managementStatus.clickable && <ExternalLink className="ml-1 h-3 w-3" />}
-              </Badge>
-            )
-          })()}
+          {/* Mobile: Full width buttons, Desktop: Inline */}
+          <div className="flex flex-col md:flex-row gap-3 md:gap-2">
+            {(() => {
+              const managementStatus = getManagementStatus()
+              return (
+                <Button
+                  variant={managementStatus.clickable ? 'default' : 'outline'}
+                  size="mobile"
+                  className="w-full md:w-auto"
+                  onClick={managementStatus.clickable ? handleManagementStatusClick : undefined}
+                >
+                  {managementStatus.label}
+                  {managementStatus.clickable && <ExternalLink className="ml-2 h-4 w-4" />}
+                </Button>
+              )
+            })()}
           {(shift.status === 'Completed' || shift.status === 'Pending Client Approval') && (
             <Button
               variant="outline"
@@ -422,15 +431,62 @@ export default function ShiftDetailsPage() {
         />
       )}
 
-      {/* Unified Shift Manager */}
-      {shiftId && (
-        <UnifiedShiftManager
-          shiftId={shiftId}
-          assignedPersonnel={assignedPersonnel}
-          onUpdate={handleRefresh}
-          shift={shift}
-        />
-      )}
+      {/* Mobile-First Shift Manager */}
+      <div className="block md:hidden">
+        {shiftId && assignedPersonnel && (
+          <MobileShiftManager
+            shiftId={shiftId}
+            workers={assignedPersonnel}
+            onClockIn={async (workerId) => {
+              // Implementation for clock in
+              console.log('Clock in:', workerId)
+              handleRefresh()
+            }}
+            onClockOut={async (workerId) => {
+              // Implementation for clock out
+              console.log('Clock out:', workerId)
+              handleRefresh()
+            }}
+            onEndShift={async (workerId, workerName) => {
+              // Implementation for end shift
+              console.log('End shift:', workerId, workerName)
+              handleRefresh()
+            }}
+            onNoShow={async (workerId, workerName) => {
+              // Implementation for no show
+              console.log('No show:', workerId, workerName)
+              handleRefresh()
+            }}
+            onClockOutAll={async () => {
+              // Implementation for clock out all
+              console.log('Clock out all')
+              handleRefresh()
+            }}
+            onEndAllShifts={async () => {
+              // Implementation for end all shifts
+              console.log('End all shifts')
+              handleRefresh()
+            }}
+            onFinalizeTimesheet={() => {
+              // Implementation for finalize timesheet
+              console.log('Finalize timesheet')
+            }}
+            timesheetStatus={timesheetStatus}
+          />
+        )}
+      </div>
+
+      {/* Desktop Unified Shift Manager */}
+      <div className="hidden md:block">
+        {shiftId && (
+          <UnifiedShiftManager
+            shiftId={shiftId}
+            assignedPersonnel={assignedPersonnel}
+            onUpdate={handleRefresh}
+            shift={shift}
+          />
+        )}
+      </div>
 
       {/* Notes */}
       <Card>

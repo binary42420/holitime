@@ -189,13 +189,24 @@ export default function TimesheetsPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="space-y-4 md:space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold font-headline">Timesheets</h1>
+        <h1 className="text-2xl md:text-3xl font-bold font-headline">Timesheets</h1>
       </div>
       <Tabs defaultValue="pending_client_approval">
-        <TabsList className="grid w-full grid-cols-4">
-          {tabs.map(tab => <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>)}
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
+          {tabs.map(tab => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="text-xs md:text-sm px-2 md:px-3 py-2"
+            >
+              <span className="hidden md:inline">{tab.label}</span>
+              <span className="md:hidden">
+                {tab.label.split(' ')[0]}
+              </span>
+            </TabsTrigger>
+          ))}
         </TabsList>
         {tabs.map(tab => (
             <TabsContent key={tab.value} value={tab.value}>
@@ -207,17 +218,48 @@ export default function TimesheetsPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                            <TableRow>
-                                <TableHead>Client</TableHead>
-                                <TableHead>Shift Date</TableHead>
-                                <TableHead className="hidden md:table-cell">Crew Chief</TableHead>
-                                <TableHead className="text-right">Action</TableHead>
-                            </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                            {timesheetsToDisplay.filter(t => t.status === tab.value).map(timesheet => (
+                        {/* Mobile: Card Layout */}
+                        <div className="md:hidden space-y-3">
+                          {timesheetsToDisplay.filter(t => t.status === tab.value).map(timesheet => (
+                            <Card key={timesheet.id} className="card-mobile">
+                              <CardContent className="pt-4">
+                                <div className="flex justify-between items-start mb-3">
+                                  <div>
+                                    <h3 className="font-medium text-base">{timesheet.shift?.clientName}</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                      {new Date(timesheet.shift?.date).toLocaleDateString()}
+                                    </p>
+                                    {timesheet.shift?.crewChief && (
+                                      <p className="text-xs text-muted-foreground">
+                                        Chief: {timesheet.shift.crewChief}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <Badge variant={getTimesheetStatusVariant(timesheet.status)} className="text-xs">
+                                    {timesheet.status.replace('_', ' ')}
+                                  </Badge>
+                                </div>
+                                <div className="flex justify-end">
+                                  {renderAction(timesheet)}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+
+                        {/* Desktop: Table Layout */}
+                        <div className="hidden md:block">
+                          <Table>
+                              <TableHeader>
+                              <TableRow>
+                                  <TableHead>Client</TableHead>
+                                  <TableHead>Shift Date</TableHead>
+                                  <TableHead className="hidden md:table-cell">Crew Chief</TableHead>
+                                  <TableHead className="text-right">Action</TableHead>
+                              </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                              {timesheetsToDisplay.filter(t => t.status === tab.value).map(timesheet => (
                                     <TableRow key={timesheet.id}>
                                         <TableCell className="font-medium">{timesheet.shift.clientName}</TableCell>
                                         <TableCell>{format(new Date(timesheet.shift.date), 'EEE, MMM d, yyyy')}</TableCell>

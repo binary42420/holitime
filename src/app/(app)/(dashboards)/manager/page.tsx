@@ -36,58 +36,89 @@ export default function ManagerDashboard() {
   const shifts = shiftsData?.shifts || [];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <header className="mb-6">
-        <h1 className="text-4xl font-bold">Welcome, {user?.name}!</h1>
-        <p className="text-muted-foreground">Manager Dashboard Overview</p>
+    <div className="space-y-4 md:space-y-6">
+      <header className="space-y-2">
+        <h1 className="text-2xl md:text-4xl font-bold">Welcome, {user?.name}!</h1>
+        <p className="text-sm md:text-base text-muted-foreground">Manager Dashboard Overview</p>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>Total Clients</CardTitle>
-            <Building2 className="h-6 w-6 text-muted-foreground" />
+      <section className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+        <Card className="card-mobile">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm md:text-base font-medium">Clients</CardTitle>
+            <Building2 className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{clients.length}</div>
+          <CardContent className="pt-0">
+            <div className="text-2xl md:text-3xl font-bold">{clients.length}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>Total Jobs</CardTitle>
-            <Briefcase className="h-6 w-6 text-muted-foreground" />
+        <Card className="card-mobile">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm md:text-base font-medium">Jobs</CardTitle>
+            <Briefcase className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{jobs.length}</div>
+          <CardContent className="pt-0">
+            <div className="text-2xl md:text-3xl font-bold">{jobs.length}</div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>Total Shifts</CardTitle>
-            <Calendar className="h-6 w-6 text-muted-foreground" />
+        <Card className="card-mobile col-span-2 md:col-span-1">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm md:text-base font-medium">Shifts</CardTitle>
+            <Calendar className="h-5 w-5 md:h-6 md:w-6 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold">{shifts.length}</div>
+          <CardContent className="pt-0">
+            <div className="text-2xl md:text-3xl font-bold">{shifts.length}</div>
           </CardContent>
         </Card>
       </section>
 
       <section>
-        <h2 className="text-2xl font-semibold mb-4">Recent Shifts</h2>
+        <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4">Recent Shifts</h2>
         {shifts.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto border-collapse border border-gray-200">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-4 py-2 text-left">Date</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Job</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Client</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
-                </tr>
-              </thead>
+          <>
+            {/* Mobile: Card Layout */}
+            <div className="md:hidden space-y-3">
+              {shifts.slice(0, 5).map((shift) => (
+                <Card key={shift.id} className="card-mobile">
+                  <CardContent className="pt-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-medium text-base">{shift.jobName}</h3>
+                        <p className="text-sm text-muted-foreground">{shift.clientName}</p>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        {shift.status}
+                      </Badge>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(shift.date).toLocaleDateString()}
+                      </p>
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href={`/shifts/${shift.id}`}>
+                          View
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Desktop: Table Layout */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full table-auto border-collapse border border-gray-200">
+                <thead>
+                  <tr className="bg-gray-100">
+                    <th className="border border-gray-300 px-4 py-2 text-left">Date</th>
+                    <th className="border border-gray-300 px-4 py-2 text-left">Job</th>
+                    <th className="border border-gray-300 px-4 py-2 text-left">Client</th>
+                    <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
+                    <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
+                  </tr>
+                </thead>
               <tbody>
                 {shifts.slice(0, 10).map((shift) => (
                   <tr key={shift.id} className="hover:bg-gray-50 cursor-pointer">
@@ -109,8 +140,13 @@ export default function ManagerDashboard() {
               </tbody>
             </table>
           </div>
+          </>
         ) : (
-          <p>No recent shifts found.</p>
+          <Card className="card-mobile">
+            <CardContent className="pt-6 text-center">
+              <p className="text-muted-foreground">No recent shifts found.</p>
+            </CardContent>
+          </Card>
         )}
       </section>
 

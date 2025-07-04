@@ -34,10 +34,12 @@ import { UserNav } from '@/components/user-nav'
 import { Button } from '@/components/ui/button'
 import { useUser } from '@/hooks/use-user'
 import { AuthGuard } from '@/components/auth-guard'
+import { MobileBottomNav, MobilePageWrapper, useMobileNav } from '@/components/mobile-bottom-nav'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user } = useUser()
+  const { shouldShowBottomNav } = useMobileNav()
 
   const isActive = (path: string) => {
     if (path === '/dashboard') return pathname === path
@@ -141,18 +143,36 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </Sidebar>
       
       <div className="flex flex-1 flex-col">
-         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 sm:px-6">
-          <SidebarTrigger className="md:hidden">
-            <PanelLeft />
+         {/* Mobile-First Header */}
+         <header className="sticky top-0 z-10 flex h-14 md:h-16 items-center gap-2 md:gap-4 border-b bg-background/95 backdrop-blur-sm px-3 md:px-6">
+          <SidebarTrigger className="md:hidden p-2 -ml-2">
+            <PanelLeft className="h-5 w-5" />
           </SidebarTrigger>
-          <div className="flex-1">
-            {/* Maybe a search bar or page title here later */}
+          <div className="flex-1 min-w-0">
+            {/* Mobile: Show current page title */}
+            <h1 className="text-sm md:text-base font-medium truncate md:hidden">
+              {pathname === '/dashboard' && 'Dashboard'}
+              {pathname.startsWith('/shifts') && 'Shifts'}
+              {pathname.startsWith('/timesheets') && 'Timesheets'}
+              {pathname.startsWith('/users') && 'Users'}
+              {pathname.startsWith('/clients') && 'Clients'}
+              {pathname.startsWith('/jobs') && 'Jobs'}
+            </h1>
           </div>
           <UserNav />
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto bg-muted/40">
-          {children}
+
+        {/* Mobile-First Main Content */}
+        <main className="flex-1 overflow-auto bg-muted/40">
+          <MobilePageWrapper hasBottomNav={shouldShowBottomNav}>
+            <div className="p-3 md:p-6 lg:p-8">
+              {children}
+            </div>
+          </MobilePageWrapper>
         </main>
+
+        {/* Mobile Bottom Navigation */}
+        {shouldShowBottomNav && <MobileBottomNav />}
       </div>
     </SidebarProvider>
     </AuthGuard>
