@@ -124,8 +124,16 @@ export default function ManagerDashboard() {
                 {shifts.slice(0, 10).map((shift) => (
                   <tr key={shift.id} className="hover:bg-gray-50 cursor-pointer">
                     <td className="border border-gray-300 px-4 py-2">{new Date(shift.date).toLocaleDateString()}</td>
-                    <td className="border border-gray-300 px-4 py-2">{shift.jobName}</td>
-                    <td className="border border-gray-300 px-4 py-2">{shift.clientName}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <Link href={`/jobs/${shift.jobId}`} className="text-blue-600 hover:underline">
+                        {shift.jobName}
+                      </Link>
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      <Link href={`/clients/${shift.clientId}`} className="text-blue-600 hover:underline">
+                        {shift.clientName}
+                      </Link>
+                    </td>
                     <td className="border border-gray-300 px-4 py-2">
                       <Badge variant={shift.status === 'Completed' ? 'default' : 'secondary'}>
                         {shift.status}
@@ -151,39 +159,6 @@ export default function ManagerDashboard() {
         )}
       </section>
 
-      <section>
-        <h2 className="text-2xl font-semibold mt-8 mb-4">Recent Clients</h2>
-        {clients.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto border-collapse border border-gray-200">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-4 py-2 text-left">Company Name</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Contact Person</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Email</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clients.slice(0, 10).map((client) => (
-                  <tr key={client.id} className="hover:bg-gray-50 cursor-pointer">
-                    <td className="border border-gray-300 px-4 py-2">{client.companyName || client.name}</td>
-                    <td className="border border-gray-300 px-4 py-2">{client.contactPerson}</td>
-                    <td className="border border-gray-300 px-4 py-2">{client.contactEmail}</td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <Button size="sm" variant="outline" onClick={() => router.push(`/clients/${client.clientCompanyId || client.id}`)}>
-                        View
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p>No recent clients found.</p>
-        )}
-      </section>
     </div>
   );
 }

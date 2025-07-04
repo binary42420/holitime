@@ -29,14 +29,15 @@ export default function ShiftDetailsPage() {
   const [notes, setNotes] = useState("")
   const [isSubmittingNotes, setIsSubmittingNotes] = useState(false)
 
-  // Unwrap params
+  // Unwrap params - fix the "Shift Not Found" issue
   useEffect(() => {
     if (params.id) {
       setShiftId(params.id as string)
     }
   }, [params.id])
 
-  const { data: shiftData, loading: shiftLoading, error: shiftError, refetch } = useShift(shiftId)
+  // Only call useShift when we have a valid shiftId
+  const { data: shiftData, loading: shiftLoading, error: shiftError, refetch } = useShift(shiftId || '')
   
   const shift = shiftData
   
@@ -172,9 +173,9 @@ export default function ShiftDetailsPage() {
   }
 
   // Determine user permissions
-  const canManage = user?.role === 'admin' || user?.role === 'manager' ||
-    (user?.role === 'crew_chief' && shift?.crewChiefId === user?.id)
-  const canEdit = user?.role === 'admin' || user?.role === 'manager'
+  const canManage = user?.role === 'Manager/Admin' ||
+    (user?.role === 'Crew Chief' && shift?.crewChiefId === user?.id)
+  const canEdit = user?.role === 'Manager/Admin'
 
   const handleManagementStatusClick = () => {
     const status = getManagementStatus()
@@ -247,177 +248,224 @@ export default function ShiftDetailsPage() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Mobile-First Header */}
-      <div className="space-y-3">
-        <Button
-          variant="ghost"
-          size="mobile"
-          onClick={() => router.push('/shifts')}
-          className="self-start -ml-2"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Shifts
-        </Button>
+    <div className="min-h-screen bg-background">
+      <div className="space-y-4 md:space-y-6 pb-6">
+        {/* Mobile-First Header */}
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b px-4 sm:px-6 md:px-0 py-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/shifts')}
+            className="mb-3 -ml-2 h-8"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Shifts
+          </Button>
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold font-headline">
-              {shift.jobName} 🏗️
-            </h1>
-            <p className="text-sm md:text-base text-muted-foreground">
-              {new Date(shift.date).toLocaleDateString()} • {shift.startTime} - {shift.endTime}
-            </p>
-          </div>
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
-            {getStatusBadge(shift.status)}
-            {getStaffingStatus()}
-            <Badge
-              variant={getManagementStatus().variant}
-              className={getManagementStatus().clickable ? "cursor-pointer hover:bg-primary/80" : ""}
-              onClick={getManagementStatus().clickable ? handleManagementStatusClick : undefined}
-            >
-              {getManagementStatus().label}
-            </Badge>
+          <div className="flex flex-col gap-3">
+            <div>
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold font-headline leading-tight">
+                {shift.jobName} 🏗️
+              </h1>
+              <p className="text-sm md:text-base text-muted-foreground mt-1">
+                {new Date(shift.date).toLocaleDateString()} • {shift.startTime} - {shift.endTime}
+              </p>
+            </div>
+            
+            {/* Mobile Badge Stack */}
+            <div className="flex flex-wrap gap-2">
+              {getStatusBadge(shift.status)}
+              {getStaffingStatus()}
+              <Badge
+                variant={getManagementStatus().variant}
+                className={`text-xs ${getManagementStatus().clickable ? "cursor-pointer hover:bg-primary/80 active:scale-95 transition-transform" : ""}`}
+                onClick={getManagementStatus().clickable ? handleManagementStatusClick : undefined}
+              >
+                {getManagementStatus().label}
+              </Badge>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Mobile-First Shift Details */}
-      <Card className="card-mobile">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Briefcase className="h-5 w-5 text-blue-600" />
-            Shift Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm">
-                <Building2 className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Client:</span>
-                <span>{shift.clientName}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Location:</span>
-                <span>{shift.location}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Date:</span>
-                <span>{new Date(shift.date).toLocaleDateString()}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Time:</span>
-                <span>{shift.startTime} - {shift.endTime}</span>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Workers Needed:</span>
-                <span>{shift.requestedWorkers}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">Assigned:</span>
-                <span>{assignedPersonnel.length}</span>
-              </div>
-              {shift.description && (
-                <div className="space-y-1">
-                  <span className="font-medium text-sm">Description:</span>
-                  <p className="text-sm text-muted-foreground">{shift.description}</p>
+        {/* Mobile-First Shift Details */}
+        <div className="px-4 sm:px-6 md:px-0">
+          <Card className="shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Briefcase className="h-5 w-5 text-blue-600" />
+                Shift Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Mobile-optimized info grid */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <Building2 className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-medium text-sm block">Client</span>
+                        <span className="text-sm text-foreground break-words">{shift.clientName}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-medium text-sm block">Location</span>
+                        <span className="text-sm text-foreground break-words">{shift.location}</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <Calendar className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-medium text-sm block">Date</span>
+                        <span className="text-sm text-foreground">{new Date(shift.date).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30">
+                      <Clock className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="font-medium text-sm block">Time</span>
+                        <span className="text-sm text-foreground">{shift.startTime} - {shift.endTime}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
+                
+                {/* Staffing info - full width on mobile */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                    <Users className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                    <div>
+                      <span className="font-medium text-sm block text-blue-900 dark:text-blue-100">Needed</span>
+                      <span className="text-lg font-bold text-blue-600">{shift.requestedWorkers}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-green-50 dark:bg-green-950/20">
+                    <Users className="h-4 w-4 text-green-600 flex-shrink-0" />
+                    <div>
+                      <span className="font-medium text-sm block text-green-900 dark:text-green-100">Assigned</span>
+                      <span className="text-lg font-bold text-green-600">{assignedPersonnel.length}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {shift.description && (
+                  <div className="p-3 rounded-lg bg-muted/30">
+                    <span className="font-medium text-sm block mb-2">Description</span>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{shift.description}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* TIME TRACKING FUNCTIONALITY - CORE FEATURE */}
+        {canManage && (
+          <div className="px-4 sm:px-6 md:px-0">
+            <ShiftTimeManagement
+              shiftId={shiftId}
+              assignedPersonnel={assignedPersonnel}
+              canManage={canManage}
+              onUpdate={handleRefresh}
+            />
           </div>
-        </CardContent>
-      </Card>
+        )}
 
-      {/* TIME TRACKING FUNCTIONALITY - CORE FEATURE */}
-      {canManage && (
-        <ShiftTimeManagement
-          shiftId={shiftId}
-          assignedPersonnel={assignedPersonnel}
-          canManage={canManage}
-          onUpdate={handleRefresh}
-        />
-      )}
+        {/* Shift Notes */}
+        {canEdit && (
+          <div className="px-4 sm:px-6 md:px-0">
+            <Card className="shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Briefcase className="h-5 w-5 text-orange-600" />
+                  Shift Notes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Textarea
+                    placeholder="Add notes about this shift..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    className="min-h-[120px] text-base resize-none"
+                  />
+                  <Button
+                    onClick={handleNotesSubmit}
+                    disabled={isSubmittingNotes}
+                    className="w-full sm:w-auto h-11"
+                  >
+                    {isSubmittingNotes ? 'Saving...' : 'Save Notes'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-      {/* Shift Notes */}
-      {canEdit && (
-        <Card className="card-mobile">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Briefcase className="h-5 w-5 text-orange-600" />
-              Shift Notes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Textarea
-                placeholder="Add notes about this shift..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="min-h-[100px]"
-              />
-              <Button
-                onClick={handleNotesSubmit}
-                disabled={isSubmittingNotes}
-                size="mobile"
-                className="w-full md:w-auto"
-              >
-                {isSubmittingNotes ? 'Saving...' : 'Save Notes'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        {/* Timesheet Management */}
+        {timesheetId && (
+          <div className="px-4 sm:px-6 md:px-0">
+            <Card className="shadow-sm">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Clock className="h-5 w-5 text-green-600" />
+                  Timesheet Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button variant="outline" className="h-11 justify-start" asChild>
+                    <Link href={`/timesheets/${timesheetId}`}>
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      View Timesheet
+                    </Link>
+                  </Button>
+                  {canEdit && (
+                    <Button variant="outline" className="h-11 justify-start" asChild>
+                      <Link href={generateShiftEditUrl(shiftId)}>
+                        <Briefcase className="mr-2 h-4 w-4" />
+                        Edit Shift
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-      {/* Timesheet Management */}
-      {timesheetId && (
-        <Card className="card-mobile">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Clock className="h-5 w-5 text-green-600" />
-              Timesheet Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col md:flex-row gap-3">
-              <Button size="mobile" variant="outline" className="flex-1" asChild>
-                <Link href={`/timesheets/${timesheetId}`}>
-                  View Timesheet
-                </Link>
-              </Button>
-              {canEdit && (
-                <Button size="mobile" variant="outline" className="flex-1" asChild>
-                  <Link href={generateShiftEditUrl(shiftId)}>
-                    Edit Shift
-                  </Link>
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        {/* Crew Chief Permissions */}
+        {canEdit && (
+          <div className="px-4 sm:px-6 md:px-0">
+            <CrewChiefPermissionManager 
+              targetId={shiftId}
+              targetType="shift"
+              targetName={shift.jobName}
+            />
+          </div>
+        )}
 
-      {/* Crew Chief Permissions */}
-      {canEdit && (
-        <CrewChiefPermissionManager shiftId={shiftId} />
-      )}
-
-      {/* Admin Danger Zone */}
-      {canEdit && (
-        <DangerZone
-          shiftId={shiftId}
-          onShiftDeleted={() => router.push('/shifts')}
-        />
-      )}
-
+        {/* Admin Danger Zone */}
+        {canEdit && (
+          <div className="px-4 sm:px-6 md:px-0">
+            <DangerZone
+              entityType="shift"
+              entityId={shiftId}
+              entityName={shift.jobName}
+              onSuccess={() => router.push('/shifts')}
+              redirectTo="/shifts"
+            />
+          </div>
+        )}
+      </div>
     </div>
   )
 }

@@ -43,6 +43,13 @@ export async function POST(
       WHERE id = $2
     `, [now, activeEntry.id]);
 
+    // Update the status of the assigned personnel
+    await query(`
+      UPDATE assigned_personnel
+      SET status = 'clocked_out'
+      WHERE id = $1
+    `, [workerId]);
+
       return NextResponse.json({
         success: true,
         message: 'Employee clocked out successfully',

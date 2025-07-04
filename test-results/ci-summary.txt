@@ -1,0 +1,7 @@
+TEST_STATUS=FAIL
+TEST_TOTAL=undefined
+TEST_PASSED=undefined
+TEST_FAILED=undefined
+TEST_SKIPPED=17
+TEST_SUCCESS_RATE=NaN%
+TEST_MESSAGE=undefined test(s) failed

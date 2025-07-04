@@ -125,9 +125,10 @@ export interface Employee {
   avatar: string;
 }
 
+export type RoleCode = 'CC' | 'SH' | 'FO' | 'RFO' | 'RG' | 'GL';
+
 export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended' | 'no_show' | 'not_started';
 
-// Document Management Types
 export type DocumentStatus = 'pending_review' | 'approved' | 'rejected' | 'expired';
 
 export interface DocumentType {
@@ -169,7 +170,10 @@ export interface DocumentUpload {
   expirationDate?: string;
 }
 
-export type RoleCode = 'CC' | 'SH' | 'FO' | 'RFO' | 'RG' | 'GL';
+export interface WorkerRequirement {
+  roleCode: RoleCode;
+  requiredCount: number;
+}
 
 export interface AssignedPersonnel {
   employee: Employee;
@@ -182,17 +186,13 @@ export interface AssignedPersonnel {
 
 export type TimesheetStatus = 'Pending Finalization' | 'Awaiting Client Approval' | 'Awaiting Manager Approval' | 'Approved' | 'Rejected';
 
-export interface WorkerRequirement {
-  roleCode: RoleCode;
-  requiredCount: number;
-}
-
 export interface Shift {
   id: string;
   timesheetId: string;
   jobId: string;
   jobName?: string;
   clientName?: string;
+  clientLogoUrl?: string | null;
   authorizedCrewChiefIds: string[];
   date: string;
   startTime: string;
@@ -218,8 +218,6 @@ export interface Announcement {
   date: string;
 }
 
-export type DocumentStatus = 'Pending Submission' | 'Submitted' | 'Approved' | 'Rejected';
-
 export interface AppDocument {
   id: string;
   name: string;
@@ -240,3 +238,4 @@ export interface Timesheet {
     approvedByClientAt?: string;
     approvedByManagerAt?: string;
 }
+</create_file>

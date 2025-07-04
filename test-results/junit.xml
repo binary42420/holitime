@@ -1,0 +1,2328 @@
+<testsuites id="" name="" tests="19" failures="19" skipped="0" errors="0" time="906.961626">
+<testsuite name="workforce-management.spec.ts" timestamp="2025-07-04T22:14:22.429Z" hostname="chromium" tests="19" failures="19" skipped="0" time="679.949" errors="0">
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 1: User Management System › should navigate to Users page and verify renamed navigation" classname="workforce-management.spec.ts" time="62.759">
+<failure message="workforce-management.spec.ts:120:9 should navigate to Users page and verify renamed navigation" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:120:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 1: User Management System › should navigate to Users page and verify renamed navigation 
+
+    TimeoutError: page.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="email-input"]')
+
+
+      31 |     const user = TEST_CONFIG.users[userType];
+      32 |     await page.goto('/login');
+    > 33 |     await page.fill('[data-testid="email-input"]', user.email);
+         |                ^
+      34 |     await page.fill('[data-testid="password-input"]', user.password);
+      35 |     await page.click('[data-testid="login-button"]');
+      36 |     await page.waitForURL('/dashboard', { timeout: 10000 });
+        at Function.login (C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:33:16)
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:123:9
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.fill: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="email-input"]')
+
+
+      31 |     const user = TEST_CONFIG.users[userType];
+      32 |     await page.goto('/login');
+    > 33 |     await page.fill('[data-testid="email-input"]', user.email);
+         |                ^
+      34 |     await page.fill('[data-testid="password-input"]', user.password);
+      35 |     await page.click('[data-testid="login-button"]');
+      36 |     await page.waitForURL('/dashboard', { timeout: 10000 });
+        at Function.login (C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:33:16)
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:123:9
+
+    Error: tracing.stopChunk: ENOENT: no such file or directory, open 'C:\Users\ryley\Music\holitime\test-results\artifacts\.playwright-artifacts-1\traces\e66f06b5726502833831-f4649aaeb1cc273ba5c6-retry1-recording1.trace'
+
+    Error: tracing.stopChunk: ENOENT: no such file or directory, open 'C:\Users\ryley\Music\holitime\test-results\artifacts\.playwright-artifacts-1\traces\e66f06b5726502833831-f4649aaeb1cc273ba5c6-retry1-recording1.trace'
+
+      113 |   test.afterAll(async () => {
+      114 |     await generateTestReport();
+    > 115 |     await context.close();
+          |                   ^
+      116 |   });
+      117 |
+      118 |   // PRIORITY 1: User Management System Testing
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:115:19
+
+    Error: ENOENT: no such file or directory, open 'C:\Users\ryley\Music\holitime\test-results\artifacts\.playwright-artifacts-1\a4771926b20747a740ab4437df15f725.zip'
+
+    Test timeout of 60000ms exceeded.
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium-retry1\error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+User Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium\error-context.md]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+User Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-8f768-d-verify-renamed-navigation-chromium-retry1\error-context.md]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 1: User Management System › should test user filtering system" classname="workforce-management.spec.ts" time="65.685">
+<failure message="workforce-management.spec.ts:156:9 should test user filtering system" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:156:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 1: User Management System › should test user filtering system 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="filter-all"]')
+
+
+      169 |
+      170 |         for (const filter of filterTabs) {
+    > 171 |           await adminPage.click(`[data-testid="filter-${filter.tab}"]`);
+          |                           ^
+      172 |           await expect(adminPage.locator(`[data-testid="filter-${filter.tab}"]`)).toHaveClass(/active/);
+      173 |           
+      174 |           // Verify user count is displayed
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:171:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="filter-all"]')
+
+
+      169 |
+      170 |         for (const filter of filterTabs) {
+    > 171 |           await adminPage.click(`[data-testid="filter-${filter.tab}"]`);
+          |                           ^
+      172 |           await expect(adminPage.locator(`[data-testid="filter-${filter.tab}"]`)).toHaveClass(/active/);
+      173 |           
+      174 |           // Verify user count is displayed
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:171:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\error-context.md
+
+    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+User Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium\error-context.md]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+User Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\error-context.md]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-fb772--test-user-filtering-system-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 1: User Management System › should create a new user" classname="workforce-management.spec.ts" time="63.025">
+<failure message="workforce-management.spec.ts:198:9 should create a new user" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:198:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 1: User Management System › should create a new user 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="create-user-button"]')
+
+
+      204 |         
+      205 |         // Click create user button
+    > 206 |         await adminPage.click('[data-testid="create-user-button"]');
+          |                         ^
+      207 |         await expect(adminPage.locator('[data-testid="create-user-dialog"]')).toBeVisible();
+      208 |         
+      209 |         // Fill user form
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:206:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="create-user-button"]')
+
+
+      204 |         
+      205 |         // Click create user button
+    > 206 |         await adminPage.click('[data-testid="create-user-button"]');
+          |                         ^
+      207 |         await expect(adminPage.locator('[data-testid="create-user-dialog"]')).toBeVisible();
+      208 |         
+      209 |         // Fill user form
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:206:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\error-context.md
+
+    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+User Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium\error-context.md]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+User Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\error-context.md]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-0a6da-em-should-create-a-new-user-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 1: User Management System › should view individual user profile" classname="workforce-management.spec.ts" time="62.371">
+<failure message="workforce-management.spec.ts:248:9 should view individual user profile" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:248:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 1: User Management System › should view individual user profile 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="user-card"]:first-child')
+
+
+      252 |         
+      253 |         // Click on first user card
+    > 254 |         await adminPage.click('[data-testid="user-card"]:first-child');
+          |                         ^
+      255 |         
+      256 |         // Verify profile page elements
+      257 |         await expect(adminPage.locator('[data-testid="user-profile-header"]')).toBeVisible();
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:254:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="user-card"]:first-child')
+
+
+      252 |         
+      253 |         // Click on first user card
+    > 254 |         await adminPage.click('[data-testid="user-card"]:first-child');
+          |                         ^
+      255 |         
+      256 |         // Verify profile page elements
+      257 |         await expect(adminPage.locator('[data-testid="user-profile-header"]')).toBeVisible();
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:254:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\error-context.md
+
+    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+User Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium\error-context.md]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+User Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\error-context.md]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-64533-iew-individual-user-profile-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 1: User Management System › should send password reset email" classname="workforce-management.spec.ts" time="62.474">
+<failure message="workforce-management.spec.ts:288:9 should send password reset email" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:288:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 1: User Management System › should send password reset email 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="user-card"]:first-child')
+
+
+      291 |         // Navigate to user profile
+      292 |         await adminPage.goto('/users');
+    > 293 |         await adminPage.click('[data-testid="user-card"]:first-child');
+          |                         ^
+      294 |         
+      295 |         // Open actions dropdown and send password reset
+      296 |         await adminPage.click('[data-testid="user-actions-dropdown"]');
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:293:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="user-card"]:first-child')
+
+
+      291 |         // Navigate to user profile
+      292 |         await adminPage.goto('/users');
+    > 293 |         await adminPage.click('[data-testid="user-card"]:first-child');
+          |                         ^
+      294 |         
+      295 |         // Open actions dropdown and send password reset
+      296 |         await adminPage.click('[data-testid="user-actions-dropdown"]');
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:293:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\error-context.md
+
+    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+User Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium\error-context.md]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+User Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\error-context.md]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-323c4-d-send-password-reset-email-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 2: Shift Management System › should test shift filtering with persistent state" classname="workforce-management.spec.ts" time="62.588">
+<failure message="workforce-management.spec.ts:329:9 should test shift filtering with persistent state" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:329:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 2: Shift Management System › should test shift filtering with persistent state 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="filter-today"]')
+
+
+      333 |         
+      334 |         // Test date filters
+    > 335 |         await adminPage.click('[data-testid="filter-today"]');
+          |                         ^
+      336 |         await adminPage.reload();
+      337 |         await expect(adminPage.locator('[data-testid="filter-today"]')).toHaveClass(/active/);
+      338 |         
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:335:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="filter-today"]')
+
+
+      333 |         
+      334 |         // Test date filters
+    > 335 |         await adminPage.click('[data-testid="filter-today"]');
+          |                         ^
+      336 |         await adminPage.reload();
+      337 |         await expect(adminPage.locator('[data-testid="filter-today"]')).toHaveClass(/active/);
+      338 |         
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:335:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\error-context.md
+
+    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Shift Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium\error-context.md]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Shift Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\error-context.md]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b1ab4-ering-with-persistent-state-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 2: Shift Management System › should test Clock Out All Employees functionality" classname="workforce-management.spec.ts" time="96.357">
+<failure message="workforce-management.spec.ts:373:9 should test Clock Out All Employees functionality" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:373:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 2: Shift Management System › should test Clock Out All Employees functionality 
+
+    Test timeout of 60000ms exceeded.
+
+    Error: page.screenshot: Target page, context or browser has been closed
+    Call log:
+      - taking page screenshot
+      - waiting for fonts to load...
+      - fonts loaded
+
+
+      45 |   static async takeScreenshot(page: Page, name: string): Promise<string> {
+      46 |     const screenshot = `screenshots/${name}-${Date.now()}.png`;
+    > 47 |     await page.screenshot({ path: screenshot, fullPage: true });
+         |                ^
+      48 |     return screenshot;
+      49 |   }
+      50 |
+        at Function.takeScreenshot (C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:47:16)
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:400:46
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="shift-row"]:first-child')
+
+
+      376 |         // Navigate to a shift with assigned workers
+      377 |         await adminPage.goto('/shifts');
+    > 378 |         await adminPage.click('[data-testid="shift-row"]:first-child');
+          |                         ^
+      379 |         
+      380 |         // Verify Clock Out All button is visible
+      381 |         await expect(adminPage.locator('[data-testid="clock-out-all-button"]')).toBeVisible();
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:378:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\error-context.md
+
+    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 0
+Passed: 0
+Failed: 0
+Skipped: 0
+Success Rate: NaN%
+
+=== RESULTS BY FEATURE ===
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium\test-failed-4.png]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Shift Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\error-context.md]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-3cf79-All-Employees-functionality-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 2: Shift Management System › should test No Show marking with 30-minute rule" classname="workforce-management.spec.ts" time="62.243">
+<failure message="workforce-management.spec.ts:413:9 should test No Show marking with 30-minute rule" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:413:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 2: Shift Management System › should test No Show marking with 30-minute rule 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="shift-row"]:first-child')
+
+
+      416 |         // Navigate to shift details
+      417 |         await adminPage.goto('/shifts');
+    > 418 |         await adminPage.click('[data-testid="shift-row"]:first-child');
+          |                         ^
+      419 |         
+      420 |         // Find assigned worker and try to mark as no-show
+      421 |         await adminPage.click('[data-testid="worker-no-show-button"]:first-child');
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:418:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="shift-row"]:first-child')
+
+
+      416 |         // Navigate to shift details
+      417 |         await adminPage.goto('/shifts');
+    > 418 |         await adminPage.click('[data-testid="shift-row"]:first-child');
+          |                         ^
+      419 |         
+      420 |         // Find assigned worker and try to mark as no-show
+      421 |         await adminPage.click('[data-testid="worker-no-show-button"]:first-child');
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:418:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\error-context.md
+
+    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Shift Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium\error-context.md]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Shift Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\error-context.md]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-751c3-marking-with-30-minute-rule-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 3: Client Management System › should test fixed client actions dropdown menu" classname="workforce-management.spec.ts" time="69.327">
+<failure message="workforce-management.spec.ts:453:9 should test fixed client actions dropdown menu" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:453:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 3: Client Management System › should test fixed client actions dropdown menu 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="client-actions-dropdown"]:first-child')
+        3 × waiting for" http://localhost:3000/login" navigation to finish...
+          - navigated to "http://localhost:3000/login"
+
+
+      457 |
+      458 |         // Click on client actions dropdown
+    > 459 |         await adminPage.click('[data-testid="client-actions-dropdown"]:first-child');
+          |                         ^
+      460 |
+      461 |         // Verify all actions are present
+      462 |         await expect(adminPage.locator('[data-testid="view-client-details"]')).toBeVisible();
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:459:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="client-actions-dropdown"]:first-child')
+
+
+      457 |
+      458 |         // Click on client actions dropdown
+    > 459 |         await adminPage.click('[data-testid="client-actions-dropdown"]:first-child');
+          |                         ^
+      460 |
+      461 |         // Verify all actions are present
+      462 |         await expect(adminPage.locator('[data-testid="view-client-details"]')).toBeVisible();
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:459:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\error-context.md
+
+    attachment #6: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Client Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium\error-context.md]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Client Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\error-context.md]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-99823-lient-actions-dropdown-menu-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 3: Client Management System › should test Create Job for Client action" classname="workforce-management.spec.ts" time="35.261">
+<failure message="workforce-management.spec.ts:490:9 should test Create Job for Client action" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:490:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 3: Client Management System › should test Create Job for Client action 
+
+    TimeoutError: page.click: Timeout 30000ms exceeded.
+    Call log:
+      - waiting for locator('[data-testid="client-actions-dropdown"]:first-child')
+        - waiting for" http://localhost:3000/login" navigation to finish...
+        - navigated to "http://localhost:3000/login"
+
+
+      494 |
+      495 |         // Click client actions and create job
+    > 496 |         await adminPage.click('[data-testid="client-actions-dropdown"]:first-child');
+          |                         ^
+      497 |         await adminPage.click('[data-testid="create-job-for-client"]');
+      498 |
+      499 |         // Verify navigation to job creation with client pre-selected
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:496:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ..\..\test-results\artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium\error-context.md
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/clients
+    Call log:
+      - navigating to "http://localhost:3000/clients", waiting until "load"
+
+
+      491 |       const startTime = Date.now();
+      492 |       try {
+    > 493 |         await adminPage.goto('/clients');
+          |                         ^
+      494 |
+      495 |         // Click client actions and create job
+      496 |         await adminPage.click('[data-testid="client-actions-dropdown"]:first-child');
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:493:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Client Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium\error-context.md]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Client Management: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-1e7f0-reate-Job-for-Client-action-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 4: Email Notification System › should send assignment reminder email" classname="workforce-management.spec.ts" time="5.907">
+<failure message="workforce-management.spec.ts:526:9 should send assignment reminder email" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:526:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 4: Email Notification System › should send assignment reminder email 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/users
+    Call log:
+      - navigating to "http://localhost:3000/users", waiting until "load"
+
+
+      528 |       try {
+      529 |         // Navigate to user profile
+    > 530 |         await adminPage.goto('/users');
+          |                         ^
+      531 |         await adminPage.click('[data-testid="user-card"]:first-child');
+      532 |
+      533 |         // Send assignment reminder
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:530:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/users
+    Call log:
+      - navigating to "http://localhost:3000/users", waiting until "load"
+
+
+      528 |       try {
+      529 |         // Navigate to user profile
+    > 530 |         await adminPage.goto('/users');
+          |                         ^
+      531 |         await adminPage.click('[data-testid="user-card"]:first-child');
+      532 |
+      533 |         // Send assignment reminder
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:530:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Email Notifications: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium\test-failed-2.png]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Email Notifications: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-dd12e-d-assignment-reminder-email-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 4: Email Notification System › should send shift confirmation email" classname="workforce-management.spec.ts" time="5.816">
+<failure message="workforce-management.spec.ts:560:9 should send shift confirmation email" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:560:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 4: Email Notification System › should send shift confirmation email 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/users
+    Call log:
+      - navigating to "http://localhost:3000/users", waiting until "load"
+
+
+      562 |       try {
+      563 |         // Navigate to user profile
+    > 564 |         await adminPage.goto('/users');
+          |                         ^
+      565 |         await adminPage.click('[data-testid="user-card"]:first-child');
+      566 |
+      567 |         // Send shift confirmation
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:564:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/users
+    Call log:
+      - navigating to "http://localhost:3000/users", waiting until "load"
+
+
+      562 |       try {
+      563 |         // Navigate to user profile
+    > 564 |         await adminPage.goto('/users');
+          |                         ^
+      565 |         await adminPage.click('[data-testid="user-card"]:first-child');
+      566 |
+      567 |         // Send shift confirmation
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:564:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Email Notifications: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium\test-failed-2.png]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Email Notifications: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-ae3e3-nd-shift-confirmation-email-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 5: API Endpoint Testing › should test user CRUD operations via API" classname="workforce-management.spec.ts" time="1.443">
+<failure message="workforce-management.spec.ts:597:9 should test user CRUD operations via API" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:597:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 5: API Endpoint Testing › should test user CRUD operations via API 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+      - → POST http://localhost:3000/api/users
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.23 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 183
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:603:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+      - → POST http://localhost:3000/api/users
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.23 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 176
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:603:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+API Endpoints: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium\test-failed-3.png]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+API Endpoints: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-374fe-ser-CRUD-operations-via-API-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 5: API Endpoint Testing › should test authentication and authorization" classname="workforce-management.spec.ts" time="1.402">
+<failure message="workforce-management.spec.ts:643:9 should test authentication and authorization" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:643:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 5: API Endpoint Testing › should test authentication and authorization 
+
+    Error: apiRequestContext.get: connect ECONNREFUSED ::1:3000
+    Call log:
+      - → GET http://localhost:3000/api/users
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.23 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - Authorization: Bearer invalid-token
+
+        at apiRequestContext.get: connect ECONNREFUSED ::1:3000
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:647:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.get: connect ECONNREFUSED ::1:3000
+    Call log:
+      - → GET http://localhost:3000/api/users
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.23 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - Authorization: Bearer invalid-token
+
+        at apiRequestContext.get: connect ECONNREFUSED ::1:3000
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:647:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+API Endpoints: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium\test-failed-2.png]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+API Endpoints: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-b5a2a-ntication-and-authorization-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 5: API Endpoint Testing › should test shift management APIs" classname="workforce-management.spec.ts" time="1.38">
+<failure message="workforce-management.spec.ts:675:9 should test shift management APIs" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:675:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 5: API Endpoint Testing › should test shift management APIs 
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+      - → POST http://localhost:3000/api/shifts
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.23 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 188
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:681:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: apiRequestContext.post: connect ECONNREFUSED ::1:3000
+    Call log:
+      - → POST http://localhost:3000/api/shifts
+        - user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.23 Safari/537.36
+        - accept: */*
+        - accept-encoding: gzip,deflate,br
+        - content-type: application/json
+        - content-length: 197
+
+        at apiRequestContext.post: connect ECONNREFUSED ::1:3000
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:681:56
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+API Endpoints: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium\test-failed-3.png]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+API Endpoints: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-d812d--test-shift-management-APIs-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 6: Mobile Responsiveness › should test mobile layout on different screen sizes" classname="workforce-management.spec.ts" time="5.334">
+<failure message="workforce-management.spec.ts:714:9 should test mobile layout on different screen sizes" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:714:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 6: Mobile Responsiveness › should test mobile layout on different screen sizes 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/users
+    Call log:
+      - navigating to "http://localhost:3000/users", waiting until "load"
+
+
+      723 |         for (const viewport of viewports) {
+      724 |           await adminPage.setViewportSize(viewport);
+    > 725 |           await adminPage.goto('/users');
+          |                           ^
+      726 |
+      727 |           // Verify responsive elements
+      728 |           if (viewport.width < 768) {
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:725:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/users
+    Call log:
+      - navigating to "http://localhost:3000/users", waiting until "load"
+
+
+      723 |         for (const viewport of viewports) {
+      724 |           await adminPage.setViewportSize(viewport);
+    > 725 |           await adminPage.goto('/users');
+          |                           ^
+      726 |
+      727 |           // Verify responsive elements
+      728 |           if (viewport.width < 768) {
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:725:27
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Mobile Responsiveness: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium\test-failed-3.png]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Mobile Responsiveness: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-50721-t-on-different-screen-sizes-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 6: Mobile Responsiveness › should test touch-friendly interface elements" classname="workforce-management.spec.ts" time="5.318">
+<failure message="workforce-management.spec.ts:766:9 should test touch-friendly interface elements" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:766:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 6: Mobile Responsiveness › should test touch-friendly interface elements 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/shifts
+    Call log:
+      - navigating to "http://localhost:3000/shifts", waiting until "load"
+
+
+      769 |         // Set mobile viewport
+      770 |         await adminPage.setViewportSize({ width: 375, height: 667 });
+    > 771 |         await adminPage.goto('/shifts');
+          |                         ^
+      772 |
+      773 |         // Test touch targets are large enough (minimum 44px)
+      774 |         const buttons = await adminPage.locator('button').all();
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:771:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/shifts
+    Call log:
+      - navigating to "http://localhost:3000/shifts", waiting until "load"
+
+
+      769 |         // Set mobile viewport
+      770 |         await adminPage.setViewportSize({ width: 375, height: 667 });
+    > 771 |         await adminPage.goto('/shifts');
+          |                         ^
+      772 |
+      773 |         // Test touch targets are large enough (minimum 44px)
+      774 |         const buttons = await adminPage.locator('button').all();
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:771:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Mobile Responsiveness: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium\test-failed-1.png]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Mobile Responsiveness: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-94bf9-friendly-interface-elements-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 7: Accessibility Testing › should test keyboard navigation" classname="workforce-management.spec.ts" time="5.457">
+<failure message="workforce-management.spec.ts:806:9 should test keyboard navigation" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:806:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 7: Accessibility Testing › should test keyboard navigation 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/users
+    Call log:
+      - navigating to "http://localhost:3000/users", waiting until "load"
+
+
+      807 |       const startTime = Date.now();
+      808 |       try {
+    > 809 |         await adminPage.goto('/users');
+          |                         ^
+      810 |
+      811 |         // Test tab navigation
+      812 |         await adminPage.keyboard.press('Tab');
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:809:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/users
+    Call log:
+      - navigating to "http://localhost:3000/users", waiting until "load"
+
+
+      807 |       const startTime = Date.now();
+      808 |       try {
+    > 809 |         await adminPage.goto('/users');
+          |                         ^
+      810 |
+      811 |         // Test tab navigation
+      812 |         await adminPage.keyboard.press('Tab');
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:809:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Accessibility: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium\test-failed-4.png]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Accessibility: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-83358-ld-test-keyboard-navigation-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+<testcase name="Workforce Management Platform - Comprehensive E2E Tests › Priority 7: Accessibility Testing › should test ARIA labels and screen reader support" classname="workforce-management.spec.ts" time="5.802">
+<failure message="workforce-management.spec.ts:841:9 should test ARIA labels and screen reader support" type="FAILURE">
+<![CDATA[  [chromium] › workforce-management.spec.ts:841:9 › Workforce Management Platform - Comprehensive E2E Tests › Priority 7: Accessibility Testing › should test ARIA labels and screen reader support 
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/users
+    Call log:
+      - navigating to "http://localhost:3000/users", waiting until "load"
+
+
+      842 |       const startTime = Date.now();
+      843 |       try {
+    > 844 |         await adminPage.goto('/users');
+          |                         ^
+      845 |
+      846 |         // Check for ARIA labels on interactive elements
+      847 |         const buttons = await adminPage.locator('button[aria-label]').count();
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:844:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Retry #1 ───────────────────────────────────────────────────────────────────────────────────────
+
+    Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:3000/users
+    Call log:
+      - navigating to "http://localhost:3000/users", waiting until "load"
+
+
+      842 |       const startTime = Date.now();
+      843 |       try {
+    > 844 |         await adminPage.goto('/users');
+          |                         ^
+      845 |
+      846 |         // Check for ARIA labels on interactive elements
+      847 |         const buttons = await adminPage.locator('button[aria-label]').count();
+        at C:\Users\ryley\Music\holitime\tests\e2e\workforce-management.spec.ts:844:25
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\test-failed-3.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #3: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #4: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\test-failed-4.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #5: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+]]>
+</failure>
+<system-out>
+<![CDATA[Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Accessibility: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium\test-failed-4.png]]
+Setting up test data...
+
+=== WORKFORCE MANAGEMENT PLATFORM TEST REPORT ===
+Total Tests: 1
+Passed: 0
+Failed: 1
+Skipped: 0
+Success Rate: 0.00%
+
+=== RESULTS BY FEATURE ===
+Accessibility: 0/1 (0.0%)
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\test-failed-1.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\test-failed-3.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\test-failed-2.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\test-failed-4.png]]
+
+[[ATTACHMENT|artifacts\workforce-management-Workf-9c374-s-and-screen-reader-support-chromium-retry1\trace.zip]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { 
   Clock, 
   Play, 
@@ -15,7 +16,7 @@ import {
   CheckCircle, 
   AlertCircle,
   Users,
-  Save
+  ChevronDown
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -45,7 +46,7 @@ interface AssignedWorker {
   employeeAvatar: string
   roleOnShift: string
   roleCode: string
-  status: 'not_started' | 'clocked_in' | 'clocked_out' | 'shift_ended'
+  status: 'not_started' | 'clocked_in' | 'clocked_out' | 'shift_ended' | 'no_show'
   timeEntries: TimeEntry[]
 }
 
@@ -100,6 +101,7 @@ export default function ShiftTimeManagement({
 
   const handleClockIn = async (workerId: string) => {
     setLoading(true)
+    const worker = workers.find(w => w.id === workerId);
     try {
       const response = await fetch(`/api/shifts/${shiftId}/clock-in`, {
         method: 'POST',
@@ -110,7 +112,7 @@ export default function ShiftTimeManagement({
       if (response.ok) {
         toast({
           title: "Clocked In",
-          description: "Employee has been clocked in successfully.",
+          description: `${worker?.employeeName} has been clocked in at ${format(new Date(), "p")}.`,
         })
         onUpdate()
       } else {
@@ -129,6 +131,7 @@ export default function ShiftTimeManagement({
 
   const handleClockOut = async (workerId: string) => {
     setLoading(true)
+    const worker = workers.find(w => w.id === workerId);
     try {
       const response = await fetch(`/api/shifts/${shiftId}/clock-out`, {
         method: 'POST',
@@ -139,7 +142,7 @@ export default function ShiftTimeManagement({
       if (response.ok) {
         toast({
           title: "Clocked Out",
-          description: "Employee has been clocked out successfully.",
+          description: `${worker?.employeeName} has been clocked out at ${format(new Date(), "p")}.`,
         })
         onUpdate()
       } else {
@@ -186,21 +189,15 @@ export default function ShiftTimeManagement({
   }
 
   const handleNoShow = async (workerId: string, employeeName: string) => {
-    console.log('No Show button clicked for:', { workerId, employeeName })
     setLoading(true)
     try {
-      console.log('Making API call to:', `/api/shifts/${shiftId}/no-show`)
       const response = await fetch(`/api/shifts/${shiftId}/no-show`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ workerId }),
       })
 
-      console.log('API response status:', response.status)
-
       if (response.ok) {
-        const result = await response.json()
-        console.log('API response:', result)
         toast({
           title: "Marked as No Show",
           description: `${employeeName} has been marked as no show.`,
@@ -208,11 +205,9 @@ export default function ShiftTimeManagement({
         onUpdate()
       } else {
         const errorData = await response.json()
-        console.error('API error:', errorData)
         throw new Error(errorData.error || 'Failed to mark as no show')
       }
     } catch (error) {
-      console.error('No Show error:', error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to mark as no show.",
@@ -337,6 +332,92 @@ export default function ShiftTimeManagement({
     }
   }
 
+  const renderTimeInputs = (worker: AssignedWorker) => (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-2">
+      {[1, 2, 3].map((entryNum) => {
+        const entry = worker.timeEntries.find(e => e.entryNumber === entryNum)
+        return (
+          <React.Fragment key={entryNum}>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Clock In {entryNum}</label>
+              <Input
+                type="time"
+                value={entry?.clockIn ? format(new Date(entry.clockIn), "HH:mm") : ''}
+                onChange={(e) => {
+                  const today = format(new Date(), "yyyy-MM-dd")
+                  const datetimeValue = e.target.value ? `${today}T${e.target.value}` : ''
+                  updateTimeEntry(worker.id, entryNum, 'clockIn', datetimeValue)
+                }}
+                className="w-full text-sm"
+                disabled={worker.status === 'shift_ended'}
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs text-muted-foreground">Clock Out {entryNum}</label>
+              <Input
+                type="time"
+                value={entry?.clockOut ? format(new Date(entry.clockOut), "HH:mm") : ''}
+                onChange={(e) => {
+                  const today = format(new Date(), "yyyy-MM-dd")
+                  const datetimeValue = e.target.value ? `${today}T${e.target.value}` : ''
+                  updateTimeEntry(worker.id, entryNum, 'clockOut', datetimeValue)
+                }}
+                className="w-full text-sm"
+                disabled={worker.status === 'shift_ended'}
+              />
+            </div>
+          </React.Fragment>
+        )
+      })}
+    </div>
+  )
+
+  const renderActionButtons = (worker: AssignedWorker) => (
+    <div className="flex flex-col gap-2 mt-4">
+      {worker.status === 'not_started' && (
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={loading}
+          className="border-orange-500 text-orange-600 hover:bg-orange-50"
+          onClick={() => {
+            if (window.confirm(`Mark ${worker.employeeName} as no show? This action cannot be undone.`)) {
+              handleNoShow(worker.id, worker.employeeName)
+            }
+          }}
+        >
+          <AlertCircle className="h-4 w-4 mr-2" />
+          Mark as No Show
+        </Button>
+      )}
+      
+      {(worker.status === 'clocked_out' || worker.status === 'clocked_in') && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button size="sm" variant="destructive" disabled={loading}>
+              <CheckCircle className="h-4 w-4 mr-2" />
+              End Shift
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>End Shift for {worker.employeeName}</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will end the shift for this employee and record their final clock out time. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => handleEndShift(worker.id)}>
+                End Shift
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+    </div>
+  )
+
   if (!canManage) {
     return (
       <Card>
@@ -375,7 +456,7 @@ export default function ShiftTimeManagement({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
               <Clock className="h-5 w-5" />
@@ -383,10 +464,10 @@ export default function ShiftTimeManagement({
             </CardTitle>
             <CardDescription>Manage clock in/out times for assigned workers</CardDescription>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" disabled={loading}>
+                <Button variant="outline" size="sm" disabled={loading}>
                   <Square className="h-4 w-4 mr-2" />
                   Clock Out All
                 </Button>
@@ -395,8 +476,7 @@ export default function ShiftTimeManagement({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Clock Out All Workers</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will clock out all currently clocked-in employees without ending their shifts.
-                    Workers can still clock back in if needed.
+                    This will clock out all currently clocked-in employees without ending their shifts. Workers can still clock back in if needed.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -410,7 +490,7 @@ export default function ShiftTimeManagement({
 
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" disabled={loading}>
+                <Button variant="outline" size="sm" disabled={loading}>
                   <CheckCircle className="h-4 w-4 mr-2" />
                   End All Shifts
                 </Button>
@@ -419,8 +499,7 @@ export default function ShiftTimeManagement({
                 <AlertDialogHeader>
                   <AlertDialogTitle>End All Shifts</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will clock out all currently clocked-in employees and end their shifts.
-                    This action cannot be undone.
+                    This will clock out all currently clocked-in employees and end their shifts. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -434,7 +513,7 @@ export default function ShiftTimeManagement({
             
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button disabled={loading}>
+                <Button size="sm" disabled={loading}>
                   Finalize Shift
                 </Button>
               </AlertDialogTrigger>
@@ -442,8 +521,7 @@ export default function ShiftTimeManagement({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Finalize Shift</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will finalize the shift and send it for client approval. 
-                    Make sure all time entries are correct before proceeding.
+                    This will finalize the shift and send it for client approval. Make sure all time entries are correct before proceeding.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -458,18 +536,65 @@ export default function ShiftTimeManagement({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
+        {/* Mobile View: Card-based layout */}
+        <div className="space-y-4 md:hidden">
+          {workers.map((worker) => (
+            <Card key={worker.id} className="overflow-hidden">
+              <CardHeader className="flex flex-row items-center justify-between p-4 bg-muted/30">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={worker.employeeAvatar} />
+                    <AvatarFallback>
+                      {worker.employeeName.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <div className="font-bold">{worker.employeeName}</div>
+                    <div className="text-sm text-muted-foreground">{worker.roleOnShift}</div>
+                  </div>
+                </div>
+                {getStatusBadge(worker.status)}
+              </CardHeader>
+              <CardContent className="p-4 space-y-4">
+                {worker.status !== 'shift_ended' && worker.status !== 'no_show' && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      onClick={() => handleClockIn(worker.id)}
+                      disabled={loading || worker.status === 'clocked_in'}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Play className="h-4 w-4 mr-2" />
+                      Clock In
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleClockOut(worker.id)}
+                      disabled={loading || worker.status !== 'clocked_in'}
+                    >
+                      <Square className="h-4 w-4 mr-2" />
+                      Clock Out
+                    </Button>
+                  </div>
+                )}
+                <div>
+                  {renderTimeInputs(worker)}
+                </div>
+                <div>
+                  {renderActionButtons(worker)}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Desktop View: Table layout */}
+        <div className="hidden md:block overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Employee</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Clock In 1</TableHead>
-                <TableHead>Clock Out 1</TableHead>
-                <TableHead>Clock In 2</TableHead>
-                <TableHead>Clock Out 2</TableHead>
-                <TableHead>Clock In 3</TableHead>
-                <TableHead>Clock Out 3</TableHead>
+                <TableHead>Time Entries</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -495,43 +620,29 @@ export default function ShiftTimeManagement({
                     <Badge variant="secondary">{worker.roleOnShift}</Badge>
                   </TableCell>
                   
-                  {/* Time entry inputs for 3 pairs */}
-                  {[1, 2, 3].map((entryNum) => {
-                    const entry = worker.timeEntries.find(e => e.entryNumber === entryNum)
-                    return (
-                      <React.Fragment key={entryNum}>
-                        <TableCell>
-                          <Input
-                            type="datetime-local"
-                            value={entry?.clockIn ? format(new Date(entry.clockIn), "yyyy-MM-dd'T'HH:mm") : ''}
-                            onChange={(e) => updateTimeEntry(worker.id, entryNum, 'clockIn', e.target.value)}
-                            className="w-40"
-                            disabled={worker.status === 'shift_ended'}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
-                            type="datetime-local"
-                            value={entry?.clockOut ? format(new Date(entry.clockOut), "yyyy-MM-dd'T'HH:mm") : ''}
-                            onChange={(e) => updateTimeEntry(worker.id, entryNum, 'clockOut', e.target.value)}
-                            className="w-40"
-                            disabled={worker.status === 'shift_ended'}
-                          />
-                        </TableCell>
-                      </React.Fragment>
-                    )
-                  })}
+                  <TableCell colSpan={6}>
+                    <Accordion type="single" collapsible className="w-full">
+                      <AccordionItem value="item-1">
+                        <AccordionTrigger className="text-sm">
+                          Manage Time
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          {renderTimeInputs(worker)}
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </TableCell>
                   
                   <TableCell>{getStatusBadge(worker.status)}</TableCell>
                   <TableCell>
-                    <div className="flex gap-1">
-                      {worker.status === 'not_started' && (
+                    <div className="flex flex-col gap-1">
+                      {worker.status !== 'shift_ended' && worker.status !== 'no_show' && (
                         <>
                           <Button
                             size="sm"
                             onClick={() => handleClockIn(worker.id)}
-                            disabled={loading}
-                            className="bg-green-600 hover:bg-green-700"
+                            disabled={loading || worker.status === 'clocked_in'}
+                            className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1"
                           >
                             <Play className="h-3 w-3 mr-1" />
                             Clock In
@@ -539,56 +650,16 @@ export default function ShiftTimeManagement({
                           <Button
                             size="sm"
                             variant="outline"
-                            disabled={loading}
-                            className="border-orange-500 text-orange-600 hover:bg-orange-50"
-                            onClick={() => {
-                              console.log('No Show button clicked for:', worker.employeeName)
-                              if (window.confirm(`Mark ${worker.employeeName} as no show? This action cannot be undone.`)) {
-                                handleNoShow(worker.id, worker.employeeName)
-                              }
-                            }}
+                            onClick={() => handleClockOut(worker.id)}
+                            disabled={loading || worker.status !== 'clocked_in'}
+                            className="text-xs px-2 py-1"
                           >
-                            <AlertCircle className="h-3 w-3 mr-1" />
-                            No Show
+                            <Square className="h-3 w-3 mr-1" />
+                            Clock Out
                           </Button>
                         </>
                       )}
-                      {worker.status === 'clocked_in' && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleClockOut(worker.id)}
-                          disabled={loading}
-                        >
-                          <Square className="h-3 w-3 mr-1" />
-                          Clock Out
-                        </Button>
-                      )}
-                      {(worker.status === 'clocked_out' || worker.status === 'clocked_in') && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="destructive" disabled={loading}>
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              End Shift
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>End Shift for {worker.employeeName}</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will end the shift for this employee and record their final clock out time.
-                                This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleEndShift(worker.id)}>
-                                End Shift
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
+                      {renderActionButtons(worker)}
                     </div>
                   </TableCell>
                 </TableRow>
