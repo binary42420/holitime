@@ -134,7 +134,7 @@ export default function ManagerDashboard() {
                     <td className="border border-gray-300 px-4 py-2">{client.contactPerson}</td>
                     <td className="border border-gray-300 px-4 py-2">{client.contactEmail}</td>
                     <td className="border border-gray-300 px-4 py-2">
-                      <Button size="sm" variant="outline" onClick={() => router.push(`/clients/${client.id}`)}>
+                      <Button size="sm" variant="outline" onClick={() => router.push(`/clients/${client.clientCompanyId || client.id}`)}>
                         View
                       </Button>
                     </td>

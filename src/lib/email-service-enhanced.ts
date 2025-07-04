@@ -1,4 +1,5 @@
-import nodemailer from 'nodemailer'
+import * as nodemailer from 'nodemailer'
+import { google } from 'googleapis'
 import { query } from './db'
 
 export interface EmailRecipient {
@@ -48,45 +49,134 @@ class EnhancedEmailService {
   private isConfigured: boolean = false
 
   constructor() {
-    this.initializeTransporter()
+    this.initializeTransporter().catch(error => {
+      console.error('Email service initialization failed:', error)
+    })
   }
 
-  private initializeTransporter() {
+  private async initializeTransporter() {
     try {
-      const smtpConfig = {
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || '587'),
-        secure: process.env.SMTP_PORT === '465', // true for 465, false for other ports
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-        tls: {
-          rejectUnauthorized: false // For development - should be true in production
-        }
-      }
-
-      if (!smtpConfig.host || !smtpConfig.auth.user || !smtpConfig.auth.pass) {
-        console.warn('SMTP configuration incomplete. Email service will be disabled.')
+      // Try Gmail API with Service Account first (most reliable)
+      if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY) {
+        console.log('🔧 Initializing Gmail API with Service Account...')
+        await this.initializeGmailServiceAccount()
         return
       }
 
-      this.transporter = nodemailer.createTransport(smtpConfig)
-      this.isConfigured = true
+      // Try Gmail OAuth 2.0 method
+      if (process.env.GMAIL_CLIENT_ID && process.env.GMAIL_REFRESH_TOKEN) {
+        console.log('🔧 Initializing Gmail OAuth 2.0...')
+        await this.initializeGmailOAuth()
+        return
+      }
 
-      // Verify connection
-      this.transporter.verify((error, success) => {
-        if (error) {
-          console.error('SMTP connection failed:', error)
-          this.isConfigured = false
-        } else {
-          console.log('✅ SMTP server is ready to send emails')
-        }
-      })
+      // Fallback to SMTP (App Password or regular SMTP)
+      console.log('🔧 Initializing SMTP...')
+      this.initializeSMTP()
     } catch (error) {
       console.error('Failed to initialize email transporter:', error)
       this.isConfigured = false
     }
+  }
+
+  private async initializeGmailServiceAccount() {
+    try {
+      const auth = new google.auth.JWT(
+        process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        undefined,
+        process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY!.replace(/\\n/g, '\n'),
+        ['https://www.googleapis.com/auth/gmail.send'],
+        process.env.GMAIL_USER_EMAIL // Impersonate this user
+      )
+
+      const accessToken = await auth.getAccessToken()
+
+      this.transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          type: 'OAuth2',
+          user: process.env.GMAIL_USER_EMAIL,
+          serviceClient: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+          privateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY!.replace(/\\n/g, '\n'),
+          accessToken: accessToken.token || '',
+        },
+      })
+
+      this.isConfigured = true
+      console.log('✅ Gmail API with Service Account is ready')
+    } catch (error) {
+      console.error('Gmail Service Account setup failed:', error)
+      throw error
+    }
+  }
+
+  private async initializeGmailOAuth() {
+    try {
+      const oauth2Client = new google.auth.OAuth2(
+        process.env.GMAIL_CLIENT_ID,
+        process.env.GMAIL_CLIENT_SECRET,
+        'https://developers.google.com/oauthplayground'
+      )
+
+      oauth2Client.setCredentials({
+        refresh_token: process.env.GMAIL_REFRESH_TOKEN,
+      })
+
+      const accessToken = await oauth2Client.getAccessToken()
+
+      this.transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          type: 'OAuth2',
+          user: process.env.GMAIL_USER_EMAIL,
+          clientId: process.env.GMAIL_CLIENT_ID,
+          clientSecret: process.env.GMAIL_CLIENT_SECRET,
+          refreshToken: process.env.GMAIL_REFRESH_TOKEN,
+          accessToken: accessToken.token || '',
+        },
+      })
+
+      this.isConfigured = true
+      console.log('✅ Gmail OAuth 2.0 is ready')
+    } catch (error) {
+      console.error('Gmail OAuth setup failed:', error)
+      throw error
+    }
+  }
+
+  private initializeSMTP() {
+    const smtpConfig = {
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: process.env.SMTP_PORT === '465',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false // For development - should be true in production
+      }
+    }
+
+    if (!smtpConfig.auth.user || !smtpConfig.auth.pass) {
+      console.warn('SMTP configuration incomplete. Email service will be disabled.')
+      return
+    }
+
+    this.transporter = nodemailer.createTransport(smtpConfig)
+    this.isConfigured = true
+
+    // Verify connection
+    this.transporter.verify((error, success) => {
+      if (error) {
+        console.error('SMTP connection failed:', error)
+        console.log('💡 Tip: For Gmail, use App Passwords instead of regular password')
+        console.log('💡 Or set up Gmail API with Service Account for better reliability')
+        this.isConfigured = false
+      } else {
+        console.log('✅ SMTP server is ready to send emails')
+      }
+    })
   }
 
   async sendEmail(request: SendEmailRequest): Promise<boolean> {

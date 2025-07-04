@@ -72,8 +72,37 @@ export default function ClientReviewPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
 
-  // Fetch timesheet data
-  const { data: timesheetData, loading, refetch } = useApi<TimesheetData>(`/api/timesheets/${timesheetId}`)
+  // Fetch timesheet data with transformation
+  const { data: rawData, loading, refetch } = useApi<{success: boolean, timesheet: any}>(`/api/timesheets/${timesheetId}`)
+
+  // Transform the API response to match the expected structure
+  const timesheetData: TimesheetData | null = rawData?.success && rawData.timesheet ? {
+    id: rawData.timesheet.id,
+    status: rawData.timesheet.status,
+    shift: {
+      id: rawData.timesheet.shift.id,
+      date: rawData.timesheet.shift.date,
+      startTime: rawData.timesheet.shift.startTime,
+      endTime: rawData.timesheet.shift.endTime,
+      location: rawData.timesheet.shift.location,
+      jobName: rawData.timesheet.shift.job.name,
+      clientName: rawData.timesheet.shift.client.name,
+      crewChiefName: rawData.timesheet.shift.crewChief.name,
+    },
+    assignedPersonnel: rawData.timesheet.shift.assignedPersonnel.map((p: any) => ({
+      id: p.id,
+      employeeName: p.employee.name,
+      employeeAvatar: p.employee.avatar,
+      roleOnShift: p.roleOnShift,
+      roleCode: p.roleCode,
+      timeEntries: p.timeEntries.map((te: any) => ({
+        id: te.id,
+        entryNumber: te.entry_number,
+        clockIn: te.clock_in,
+        clockOut: te.clock_out,
+      })),
+    })),
+  } : null
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDrawing(true)

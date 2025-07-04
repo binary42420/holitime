@@ -61,8 +61,41 @@ export default function TimesheetViewPage() {
   const router = useRouter()
   const timesheetId = params.id as string
 
-  // Fetch timesheet data
-  const { data: timesheetData, loading } = useApi<TimesheetData>(`/api/timesheets/${timesheetId}`)
+  // Fetch timesheet data with transformation
+  const { data: rawData, loading } = useApi<{success: boolean, timesheet: any}>(`/api/timesheets/${timesheetId}`)
+
+  // Transform the API response to match the expected structure
+  const timesheetData: TimesheetData | null = rawData?.success && rawData.timesheet ? {
+    id: rawData.timesheet.id,
+    status: rawData.timesheet.status,
+    clientSignature: rawData.timesheet.clientSignature,
+    clientApprovedAt: rawData.timesheet.clientApprovedAt,
+    managerApprovedAt: rawData.timesheet.managerApprovedAt,
+    rejectionReason: rawData.timesheet.rejectionReason,
+    shift: {
+      id: rawData.timesheet.shift.id,
+      date: rawData.timesheet.shift.date,
+      startTime: rawData.timesheet.shift.startTime,
+      endTime: rawData.timesheet.shift.endTime,
+      location: rawData.timesheet.shift.location,
+      jobName: rawData.timesheet.shift.job.name,
+      clientName: rawData.timesheet.shift.client.name,
+      crewChiefName: rawData.timesheet.shift.crewChief.name,
+    },
+    assignedPersonnel: rawData.timesheet.shift.assignedPersonnel.map((p: any) => ({
+      id: p.id,
+      employeeName: p.employee.name,
+      employeeAvatar: p.employee.avatar,
+      roleOnShift: p.roleOnShift,
+      roleCode: p.roleCode,
+      timeEntries: p.timeEntries.map((te: any) => ({
+        id: te.id,
+        entryNumber: te.entry_number,
+        clockIn: te.clock_in,
+        clockOut: te.clock_out,
+      })),
+    })),
+  } : null
 
   const formatTime = (timeString?: string) => {
     if (!timeString) return '-'

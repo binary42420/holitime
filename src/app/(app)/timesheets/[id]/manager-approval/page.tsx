@@ -94,7 +94,20 @@ export default function ManagerApprovalPage() {
       }
 
       const result = await response.json()
-      setData(result)
+
+      // Handle the API response structure
+      if (result.success && result.timesheet) {
+        // Transform the API response to match the expected structure
+        const transformedData = {
+          timesheet: result.timesheet,
+          shift: result.timesheet.shift,
+          client: result.timesheet.shift.client,
+          job: result.timesheet.shift.job
+        }
+        setData(transformedData)
+      } else {
+        throw new Error('Invalid response structure')
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
