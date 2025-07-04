@@ -90,9 +90,10 @@ const SidebarProvider = React.forwardRef<
       setOpen((open) => !open)
     }, [setOpen])
 
-    // Adds a keyboard shortcut to toggle the sidebar.
+    // Adds keyboard shortcuts for the sidebar.
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
+        // Toggle sidebar with Cmd/Ctrl + B
         if (
           event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
           (event.metaKey || event.ctrlKey)
@@ -100,11 +101,17 @@ const SidebarProvider = React.forwardRef<
           event.preventDefault()
           toggleSidebar()
         }
+
+        // Close mobile sidebar with Escape key
+        if (event.key === "Escape" && open && window.innerWidth < 768) {
+          event.preventDefault()
+          setOpen(false)
+        }
       }
 
       window.addEventListener("keydown", handleKeyDown)
       return () => window.removeEventListener("keydown", handleKeyDown)
-    }, [toggleSidebar])
+    }, [toggleSidebar, open, setOpen])
 
     // We add a state so that we can do data-state="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.
@@ -166,7 +173,33 @@ const Sidebar = React.forwardRef<
     },
     ref
   ) => {
-    const { state } = useSidebar()
+    const { state, open, setOpen } = useSidebar()
+
+    // Touch gesture handling for mobile swipe-to-close
+    const [touchStart, setTouchStart] = React.useState<number | null>(null)
+    const [touchEnd, setTouchEnd] = React.useState<number | null>(null)
+
+    const handleTouchStart = (e: React.TouchEvent) => {
+      setTouchEnd(null)
+      setTouchStart(e.targetTouches[0].clientX)
+    }
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+      setTouchEnd(e.targetTouches[0].clientX)
+    }
+
+    const handleTouchEnd = () => {
+      if (!touchStart || !touchEnd) return
+
+      const distance = touchStart - touchEnd
+      const isLeftSwipe = distance > 50
+      const isRightSwipe = distance < -50
+
+      // Close sidebar on left swipe (swipe left to close)
+      if (isLeftSwipe && open) {
+        setOpen(false)
+      }
+    }
 
     if (collapsible === "none") {
       return (
@@ -186,14 +219,70 @@ const Sidebar = React.forwardRef<
 
 
     return (
-      <div
-        ref={ref}
-        className="group peer hidden md:block text-sidebar-foreground"
-        data-state={state}
-        data-collapsible={state === "collapsed" ? collapsible : ""}
-        data-variant={variant}
-        data-side={side}
-      >
+      <>
+        {/* Mobile Sidebar Overlay */}
+        <div
+          className={cn(
+            "fixed inset-0 z-50 bg-black/50 transition-opacity md:hidden",
+            open ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
+          onClick={() => setOpen(false)}
+          aria-hidden="true"
+        />
+
+        {/* Mobile Sidebar */}
+        <div
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 w-[--sidebar-width] bg-sidebar transition-transform duration-300 ease-in-out md:hidden",
+            open ? "translate-x-0" : "-translate-x-full"
+          )}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigation menu"
+          aria-hidden={!open}
+        >
+          <div
+            data-sidebar="sidebar"
+            className="flex h-full w-full flex-col bg-sidebar"
+          >
+            {/* Mobile Close Button */}
+            <div className="flex items-center justify-between p-4 border-b border-sidebar-border md:hidden">
+              <div className="text-sidebar-foreground font-semibold">Menu</div>
+              <button
+                onClick={() => setOpen(false)}
+                className="p-2 rounded-md hover:bg-sidebar-accent text-sidebar-foreground"
+                aria-label="Close menu"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {children}
+          </div>
+        </div>
+
+        {/* Desktop Sidebar */}
+        <div
+          ref={ref}
+          className="group peer hidden md:block text-sidebar-foreground"
+          data-state={state}
+          data-collapsible={state === "collapsed" ? collapsible : ""}
+          data-variant={variant}
+          data-side={side}
+        >
         {/* This is what handles the sidebar gap on desktop */}
         <div
           className={cn(
@@ -525,24 +614,57 @@ const SidebarMenuButton = React.forwardRef<
       className,
       href,
       children,
+      onClick,
       ...props
     },
     ref
   ) => {
-    const { state } = useSidebar()
+    const { state, setOpen } = useSidebar()
+
+    // Close mobile sidebar on navigation
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (onClick) {
+        onClick(e)
+      }
+      // Close sidebar on mobile when navigating
+      if (window.innerWidth < 768) {
+        setOpen(false)
+      }
+    }
 
     const isLink = !!href
     const Comp = asChild ? Slot : isLink ? Link : "button"
 
-    const button = (
+    const button = isLink ? (
       <Comp
         ref={ref}
         data-sidebar="menu-button"
         data-size={size}
         data-active={isActive}
         className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        onClick={(e: React.MouseEvent) => {
+          // Close mobile sidebar on link navigation
+          if (window.innerWidth < 768) {
+            setOpen(false)
+          }
+          if (onClick) {
+            onClick(e as any)
+          }
+        }}
         {...(props as any)}
-        {...(isLink && { href })}
+        href={href}
+      >
+        {children}
+      </Comp>
+    ) : (
+      <Comp
+        ref={ref}
+        data-sidebar="menu-button"
+        data-size={size}
+        data-active={isActive}
+        className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+        onClick={handleClick}
+        {...(props as any)}
       >
         {children}
       </Comp>
