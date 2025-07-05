@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
-import { google } from 'googleapis'
-import { format, parseISO } from 'date-fns'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import { google } from "googleapis"
+import { format, parseISO } from "date-fns"
 
 // Helper function to convert column number to Excel-style letter
 function numberToColumnLetter(num: number): string {
-  let result = ''
+  let result = ""
   while (num > 0) {
     num--
     result = String.fromCharCode(65 + (num % 26)) + result
@@ -39,16 +39,16 @@ function calculateTotalHours(timeEntries: any[]): string {
   
   const hours = Math.floor(totalMinutes / 60)
   const minutes = totalMinutes % 60
-  return `${hours}:${minutes.toString().padStart(2, '0')}`
+  return `${hours}:${minutes.toString().padStart(2, "0")}`
 }
 
 // Helper function to format time for display
 function formatTime(dateString: string | null): string {
-  if (!dateString) return ''
+  if (!dateString) return ""
   try {
-    return format(parseISO(dateString), 'h:mm a')
+    return format(parseISO(dateString), "h:mm a")
   } catch {
-    return ''
+    return ""
   }
 }
 
@@ -60,15 +60,15 @@ export async function POST(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers and crew chiefs can export timesheets
-    if (user.role !== 'Manager/Admin' && user.role !== 'Crew Chief') {
+    if (user.role !== "Manager/Admin" && user.role !== "Crew Chief") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -80,14 +80,14 @@ export async function POST(
     // Validate required parameters
     if (!templateId) {
       return NextResponse.json(
-        { error: 'Template ID is required' },
+        { error: "Template ID is required" },
         { status: 400 }
       )
     }
 
     if (!createNew && !spreadsheetId) {
       return NextResponse.json(
-        { error: 'Spreadsheet ID is required when not creating new spreadsheet' },
+        { error: "Spreadsheet ID is required when not creating new spreadsheet" },
         { status: 400 }
       )
     }
@@ -120,7 +120,7 @@ export async function POST(
 
     if (timesheetResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Timesheet not found' },
+        { error: "Timesheet not found" },
         { status: 404 }
       )
     }
@@ -128,9 +128,9 @@ export async function POST(
     const timesheetData = timesheetResult.rows[0]
 
     // Check if timesheet is finalized
-    if (!['completed', 'pending_client_approval', 'pending_final_approval'].includes(timesheetData.timesheet_status)) {
+    if (!["completed", "pending_client_approval", "pending_final_approval"].includes(timesheetData.timesheet_status)) {
       return NextResponse.json(
-        { error: 'Only finalized timesheets can be exported' },
+        { error: "Only finalized timesheets can be exported" },
         { status: 400 }
       )
     }
@@ -200,7 +200,7 @@ export async function POST(
 
     if (templateResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Template not found or has no field mappings' },
+        { error: "Template not found or has no field mappings" },
         { status: 404 }
       )
     }
@@ -209,12 +209,12 @@ export async function POST(
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        private_key: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, "\n"),
       },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+      scopes: ["https://www.googleapis.com/auth/spreadsheets"],
     })
 
-    const sheets = google.sheets({ version: 'v4', auth })
+    const sheets = google.sheets({ version: "v4", auth })
 
     let targetSpreadsheetId = spreadsheetId
 
@@ -223,7 +223,7 @@ export async function POST(
       const newSpreadsheet = await sheets.spreadsheets.create({
         requestBody: {
           properties: {
-            title: `Timesheet Export - ${timesheetData.job_name} - ${format(parseISO(timesheetData.shift_date), 'MM/dd/yyyy')}`
+            title: `Timesheet Export - ${timesheetData.job_name} - ${format(parseISO(timesheetData.shift_date), "MM/dd/yyyy")}`
           }
         }
       })
@@ -235,38 +235,38 @@ export async function POST(
     const templateConfig = templateResult.rows
 
     // Process client metadata
-    const clientMetadataFields = templateConfig.filter(row => row.field_type === 'client_metadata')
+    const clientMetadataFields = templateConfig.filter(row => row.field_type === "client_metadata")
     for (const field of clientMetadataFields) {
-      let value = ''
+      let value = ""
       
       switch (field.field_name) {
-        case 'hands_on_job_number':
-          value = timesheetData.job_number || ''
-          break
-        case 'client_po_number':
-          value = '' // This would need to be added to the database schema
-          break
-        case 'client_name':
-          value = timesheetData.client_name || ''
-          break
-        case 'client_contact':
-          value = timesheetData.client_contact || ''
-          break
-        case 'job_location':
-          value = timesheetData.location || ''
-          break
-        case 'job_name':
-          value = timesheetData.job_name || ''
-          break
-        case 'shift_date':
-          value = format(parseISO(timesheetData.shift_date), 'MM/dd/yyyy')
-          break
-        case 'crew_requested':
-          value = `${employeeData.size} employees` // Could be more specific
-          break
-        case 'job_notes':
-          value = '' // This would need to be added to the database schema
-          break
+      case "hands_on_job_number":
+        value = timesheetData.job_number || ""
+        break
+      case "client_po_number":
+        value = "" // This would need to be added to the database schema
+        break
+      case "client_name":
+        value = timesheetData.client_name || ""
+        break
+      case "client_contact":
+        value = timesheetData.client_contact || ""
+        break
+      case "job_location":
+        value = timesheetData.location || ""
+        break
+      case "job_name":
+        value = timesheetData.job_name || ""
+        break
+      case "shift_date":
+        value = format(parseISO(timesheetData.shift_date), "MM/dd/yyyy")
+        break
+      case "crew_requested":
+        value = `${employeeData.size} employees` // Could be more specific
+        break
+      case "job_notes":
+        value = "" // This would need to be added to the database schema
+        break
       }
 
       if (value) {
@@ -278,7 +278,7 @@ export async function POST(
     }
 
     // Process employee data
-    const employeeDataFields = templateConfig.filter(row => row.field_type === 'employee_data' && !row.is_header)
+    const employeeDataFields = templateConfig.filter(row => row.field_type === "employee_data" && !row.is_header)
     const employees = Array.from(employeeData.values())
     
     for (let i = 0; i < employees.length; i++) {
@@ -286,54 +286,54 @@ export async function POST(
       const rowNumber = (employeeDataFields[0]?.row_number || 19) + i
       
       for (const field of employeeDataFields) {
-        let value = ''
+        let value = ""
         
         switch (field.field_name) {
-          case 'shift_date':
-            value = format(parseISO(timesheetData.shift_date), 'MM/dd/yyyy')
-            break
-          case 'crew_requested':
-            value = employee.role || ''
-            break
-          case 'employee_email':
-            value = employee.email || ''
-            break
-          case 'employee_contact':
-            value = employee.phone || ''
-            break
-          case 'employee_name':
-            value = employee.name || ''
-            break
-          case 'job_title':
-            value = employee.role || ''
-            break
-          case 'check_in_out_status':
-            value = employee.timeEntries.length > 0 ? 'Completed' : 'No Show'
-            break
-          case 'clock_in_1':
-            value = employee.timeEntries[0] ? formatTime(employee.timeEntries[0].clockIn) : ''
-            break
-          case 'clock_out_1':
-            value = employee.timeEntries[0] ? formatTime(employee.timeEntries[0].clockOut) : ''
-            break
-          case 'clock_in_2':
-            value = employee.timeEntries[1] ? formatTime(employee.timeEntries[1].clockIn) : ''
-            break
-          case 'clock_out_2':
-            value = employee.timeEntries[1] ? formatTime(employee.timeEntries[1].clockOut) : ''
-            break
-          case 'clock_in_3':
-            value = employee.timeEntries[2] ? formatTime(employee.timeEntries[2].clockIn) : ''
-            break
-          case 'clock_out_3':
-            value = employee.timeEntries[2] ? formatTime(employee.timeEntries[2].clockOut) : ''
-            break
-          case 'timecard_notes':
-            value = '' // Could be added from shift notes or employee notes
-            break
+        case "shift_date":
+          value = format(parseISO(timesheetData.shift_date), "MM/dd/yyyy")
+          break
+        case "crew_requested":
+          value = employee.role || ""
+          break
+        case "employee_email":
+          value = employee.email || ""
+          break
+        case "employee_contact":
+          value = employee.phone || ""
+          break
+        case "employee_name":
+          value = employee.name || ""
+          break
+        case "job_title":
+          value = employee.role || ""
+          break
+        case "check_in_out_status":
+          value = employee.timeEntries.length > 0 ? "Completed" : "No Show"
+          break
+        case "clock_in_1":
+          value = employee.timeEntries[0] ? formatTime(employee.timeEntries[0].clockIn) : ""
+          break
+        case "clock_out_1":
+          value = employee.timeEntries[0] ? formatTime(employee.timeEntries[0].clockOut) : ""
+          break
+        case "clock_in_2":
+          value = employee.timeEntries[1] ? formatTime(employee.timeEntries[1].clockIn) : ""
+          break
+        case "clock_out_2":
+          value = employee.timeEntries[1] ? formatTime(employee.timeEntries[1].clockOut) : ""
+          break
+        case "clock_in_3":
+          value = employee.timeEntries[2] ? formatTime(employee.timeEntries[2].clockIn) : ""
+          break
+        case "clock_out_3":
+          value = employee.timeEntries[2] ? formatTime(employee.timeEntries[2].clockOut) : ""
+          break
+        case "timecard_notes":
+          value = "" // Could be added from shift notes or employee notes
+          break
         }
 
-        if (value || field.field_name.includes('clock_')) {
+        if (value || field.field_name.includes("clock_")) {
           updates.push({
             range: `${field.column_letter}${rowNumber}`,
             values: [[value]]
@@ -347,7 +347,7 @@ export async function POST(
       await sheets.spreadsheets.values.batchUpdate({
         spreadsheetId: targetSpreadsheetId,
         requestBody: {
-          valueInputOption: 'USER_ENTERED',
+          valueInputOption: "USER_ENTERED",
           data: updates
         }
       })
@@ -370,11 +370,11 @@ export async function POST(
       spreadsheetId: targetSpreadsheetId,
       spreadsheetUrl: `https://docs.google.com/spreadsheets/d/${targetSpreadsheetId}`,
       exportedEmployees: employees.length,
-      message: 'Timesheet exported successfully to Google Sheets'
+      message: "Timesheet exported successfully to Google Sheets"
     })
 
   } catch (error) {
-    console.error('Error exporting timesheet to Google Sheets:', error)
+    console.error("Error exporting timesheet to Google Sheets:", error)
     
     // Record failed export
     try {
@@ -388,14 +388,14 @@ export async function POST(
           INSERT INTO timesheet_export_history 
           (timesheet_id, template_id, exported_by, export_status, error_message)
           VALUES ($1, $2, $3, 'failed', $4)
-        `, [timesheetId, templateId, user.id, error instanceof Error ? error.message : 'Unknown error'])
+        `, [timesheetId, templateId, user.id, error instanceof Error ? error.message : "Unknown error"])
       }
     } catch (historyError) {
-      console.error('Error recording export failure:', historyError)
+      console.error("Error recording export failure:", historyError)
     }
 
     return NextResponse.json(
-      { error: 'Failed to export timesheet to Google Sheets' },
+      { error: "Failed to export timesheet to Google Sheets" },
       { status: 500 }
     )
   }

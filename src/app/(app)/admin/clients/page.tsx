@@ -29,8 +29,8 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function AdminClientsPage() {
   const { user } = useUser()
@@ -40,8 +40,8 @@ function AdminClientsPage() {
   const [searchTerm, setSearchTerm] = useState("")
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -56,7 +56,7 @@ function AdminClientsPage() {
     if (confirm(`Are you sure you want to delete ${clientName}? This action cannot be undone.`)) {
       try {
         const response = await fetch(`/api/clients/${clientId}`, {
-          method: 'DELETE',
+          method: "DELETE",
         })
         
         if (response.ok) {
@@ -67,7 +67,7 @@ function AdminClientsPage() {
           // Refresh the page or update the data
           window.location.reload()
         } else {
-          throw new Error('Failed to delete client')
+          throw new Error("Failed to delete client")
         }
       } catch (error) {
         toast({
@@ -98,7 +98,7 @@ function AdminClientsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Admin
         </Button>
@@ -106,7 +106,7 @@ function AdminClientsPage() {
           <h1 className="text-3xl font-bold font-headline">Client Management</h1>
           <p className="text-muted-foreground">Manage client companies and contacts</p>
         </div>
-        <Button onClick={() => router.push('/admin/clients/new')}>
+        <Button onClick={() => router.push("/admin/clients/new")}>
           <Plus className="mr-2 h-4 w-4" />
           Add Client
         </Button>
@@ -156,7 +156,7 @@ function AdminClientsPage() {
                   <TableCell className="font-medium">{client.name}</TableCell>
                   <TableCell>{client.contactPerson}</TableCell>
                   <TableCell>{client.contactEmail}</TableCell>
-                  <TableCell>{client.contactPhone || 'N/A'}</TableCell>
+                  <TableCell>{client.contactPhone || "N/A"}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">
                       {client.jobCount || 0} jobs
@@ -203,4 +203,4 @@ function AdminClientsPage() {
   )
 }
 
-export default withAuth(AdminClientsPage, hasAdminAccess);
+export default withAuth(AdminClientsPage, hasAdminAccess)

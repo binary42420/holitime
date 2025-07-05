@@ -1,27 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers can access admin stats
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
 
-    const today = new Date().toISOString().split('T')[0]
-    const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const today = new Date().toISOString().split("T")[0]
+    const sevenDaysFromNow = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
 
     // Get active shifts today
     const activeShiftsResult = await query(`
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     `)
 
     // Get overdue timesheets (more than 3 days old and still pending)
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
     const overdueTimesheetsResult = await query(`
       SELECT COUNT(*) as count
       FROM timesheets t
@@ -107,9 +107,9 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error fetching admin stats:', error)
+    console.error("Error fetching admin stats:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

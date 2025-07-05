@@ -1,10 +1,10 @@
-'use client';
+"use client"
 
-import { useEffect, useState } from 'react';
-import { useUser } from '@/hooks/use-user';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from "react"
+import { useUser } from "@/hooks/use-user"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Calendar,
   Clock,
@@ -16,8 +16,8 @@ import {
   ClipboardCheck,
   UserCheck,
   Settings
-} from 'lucide-react';
-import Link from 'next/link';
+} from "lucide-react"
+import Link from "next/link"
 
 interface Shift {
   id: string;
@@ -35,45 +35,45 @@ interface Shift {
 
 interface PendingApproval {
   id: string;
-  type: 'timesheet' | 'shift_change' | 'worker_request';
+  type: "timesheet" | "shift_change" | "worker_request";
   title: string;
   description: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
 }
 
 export default function CrewChiefDashboard() {
-  const { user } = useUser();
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useUser()
+  const [shifts, setShifts] = useState<Shift[]>([])
+  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch crew chief's shifts
-        const shiftsResponse = await fetch(`/api/shifts?crewChiefId=${user?.id}`);
+        const shiftsResponse = await fetch(`/api/shifts?crewChiefId=${user?.id}`)
         if (shiftsResponse.ok) {
-          const shiftsData = await shiftsResponse.json();
-          setShifts(shiftsData.shifts || []);
+          const shiftsData = await shiftsResponse.json()
+          setShifts(shiftsData.shifts || [])
         }
 
         // Fetch pending approvals
-        const approvalsResponse = await fetch(`/api/approvals?crewChiefId=${user?.id}`);
+        const approvalsResponse = await fetch(`/api/approvals?crewChiefId=${user?.id}`)
         if (approvalsResponse.ok) {
-          const approvalsData = await approvalsResponse.json();
-          setPendingApprovals(approvalsData.approvals || []);
+          const approvalsData = await approvalsResponse.json()
+          setPendingApprovals(approvalsData.approvals || [])
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
     if (user?.id) {
-      fetchData();
+      fetchData()
     }
-  }, [user?.id]);
+  }, [user?.id])
 
   if (loading) {
     return (
@@ -87,52 +87,52 @@ export default function CrewChiefDashboard() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   const todayShifts = shifts.filter(shift => {
-    const shiftDate = new Date(shift.date).toDateString();
-    const today = new Date().toDateString();
-    return shiftDate === today;
-  });
+    const shiftDate = new Date(shift.date).toDateString()
+    const today = new Date().toDateString()
+    return shiftDate === today
+  })
 
   const upcomingShifts = shifts.filter(shift => {
-    const shiftDate = new Date(shift.date);
-    const today = new Date();
-    return shiftDate > today;
-  }).slice(0, 3);
+    const shiftDate = new Date(shift.date)
+    const today = new Date()
+    return shiftDate > today
+  }).slice(0, 3)
 
-  const activeShifts = shifts.filter(shift => shift.status === 'In Progress');
-  const highPriorityApprovals = pendingApprovals.filter(approval => approval.priority === 'high');
+  const activeShifts = shifts.filter(shift => shift.status === "In Progress")
+  const highPriorityApprovals = pendingApprovals.filter(approval => approval.priority === "high")
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      'Upcoming': { variant: 'secondary' as const, icon: Calendar },
-      'In Progress': { variant: 'default' as const, icon: Clock },
-      'Completed': { variant: 'outline' as const, icon: CheckCircle },
-      'Cancelled': { variant: 'destructive' as const, icon: AlertCircle },
-    };
+      "Upcoming": { variant: "secondary" as const, icon: Calendar },
+      "In Progress": { variant: "default" as const, icon: Clock },
+      "Completed": { variant: "outline" as const, icon: CheckCircle },
+      "Cancelled": { variant: "destructive" as const, icon: AlertCircle },
+    }
 
-    const config = statusMap[status as keyof typeof statusMap] || { variant: 'secondary' as const, icon: Calendar };
-    const Icon = config.icon;
+    const config = statusMap[status as keyof typeof statusMap] || { variant: "secondary" as const, icon: Calendar }
+    const Icon = config.icon
 
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
         {status}
       </Badge>
-    );
-  };
+    )
+  }
 
   const getStaffingStatus = (assigned: number, requested: number) => {
     if (assigned >= requested) {
-      return <Badge variant="default" className="bg-green-600">Fully Staffed</Badge>;
+      return <Badge variant="default" className="bg-green-600">Fully Staffed</Badge>
     } else if (assigned >= requested * 0.8) {
-      return <Badge variant="secondary" className="bg-yellow-600">Nearly Staffed</Badge>;
+      return <Badge variant="secondary" className="bg-yellow-600">Nearly Staffed</Badge>
     } else {
-      return <Badge variant="destructive">Understaffed</Badge>;
+      return <Badge variant="destructive">Understaffed</Badge>
     }
-  };
+  }
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -141,15 +141,15 @@ export default function CrewChiefDashboard() {
         <div className="flex items-center gap-2">
           <Shield className="h-6 w-6 text-blue-600" />
           <h1 className="text-2xl md:text-3xl font-bold font-headline">
-            Chief {user?.name?.split(' ')[0]} 👷‍♂️
+            Chief {user?.name?.split(" ")[0]} 👷‍♂️
           </h1>
         </div>
         <p className="text-sm md:text-base text-muted-foreground">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+          {new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
           })}
         </p>
       </div>
@@ -214,6 +214,13 @@ export default function CrewChiefDashboard() {
                 </CardContent>
               </Card>
             ))}
+            {activeShifts.length > 0 && (
+              <Button size="mobile" variant="outline" className="w-full" asChild>
+                <Link href="/shifts?status=in_progress">
+                  View All Active Shifts
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       )}
@@ -247,7 +254,7 @@ export default function CrewChiefDashboard() {
         <Card className="card-mobile">
           <CardContent className="pt-4 text-center">
             <div className="text-2xl md:text-3xl font-bold text-purple-600">
-              {shifts.filter(s => s.status === 'Completed').length}
+              {shifts.filter(s => s.status === "Completed").length}
             </div>
             <p className="text-xs md:text-sm text-muted-foreground">Completed</p>
           </CardContent>
@@ -289,6 +296,17 @@ export default function CrewChiefDashboard() {
                 </CardContent>
               </Card>
             ))}
+            {shifts.filter(shift => {
+              const shiftDate = new Date(shift.date)
+              const today = new Date()
+              return shiftDate > today
+            }).length > 3 && (
+              <Button size="mobile" variant="outline" className="w-full" asChild>
+                <Link href="/shifts?status=upcoming">
+                  View All Upcoming Shifts
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       )}
@@ -345,5 +363,5 @@ export default function CrewChiefDashboard() {
         </Card>
       )}
     </div>
-  );
+  )
 }

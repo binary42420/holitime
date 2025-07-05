@@ -1,4 +1,4 @@
-export type UserRole = 'Employee' | 'Crew Chief' | 'Manager/Admin' | 'Client' | 'User';
+export type UserRole = "Employee" | "Crew Chief" | "Manager/Admin" | "Client" | "User";
 
 export interface User {
   id: string;
@@ -83,12 +83,12 @@ export interface Job {
   shiftCount?: number;
   startDate?: string;
   endDate?: string;
-  status?: 'Planning' | 'Active' | 'Completed';
+  status?: "Planning" | "Active" | "Completed";
   authorizedCrewChiefIds?: string[];
 }
 
 // Crew Chief Permission System Types
-export type CrewChiefPermissionType = 'client' | 'job' | 'shift';
+export type CrewChiefPermissionType = "client" | "job" | "shift";
 
 export interface CrewChiefPermission {
   id: string;
@@ -103,7 +103,7 @@ export interface CrewChiefPermission {
 // Helper interface for checking crew chief permissions
 export interface CrewChiefPermissionCheck {
   hasPermission: boolean;
-  permissionSource: 'designated' | 'client' | 'job' | 'shift' | 'none';
+  permissionSource: "designated" | "client" | "job" | "shift" | "none";
   permissions: CrewChiefPermission[];
 }
 
@@ -125,11 +125,11 @@ export interface Employee {
   avatar: string;
 }
 
-export type RoleCode = 'CC' | 'SH' | 'FO' | 'RFO' | 'RG' | 'GL';
+export type RoleCode = "CC" | "SH" | "FO" | "RFO" | "RG" | "GL";
 
-export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended' | 'no_show' | 'not_started';
+export type AssignedPersonnelStatus = "Clocked Out" | "Clocked In" | "On Break" | "Shift Ended" | "no_show" | "not_started";
 
-export type DocumentStatus = 'pending_review' | 'approved' | 'rejected' | 'expired';
+export type DocumentStatus = "pending_review" | "approved" | "rejected" | "expired";
 
 export interface DocumentType {
   id: string;
@@ -184,7 +184,7 @@ export interface AssignedPersonnel {
   isPlaceholder?: boolean;
 }
 
-export type TimesheetStatus = 'Pending Finalization' | 'Awaiting Client Approval' | 'Awaiting Manager Approval' | 'Approved' | 'Rejected';
+export type TimesheetStatus = "Pending Finalization" | "Awaiting Client Approval" | "Awaiting Manager Approval" | "Approved" | "Rejected";
 
 export interface Shift {
   id: string;
@@ -206,7 +206,7 @@ export interface Shift {
   crewChiefName?: string;
   crewChiefAvatar?: string;
   assignedPersonnel: AssignedPersonnel[];
-  status: 'Upcoming' | 'In Progress' | 'Completed' | 'Cancelled' | 'Pending Approval';
+  status: "Upcoming" | "In Progress" | "Completed" | "Cancelled" | "Pending Approval";
   timesheetStatus: TimesheetStatus;
   notes?: string;
 }
@@ -221,8 +221,8 @@ export interface Announcement {
 export interface AppDocument {
   id: string;
   name: string;
-  type: 'Contract' | 'Certification' | 'Insurance' | 'Training Record' | 'Tax Form' | 'Policy';
-  category: 'Employee' | 'Client' | 'Company';
+  type: "Contract" | "Certification" | "Insurance" | "Training Record" | "Tax Form" | "Policy";
+  category: "Employee" | "Client" | "Company";
   uploadDate: string;
   url: string;
   status?: DocumentStatus;
@@ -238,4 +238,4 @@ export interface Timesheet {
     approvedByClientAt?: string;
     approvedByManagerAt?: string;
 }
-</create_file>
+

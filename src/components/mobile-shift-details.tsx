@@ -1,9 +1,9 @@
-'use client'
+"use client"
 
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import React from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { 
   Building2, 
   Calendar, 
@@ -15,9 +15,9 @@ import {
   Download,
   ExternalLink,
   Edit
-} from 'lucide-react'
-import Link from 'next/link'
-import { cn } from '@/lib/utils'
+} from "lucide-react"
+import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 interface Shift {
   id: string
@@ -50,72 +50,72 @@ export const MobileShiftDetails: React.FC<MobileShiftDetailsProps> = ({
 }) => {
   const getStatusInfo = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'scheduled':
-        return { 
-          label: 'Scheduled', 
-          color: 'bg-blue-100 text-blue-800',
-          description: 'Ready to start'
-        }
-      case 'in_progress':
-        return { 
-          label: 'In Progress', 
-          color: 'bg-green-100 text-green-800',
-          description: 'Workers are active'
-        }
-      case 'completed':
-        return { 
-          label: 'Completed', 
-          color: 'bg-gray-100 text-gray-800',
-          description: 'Shift finished'
-        }
-      default:
-        return { 
-          label: status, 
-          color: 'bg-gray-100 text-gray-800',
-          description: ''
-        }
+    case "scheduled":
+      return { 
+        label: "Scheduled", 
+        color: "bg-blue-100 text-blue-800",
+        description: "Ready to start"
+      }
+    case "in_progress":
+      return { 
+        label: "In Progress", 
+        color: "bg-green-100 text-green-800",
+        description: "Workers are active"
+      }
+    case "completed":
+      return { 
+        label: "Completed", 
+        color: "bg-gray-100 text-gray-800",
+        description: "Shift finished"
+      }
+    default:
+      return { 
+        label: status, 
+        color: "bg-gray-100 text-gray-800",
+        description: ""
+      }
     }
   }
 
   const getTimesheetButtonInfo = () => {
     if (!timesheetStatus) {
       return {
-        text: 'Finalize Timesheet',
+        text: "Finalize Timesheet",
         href: `/shifts/${shift.id}`,
-        variant: 'default' as const,
-        color: 'bg-blue-600 hover:bg-blue-700'
+        variant: "default" as const,
+        color: "bg-blue-600 hover:bg-blue-700"
       }
     }
 
     switch (timesheetStatus) {
-      case 'pending_client_approval':
-        return {
-          text: 'View Client Approval',
-          href: `/timesheets/${timesheetId}/review`,
-          variant: 'outline' as const,
-          color: 'border-orange-500 text-orange-600 hover:bg-orange-50'
-        }
-      case 'pending_final_approval':
-        return {
-          text: 'Manager Approval Required',
-          href: `/timesheets/${timesheetId}/manager-approval`,
-          variant: 'outline' as const,
-          color: 'border-purple-500 text-purple-600 hover:bg-purple-50'
-        }
-      case 'completed':
-        return {
-          text: 'View Completed Timesheet',
-          href: `/timesheets/${timesheetId}`,
-          variant: 'outline' as const,
-          color: 'border-green-500 text-green-600 hover:bg-green-50'
-        }
-      default:
-        return {
-          text: 'View Timesheet',
-          href: `/timesheets/${timesheetId}`,
-          variant: 'outline' as const,
-          color: ''
-        }
+    case "pending_client_approval":
+      return {
+        text: "View Client Approval",
+        href: `/timesheets/${timesheetId}/review`,
+        variant: "outline" as const,
+        color: "border-orange-500 text-orange-600 hover:bg-orange-50"
+      }
+    case "pending_final_approval":
+      return {
+        text: "Manager Approval Required",
+        href: `/timesheets/${timesheetId}/manager-approval`,
+        variant: "outline" as const,
+        color: "border-purple-500 text-purple-600 hover:bg-purple-50"
+      }
+    case "completed":
+      return {
+        text: "View Completed Timesheet",
+        href: `/timesheets/${timesheetId}`,
+        variant: "outline" as const,
+        color: "border-green-500 text-green-600 hover:bg-green-50"
+      }
+    default:
+      return {
+        text: "View Timesheet",
+        href: `/timesheets/${timesheetId}`,
+        variant: "outline" as const,
+        color: ""
+      }
     }
   }
 
@@ -138,11 +138,11 @@ export const MobileShiftDetails: React.FC<MobileShiftDetailsProps> = ({
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Calendar className="h-4 w-4" />
                   <span className="text-sm">
-                    {new Date(shift.date).toLocaleDateString('en-US', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    {new Date(shift.date).toLocaleDateString("en-US", { 
+                      weekday: "long", 
+                      year: "numeric", 
+                      month: "long", 
+                      day: "numeric" 
                     })}
                   </span>
                 </div>
@@ -211,7 +211,7 @@ export const MobileShiftDetails: React.FC<MobileShiftDetailsProps> = ({
                 </Link>
               </Button>
 
-              {onDownloadPDF && timesheetStatus === 'completed' && (
+              {onDownloadPDF && timesheetStatus === "completed" && (
                 <Button
                   onClick={onDownloadPDF}
                   variant="outline"

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
 
 export async function GET(
   request: NextRequest,
@@ -7,9 +7,9 @@ export async function GET(
 ) {
   try {
     const user = await getCurrentUser(request)
-    if (!user || user.role !== 'Manager/Admin') {
+    if (!user || user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -18,7 +18,7 @@ export async function GET(
 
     if (!googleSheetsId) {
       return NextResponse.json(
-        { error: 'Google Sheets ID is required' },
+        { error: "Google Sheets ID is required" },
         { status: 400 }
       )
     }
@@ -26,30 +26,30 @@ export async function GET(
     // Check if we have an API key configured
     const hasApiKey = !!process.env.GOOGLE_API_KEY
     if (!hasApiKey) {
-      console.error('Google Sheets Fetch: GOOGLE_API_KEY environment variable not set')
+      console.error("Google Sheets Fetch: GOOGLE_API_KEY environment variable not set")
       return NextResponse.json(
         {
-          error: 'Google API key not configured. Please configure GOOGLE_API_KEY environment variable or use OAuth method.',
-          suggestion: 'Try using the OAuth method by connecting to Google Drive first.'
+          error: "Google API key not configured. Please configure GOOGLE_API_KEY environment variable or use OAuth method.",
+          suggestion: "Try using the OAuth method by connecting to Google Drive first."
         },
         { status: 500 }
       )
     }
 
-    console.log('Google Sheets Fetch: Using API key with length:', process.env.GOOGLE_API_KEY!.length)
+    console.log("Google Sheets Fetch: Using API key with length:", process.env.GOOGLE_API_KEY!.length)
 
-    console.log('Fetching Google Sheets data for ID:', googleSheetsId)
+    console.log("Fetching Google Sheets data for ID:", googleSheetsId)
 
     // Test with a known public sheet first to verify API key works
-    const testSheetId = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms' // Google's sample sheet
+    const testSheetId = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" // Google's sample sheet
     if (googleSheetsId !== testSheetId) {
-      console.log('Testing API key with known public sheet first...')
+      console.log("Testing API key with known public sheet first...")
       try {
         const testUrl = `https://sheets.googleapis.com/v4/spreadsheets/${testSheetId}?key=${process.env.GOOGLE_API_KEY}&fields=properties.title`
         const testResponse = await fetch(testUrl)
         if (!testResponse.ok) {
           const testError = await testResponse.text()
-          console.error('API key test failed:', {
+          console.error("API key test failed:", {
             status: testResponse.status,
             error: testError
           })
@@ -58,11 +58,11 @@ export async function GET(
             { status: 500 }
           )
         }
-        console.log('API key test successful')
+        console.log("API key test successful")
       } catch (testError) {
-        console.error('API key test error:', testError)
+        console.error("API key test error:", testError)
         return NextResponse.json(
-          { error: 'Failed to test Google API key' },
+          { error: "Failed to test Google API key" },
           { status: 500 }
         )
       }
@@ -70,26 +70,26 @@ export async function GET(
 
     // Now try to get the spreadsheet metadata to find all sheets
     const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${googleSheetsId}?key=${process.env.GOOGLE_API_KEY}`
-    console.log('Fetching metadata from:', metadataUrl)
+    console.log("Fetching metadata from:", metadataUrl)
 
     const metadataResponse = await fetch(metadataUrl)
 
     if (!metadataResponse.ok) {
       const errorText = await metadataResponse.text()
-      console.error('Google Sheets API Error (metadata):', {
+      console.error("Google Sheets API Error (metadata):", {
         status: metadataResponse.status,
         statusText: metadataResponse.statusText,
         error: errorText
       })
 
-      let errorMessage = 'Failed to fetch spreadsheet metadata.'
+      let errorMessage = "Failed to fetch spreadsheet metadata."
 
       if (metadataResponse.status === 403) {
-        errorMessage = 'Access denied to Google Sheets. Make sure the sheet is publicly accessible (anyone with the link can view) and the API key has proper permissions.'
+        errorMessage = "Access denied to Google Sheets. Make sure the sheet is publicly accessible (anyone with the link can view) and the API key has proper permissions."
       } else if (metadataResponse.status === 404) {
-        errorMessage = 'Google Sheets document not found. Please check the ID and make sure the sheet exists.'
+        errorMessage = "Google Sheets document not found. Please check the ID and make sure the sheet exists."
       } else if (metadataResponse.status === 400) {
-        errorMessage = 'Invalid Google Sheets ID format. Please check the ID and try again.'
+        errorMessage = "Invalid Google Sheets ID format. Please check the ID and try again."
       }
 
       return NextResponse.json(
@@ -101,7 +101,7 @@ export async function GET(
     const metadata = await metadataResponse.json()
     const sheets = metadata.sheets || []
 
-    console.log('Found sheets:', sheets.map((s: any) => s.properties.title))
+    console.log("Found sheets:", sheets.map((s: any) => s.properties.title))
 
     // Fetch data from all sheets
     const sheetsData: any = {
@@ -154,14 +154,14 @@ export async function GET(
           title: sheetTitle,
           sheetId: sheetId,
           data: [],
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
           rowCount: 0,
           columnCount: 0
         })
       }
     }
 
-    console.log('Successfully fetched data from', sheetsData.sheets.length, 'sheets')
+    console.log("Successfully fetched data from", sheetsData.sheets.length, "sheets")
 
     return NextResponse.json({
       success: true,
@@ -169,9 +169,9 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error fetching Google Sheets data:', error)
+    console.error("Error fetching Google Sheets data:", error)
     return NextResponse.json(
-      { error: 'Failed to fetch Google Sheets data' },
+      { error: "Failed to fetch Google Sheets data" },
       { status: 500 }
     )
   }

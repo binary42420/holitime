@@ -1,76 +1,76 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { query } from '@/lib/db';
-import { startOfWeek, endOfWeek, addDays, subDays } from 'date-fns';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import { startOfWeek, endOfWeek, addDays, subDays } from "date-fns"
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
-    const { searchParams } = new URL(request.url);
-    const dateFilter = searchParams.get('date') || 'today';
-    const statusFilter = searchParams.get('status') || 'all';
-    const page = parseInt(searchParams.get('page') || '1');
-    const pageSize = parseInt(searchParams.get('pageSize') || '20');
+    const { searchParams } = new URL(request.url)
+    const dateFilter = searchParams.get("date") || "today"
+    const statusFilter = searchParams.get("status") || "all"
+    const page = parseInt(searchParams.get("page") || "1")
+    const pageSize = parseInt(searchParams.get("pageSize") || "20")
 
-    let startDate: string;
-    let endDate: string;
-    const today = new Date();
+    let startDate: string
+    let endDate: string
+    const today = new Date()
 
     switch (dateFilter) {
-      case 'today':
-        startDate = endDate = today.toISOString().split('T')[0];
-        break;
-      case 'tomorrow':
-        const tomorrow = addDays(today, 1);
-        startDate = endDate = tomorrow.toISOString().split('T')[0];
-        break;
-      case 'yesterday':
-        const yesterday = subDays(today, 1);
-        startDate = endDate = yesterday.toISOString().split('T')[0];
-        break;
-      case 'this_week':
-        startDate = startOfWeek(today, { weekStartsOn: 1 }).toISOString().split('T')[0];
-        endDate = endOfWeek(today, { weekStartsOn: 1 }).toISOString().split('T')[0];
-        break;
-      case 'all':
-        // For 'all', we'll get shifts from 30 days ago to 30 days in the future
-        startDate = subDays(today, 30).toISOString().split('T')[0];
-        endDate = addDays(today, 30).toISOString().split('T')[0];
-        break;
-      default:
-        startDate = endDate = today.toISOString().split('T')[0];
+    case "today":
+      startDate = endDate = today.toISOString().split("T")[0]
+      break
+    case "tomorrow":
+      const tomorrow = addDays(today, 1)
+      startDate = endDate = tomorrow.toISOString().split("T")[0]
+      break
+    case "yesterday":
+      const yesterday = subDays(today, 1)
+      startDate = endDate = yesterday.toISOString().split("T")[0]
+      break
+    case "this_week":
+      startDate = startOfWeek(today, { weekStartsOn: 1 }).toISOString().split("T")[0]
+      endDate = endOfWeek(today, { weekStartsOn: 1 }).toISOString().split("T")[0]
+      break
+    case "all":
+      // For 'all', we'll get shifts from 30 days ago to 30 days in the future
+      startDate = subDays(today, 30).toISOString().split("T")[0]
+      endDate = addDays(today, 30).toISOString().split("T")[0]
+      break
+    default:
+      startDate = endDate = today.toISOString().split("T")[0]
     }
 
-    const queryParams: any[] = [startDate, endDate];
-    let whereClause = 'WHERE s.date BETWEEN $1 AND $2';
+    const queryParams: any[] = [startDate, endDate]
+    let whereClause = "WHERE s.date BETWEEN $1 AND $2"
 
-    if (statusFilter !== 'all') {
-      queryParams.push(statusFilter);
-      whereClause += ` AND s.status = $${queryParams.length}`;
+    if (statusFilter !== "all") {
+      queryParams.push(statusFilter)
+      whereClause += ` AND s.status = $${queryParams.length}`
     }
 
-    const clientFilter = searchParams.get('client') || 'all';
-    if (clientFilter !== 'all') {
-      queryParams.push(clientFilter);
-      whereClause += ` AND c.company_name = $${queryParams.length}`;
+    const clientFilter = searchParams.get("client") || "all"
+    if (clientFilter !== "all") {
+      queryParams.push(clientFilter)
+      whereClause += ` AND c.company_name = $${queryParams.length}`
     }
 
-    const searchTerm = searchParams.get('search') || '';
+    const searchTerm = searchParams.get("search") || ""
     if (searchTerm) {
-      queryParams.push(`%${searchTerm}%`);
-      whereClause += ` AND (j.name ILIKE $${queryParams.length} OR c.company_name ILIKE $${queryParams.length} OR s.location ILIKE $${queryParams.length} OR cc.name ILIKE $${queryParams.length})`;
+      queryParams.push(`%${searchTerm}%`)
+      whereClause += ` AND (j.name ILIKE $${queryParams.length} OR c.company_name ILIKE $${queryParams.length} OR s.location ILIKE $${queryParams.length} OR cc.name ILIKE $${queryParams.length})`
     }
 
     // Optimized query that gets shifts with all needed data in one query
-    const offset = (page - 1) * pageSize;
-    queryParams.push(pageSize, offset);
+    const offset = (page - 1) * pageSize
+    queryParams.push(pageSize, offset)
 
     const result = await query(`
       SELECT
@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
                cc.id, cc.name, cc.avatar, t.id, t.status
       ORDER BY s.date DESC, s.start_time ASC
       LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}
-    `, queryParams);
+    `, queryParams)
 
     const shifts = result.rows.map(row => {
       const assignedPersonnel = (row.assigned_personnel_data || [])
@@ -117,16 +117,16 @@ export async function GET(request: NextRequest) {
           employee: {
             id: person.employee_id,
             name: person.employee_name,
-            avatar: person.employee_avatar || '',
+            avatar: person.employee_avatar || "",
           },
           workerType: person.worker_type,
           isPlaceholder: person.is_placeholder,
           status: person.status,
-        }));
+        }))
 
       return {
         id: row.id,
-        timesheetId: row.timesheet_id || '',
+        timesheetId: row.timesheet_id || "",
         jobId: row.job_id,
         jobName: row.job_name,
         clientName: row.client_name,
@@ -138,34 +138,34 @@ export async function GET(request: NextRequest) {
         assignedCount: parseInt(row.assigned_count) || 0,
         crewChiefId: row.crew_chief_id,
         crewChiefName: row.crew_chief_name,
-        crewChiefAvatar: row.crew_chief_avatar || '',
+        crewChiefAvatar: row.crew_chief_avatar || "",
         assignedPersonnel,
         status: row.status,
-        timesheetStatus: row.timesheet_status || 'Pending Finalization',
+        timesheetStatus: row.timesheet_status || "Pending Finalization",
         notes: row.notes,
-      };
-    });
+      }
+    })
 
     // Filter based on user role
-    let filteredShifts = shifts;
+    let filteredShifts = shifts
     
-    if (user.role === 'Crew Chief') {
-      filteredShifts = shifts.filter(shift => shift.crewChiefId === user.id);
-    } else if (user.role === 'Employee') {
+    if (user.role === "Crew Chief") {
+      filteredShifts = shifts.filter(shift => shift.crewChiefId === user.id)
+    } else if (user.role === "Employee") {
       filteredShifts = shifts.filter(shift => 
         shift.assignedPersonnel.some((person: any) => person.employee.id === user.id)
-      );
+      )
     }
     // Manager/Admin and Client users see all shifts (clients will be filtered by their jobs in future)
 
     // Filter by clientId if provided and user is Client or Manager/Admin
-    const clientIdParam = searchParams.get('clientId');
-    if (clientIdParam && (user.role === 'Client' || user.role === 'Manager/Admin')) {
-      filteredShifts = filteredShifts.filter(shift => shift.clientName === clientIdParam);
+    const clientIdParam = searchParams.get("clientId")
+    if (clientIdParam && (user.role === "Client" || user.role === "Manager/Admin")) {
+      filteredShifts = filteredShifts.filter(shift => shift.clientName === clientIdParam)
     }
 
     // For client users, filter to only their company's shifts
-    if (user.role === 'Client' && user.clientCompanyId) {
+    if (user.role === "Client" && user.clientCompanyId) {
       // We need to get the client company name to filter properly
       // For now, let's filter by checking if the job belongs to their company
       // This would require a more complex query, but for now we'll trust the frontend filtering
@@ -175,14 +175,14 @@ export async function GET(request: NextRequest) {
       success: true,
       shifts: filteredShifts,
       dateRange: { startDate, endDate, filter: dateFilter }
-    });
+    })
 
 
   } catch (error) {
-    console.error('Error getting shifts by date:', error);
+    console.error("Error getting shifts by date:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

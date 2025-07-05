@@ -1,28 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { query } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 // GET /api/notifications - Get notifications for current user
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
-    const { searchParams } = new URL(request.url);
-    const unreadOnly = searchParams.get('unread_only') === 'true';
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const { searchParams } = new URL(request.url)
+    const unreadOnly = searchParams.get("unread_only") === "true"
+    const limit = parseInt(searchParams.get("limit") || "50")
+    const offset = parseInt(searchParams.get("offset") || "0")
 
-    let whereClause = 'WHERE n.user_id = $1';
-    const params = [user.id];
+    let whereClause = "WHERE n.user_id = $1"
+    const params = [user.id]
 
     if (unreadOnly) {
-      whereClause += ' AND n.is_read = false';
+      whereClause += " AND n.is_read = false"
     }
 
     const result = await query(`
@@ -47,42 +47,42 @@ export async function GET(request: NextRequest) {
       ${whereClause}
       ORDER BY n.created_at DESC
       LIMIT $${params.length + 1} OFFSET $${params.length + 2}
-    `, [...params, limit, offset]);
+    `, [...params, limit, offset])
 
     // Get unread count
     const unreadCountResult = await query(`
       SELECT COUNT(*) as unread_count
       FROM notifications
       WHERE user_id = $1 AND is_read = false
-    `, [user.id]);
+    `, [user.id])
 
     return NextResponse.json({
       notifications: result.rows,
       unreadCount: parseInt(unreadCountResult.rows[0].unread_count),
       total: result.rows.length
-    });
+    })
 
   } catch (error) {
-    console.error('Error fetching notifications:', error);
+    console.error("Error fetching notifications:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }
 
 // POST /api/notifications - Create a new notification (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
-    if (!user || user.role !== 'Manager/Admin') {
+    const user = await getCurrentUser(request)
+    if (!user || user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Admin access required' },
+        { error: "Admin access required" },
         { status: 403 }
-      );
+      )
     }
 
-    const body = await request.json();
+    const body = await request.json()
     const { 
       userId, 
       type, 
@@ -90,13 +90,13 @@ export async function POST(request: NextRequest) {
       message, 
       relatedTimesheetId, 
       relatedShiftId 
-    } = body;
+    } = body
 
     if (!userId || !type || !title || !message) {
       return NextResponse.json(
-        { error: 'Missing required fields: userId, type, title, message' },
+        { error: "Missing required fields: userId, type, title, message" },
         { status: 400 }
-      );
+      )
     }
 
     const result = await query(`
@@ -110,18 +110,18 @@ export async function POST(request: NextRequest) {
       )
       VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id, created_at
-    `, [userId, type, title, message, relatedTimesheetId || null, relatedShiftId || null]);
+    `, [userId, type, title, message, relatedTimesheetId || null, relatedShiftId || null])
 
     return NextResponse.json({
       success: true,
       notification: result.rows[0]
-    });
+    })
 
   } catch (error) {
-    console.error('Error creating notification:', error);
+    console.error("Error creating notification:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

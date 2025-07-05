@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function POST(
   request: NextRequest,
@@ -10,7 +10,7 @@ export async function POST(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
@@ -20,13 +20,13 @@ export async function POST(
 
     if (!workerId) {
       return NextResponse.json(
-        { error: 'Worker ID is required' },
+        { error: "Worker ID is required" },
         { status: 400 }
       )
     }
 
     // Check if user has permission to manage this shift
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       // Check if user is a crew chief for this shift
       const crewChiefCheck = await query(`
         SELECT 1 FROM job_authorizations ja
@@ -37,7 +37,7 @@ export async function POST(
 
       if (crewChiefCheck.rows.length === 0) {
         return NextResponse.json(
-          { error: 'Insufficient permissions' },
+          { error: "Insufficient permissions" },
           { status: 403 }
         )
       }
@@ -51,7 +51,7 @@ export async function POST(
 
     if (assignmentCheck.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Worker assignment not found' },
+        { error: "Worker assignment not found" },
         { status: 404 }
       )
     }
@@ -66,7 +66,7 @@ export async function POST(
 
     if (timeEntriesCheck.rows.length > 0) {
       return NextResponse.json(
-        { error: 'Cannot mark as no-show - worker has already clocked in' },
+        { error: "Cannot mark as no-show - worker has already clocked in" },
         { status: 400 }
       )
     }
@@ -94,13 +94,13 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Worker marked as no-show'
+      message: "Worker marked as no-show"
     })
 
   } catch (error) {
-    console.error('Error marking no-show:', error)
+    console.error("Error marking no-show:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

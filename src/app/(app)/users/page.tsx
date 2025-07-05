@@ -1,7 +1,7 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -49,38 +49,38 @@ import { useToast } from "@/hooks/use-toast"
 import { useApi } from "@/hooks/use-api"
 import type { User as UserType, UserRole } from "@/lib/types"
 
-type UserFilter = 'all' | 'employees' | 'clients' | 'admins' | 'crew-chiefs'
+type UserFilter = "all" | "employees" | "clients" | "admins" | "crew-chiefs"
 
 interface UsersPageProps {}
 
 function UsersPage({}: UsersPageProps) {
   const { toast } = useToast()
   const router = useRouter()
-  const [activeFilter, setActiveFilter] = useState<UserFilter>('all')
+  const [activeFilter, setActiveFilter] = useState<UserFilter>("all")
   const [editingUser, setEditingUser] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [generatedPassword, setGeneratedPassword] = useState('')
+  const [generatedPassword, setGeneratedPassword] = useState("")
 
   // Fetch all users
-  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useApi<{ users: UserType[] }>('/api/users')
+  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useApi<{ users: UserType[] }>("/api/users")
   const users = usersData?.users || []
 
   // Filter users based on active filter
   const filteredUsers = users.filter(user => {
     switch (activeFilter) {
-      case 'employees':
-        return user.role === 'Employee' || user.role === 'Crew Chief'
-      case 'clients':
-        return user.role === 'Client'
-      case 'admins':
-        return user.role === 'Manager/Admin'
-      case 'crew-chiefs':
-        return user.role === 'Crew Chief'
-      default:
-        return true
+    case "employees":
+      return user.role === "Employee" || user.role === "Crew Chief"
+    case "clients":
+      return user.role === "Client"
+    case "admins":
+      return user.role === "Manager/Admin"
+    case "crew-chiefs":
+      return user.role === "Crew Chief"
+    default:
+      return true
     }
   })
 
@@ -88,10 +88,10 @@ function UsersPage({}: UsersPageProps) {
   const getCounts = () => {
     return {
       all: users.length,
-      employees: users.filter(u => u.role === 'Employee' || u.role === 'Crew Chief').length,
-      clients: users.filter(u => u.role === 'Client').length,
-      admins: users.filter(u => u.role === 'Manager/Admin').length,
-      crewChiefs: users.filter(u => u.role === 'Crew Chief').length
+      employees: users.filter(u => u.role === "Employee" || u.role === "Crew Chief").length,
+      clients: users.filter(u => u.role === "Client").length,
+      admins: users.filter(u => u.role === "Manager/Admin").length,
+      crewChiefs: users.filter(u => u.role === "Crew Chief").length
     }
   }
 
@@ -100,8 +100,8 @@ function UsersPage({}: UsersPageProps) {
   const handleSendPasswordReset = async (userId: string, userEmail: string) => {
     try {
       const response = await fetch(`/api/users/${userId}/password-reset`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
       })
 
       if (response.ok) {
@@ -110,7 +110,7 @@ function UsersPage({}: UsersPageProps) {
           description: `Password reset email sent to ${userEmail}`,
         })
       } else {
-        throw new Error('Failed to send password reset')
+        throw new Error("Failed to send password reset")
       }
     } catch (error) {
       toast({
@@ -134,27 +134,27 @@ function UsersPage({}: UsersPageProps) {
 
   const getRoleIcon = (role: UserRole) => {
     switch (role) {
-      case 'Manager/Admin':
-        return <Shield className="h-4 w-4" />
-      case 'Client':
-        return <Building2 className="h-4 w-4" />
-      case 'Crew Chief':
-        return <UserCheck className="h-4 w-4" />
-      default:
-        return <User className="h-4 w-4" />
+    case "Manager/Admin":
+      return <Shield className="h-4 w-4" />
+    case "Client":
+      return <Building2 className="h-4 w-4" />
+    case "Crew Chief":
+      return <UserCheck className="h-4 w-4" />
+    default:
+      return <User className="h-4 w-4" />
     }
   }
 
   const getRoleBadgeVariant = (role: UserRole) => {
     switch (role) {
-      case 'Manager/Admin':
-        return 'destructive'
-      case 'Client':
-        return 'secondary'
-      case 'Crew Chief':
-        return 'default'
-      default:
-        return 'outline'
+    case "Manager/Admin":
+      return "destructive"
+    case "Client":
+      return "secondary"
+    case "Crew Chief":
+      return "default"
+    default:
+      return "outline"
     }
   }
 
@@ -236,7 +236,7 @@ function UsersPage({}: UsersPageProps) {
                       <Avatar className="h-10 w-10">
                         <AvatarImage src={user.avatar} />
                         <AvatarFallback>
-                          {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          {user.name.split(" ").map(n => n[0]).join("").toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -288,7 +288,7 @@ function UsersPage({}: UsersPageProps) {
                       <span className="text-sm text-muted-foreground">{user.location}</span>
                     )}
                   </div>
-                  {(user.role === 'Employee' || user.role === 'Crew Chief') && (
+                  {(user.role === "Employee" || user.role === "Crew Chief") && (
                     <div className="mt-2 flex gap-2 items-center">
                       {user.crewChiefEligible && (
                         <Badge variant="outline" className="text-xs">Crew Chief</Badge>
@@ -363,12 +363,12 @@ function CreateUserForm({
   const { toast } = useToast()
   const [isCreating, setIsCreating] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: 'Employee' as UserRole,
-    location: '',
-    companyName: '',
-    contactPhone: ''
+    name: "",
+    email: "",
+    role: "Employee" as UserRole,
+    location: "",
+    companyName: "",
+    contactPhone: ""
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -376,9 +376,9 @@ function CreateUserForm({
     setIsCreating(true)
 
     try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
           password: generatedPassword
@@ -393,7 +393,7 @@ function CreateUserForm({
         onSuccess()
       } else {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to create user')
+        throw new Error(error.error || "Failed to create user")
       }
     } catch (error) {
       toast({
@@ -455,7 +455,7 @@ function CreateUserForm({
         </div>
       </div>
 
-      {formData.role === 'Client' && (
+      {formData.role === "Client" && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <Label htmlFor="companyName">Company Name</Label>

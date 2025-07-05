@@ -34,29 +34,29 @@ function EmployeesPage({}: EmployeeManagementProps) {
   const [isCreating, setIsCreating] = useState(false)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
-  const [generatedPassword, setGeneratedPassword] = useState('')
+  const [generatedPassword, setGeneratedPassword] = useState("")
 
   // Fetch all users
-  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useApi<{ users: User[] }>('/api/users')
+  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useApi<{ users: User[] }>("/api/users")
   const users = usersData?.users || []
 
   const [editForm, setEditForm] = useState<Partial<User>>({})
   const [newUserForm, setNewUserForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'Employee' as UserRole,
-    location: '',
+    name: "",
+    email: "",
+    password: "",
+    role: "Employee" as UserRole,
+    location: "",
     performance: 0,
     crewChiefEligible: false,
     forkOperatorEligible: false,
     oshaCompliant: false,
     certifications: [] as string[],
-    companyName: '',
-    companyAddress: '',
-    contactPerson: '',
-    contactEmail: '',
-    contactPhone: ''
+    companyName: "",
+    companyAddress: "",
+    contactPerson: "",
+    contactEmail: "",
+    contactPhone: ""
   })
 
   const startEditing = (user: User) => {
@@ -69,13 +69,13 @@ function EmployeesPage({}: EmployeeManagementProps) {
       crewChiefEligible: user.crewChiefEligible || false,
       forkOperatorEligible: user.forkOperatorEligible || false,
       oshaCompliant: user.oshaCompliant || false,
-      location: user.location || '',
+      location: user.location || "",
       certifications: user.certifications || [],
       performance: user.performance || 0,
-      companyName: user.companyName || '',
-      contactPerson: user.contactPerson || '',
-      contactEmail: user.contactEmail || '',
-      contactPhone: user.contactPhone || ''
+      companyName: user.companyName || "",
+      contactPerson: user.contactPerson || "",
+      contactEmail: user.contactEmail || "",
+      contactPhone: user.contactPhone || ""
     })
   }
 
@@ -85,8 +85,8 @@ function EmployeesPage({}: EmployeeManagementProps) {
   }
 
   const generatePassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
-    let password = ''
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
+    let password = ""
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length))
     }
@@ -97,22 +97,22 @@ function EmployeesPage({}: EmployeeManagementProps) {
 
   const resetNewUserForm = () => {
     setNewUserForm({
-      name: '',
-      email: '',
-      password: '',
-      role: 'Employee' as UserRole,
-      location: '',
+      name: "",
+      email: "",
+      password: "",
+      role: "Employee" as UserRole,
+      location: "",
       performance: 0,
       crewChiefEligible: false,
       forkOperatorEligible: false,
       certifications: [],
-      companyName: '',
-      companyAddress: '',
-      contactPerson: '',
-      contactEmail: '',
-      contactPhone: ''
+      companyName: "",
+      companyAddress: "",
+      contactPerson: "",
+      contactEmail: "",
+      contactPhone: ""
     })
-    setGeneratedPassword('')
+    setGeneratedPassword("")
     setShowPassword(false)
   }
 
@@ -128,14 +128,14 @@ function EmployeesPage({}: EmployeeManagementProps) {
     setIsUpdating(true)
     try {
       const response = await fetch(`/api/users/${editForm.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editForm)
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to update user')
+        throw new Error(error.error || "Failed to update user")
       }
 
       toast({
@@ -147,7 +147,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
       setEditForm({})
       refetchUsers()
     } catch (error) {
-      console.error('Error updating user:', error)
+      console.error("Error updating user:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update user",
@@ -170,15 +170,15 @@ function EmployeesPage({}: EmployeeManagementProps) {
 
     setIsCreating(true)
     try {
-      const response = await fetch('/api/users', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/users", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newUserForm)
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to create user')
+        throw new Error(error.error || "Failed to create user")
       }
 
       const result = await response.json()
@@ -192,7 +192,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
       resetNewUserForm()
       refetchUsers()
     } catch (error) {
-      console.error('Error creating user:', error)
+      console.error("Error creating user:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to create user",
@@ -205,20 +205,20 @@ function EmployeesPage({}: EmployeeManagementProps) {
 
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
-      case 'Manager/Admin': return 'bg-purple-100 text-purple-800'
-      case 'Crew Chief': return 'bg-blue-100 text-blue-800'
-      case 'Employee': return 'bg-green-100 text-green-800'
-      case 'Client': return 'bg-orange-100 text-orange-800'
-      default: return 'bg-gray-100 text-gray-800'
+    case "Manager/Admin": return "bg-purple-100 text-purple-800"
+    case "Crew Chief": return "bg-blue-100 text-blue-800"
+    case "Employee": return "bg-green-100 text-green-800"
+    case "Client": return "bg-orange-100 text-orange-800"
+    default: return "bg-gray-100 text-gray-800"
     }
   }
 
   const getEligibilityDisplay = (user: User) => {
     const eligibilities = []
-    if (user.crewChiefEligible) eligibilities.push('CC')
-    if (user.forkOperatorEligible) eligibilities.push('FO')
-    if (user.oshaCompliant) eligibilities.push('OSHA')
-    return eligibilities.length > 0 ? eligibilities.join(', ') : 'None'
+    if (user.crewChiefEligible) eligibilities.push("CC")
+    if (user.forkOperatorEligible) eligibilities.push("FO")
+    if (user.oshaCompliant) eligibilities.push("OSHA")
+    return eligibilities.length > 0 ? eligibilities.join(", ") : "None"
   }
 
   if (usersLoading) {
@@ -232,7 +232,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
   }
 
   return (
-      <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -262,7 +262,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.filter(u => u.role === 'Employee').length}
+              {users.filter(u => u.role === "Employee").length}
             </div>
           </CardContent>
         </Card>
@@ -274,7 +274,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {users.filter(u => u.role === 'Crew Chief').length}
+              {users.filter(u => u.role === "Crew Chief").length}
             </div>
           </CardContent>
         </Card>
@@ -348,7 +348,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={user.avatar} />
                           <AvatarFallback>
-                            {user.name.split(' ').map(n => n[0]).join('')}
+                            {user.name.split(" ").map(n => n[0]).join("")}
                           </AvatarFallback>
                         </Avatar>
                         <div>
@@ -433,13 +433,13 @@ function EmployeesPage({}: EmployeeManagementProps) {
                     <TableCell>
                       {editingUser === user.id ? (
                         <Input
-                          value={editForm.location || ''}
+                          value={editForm.location || ""}
                           onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
                           placeholder="Location"
                           className="w-24"
                         />
                       ) : (
-                        <span className="text-sm">{user.location || '-'}</span>
+                        <span className="text-sm">{user.location || "-"}</span>
                       )}
                     </TableCell>
 
@@ -456,7 +456,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
                         />
                       ) : (
                         <span className="text-sm">
-                          {user.performance ? `${user.performance}/5` : '-'}
+                          {user.performance ? `${user.performance}/5` : "-"}
                         </span>
                       )}
                     </TableCell>
@@ -593,7 +593,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
             </div>
 
             {/* Employee-specific fields */}
-            {(newUserForm.role === 'Employee' || newUserForm.role === 'Crew Chief' || newUserForm.role === 'Manager/Admin') && (
+            {(newUserForm.role === "Employee" || newUserForm.role === "Crew Chief" || newUserForm.role === "Manager/Admin") && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Employee Information</h3>
                 <div className="grid gap-4 md:grid-cols-2">
@@ -649,7 +649,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
             )}
 
             {/* Client-specific fields */}
-            {newUserForm.role === 'Client' && (
+            {newUserForm.role === "Client" && (
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Company Information</h3>
                 <div className="space-y-4">
@@ -728,4 +728,4 @@ function EmployeesPage({}: EmployeeManagementProps) {
   )
 }
 
-export default EmployeesPage;
+export default EmployeesPage

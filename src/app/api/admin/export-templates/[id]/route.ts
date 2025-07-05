@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(
   request: NextRequest,
@@ -10,15 +10,15 @@ export async function GET(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers can access export templates
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -41,7 +41,7 @@ export async function GET(
 
     if (templateResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Template not found' },
+        { error: "Template not found" },
         { status: 404 }
       )
     }
@@ -91,9 +91,9 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error('Error fetching export template:', error)
+    console.error("Error fetching export template:", error)
     return NextResponse.json(
-      { error: 'Failed to fetch export template' },
+      { error: "Failed to fetch export template" },
       { status: 500 }
     )
   }
@@ -107,15 +107,15 @@ export async function PUT(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers can update export templates
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -127,13 +127,13 @@ export async function PUT(
     // Validate required fields
     if (!name || !fieldMappings || !Array.isArray(fieldMappings)) {
       return NextResponse.json(
-        { error: 'Name and field mappings are required' },
+        { error: "Name and field mappings are required" },
         { status: 400 }
       )
     }
 
     // Start transaction
-    await query('BEGIN')
+    await query("BEGIN")
 
     try {
       // Check if template exists
@@ -142,9 +142,9 @@ export async function PUT(
       `, [templateId])
 
       if (existingTemplate.rows.length === 0) {
-        await query('ROLLBACK')
+        await query("ROLLBACK")
         return NextResponse.json(
-          { error: 'Template not found' },
+          { error: "Template not found" },
           { status: 404 }
         )
       }
@@ -184,27 +184,27 @@ export async function PUT(
           mapping.rowNumber,
           mapping.isHeader || false,
           mapping.displayName || mapping.fieldName,
-          mapping.dataType || 'text',
+          mapping.dataType || "text",
           mapping.formatPattern || null
         ])
       }
 
-      await query('COMMIT')
+      await query("COMMIT")
 
       return NextResponse.json({
         success: true,
-        message: 'Export template updated successfully'
+        message: "Export template updated successfully"
       })
 
     } catch (error) {
-      await query('ROLLBACK')
+      await query("ROLLBACK")
       throw error
     }
 
   } catch (error) {
-    console.error('Error updating export template:', error)
+    console.error("Error updating export template:", error)
     return NextResponse.json(
-      { error: 'Failed to update export template' },
+      { error: "Failed to update export template" },
       { status: 500 }
     )
   }
@@ -218,15 +218,15 @@ export async function DELETE(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers can delete export templates
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -240,14 +240,14 @@ export async function DELETE(
 
     if (templateResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Template not found' },
+        { error: "Template not found" },
         { status: 404 }
       )
     }
 
     if (templateResult.rows[0].is_default) {
       return NextResponse.json(
-        { error: 'Cannot delete the default template' },
+        { error: "Cannot delete the default template" },
         { status: 400 }
       )
     }
@@ -259,13 +259,13 @@ export async function DELETE(
 
     return NextResponse.json({
       success: true,
-      message: 'Export template deleted successfully'
+      message: "Export template deleted successfully"
     })
 
   } catch (error) {
-    console.error('Error deleting export template:', error)
+    console.error("Error deleting export template:", error)
     return NextResponse.json(
-      { error: 'Failed to delete export template' },
+      { error: "Failed to delete export template" },
       { status: 500 }
     )
   }

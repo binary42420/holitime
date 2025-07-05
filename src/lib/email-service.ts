@@ -26,22 +26,22 @@ export interface EmailOptions {
 }
 
 class EmailService {
-  private isProduction = process.env.NODE_ENV === 'production';
-  private fromEmail = process.env.FROM_EMAIL || 'noreply@holitime.com';
-  private fromName = process.env.FROM_NAME || 'HoliTime Workforce Management';
+  private isProduction = process.env.NODE_ENV === "production"
+  private fromEmail = process.env.FROM_EMAIL || "noreply@holitime.com"
+  private fromName = process.env.FROM_NAME || "HoliTime Workforce Management"
 
   async sendEmail(options: EmailOptions): Promise<boolean> {
     try {
       // In development, just log the email
       if (!this.isProduction) {
-        console.log('📧 Email would be sent:', {
+        console.log("📧 Email would be sent:", {
           from: `${this.fromName} <${this.fromEmail}>`,
-          to: options.to.map(r => `${r.name} <${r.email}>`).join(', '),
-          cc: options.cc?.map(r => `${r.name} <${r.email}>`).join(', '),
+          to: options.to.map(r => `${r.name} <${r.email}>`).join(", "),
+          cc: options.cc?.map(r => `${r.name} <${r.email}>`).join(", "),
           subject: this.replaceVariables(options.template.subject, options.variables),
           body: this.replaceVariables(options.template.textBody, options.variables)
-        });
-        return true;
+        })
+        return true
       }
 
       // In production, implement actual email sending
@@ -64,27 +64,27 @@ class EmailService {
       return response.ok;
       */
       
-      return true; // Mock success for now
+      return true // Mock success for now
     } catch (error) {
-      console.error('Failed to send email:', error);
-      return false;
+      console.error("Failed to send email:", error)
+      return false
     }
   }
 
   private replaceVariables(template: string, variables?: Record<string, string>): string {
-    if (!variables) return template;
+    if (!variables) return template
     
-    let result = template;
+    let result = template
     Object.entries(variables).forEach(([key, value]) => {
-      result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);
-    });
-    return result;
+      result = result.replace(new RegExp(`{{${key}}}`, "g"), value)
+    })
+    return result
   }
 
   // Pre-defined email templates
   getPasswordResetTemplate(): EmailTemplate {
     return {
-      subject: 'Password Reset - HoliTime Workforce Management',
+      subject: "Password Reset - HoliTime Workforce Management",
       htmlBody: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Password Reset Request</h2>
@@ -112,12 +112,12 @@ If you didn't request this reset, please contact your administrator.
 
 HoliTime Workforce Management System
       `
-    };
+    }
   }
 
   getShiftAssignmentTemplate(): EmailTemplate {
     return {
-      subject: 'New Shift Assignment - {{shiftDate}} {{shiftTime}}',
+      subject: "New Shift Assignment - {{shiftDate}} {{shiftTime}}",
       htmlBody: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>New Shift Assignment</h2>
@@ -157,12 +157,12 @@ If you have any questions, contact your crew chief or manager.
 
 HoliTime Workforce Management System
       `
-    };
+    }
   }
 
   getShiftReminderTemplate(): EmailTemplate {
     return {
-      subject: 'Shift Reminder - Tomorrow {{shiftTime}}',
+      subject: "Shift Reminder - Tomorrow {{shiftTime}}",
       htmlBody: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Shift Reminder</h2>
@@ -202,12 +202,12 @@ Contact information: {{contactInfo}}
 
 HoliTime Workforce Management System
       `
-    };
+    }
   }
 
   getShiftConfirmationTemplate(): EmailTemplate {
     return {
-      subject: 'Shift Confirmation Required - {{shiftDate}}',
+      subject: "Shift Confirmation Required - {{shiftDate}}",
       htmlBody: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Shift Confirmation Required</h2>
@@ -247,13 +247,13 @@ Contact your manager if you cannot attend this shift.
 
 HoliTime Workforce Management System
       `
-    };
+    }
   }
 
   // Document-related email templates
   getDocumentAssignmentTemplate(): EmailTemplate {
     return {
-      subject: 'New Document Assignment - {{documentName}}',
+      subject: "New Document Assignment - {{documentName}}",
       htmlBody: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>New Document Assignment</h2>
@@ -287,12 +287,12 @@ If you have any questions, please contact your supervisor.
 
 HoliTime Workforce Management System
       `
-    };
+    }
   }
 
   getDocumentReminderTemplate(): EmailTemplate {
     return {
-      subject: 'Document Reminder - {{documentName}} Due Soon',
+      subject: "Document Reminder - {{documentName}} Due Soon",
       htmlBody: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Document Reminder</h2>
@@ -324,12 +324,12 @@ Log in to your account to access and complete the document.
 
 HoliTime Workforce Management System
       `
-    };
+    }
   }
 
   getDocumentApprovedTemplate(): EmailTemplate {
     return {
-      subject: 'Document Approved - {{documentName}}',
+      subject: "Document Approved - {{documentName}}",
       htmlBody: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Document Approved</h2>
@@ -365,12 +365,12 @@ Thank you for completing your required documentation.
 
 HoliTime Workforce Management System
       `
-    };
+    }
   }
 
   getDocumentRejectedTemplate(): EmailTemplate {
     return {
-      subject: 'Document Requires Revision - {{documentName}}',
+      subject: "Document Requires Revision - {{documentName}}",
       htmlBody: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Document Requires Revision</h2>
@@ -407,8 +407,8 @@ Log in to your account to access and revise the document.
 
 HoliTime Workforce Management System
       `
-    };
+    }
   }
 }
 
-export const emailService = new EmailService();
+export const emailService = new EmailService()

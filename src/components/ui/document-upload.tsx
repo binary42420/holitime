@@ -1,12 +1,12 @@
-'use client'
+"use client"
 
-import React, { useState, useCallback, useRef } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { CameraCapture } from '@/components/ui/camera-capture'
+import React, { useState, useCallback, useRef } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CameraCapture } from "@/components/ui/camera-capture"
 import { 
   Upload, 
   Camera, 
@@ -14,9 +14,9 @@ import {
   X, 
   AlertCircle,
   CheckCircle
-} from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
-import type { DocumentType } from '@/lib/types'
+} from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import type { DocumentType } from "@/lib/types"
 
 interface DocumentUploadProps {
   documentTypes: DocumentType[]
@@ -26,8 +26,8 @@ interface DocumentUploadProps {
 
 export function DocumentUpload({ documentTypes, onUploadSuccess, disabled }: DocumentUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [documentTypeId, setDocumentTypeId] = useState('')
-  const [expirationDate, setExpirationDate] = useState('')
+  const [documentTypeId, setDocumentTypeId] = useState("")
+  const [expirationDate, setExpirationDate] = useState("")
   const [showCamera, setShowCamera] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -49,7 +49,7 @@ export function DocumentUpload({ documentTypes, onUploadSuccess, disabled }: Doc
       }
 
       // Validate file type
-      const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/heic']
+      const allowedTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png", "image/heic"]
       if (!allowedTypes.includes(file.type)) {
         toast({
           title: "Invalid File Type",
@@ -71,7 +71,7 @@ export function DocumentUpload({ documentTypes, onUploadSuccess, disabled }: Doc
   const handleRemoveFile = useCallback(() => {
     setSelectedFile(null)
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = ""
     }
   }, [])
 
@@ -98,20 +98,20 @@ export function DocumentUpload({ documentTypes, onUploadSuccess, disabled }: Doc
 
     try {
       const formData = new FormData()
-      formData.append('file', selectedFile)
-      formData.append('documentTypeId', documentTypeId)
+      formData.append("file", selectedFile)
+      formData.append("documentTypeId", documentTypeId)
       if (expirationDate) {
-        formData.append('expirationDate', expirationDate)
+        formData.append("expirationDate", expirationDate)
       }
 
-      const response = await fetch('/api/documents/upload', {
-        method: 'POST',
+      const response = await fetch("/api/documents/upload", {
+        method: "POST",
         body: formData,
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Upload failed')
+        throw new Error(error.error || "Upload failed")
       }
 
       const result = await response.json()
@@ -123,16 +123,16 @@ export function DocumentUpload({ documentTypes, onUploadSuccess, disabled }: Doc
 
       // Reset form
       setSelectedFile(null)
-      setDocumentTypeId('')
-      setExpirationDate('')
+      setDocumentTypeId("")
+      setExpirationDate("")
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''
+        fileInputRef.current.value = ""
       }
 
       onUploadSuccess()
 
     } catch (error) {
-      console.error('Upload error:', error)
+      console.error("Upload error:", error)
       toast({
         title: "Upload Failed",
         description: error instanceof Error ? error.message : "Failed to upload document",
@@ -176,7 +176,7 @@ export function DocumentUpload({ documentTypes, onUploadSuccess, disabled }: Doc
               {documentTypes.map((type) => (
                 <SelectItem key={type.id} value={type.id}>
                   {type.name}
-                  {type.isCertification && ' (Certification)'}
+                  {type.isCertification && " (Certification)"}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -193,7 +193,7 @@ export function DocumentUpload({ documentTypes, onUploadSuccess, disabled }: Doc
               value={expirationDate}
               onChange={(e) => setExpirationDate(e.target.value)}
               disabled={disabled}
-              min={new Date().toISOString().split('T')[0]}
+              min={new Date().toISOString().split("T")[0]}
             />
           </div>
         )}
@@ -262,7 +262,7 @@ export function DocumentUpload({ documentTypes, onUploadSuccess, disabled }: Doc
                 </Button>
               </div>
               
-              {selectedFile.type.startsWith('image/') && (
+              {selectedFile.type.startsWith("image/") && (
                 <div className="mt-3">
                   <img
                     src={URL.createObjectURL(selectedFile)}

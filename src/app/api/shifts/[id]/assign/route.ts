@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getPool } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { getPool } from "@/lib/db"
 
 export async function POST(
   request: NextRequest,
@@ -10,12 +10,12 @@ export async function POST(
     const body = await request.json()
     const { employeeId, roleCode, roleOnShift } = body
 
-    console.log('Assignment request:', { shiftId, employeeId, roleCode, roleOnShift })
+    console.log("Assignment request:", { shiftId, employeeId, roleCode, roleOnShift })
 
     if (!employeeId || !roleCode || !roleOnShift) {
-      console.error('Missing required fields:', { employeeId, roleCode, roleOnShift })
+      console.error("Missing required fields:", { employeeId, roleCode, roleOnShift })
       return NextResponse.json(
-        { error: 'Employee ID, role code, and role on shift are required' },
+        { error: "Employee ID, role code, and role on shift are required" },
         { status: 400 }
       )
     }
@@ -24,16 +24,16 @@ export async function POST(
 
     // Find the user record (employees are stored in users table)
     const userQuery = await pool.query(
-      'SELECT id, name, role FROM users WHERE id = $1 AND role IN ($2, $3, $4)',
-      [employeeId, 'Employee', 'Crew Chief', 'Manager/Admin']
+      "SELECT id, name, role FROM users WHERE id = $1 AND role IN ($2, $3, $4)",
+      [employeeId, "Employee", "Crew Chief", "Manager/Admin"]
     )
 
-    console.log('User query result:', userQuery.rows)
+    console.log("User query result:", userQuery.rows)
 
     if (userQuery.rows.length === 0) {
-      console.error('Employee user not found for user ID:', employeeId)
+      console.error("Employee user not found for user ID:", employeeId)
       return NextResponse.json(
-        { error: 'Employee user not found' },
+        { error: "Employee user not found" },
         { status: 404 }
       )
     }
@@ -43,29 +43,29 @@ export async function POST(
 
     // Check if the employee is already assigned to this shift
     const existingAssignment = await pool.query(
-      'SELECT id FROM assigned_personnel WHERE shift_id = $1 AND employee_id = $2',
+      "SELECT id FROM assigned_personnel WHERE shift_id = $1 AND employee_id = $2",
       [shiftId, actualEmployeeId]
     )
 
-    console.log('Existing assignment check:', existingAssignment.rows)
+    console.log("Existing assignment check:", existingAssignment.rows)
 
     if (existingAssignment.rows.length > 0) {
-      console.error('Employee already assigned:', { shiftId, actualEmployeeId })
+      console.error("Employee already assigned:", { shiftId, actualEmployeeId })
       return NextResponse.json(
-        { error: 'Employee is already assigned to this shift' },
+        { error: "Employee is already assigned to this shift" },
         { status: 400 }
       )
     }
 
     // Check if the shift exists
     const shiftCheck = await pool.query(
-      'SELECT id FROM shifts WHERE id = $1',
+      "SELECT id FROM shifts WHERE id = $1",
       [shiftId]
     )
 
     if (shiftCheck.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Shift not found' },
+        { error: "Shift not found" },
         { status: 404 }
       )
     }
@@ -84,8 +84,8 @@ export async function POST(
       const endTime = currentShift.end_time
 
       // CONFLICT CHECKING DISABLED - PROCEEDING WITH ASSIGNMENT
-      console.log('Conflict checking disabled - proceeding with assignment')
-      const conflictResult = { rows: [] };
+      console.log("Conflict checking disabled - proceeding with assignment")
+      const conflictResult = { rows: [] }
 
       if (conflictResult.rows.length > 0) {
         const conflict = conflictResult.rows[0]
@@ -118,14 +118,14 @@ export async function POST(
         userId: employeeId,
         roleOnShift,
         roleCode,
-        status: 'Clocked Out'
+        status: "Clocked Out"
       }
     })
 
   } catch (error) {
-    console.error('Error assigning worker to shift:', error)
+    console.error("Error assigning worker to shift:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea"
@@ -60,7 +61,7 @@ export default function ManagerReviewPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
-  const [timesheetId, setTimesheetId] = useState<string>('')
+  const [timesheetId, setTimesheetId] = useState<string>("")
 
   // Unwrap params
   useEffect(() => {
@@ -71,8 +72,8 @@ export default function ManagerReviewPage() {
   
   const [isApproving, setIsApproving] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
-  const [rejectionReason, setRejectionReason] = useState('')
-  const [signature, setSignature] = useState('')
+  const [rejectionReason, setRejectionReason] = useState("")
+  const [signature, setSignature] = useState("")
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
 
@@ -116,7 +117,7 @@ export default function ManagerReviewPage() {
     if (!canvas) return
     
     const rect = canvas.getBoundingClientRect()
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
     
     ctx.beginPath()
@@ -130,7 +131,7 @@ export default function ManagerReviewPage() {
     if (!canvas) return
     
     const rect = canvas.getBoundingClientRect()
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
     
     ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top)
@@ -151,11 +152,11 @@ export default function ManagerReviewPage() {
     const canvas = canvasRef.current
     if (!canvas) return
     
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
     
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    setSignature('')
+    setSignature("")
   }
 
   const approveTimesheet = async () => {
@@ -171,17 +172,17 @@ export default function ManagerReviewPage() {
     setIsApproving(true)
     try {
       const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          approvalType: 'manager',
+          approvalType: "manager",
           signature
         })
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to approve timesheet')
+        throw new Error(error.error || "Failed to approve timesheet")
       }
 
       toast({
@@ -189,9 +190,9 @@ export default function ManagerReviewPage() {
         description: "The timesheet has been approved and marked as completed",
       })
 
-      router.push('/timesheets')
+      router.push("/timesheets")
     } catch (error) {
-      console.error('Error approving timesheet:', error)
+      console.error("Error approving timesheet:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to approve timesheet",
@@ -215,8 +216,8 @@ export default function ManagerReviewPage() {
     setIsRejecting(true)
     try {
       const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reason: rejectionReason
         })
@@ -224,7 +225,7 @@ export default function ManagerReviewPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to reject timesheet')
+        throw new Error(error.error || "Failed to reject timesheet")
       }
 
       toast({
@@ -232,9 +233,9 @@ export default function ManagerReviewPage() {
         description: "The timesheet has been rejected and returned for corrections",
       })
 
-      router.push('/timesheets')
+      router.push("/timesheets")
     } catch (error) {
-      console.error('Error rejecting timesheet:', error)
+      console.error("Error rejecting timesheet:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to reject timesheet",
@@ -246,8 +247,8 @@ export default function ManagerReviewPage() {
   }
 
   const formatTime = (timeString?: string) => {
-    if (!timeString) return '-'
-    return format(new Date(timeString), 'h:mm a')
+    if (!timeString) return "-"
+    return format(new Date(timeString), "h:mm a")
   }
 
   const calculateHours = (clockIn?: string, clockOut?: string) => {
@@ -290,8 +291,8 @@ export default function ManagerReviewPage() {
           </p>
         </div>
         <Badge variant="outline" className="flex items-center gap-1">
-          <Shield className="h-3 w-3" />
-          {timesheetData.status.replace('_', ' ').toUpperCase()}
+          <Shield className="h-3 w-3 mr-1" />
+          {timesheetData.status.replace("_", " ").toUpperCase()}
         </Badge>
       </div>
 
@@ -309,7 +310,7 @@ export default function ManagerReviewPage() {
               <div>
                 <p className="font-medium">Approved by {shift.clientName}</p>
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(timesheetData.clientApprovedAt), 'MMMM d, yyyy at h:mm a')}
+                  {format(new Date(timesheetData.clientApprovedAt), "MMMM d, yyyy at h:mm a")}
                 </p>
               </div>
               {timesheetData.clientSignature && (
@@ -347,7 +348,7 @@ export default function ManagerReviewPage() {
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-              <p className="font-medium">{format(new Date(shift.date), 'MMMM d, yyyy')}</p>
+              <p className="font-medium">{format(new Date(shift.date), "MMMM d, yyyy")}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Crew Chief</Label>
@@ -362,146 +363,105 @@ export default function ManagerReviewPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Worker Time Entries
+            Employee Time Entries
           </CardTitle>
-          <CardDescription>
-            Review and verify all worker time entries for accuracy
-          </CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Worker</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Clock In 1</TableHead>
-                <TableHead>Clock Out 1</TableHead>
-                <TableHead>Clock In 2</TableHead>
-                <TableHead>Clock Out 2</TableHead>
-                <TableHead>Clock In 3</TableHead>
-                <TableHead>Clock Out 3</TableHead>
+                <TableHead>Employee</TableHead>
+                <TableHead>JT</TableHead>
+                <TableHead>IN 1</TableHead>
+                <TableHead>OUT 1</TableHead>
+                <TableHead>IN 2</TableHead>
+                <TableHead>OUT 2</TableHead>
+                <TableHead>IN 3</TableHead>
+                <TableHead>OUT 3</TableHead>
                 <TableHead>Total Hours</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {assignedPersonnel.map((worker) => {
-                const totalHours = worker.timeEntries.reduce((sum, entry) => 
-                  sum + calculateHours(entry.clockIn, entry.clockOut), 0
-                )
-                
-                return (
-                  <TableRow key={worker.id}>
+              {(shift?.assignedPersonnel || [])
+                .filter((p: any) => p && p.timeEntries && Array.isArray(p.timeEntries) && p.timeEntries.length > 0)
+                .map((person: any) => (
+                  <TableRow key={person.employee?.id || person.id}>
+                    <TableCell className="font-medium">{person.employee?.name || "Unknown Employee"}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={worker.employeeAvatar} />
-                          <AvatarFallback>
-                            {worker.employeeName.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium">{worker.employeeName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{worker.roleCode}</Badge>
+                      <Badge variant="outline">{person.roleCode || person.role_on_shift || "Worker"}</Badge>
                     </TableCell>
                     {[1, 2, 3].map((entryNum) => {
-                      const entry = worker.timeEntries.find(e => e.entryNumber === entryNum)
+                      const entry = person.timeEntries?.find((e: any) => e && e.entryNumber === entryNum)
+                      const display = getTimeEntryDisplay(entry?.clockIn, entry?.clockOut)
                       return (
                         <React.Fragment key={entryNum}>
-                          <TableCell>{formatTime(entry?.clockIn)}</TableCell>
-                          <TableCell>{formatTime(entry?.clockOut)}</TableCell>
+                          <TableCell className="text-sm">
+                            {display.displayClockIn}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {display.displayClockOut}
+                          </TableCell>
                         </React.Fragment>
                       )
                     })}
-                    <TableCell className="font-medium">
-                      {totalHours.toFixed(2)} hrs
-                    </TableCell>
+                    <TableCell className="font-medium">{calculateTotalHours(person.timeEntries || [])}</TableCell>
                   </TableRow>
-                )
-              })}
+                ))}
+              <TableRow className="border-t-2 font-semibold bg-muted/50">
+                <TableCell colSpan={8} className="text-right">Total Hours:</TableCell>
+                <TableCell className="text-right font-mono">
+                  {(() => {
+                    const allTimeEntries = (shift?.assignedPersonnel || [])
+                      .filter((p: any) => p && p.timeEntries && Array.isArray(p.timeEntries) && p.timeEntries.length > 0)
+                      .flatMap((p: any) => p.timeEntries || [])
+                    return calculateTotalHours(allTimeEntries)
+                  })()}
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      {/* Manager Signature */}
+      {/* Manager Approval Section */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Signature className="h-5 w-5" />
-            Manager Signature
+            <Shield className="h-5 w-5" />
+            Manager Final Approval
           </CardTitle>
-          <CardDescription>
-            Please sign below to provide final approval for this timesheet
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4">
-            <canvas
-              ref={canvasRef}
-              width={600}
-              height={200}
-              className="w-full h-32 border rounded cursor-crosshair"
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={clearSignature}>
-              Clear Signature
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Rejection Reason */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <XCircle className="h-5 w-5" />
-            Rejection (Optional)
-          </CardTitle>
-          <CardDescription>
-            If you need to reject this timesheet, please provide a reason
-          </CardDescription>
         </CardHeader>
         <CardContent>
-          <Textarea
-            value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
-            placeholder="Enter reason for rejection..."
-            rows={3}
-          />
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              As a manager, you are providing the final approval for this timesheet. 
+              Please review all information above and provide your digital signature to complete the approval process.
+            </p>
+            
+            <div className="flex justify-center">
+              <Button 
+                onClick={() => setShowSignatureModal(true)}
+                disabled={submitting}
+                size="lg"
+                className="px-8"
+              >
+                <FileSignature className="h-4 w-4 mr-2" />
+                {submitting ? "Processing..." : "Provide Final Approval"}
+              </Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Action Buttons */}
-      <div className="flex gap-4 justify-end">
-        <Button
-          variant="outline"
-          onClick={() => router.push('/timesheets')}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={rejectTimesheet}
-          disabled={isRejecting || !rejectionReason.trim()}
-        >
-          {isRejecting ? "Rejecting..." : "Reject Timesheet"}
-          <XCircle className="ml-2 h-4 w-4" />
-        </Button>
-        <Button
-          onClick={approveTimesheet}
-          disabled={isApproving || !signature}
-        >
-          {isApproving ? "Approving..." : "Final Approval"}
-          <CheckCircle className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+      {/* Signature Modal */}
+      <SignatureCaptureModal
+        isOpen={showSignatureModal}
+        onClose={() => setShowSignatureModal(false)}
+        onSignatureSubmit={handleManagerApproval}
+        title="Manager Final Approval"
+        description="Please provide your digital signature to complete the final approval of this timesheet."
+        loading={submitting}
+      />
     </div>
   )
 }

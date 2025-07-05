@@ -1,11 +1,11 @@
 "use client"
 
-import React, { Component, ErrorInfo, ReactNode } from 'react'
+import React, { Component, ErrorInfo, ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react"
-import { logError, type AppError, type ErrorContext } from '@/lib/error-handler'
+import { logError, type AppError, type ErrorContext } from "@/lib/error-handler"
 
 interface Props {
   children: ReactNode
@@ -45,13 +45,13 @@ export class ErrorBoundary extends Component<Props, State> {
     // Log the error
     const appError: AppError = {
       ...error,
-      code: 'COMPONENT_ERROR',
+      code: "COMPONENT_ERROR",
       statusCode: 500,
       retryable: false,
       context: {
         ...this.props.context,
-        component: 'ErrorBoundary',
-        action: 'componentDidCatch',
+        component: "ErrorBoundary",
+        action: "componentDidCatch",
         metadata: {
           componentStack: errorInfo.componentStack,
           errorBoundary: true
@@ -97,11 +97,11 @@ export class ErrorBoundary extends Component<Props, State> {
     // Copy to clipboard for easy reporting
     navigator.clipboard.writeText(JSON.stringify(errorReport, null, 2))
       .then(() => {
-        alert('Error details copied to clipboard. Please share this with support.')
+        alert("Error details copied to clipboard. Please share this with support.")
       })
       .catch(() => {
-        console.error('Error Report:', errorReport)
-        alert('Error details logged to console. Please check browser console and share with support.')
+        console.error("Error Report:", errorReport)
+        alert("Error details logged to console. Please check browser console and share with support.")
       })
   }
 
@@ -133,7 +133,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 <AlertTitle>Error Details</AlertTitle>
                 <AlertDescription className="mt-2">
                   <div className="text-sm font-mono bg-red-50 p-2 rounded border">
-                    {this.state.error?.message || 'Unknown error occurred'}
+                    {this.state.error?.message || "Unknown error occurred"}
                   </div>
                   {this.state.errorId && (
                     <div className="text-xs text-gray-600 mt-2">
@@ -154,7 +154,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 
                 <Button 
                   variant="outline"
-                  onClick={() => window.location.href = '/'}
+                  onClick={() => window.location.href = "/"}
                   className="w-full"
                 >
                   <Home className="w-4 h-4 mr-2" />
@@ -171,7 +171,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 </Button>
               </div>
 
-              {process.env.NODE_ENV === 'development' && this.state.errorInfo && (
+              {process.env.NODE_ENV === "development" && this.state.errorInfo && (
                 <details className="mt-4">
                   <summary className="cursor-pointer text-sm font-medium text-gray-700 hover:text-gray-900">
                     Developer Details
@@ -225,7 +225,7 @@ export function useErrorBoundary() {
 // Higher-order component wrapper
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
-  errorBoundaryProps?: Omit<Props, 'children'>
+  errorBoundaryProps?: Omit<Props, "children">
 ) {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary {...errorBoundaryProps}>
@@ -256,12 +256,12 @@ export function AsyncErrorBoundary({ children, onError }: { children: ReactNode;
       onError?.(error)
     }
 
-    window.addEventListener('unhandledrejection', handleUnhandledRejection)
-    window.addEventListener('error', handleError)
+    window.addEventListener("unhandledrejection", handleUnhandledRejection)
+    window.addEventListener("error", handleError)
 
     return () => {
-      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
-      window.removeEventListener('error', handleError)
+      window.removeEventListener("unhandledrejection", handleUnhandledRejection)
+      window.removeEventListener("error", handleError)
     }
   }, [onError])
 

@@ -17,7 +17,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     await withTransaction(async client => {
       // 1. Clear existing unassigned personnel for this shift
       await client.query(
-        `DELETE FROM "AssignedPersonnel" WHERE "shiftId" = $1 AND "employeeId" IS NULL`,
+        "DELETE FROM \"AssignedPersonnel\" WHERE \"shiftId\" = $1 AND \"employeeId\" IS NULL",
         [id]
       )
 
@@ -34,7 +34,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const existingPersonnel = personnel.filter((p: any) => !p.id.startsWith("new-"))
       for (const p of existingPersonnel) {
         await client.query(
-          `UPDATE "AssignedPersonnel" SET "employeeId" = $1 WHERE "id" = $2`,
+          "UPDATE \"AssignedPersonnel\" SET \"employeeId\" = $1 WHERE \"id\" = $2",
           [p.employeeId, p.id]
         )
       }

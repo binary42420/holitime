@@ -1,19 +1,19 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
+import React, { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select"
 import {
   Table,
   TableBody,
@@ -21,62 +21,62 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { useToast } from '@/hooks/use-toast'
-import { Plus, Trash2, Save, ArrowLeft } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+} from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
+import { Plus, Trash2, Save, ArrowLeft } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface FieldMapping {
   id?: string
-  fieldType: 'client_metadata' | 'employee_data'
+  fieldType: "client_metadata" | "employee_data"
   fieldName: string
   columnLetter: string
   rowNumber: number
   isHeader: boolean
   displayName: string
-  dataType: 'text' | 'number' | 'date' | 'time'
+  dataType: "text" | "number" | "date" | "time"
   formatPattern?: string
 }
 
 interface ExportTemplateEditorProps {
   templateId?: string
-  mode: 'create' | 'edit'
+  mode: "create" | "edit"
 }
 
 const AVAILABLE_FIELDS = {
   client_metadata: [
-    { name: 'hands_on_job_number', label: 'Hands On Job Number', type: 'text' },
-    { name: 'client_po_number', label: 'Client PO Number', type: 'text' },
-    { name: 'client_name', label: 'Client Company Name', type: 'text' },
-    { name: 'client_contact', label: 'Client Contact Person', type: 'text' },
-    { name: 'job_location', label: 'Job Location', type: 'text' },
-    { name: 'job_name', label: 'Job Name', type: 'text' },
-    { name: 'shift_date', label: 'Shift Date', type: 'date' },
-    { name: 'crew_requested', label: 'Crew Requested', type: 'text' },
-    { name: 'job_notes', label: 'Job Notes', type: 'text' },
+    { name: "hands_on_job_number", label: "Hands On Job Number", type: "text" },
+    { name: "client_po_number", label: "Client PO Number", type: "text" },
+    { name: "client_name", label: "Client Company Name", type: "text" },
+    { name: "client_contact", label: "Client Contact Person", type: "text" },
+    { name: "job_location", label: "Job Location", type: "text" },
+    { name: "job_name", label: "Job Name", type: "text" },
+    { name: "shift_date", label: "Shift Date", type: "date" },
+    { name: "crew_requested", label: "Crew Requested", type: "text" },
+    { name: "job_notes", label: "Job Notes", type: "text" },
   ],
   employee_data: [
-    { name: 'shift_date', label: 'Shift Date', type: 'date' },
-    { name: 'crew_requested', label: 'Crew Requested', type: 'text' },
-    { name: 'employee_email', label: 'Employee Email', type: 'text' },
-    { name: 'employee_contact', label: 'Employee Contact', type: 'text' },
-    { name: 'employee_name', label: 'Employee Name', type: 'text' },
-    { name: 'job_title', label: 'Job Title/Role', type: 'text' },
-    { name: 'check_in_out_status', label: 'Check In/Out Status', type: 'text' },
-    { name: 'clock_in_1', label: 'Clock In 1', type: 'time' },
-    { name: 'clock_out_1', label: 'Clock Out 1', type: 'time' },
-    { name: 'clock_in_2', label: 'Clock In 2', type: 'time' },
-    { name: 'clock_out_2', label: 'Clock Out 2', type: 'time' },
-    { name: 'clock_in_3', label: 'Clock In 3', type: 'time' },
-    { name: 'clock_out_3', label: 'Clock Out 3', type: 'time' },
-    { name: 'timecard_notes', label: 'Timecard Notes', type: 'text' },
+    { name: "shift_date", label: "Shift Date", type: "date" },
+    { name: "crew_requested", label: "Crew Requested", type: "text" },
+    { name: "employee_email", label: "Employee Email", type: "text" },
+    { name: "employee_contact", label: "Employee Contact", type: "text" },
+    { name: "employee_name", label: "Employee Name", type: "text" },
+    { name: "job_title", label: "Job Title/Role", type: "text" },
+    { name: "check_in_out_status", label: "Check In/Out Status", type: "text" },
+    { name: "clock_in_1", label: "Clock In 1", type: "time" },
+    { name: "clock_out_1", label: "Clock Out 1", type: "time" },
+    { name: "clock_in_2", label: "Clock In 2", type: "time" },
+    { name: "clock_out_2", label: "Clock Out 2", type: "time" },
+    { name: "clock_in_3", label: "Clock In 3", type: "time" },
+    { name: "clock_out_3", label: "Clock Out 3", type: "time" },
+    { name: "timecard_notes", label: "Timecard Notes", type: "text" },
   ]
 }
 
 export default function ExportTemplateEditor({ templateId, mode }: ExportTemplateEditorProps) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
+  const [name, setName] = useState("")
+  const [description, setDescription] = useState("")
   const [isDefault, setIsDefault] = useState(false)
   const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([])
   const [loading, setLoading] = useState(false)
@@ -85,7 +85,7 @@ export default function ExportTemplateEditor({ templateId, mode }: ExportTemplat
   const router = useRouter()
 
   useEffect(() => {
-    if (mode === 'edit' && templateId) {
+    if (mode === "edit" && templateId) {
       fetchTemplate()
     }
   }, [mode, templateId])
@@ -101,11 +101,11 @@ export default function ExportTemplateEditor({ templateId, mode }: ExportTemplat
         const template = data.template
         
         setName(template.name)
-        setDescription(template.description || '')
+        setDescription(template.description || "")
         setIsDefault(template.isDefault)
         setFieldMappings(template.fieldMappings || [])
       } else {
-        throw new Error('Failed to fetch template')
+        throw new Error("Failed to fetch template")
       }
     } catch (error) {
       toast({
@@ -120,13 +120,13 @@ export default function ExportTemplateEditor({ templateId, mode }: ExportTemplat
 
   const addFieldMapping = () => {
     const newMapping: FieldMapping = {
-      fieldType: 'client_metadata',
-      fieldName: '',
-      columnLetter: 'A',
+      fieldType: "client_metadata",
+      fieldName: "",
+      columnLetter: "A",
       rowNumber: 1,
       isHeader: false,
-      displayName: '',
-      dataType: 'text'
+      displayName: "",
+      dataType: "text"
     }
     setFieldMappings([...fieldMappings, newMapping])
   }
@@ -185,16 +185,16 @@ export default function ExportTemplateEditor({ templateId, mode }: ExportTemplat
 
     setSaving(true)
     try {
-      const url = mode === 'create' 
-        ? '/api/admin/export-templates'
+      const url = mode === "create" 
+        ? "/api/admin/export-templates"
         : `/api/admin/export-templates/${templateId}`
       
-      const method = mode === 'create' ? 'POST' : 'PUT'
+      const method = mode === "create" ? "POST" : "PUT"
       
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name,
@@ -207,9 +207,9 @@ export default function ExportTemplateEditor({ templateId, mode }: ExportTemplat
       if (response.ok) {
         toast({
           title: "Success",
-          description: `Template ${mode === 'create' ? 'created' : 'updated'} successfully`,
+          description: `Template ${mode === "create" ? "created" : "updated"} successfully`,
         })
-        router.push('/admin/export-templates')
+        router.push("/admin/export-templates")
       } else {
         const errorData = await response.json()
         throw new Error(errorData.error || `Failed to ${mode} template`)
@@ -238,7 +238,7 @@ export default function ExportTemplateEditor({ templateId, mode }: ExportTemplat
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-headline">
-            {mode === 'create' ? 'Create' : 'Edit'} Export Template
+            {mode === "create" ? "Create" : "Edit"} Export Template
           </h1>
           <p className="text-muted-foreground">
             Configure how timesheet data maps to Google Sheets positions
@@ -251,7 +251,7 @@ export default function ExportTemplateEditor({ templateId, mode }: ExportTemplat
           </Button>
           <Button onClick={handleSave} disabled={saving}>
             <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saving...' : 'Save Template'}
+            {saving ? "Saving..." : "Save Template"}
           </Button>
         </div>
       </div>
@@ -339,8 +339,8 @@ export default function ExportTemplateEditor({ templateId, mode }: ExportTemplat
                     <TableCell>
                       <Select
                         value={mapping.fieldType}
-                        onValueChange={(value: 'client_metadata' | 'employee_data') => 
-                          updateFieldMapping(index, { fieldType: value, fieldName: '' })
+                        onValueChange={(value: "client_metadata" | "employee_data") => 
+                          updateFieldMapping(index, { fieldType: value, fieldName: "" })
                         }
                       >
                         <SelectTrigger className="w-40">

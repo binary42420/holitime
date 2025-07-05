@@ -1,55 +1,55 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { getShiftById, updateShift, deleteShift } from '@/lib/services/shifts';
-import { updateWorkerRequirements } from '@/lib/services/worker-requirements';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { getShiftById, updateShift, deleteShift } from "@/lib/services/shifts"
+import { updateWorkerRequirements } from "@/lib/services/worker-requirements"
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
-    const { id } = await params;
-    console.log('Looking for shift with ID:', id);
-    const shift = await getShiftById(id);
-    console.log('getShiftById result:', shift ? 'Found shift' : 'Shift not found');
+    const { id } = await params
+    console.log("Looking for shift with ID:", id)
+    const shift = await getShiftById(id)
+    console.log("getShiftById result:", shift ? "Found shift" : "Shift not found")
     if (!shift) {
       return NextResponse.json(
-        { error: 'Shift not found' },
+        { error: "Shift not found" },
         { status: 404 }
-      );
+      )
     }
 
     // Check if user has access to this shift
     const hasAccess =
-      user.role === 'Manager/Admin' ||
-      (user.role === 'Crew Chief' && shift.crewChief?.id === user.id) ||
-      (user.role === 'Employee' && shift.assignedPersonnel.some(person => person.employee.id === user.id));
+      user.role === "Manager/Admin" ||
+      (user.role === "Crew Chief" && shift.crewChief?.id === user.id) ||
+      (user.role === "Employee" && shift.assignedPersonnel.some(person => person.employee.id === user.id))
 
     if (!hasAccess) {
       return NextResponse.json(
-        { error: 'Access denied' },
+        { error: "Access denied" },
         { status: 403 }
-      );
+      )
     }
 
     return NextResponse.json({
       success: true,
       shift,
-    });
+    })
   } catch (error) {
-    console.error('Error getting shift:', error);
+    console.error("Error getting shift:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -58,25 +58,25 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
     // Only managers can edit shifts
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
-      );
+      )
     }
 
-    const { id } = await params;
-    const body = await request.json();
-    const { date, startTime, endTime, location, crewChiefId, requestedWorkers, notes, workerRequirements } = body;
+    const { id } = await params
+    const body = await request.json()
+    const { date, startTime, endTime, location, crewChiefId, requestedWorkers, notes, workerRequirements } = body
 
     const shift = await updateShift(id, {
       date,
@@ -86,13 +86,13 @@ export async function PUT(
       crewChiefId,
       requestedWorkers,
       notes,
-    });
+    })
 
     if (!shift) {
       return NextResponse.json(
-        { error: 'Failed to update shift' },
+        { error: "Failed to update shift" },
         { status: 500 }
-      );
+      )
     }
 
     // Update worker requirements if provided
@@ -101,24 +101,24 @@ export async function PUT(
       const convertedRequirements = workerRequirements.map((req: any) => ({
         roleCode: req.roleCode,
         requiredCount: req.count
-      }));
+      }))
 
-      await updateWorkerRequirements(id, convertedRequirements);
+      await updateWorkerRequirements(id, convertedRequirements)
     }
 
     // Fetch the updated shift with worker requirements
-    const updatedShift = await getShiftById(id);
+    const updatedShift = await getShiftById(id)
 
     return NextResponse.json({
       success: true,
       shift: updatedShift,
-    });
+    })
   } catch (error) {
-    console.error('Error updating shift:', error);
+    console.error("Error updating shift:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -127,41 +127,41 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
     // Only managers can delete shifts
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
-      );
+      )
     }
 
-    const { id } = await params;
-    const success = await deleteShift(id);
+    const { id } = await params
+    const success = await deleteShift(id)
 
     if (!success) {
       return NextResponse.json(
-        { error: 'Failed to delete shift' },
+        { error: "Failed to delete shift" },
         { status: 500 }
-      );
+      )
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Shift deleted successfully',
-    });
+      message: "Shift deleted successfully",
+    })
   } catch (error) {
-    console.error('Error deleting shift:', error);
+    console.error("Error deleting shift:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

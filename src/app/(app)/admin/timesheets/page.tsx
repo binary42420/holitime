@@ -3,7 +3,7 @@
 import React from "react"
 
 // Force dynamic rendering to avoid build-time URL issues
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
@@ -28,18 +28,18 @@ import {
 import { format } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function AdminTimesheetsPage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const { data: timesheetsData, loading, error, refetch } = useApi<{ timesheets: any[] }>('/api/timesheets')
+  const { data: timesheetsData, loading, error, refetch } = useApi<{ timesheets: any[] }>("/api/timesheets")
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -47,26 +47,26 @@ function AdminTimesheetsPage() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      'Awaiting Client Approval': 'outline',
-      'Awaiting Manager Approval': 'default',
-      'Approved': 'secondary',
-      'Pending Finalization': 'destructive'
+      "Awaiting Client Approval": "outline",
+      "Awaiting Manager Approval": "default",
+      "Approved": "secondary",
+      "Pending Finalization": "destructive"
     }
-    return <Badge variant={variants[status] || 'outline'}>{status}</Badge>
+    return <Badge variant={variants[status] || "outline"}>{status}</Badge>
   }
 
   const handleApprove = async (timesheetId: string) => {
     try {
       const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ action: 'approve' }),
+        body: JSON.stringify({ action: "approve" }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to approve timesheet')
+        throw new Error("Failed to approve timesheet")
       }
 
       toast({
@@ -87,15 +87,15 @@ function AdminTimesheetsPage() {
   const handleReject = async (timesheetId: string) => {
     try {
       const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ action: 'reject' }),
+        body: JSON.stringify({ action: "reject" }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to reject timesheet')
+        throw new Error("Failed to reject timesheet")
       }
 
       toast({
@@ -113,19 +113,19 @@ function AdminTimesheetsPage() {
     }
   }
 
-  const pendingApproval = timesheets.filter(t => t.status === 'Awaiting Manager Approval').length
-  const awaitingClient = timesheets.filter(t => t.status === 'Awaiting Client Approval').length
-  const approved = timesheets.filter(t => t.status === 'Approved').length
+  const pendingApproval = timesheets.filter(t => t.status === "Awaiting Manager Approval").length
+  const awaitingClient = timesheets.filter(t => t.status === "Awaiting Client Approval").length
+  const approved = timesheets.filter(t => t.status === "Approved").length
   const overdue = timesheets.filter(t => {
     const submittedDate = new Date(t.submittedAt || t.createdAt)
     const daysSinceSubmitted = (Date.now() - submittedDate.getTime()) / (1000 * 60 * 60 * 24)
-    return daysSinceSubmitted > 3 && t.status !== 'Approved'
+    return daysSinceSubmitted > 3 && t.status !== "Approved"
   }).length
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Admin
         </Button>
@@ -134,10 +134,10 @@ function AdminTimesheetsPage() {
           <p className="text-muted-foreground">Review and approve timesheets</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push('/admin/timesheets/pending')}>
+          <Button variant="outline" onClick={() => router.push("/admin/timesheets/pending")}>
             Pending Approvals
           </Button>
-          <Button variant="outline" onClick={() => router.push('/admin/timesheets/reports')}>
+          <Button variant="outline" onClick={() => router.push("/admin/timesheets/reports")}>
             Reports
           </Button>
         </div>
@@ -234,7 +234,7 @@ function AdminTimesheetsPage() {
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         <div>
                           <div className="font-medium">
-                            {format(new Date(timesheet.shiftDate), 'MMM d, yyyy')}
+                            {format(new Date(timesheet.shiftDate), "MMM d, yyyy")}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {timesheet.startTime} - {timesheet.endTime}
@@ -260,7 +260,7 @@ function AdminTimesheetsPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(timesheet.status)}</TableCell>
                     <TableCell>
-                      {timesheet.submittedAt ? format(new Date(timesheet.submittedAt), 'MMM d') : 'N/A'}
+                      {timesheet.submittedAt ? format(new Date(timesheet.submittedAt), "MMM d") : "N/A"}
                     </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-1 justify-end">
@@ -271,7 +271,7 @@ function AdminTimesheetsPage() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {timesheet.status === 'Awaiting Manager Approval' && (
+                        {timesheet.status === "Awaiting Manager Approval" && (
                           <>
                             <Button
                               size="sm"
@@ -288,7 +288,7 @@ function AdminTimesheetsPage() {
                             </Button>
                           </>
                         )}
-                        {timesheet.status === 'completed' && (
+                        {timesheet.status === "completed" && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -298,16 +298,16 @@ function AdminTimesheetsPage() {
                                 if (response.ok) {
                                   const blob = await response.blob()
                                   const url = window.URL.createObjectURL(blob)
-                                  const a = document.createElement('a')
+                                  const a = document.createElement("a")
                                   a.href = url
-                                  a.download = `timesheet-${timesheet.jobName.replace(/\s+/g, '-')}-${timesheet.shiftDate}.pdf`
+                                  a.download = `timesheet-${timesheet.jobName.replace(/\s+/g, "-")}-${timesheet.shiftDate}.pdf`
                                   document.body.appendChild(a)
                                   a.click()
                                   window.URL.revokeObjectURL(url)
                                   document.body.removeChild(a)
                                 }
                               } catch (error) {
-                                console.error('Error downloading PDF:', error)
+                                console.error("Error downloading PDF:", error)
                               }
                             }}
                           >
@@ -327,4 +327,4 @@ function AdminTimesheetsPage() {
   )
 }
 
-export default withAuth(AdminTimesheetsPage, hasAdminAccess);
+export default withAuth(AdminTimesheetsPage, hasAdminAccess)

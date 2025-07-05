@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
-    if (!user || user.role !== 'Manager/Admin') {
+    if (!user || user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -15,16 +15,16 @@ export async function GET(request: NextRequest) {
     
     if (!apiKey) {
       return NextResponse.json({
-        error: 'Google API key not configured',
+        error: "Google API key not configured",
         hasApiKey: false
       })
     }
 
     // Test with a known public Google Sheets document
-    const testSheetId = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms' // Google's sample sheet
+    const testSheetId = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms" // Google's sample sheet
     const testUrl = `https://sheets.googleapis.com/v4/spreadsheets/${testSheetId}?key=${apiKey}`
 
-    console.log('Testing Google Sheets API with URL:', testUrl)
+    console.log("Testing Google Sheets API with URL:", testUrl)
 
     const response = await fetch(testUrl)
     const responseText = await response.text()
@@ -47,17 +47,17 @@ export async function GET(request: NextRequest) {
       const discoveryText = await discoveryResponse.text()
 
       additionalTests.push({
-        name: 'Sheets API Discovery',
+        name: "Sheets API Discovery",
         url: discoveryUrl,
         status: discoveryResponse.status,
         success: discoveryResponse.ok,
-        response: discoveryResponse.ok ? 'API enabled' : discoveryText
+        response: discoveryResponse.ok ? "API enabled" : discoveryText
       })
     } catch (error) {
       additionalTests.push({
-        name: 'Sheets API Discovery',
+        name: "Sheets API Discovery",
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error"
       })
     }
 
@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       const minimalText = await minimalResponse.text()
 
       additionalTests.push({
-        name: 'Minimal Fields Test',
+        name: "Minimal Fields Test",
         url: minimalUrl,
         status: minimalResponse.status,
         success: minimalResponse.ok,
@@ -76,16 +76,16 @@ export async function GET(request: NextRequest) {
       })
     } catch (error) {
       additionalTests.push({
-        name: 'Minimal Fields Test',
+        name: "Minimal Fields Test",
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error"
       })
     }
 
     return NextResponse.json({
       hasApiKey: true,
       apiKeyLength: apiKey.length,
-      apiKeyPreview: apiKey.substring(0, 10) + '...',
+      apiKeyPreview: apiKey.substring(0, 10) + "...",
       testSheetId,
       testUrl,
       responseStatus: response.status,
@@ -95,30 +95,30 @@ export async function GET(request: NextRequest) {
       success: response.ok,
       additionalTests,
       troubleshooting: {
-        '403_forbidden': 'API key lacks permissions or Sheets API not enabled',
-        '400_bad_request': 'Invalid API key format or malformed request',
-        '404_not_found': 'Spreadsheet not found or not publicly accessible',
-        'quota_exceeded': 'API quota limits reached',
-        'billing_required': 'Billing must be enabled for this API key'
+        "403_forbidden": "API key lacks permissions or Sheets API not enabled",
+        "400_bad_request": "Invalid API key format or malformed request",
+        "404_not_found": "Spreadsheet not found or not publicly accessible",
+        "quota_exceeded": "API quota limits reached",
+        "billing_required": "Billing must be enabled for this API key"
       },
       fixInstructions: {
-        step1: 'Go to Google Cloud Console: https://console.cloud.google.com/',
-        step2: 'Select your project: handsonlabor',
-        step3: 'Navigate to APIs & Services > Library',
-        step4: 'Search for "Google Sheets API" and enable it',
-        step5: 'Go to APIs & Services > Credentials',
-        step6: 'Find your API key and click Edit',
-        step7: 'Under "API restrictions", select "Restrict key"',
-        step8: 'Add "Google Sheets API" to the list of allowed APIs',
-        step9: 'Save the changes and wait a few minutes for propagation',
-        step10: 'Ensure billing is enabled for the project'
+        step1: "Go to Google Cloud Console: https://console.cloud.google.com/",
+        step2: "Select your project: handsonlabor",
+        step3: "Navigate to APIs & Services > Library",
+        step4: "Search for \"Google Sheets API\" and enable it",
+        step5: "Go to APIs & Services > Credentials",
+        step6: "Find your API key and click Edit",
+        step7: "Under \"API restrictions\", select \"Restrict key\"",
+        step8: "Add \"Google Sheets API\" to the list of allowed APIs",
+        step9: "Save the changes and wait a few minutes for propagation",
+        step10: "Ensure billing is enabled for the project"
       }
     })
 
   } catch (error) {
-    console.error('Error testing Google API:', error)
+    console.error("Error testing Google API:", error)
     return NextResponse.json(
-      { error: 'Failed to test Google API' },
+      { error: "Failed to test Google API" },
       { status: 500 }
     )
   }

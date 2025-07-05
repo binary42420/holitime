@@ -1,28 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { getClientById, getClientCompanyById, updateClient, updateClientCompany, deleteClient } from '@/lib/services/clients';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { getClientById, getClientCompanyById, updateClient, updateClientCompany, deleteClient } from "@/lib/services/clients"
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
-    const { id } = await params;
+    const { id } = await params
 
     // Try to get client by user ID first (contact person)
-    let client = await getClientById(id);
+    let client = await getClientById(id)
 
     // If not found, try to get by client company ID
     if (!client) {
-      const clientCompany = await getClientCompanyById(id);
+      const clientCompany = await getClientCompanyById(id)
       if (clientCompany) {
         // Convert client company to client format for backward compatibility
         client = {
@@ -38,28 +38,28 @@ export async function GET(
           email: clientCompany.contactEmail,
           address: clientCompany.companyAddress,
           phone: clientCompany.contactPhone,
-          contactPerson: 'N/A',
-        };
+          contactPerson: "N/A",
+        }
       }
     }
 
     if (!client) {
       return NextResponse.json(
-        { error: 'Client not found' },
+        { error: "Client not found" },
         { status: 404 }
-      );
+      )
     }
 
     return NextResponse.json({
       success: true,
       client,
-    });
+    })
   } catch (error) {
-    console.error('Error getting client:', error);
+    console.error("Error getting client:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -67,14 +67,14 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return handleUpdate(request, params);
+  return handleUpdate(request, params)
 }
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return handleUpdate(request, params);
+  return handleUpdate(request, params)
 }
 
 async function handleUpdate(
@@ -82,26 +82,26 @@ async function handleUpdate(
   params: Promise<{ id: string }>
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
     // Only managers can update clients
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
-      );
+      )
     }
 
-    const body = await request.json();
-    const { name, address, contactPerson, email, phone, notes, logoUrl } = body;
+    const body = await request.json()
+    const { name, address, contactPerson, email, phone, notes, logoUrl } = body
 
-    const { id } = await params;
+    const { id } = await params
 
     // Try to update as client company first
     let client = await updateClientCompany(id, {
@@ -111,7 +111,7 @@ async function handleUpdate(
       contactEmail: email,
       notes,
       logoUrl,
-    });
+    })
 
     // If that fails, try to update as client user
     if (!client) {
@@ -122,26 +122,26 @@ async function handleUpdate(
         contactPerson,
         contactEmail: email, // Map email to contactEmail
         contactPhone: phone, // Map phone to contactPhone
-      });
+      })
     }
 
     if (!client) {
       return NextResponse.json(
-        { error: 'Failed to update client' },
+        { error: "Failed to update client" },
         { status: 500 }
-      );
+      )
     }
 
     return NextResponse.json({
       success: true,
       client,
-    });
+    })
   } catch (error) {
-    console.error('Error updating client:', error);
+    console.error("Error updating client:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -150,40 +150,40 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
     // Only managers can delete clients
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
-      );
+      )
     }
 
-    const { id } = await params;
-    const success = await deleteClient(id);
+    const { id } = await params
+    const success = await deleteClient(id)
     if (!success) {
       return NextResponse.json(
-        { error: 'Failed to delete client' },
+        { error: "Failed to delete client" },
         { status: 500 }
-      );
+      )
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Client deleted successfully',
-    });
+      message: "Client deleted successfully",
+    })
   } catch (error) {
-    console.error('Error deleting client:', error);
+    console.error("Error deleting client:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

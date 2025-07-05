@@ -1,18 +1,18 @@
-'use client'
+"use client"
 
-import React, { useState, useEffect, useCallback } from 'react'
-import { Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle, Wifi, WifiOff } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { useRealtime } from '@/lib/realtime'
-import { useToast } from '@/hooks/use-toast'
-import { format } from 'date-fns'
+import React, { useState, useEffect, useCallback } from "react"
+import { Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle, Wifi, WifiOff } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { useRealtime } from "@/lib/realtime"
+import { useToast } from "@/hooks/use-toast"
+import { format } from "date-fns"
 
 // Add React JSX types
-declare module 'react' {
+declare module "react" {
   interface JSX {
     IntrinsicElements: {
       [elemName: string]: any;
@@ -20,8 +20,8 @@ declare module 'react' {
   }
 }
 
-type NotificationType = 'success' | 'error' | 'warning' | 'info'
-type NotificationPriority = 'low' | 'medium' | 'high'
+type NotificationType = "success" | "error" | "warning" | "info"
+type NotificationPriority = "low" | "medium" | "high"
 
 interface Notification {
   id: string
@@ -47,10 +47,10 @@ interface NotificationEventData {
 
 // Sound effects for notifications - initialized lazily for SSR compatibility
 const notificationSounds = {
-  success: typeof window !== 'undefined' ? new Audio('/sounds/success.mp3') : null,
-  error: typeof window !== 'undefined' ? new Audio('/sounds/error.mp3') : null,
-  warning: typeof window !== 'undefined' ? new Audio('/sounds/warning.mp3') : null,
-  info: typeof window !== 'undefined' ? new Audio('/sounds/info.mp3') : null,
+  success: typeof window !== "undefined" ? new Audio("/sounds/success.mp3") : null,
+  error: typeof window !== "undefined" ? new Audio("/sounds/error.mp3") : null,
+  warning: typeof window !== "undefined" ? new Audio("/sounds/warning.mp3") : null,
+  info: typeof window !== "undefined" ? new Audio("/sounds/info.mp3") : null,
 }
 
 // CSS animations in globals.css:
@@ -72,31 +72,31 @@ function useRealtimeNotifications(initialNotifications: Notification[] = []) {
 
   const playNotificationSound = useCallback((type: NotificationType) => {
     try {
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         const sound = notificationSounds[type]
         if (sound) {
           sound.currentTime = 0
           sound.play().catch(() => {
             // Ignore autoplay errors
-            console.debug('Notification sound blocked by browser')
+            console.debug("Notification sound blocked by browser")
           })
         }
       }
     } catch (error) {
-      console.error('Failed to play notification sound:', error)
+      console.error("Failed to play notification sound:", error)
     }
   }, [])
 
   const handleNotification = useCallback((data: NotificationEventData, category?: string) => {
     const notification: Notification = {
       id: Math.random().toString(36).substr(2, 9),
-      type: data.type || 'info',
+      type: data.type || "info",
       title: data.title,
       message: data.message,
       timestamp: new Date(),
       read: false,
       category,
-      priority: data.priority || 'medium',
+      priority: data.priority || "medium",
       actionUrl: data.actionUrl,
       sound: data.sound
     }
@@ -104,43 +104,43 @@ function useRealtimeNotifications(initialNotifications: Notification[] = []) {
     setNotifications((prev: Notification[]) => [notification, ...prev])
     
     // Play sound for high priority or explicitly requested sound
-    if (notification.priority === 'high' || notification.sound) {
+    if (notification.priority === "high" || notification.sound) {
       playNotificationSound(notification.type)
     }
     
     // Show toast for high priority notifications
-    if (notification.priority === 'high') {
+    if (notification.priority === "high") {
       toast({
         title: notification.title,
         description: notification.message,
-        variant: notification.type === 'error' ? 'destructive' : 'default',
+        variant: notification.type === "error" ? "destructive" : "default",
       })
     }
   }, [toast, playNotificationSound])
 
   useEffect(() => {
-    const unsubscribeShift = subscribe('shift_notification', 
-      (data: NotificationEventData) => handleNotification(data, 'shift')
+    const unsubscribeShift = subscribe("shift_notification", 
+      (data: NotificationEventData) => handleNotification(data, "shift")
     )
 
-    const unsubscribeTimesheet = subscribe('timesheet_notification', 
-      (data: NotificationEventData) => handleNotification(data, 'timesheet')
+    const unsubscribeTimesheet = subscribe("timesheet_notification", 
+      (data: NotificationEventData) => handleNotification(data, "timesheet")
     )
 
     // Subscribe to connection status changes
-    const unsubscribeConnection = subscribe('connection_status', 
-      (data: { status: 'connected' | 'disconnected' }) => {
-        if (data.status === 'connected') {
+    const unsubscribeConnection = subscribe("connection_status", 
+      (data: { status: "connected" | "disconnected" }) => {
+        if (data.status === "connected") {
           toast({
-            title: 'Connected',
-            description: 'Real-time connection established',
-            variant: 'default',
+            title: "Connected",
+            description: "Real-time connection established",
+            variant: "default",
           })
         } else {
           toast({
-            title: 'Disconnected',
-            description: 'Lost connection to server. Attempting to reconnect...',
-            variant: 'destructive',
+            title: "Disconnected",
+            description: "Lost connection to server. Attempting to reconnect...",
+            variant: "destructive",
           })
         }
       }
@@ -160,29 +160,29 @@ function useRealtimeNotifications(initialNotifications: Notification[] = []) {
   }
 }
 
-const getNotificationIcon = (type: Notification['type']) => {
+const getNotificationIcon = (type: Notification["type"]) => {
   switch (type) {
-    case 'success':
-      return <CheckCircle className="h-4 w-4 text-green-600" />
-    case 'error':
-      return <AlertCircle className="h-4 w-4 text-red-600" />
-    case 'warning':
-      return <AlertTriangle className="h-4 w-4 text-yellow-600" />
-    case 'info':
-      return <Info className="h-4 w-4 text-blue-600" />
+  case "success":
+    return <CheckCircle className="h-4 w-4 text-green-600" />
+  case "error":
+    return <AlertCircle className="h-4 w-4 text-red-600" />
+  case "warning":
+    return <AlertTriangle className="h-4 w-4 text-yellow-600" />
+  case "info":
+    return <Info className="h-4 w-4 text-blue-600" />
   }
 }
 
-const getNotificationBadgeColor = (type: Notification['type']) => {
+const getNotificationBadgeColor = (type: Notification["type"]) => {
   switch (type) {
-    case 'success':
-      return 'bg-green-100 text-green-800'
-    case 'error':
-      return 'bg-red-100 text-red-800'
-    case 'warning':
-      return 'bg-yellow-100 text-yellow-800'
-    case 'info':
-      return 'bg-blue-100 text-blue-800'
+  case "success":
+    return "bg-green-100 text-green-800"
+  case "error":
+    return "bg-red-100 text-red-800"
+  case "warning":
+    return "bg-yellow-100 text-yellow-800"
+  case "info":
+    return "bg-blue-100 text-blue-800"
   }
 }
 
@@ -225,7 +225,7 @@ export default function EnhancedNotificationCenter() {
               variant="destructive" 
               className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs animate-in zoom-in-50 duration-300"
             >
-              {unreadCount > 9 ? '9+' : unreadCount}
+              {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
           )}
         </Button>
@@ -256,7 +256,7 @@ export default function EnhancedNotificationCenter() {
             </div>
             {unreadCount > 0 && (
               <CardDescription>
-                You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+                You have {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
               </CardDescription>
             )}
           </CardHeader>
@@ -272,7 +272,7 @@ export default function EnhancedNotificationCenter() {
                     <div
                       key={notification.id}
                       className={`group p-3 border-b last:border-b-0 hover:bg-muted/50 cursor-pointer transition-colors ${
-                        !notification.read ? 'bg-muted/20' : ''
+                        !notification.read ? "bg-muted/20" : ""
                       }`}
                       onClick={() => {
                         markAsRead(notification.id)
@@ -312,7 +312,7 @@ export default function EnhancedNotificationCenter() {
                               )}
                             </div>
                             <span className="text-xs text-muted-foreground">
-                              {format(notification.timestamp, 'MMM d, HH:mm')}
+                              {format(notification.timestamp, "MMM d, HH:mm")}
                             </span>
                           </div>
                         </div>

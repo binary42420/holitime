@@ -54,9 +54,9 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
     tags: ["safety", "equipment", "daily", "inspection"],
     permissions: {
       canView: true,
-      canEdit: user?.role === 'Manager/Admin' || user?.role === 'Crew Chief',
-      canDelete: user?.role === 'Manager/Admin',
-      canShare: user?.role === 'Manager/Admin'
+      canEdit: user?.role === "Manager/Admin" || user?.role === "Crew Chief",
+      canDelete: user?.role === "Manager/Admin",
+      canShare: user?.role === "Manager/Admin"
     }
   }
 
@@ -64,25 +64,25 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Active':
-        return <Badge variant="default">Active</Badge>
-      case 'Draft':
-        return <Badge variant="secondary">Draft</Badge>
-      case 'Pending Review':
-        return <Badge variant="outline">Pending Review</Badge>
-      case 'Requires Signature':
-        return <Badge variant="destructive">Requires Signature</Badge>
-      case 'Archived':
-        return <Badge variant="outline">Archived</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+    case "Active":
+      return <Badge variant="default">Active</Badge>
+    case "Draft":
+      return <Badge variant="secondary">Draft</Badge>
+    case "Pending Review":
+      return <Badge variant="outline">Pending Review</Badge>
+    case "Requires Signature":
+      return <Badge variant="destructive">Requires Signature</Badge>
+    case "Archived":
+      return <Badge variant="outline">Archived</Badge>
+    default:
+      return <Badge variant="outline">{status}</Badge>
     }
   }
 
   const handleSaveForm = async (formData: any) => {
     try {
       // In a real app, this would save to the backend
-      console.log('Saving form data:', formData)
+      console.log("Saving form data:", formData)
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
@@ -105,7 +105,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
   }
 
   const handleDownload = () => {
-    const link = window.document.createElement('a')
+    const link = window.document.createElement("a")
     link.href = documentData.fileUrl
     link.download = documentData.name
     window.document.body.appendChild(link)
@@ -195,7 +195,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
                 <div className="mt-1 flex items-center gap-1">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    {format(new Date(documentData.createdAt), 'MMM d, yyyy')}
+                    {format(new Date(documentData.createdAt), "MMM d, yyyy")}
                   </span>
                 </div>
               </div>
@@ -205,7 +205,7 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
                 <div className="mt-1 flex items-center gap-1">
                   <Clock className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    {format(new Date(documentData.updatedAt), 'MMM d, yyyy')}
+                    {format(new Date(documentData.updatedAt), "MMM d, yyyy")}
                   </span>
                 </div>
               </div>

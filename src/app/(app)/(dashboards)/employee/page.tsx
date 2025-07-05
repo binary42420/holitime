@@ -1,13 +1,13 @@
-'use client';
+"use client"
 
-import { useEffect, useState } from 'react';
-import { useUser } from '@/hooks/use-user';
-import { useApi } from '@/hooks/use-api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, MapPin, User, CheckCircle, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
+import { useEffect, useState } from "react"
+import { useUser } from "@/hooks/use-user"
+import { useApi } from "@/hooks/use-api"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Calendar, Clock, MapPin, User, CheckCircle, AlertCircle } from "lucide-react"
+import Link from "next/link"
 
 interface Shift {
   id: string;
@@ -30,38 +30,38 @@ interface TimeEntry {
 }
 
 export default function EmployeeDashboard() {
-  const { user } = useUser();
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useUser()
+  const [shifts, setShifts] = useState<Shift[]>([])
+  const [timeEntries, setTimeEntries] = useState<TimeEntry[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch employee's shifts
-        const shiftsResponse = await fetch(`/api/shifts?employeeId=${user?.id}`);
+        const shiftsResponse = await fetch(`/api/shifts?employeeId=${user?.id}`)
         if (shiftsResponse.ok) {
-          const shiftsData = await shiftsResponse.json();
-          setShifts(shiftsData.shifts || []);
+          const shiftsData = await shiftsResponse.json()
+          setShifts(shiftsData.shifts || [])
         }
 
         // Fetch time entries
-        const timeResponse = await fetch(`/api/time-entries?employeeId=${user?.id}`);
+        const timeResponse = await fetch(`/api/time-entries?employeeId=${user?.id}`)
         if (timeResponse.ok) {
-          const timeData = await timeResponse.json();
-          setTimeEntries(timeData.timeEntries || []);
+          const timeData = await timeResponse.json()
+          setTimeEntries(timeData.timeEntries || [])
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
     if (user?.id) {
-      fetchData();
+      fetchData()
     }
-  }, [user?.id]);
+  }, [user?.id])
 
   if (loading) {
     return (
@@ -74,39 +74,39 @@ export default function EmployeeDashboard() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   const todayShifts = shifts.filter(shift => {
-    const shiftDate = new Date(shift.date).toDateString();
-    const today = new Date().toDateString();
-    return shiftDate === today;
-  });
+    const shiftDate = new Date(shift.date).toDateString()
+    const today = new Date().toDateString()
+    return shiftDate === today
+  })
 
   const upcomingShifts = shifts.filter(shift => {
-    const shiftDate = new Date(shift.date);
-    const today = new Date();
-    return shiftDate > today;
-  }).slice(0, 3);
+    const shiftDate = new Date(shift.date)
+    const today = new Date()
+    return shiftDate > today
+  }).slice(0, 3)
 
   const getStatusBadge = (status: string) => {
     const statusMap = {
-      'Upcoming': { variant: 'secondary' as const, icon: Calendar },
-      'In Progress': { variant: 'default' as const, icon: Clock },
-      'Completed': { variant: 'outline' as const, icon: CheckCircle },
-      'Cancelled': { variant: 'destructive' as const, icon: AlertCircle },
-    };
+      "Upcoming": { variant: "secondary" as const, icon: Calendar },
+      "In Progress": { variant: "default" as const, icon: Clock },
+      "Completed": { variant: "outline" as const, icon: CheckCircle },
+      "Cancelled": { variant: "destructive" as const, icon: AlertCircle },
+    }
 
-    const config = statusMap[status as keyof typeof statusMap] || { variant: 'secondary' as const, icon: Calendar };
-    const Icon = config.icon;
+    const config = statusMap[status as keyof typeof statusMap] || { variant: "secondary" as const, icon: Calendar }
+    const Icon = config.icon
 
     return (
       <Badge variant={config.variant} className="flex items-center gap-1">
         <Icon className="h-3 w-3" />
         {status}
       </Badge>
-    );
-  };
+    )
+  }
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -116,11 +116,11 @@ export default function EmployeeDashboard() {
           Welcome, {user?.name?.split(' ')[0]}! 👋
         </h1>
         <p className="text-sm md:text-base text-muted-foreground">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+          {new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
           })}
         </p>
       </div>
@@ -185,7 +185,7 @@ export default function EmployeeDashboard() {
         <Card className="card-mobile">
           <CardContent className="pt-4 text-center">
             <div className="text-2xl md:text-3xl font-bold text-orange-600">
-              {shifts.filter(s => s.status === 'Completed').length}
+              {shifts.filter(s => s.status === "Completed").length}
             </div>
             <p className="text-xs md:text-sm text-muted-foreground">Completed</p>
           </CardContent>
@@ -237,6 +237,17 @@ export default function EmployeeDashboard() {
                 </CardContent>
               </Card>
             ))}
+            {shifts.filter(shift => {
+              const shiftDate = new Date(shift.date)
+              const today = new Date()
+              return shiftDate > today
+            }).length > 3 && (
+              <Button size="mobile" variant="outline" className="w-full" asChild>
+                <Link href="/shifts">
+                  View All Upcoming Shifts
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       )}
@@ -281,5 +292,5 @@ export default function EmployeeDashboard() {
         </Card>
       )}
     </div>
-  );
+  )
 }

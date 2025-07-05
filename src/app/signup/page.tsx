@@ -1,78 +1,78 @@
 "use client"
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Hand, Loader2, CheckCircle } from "lucide-react";
-import Link from "next/link";
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Hand, Loader2, CheckCircle } from "lucide-react"
+import Link from "next/link"
 
 export default function SignupPage() {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    companyName: '',
-    phone: ''
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const router = useRouter();
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    companyName: "",
+    phone: ""
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
+  const router = useRouter()
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
       [name]: value
-    }));
-  };
+    }))
+  }
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError('Name is required');
-      return false;
+      setError("Name is required")
+      return false
     }
     if (!formData.email.trim()) {
-      setError('Email is required');
-      return false;
+      setError("Email is required")
+      return false
     }
     if (!formData.password) {
-      setError('Password is required');
-      return false;
+      setError("Password is required")
+      return false
     }
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
-      return false;
+      setError("Password must be at least 8 characters long")
+      return false
     }
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return false;
+      setError("Passwords do not match")
+      return false
     }
-    return true;
-  };
+    return true
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
+    e.preventDefault()
+    setIsLoading(true)
+    setError("")
 
     if (!validateForm()) {
-      setIsLoading(false);
-      return;
+      setIsLoading(false)
+      return
     }
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: formData.name,
@@ -81,54 +81,54 @@ export default function SignupPage() {
           companyName: formData.companyName,
           phone: formData.phone,
         }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.error || 'Registration failed');
+        throw new Error(data.error || "Registration failed")
       }
 
-      setSuccess(true);
+      setSuccess(true)
       
       // Auto-login after successful registration
       setTimeout(async () => {
-        const result = await signIn('credentials', {
+        const result = await signIn("credentials", {
           email: formData.email,
           password: formData.password,
           redirect: false,
-        });
+        })
 
         if (result?.ok) {
-          router.push('/dashboard');
+          router.push("/dashboard")
         }
-      }, 2000);
+      }, 2000)
 
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Registration failed. Please try again.');
+      setError(error instanceof Error ? error.message : "Registration failed. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleGoogleSignUp = async () => {
-    setIsGoogleLoading(true);
-    setError('');
+    setIsGoogleLoading(true)
+    setError("")
 
     try {
-      const result = await signIn('google', {
-        callbackUrl: '/dashboard',
-      });
+      const result = await signIn("google", {
+        callbackUrl: "/dashboard",
+      })
 
       if (result?.error) {
-        setError('Google sign-up failed. Please try again.');
+        setError("Google sign-up failed. Please try again.")
       }
     } catch (error) {
-      setError('Google sign-up error. Please try again.');
+      setError("Google sign-up error. Please try again.")
     } finally {
-      setIsGoogleLoading(false);
+      setIsGoogleLoading(false)
     }
-  };
+  }
 
   if (success) {
     return (
@@ -161,7 +161,7 @@ export default function SignupPage() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   return (
@@ -279,7 +279,7 @@ export default function SignupPage() {
                   Creating account...
                 </>
               ) : (
-                'Create Account'
+                "Create Account"
               )}
             </Button>
           </form>
@@ -344,5 +344,5 @@ export default function SignupPage() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

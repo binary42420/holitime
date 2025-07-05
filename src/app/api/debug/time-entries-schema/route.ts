@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { NextResponse } from "next/server"
+import { query } from "@/lib/db"
 
 export async function GET() {
   try {
@@ -17,9 +17,9 @@ export async function GET() {
     })
 
   } catch (error) {
-    console.error('Error getting time_entries schema:', error)
+    console.error("Error getting time_entries schema:", error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error },
+      { error: "Internal server error", details: error },
       { status: 500 }
     )
   }

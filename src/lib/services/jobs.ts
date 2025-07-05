@@ -1,5 +1,5 @@
-import { query } from '../db';
-import type { Job } from '../types';
+import { query } from "../db"
+import type { Job } from "../types"
 
 export async function getAllJobs(): Promise<Job[]> {
   try {
@@ -20,7 +20,7 @@ export async function getAllJobs(): Promise<Job[]> {
       LEFT JOIN shifts s ON j.id = s.job_id
       GROUP BY j.id, j.name, j.description, j.client_id, c.company_name
       ORDER BY j.created_at DESC
-    `);
+    `)
 
     return result.rows.map(row => ({
       id: row.id,
@@ -32,10 +32,10 @@ export async function getAllJobs(): Promise<Job[]> {
       startDate: row.start_date,
       endDate: row.end_date,
       status: row.status,
-    }));
+    }))
   } catch (error) {
-    console.error('Error getting all jobs:', error);
-    return [];
+    console.error("Error getting all jobs:", error)
+    return []
   }
 }
 
@@ -58,13 +58,13 @@ export async function getJobById(id: string): Promise<Job | null> {
       LEFT JOIN shifts s ON j.id = s.job_id
       WHERE j.id = $1
       GROUP BY j.id, j.name, j.description, j.client_id, c.company_name
-    `, [id]);
+    `, [id])
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0]
     return {
       id: row.id,
       name: row.name,
@@ -75,10 +75,10 @@ export async function getJobById(id: string): Promise<Job | null> {
       startDate: row.start_date,
       endDate: row.end_date,
       status: row.status,
-    };
+    }
   } catch (error) {
-    console.error('Error getting job by ID:', error);
-    return null;
+    console.error("Error getting job by ID:", error)
+    return null
   }
 }
 
@@ -102,7 +102,7 @@ export async function getJobsByClientId(clientId: string): Promise<Job[]> {
       WHERE j.client_id = $1
       GROUP BY j.id, j.name, j.description, j.client_id, c.company_name
       ORDER BY j.created_at DESC
-    `, [clientId]);
+    `, [clientId])
 
     return result.rows.map(row => ({
       id: row.id,
@@ -115,14 +115,14 @@ export async function getJobsByClientId(clientId: string): Promise<Job[]> {
       startDate: row.start_date,
       endDate: row.end_date,
       status: row.status,
-    }));
+    }))
   } catch (error) {
-    console.error('Error getting jobs by client ID:', error);
-    return [];
+    console.error("Error getting jobs by client ID:", error)
+    return []
   }
 }
 
-export async function createJob(jobData: Omit<Job, 'id' | 'clientName' | 'shiftCount' | 'startDate' | 'endDate' | 'status'>): Promise<Job | null> {
+export async function createJob(jobData: Omit<Job, "id" | "clientName" | "shiftCount" | "startDate" | "endDate" | "status">): Promise<Job | null> {
   try {
     const result = await query(`
       INSERT INTO jobs (name, description, client_id)
@@ -132,62 +132,62 @@ export async function createJob(jobData: Omit<Job, 'id' | 'clientName' | 'shiftC
       jobData.name,
       jobData.description,
       jobData.clientId
-    ]);
+    ])
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    return await getJobById(result.rows[0].id);
+    return await getJobById(result.rows[0].id)
   } catch (error) {
-    console.error('Error creating job:', error);
-    return null;
+    console.error("Error creating job:", error)
+    return null
   }
 }
 
-export async function updateJob(id: string, jobData: Partial<Omit<Job, 'id' | 'clientName' | 'shiftCount' | 'startDate' | 'endDate' | 'status'>>): Promise<Job | null> {
+export async function updateJob(id: string, jobData: Partial<Omit<Job, "id" | "clientName" | "shiftCount" | "startDate" | "endDate" | "status">>): Promise<Job | null> {
   try {
-    const fields = [];
-    const values = [];
-    let paramCount = 1;
+    const fields = []
+    const values = []
+    let paramCount = 1
 
     if (jobData.name !== undefined) {
-      fields.push(`name = $${paramCount++}`);
-      values.push(jobData.name);
+      fields.push(`name = $${paramCount++}`)
+      values.push(jobData.name)
     }
     if (jobData.description !== undefined) {
-      fields.push(`description = $${paramCount++}`);
-      values.push(jobData.description);
+      fields.push(`description = $${paramCount++}`)
+      values.push(jobData.description)
     }
     if (jobData.clientId !== undefined) {
-      fields.push(`client_id = $${paramCount++}`);
-      values.push(jobData.clientId);
+      fields.push(`client_id = $${paramCount++}`)
+      values.push(jobData.clientId)
     }
 
     if (fields.length === 0) {
-      return await getJobById(id);
+      return await getJobById(id)
     }
 
-    values.push(id);
+    values.push(id)
     await query(`
       UPDATE jobs 
-      SET ${fields.join(', ')}
+      SET ${fields.join(", ")}
       WHERE id = $${paramCount}
-    `, values);
+    `, values)
 
-    return await getJobById(id);
+    return await getJobById(id)
   } catch (error) {
-    console.error('Error updating job:', error);
-    return null;
+    console.error("Error updating job:", error)
+    return null
   }
 }
 
 export async function deleteJob(id: string): Promise<boolean> {
   try {
-    const result = await query('DELETE FROM jobs WHERE id = $1', [id]);
-    return (result.rowCount || 0) > 0;
+    const result = await query("DELETE FROM jobs WHERE id = $1", [id])
+    return (result.rowCount || 0) > 0
   } catch (error) {
-    console.error('Error deleting job:', error);
-    return false;
+    console.error("Error deleting job:", error)
+    return false
   }
 }

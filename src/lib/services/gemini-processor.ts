@@ -67,7 +67,7 @@ Output Format:
 export class GeminiProcessor {
   private static cleanDateTime(value: string): { date: string, time: string } {
     // Remove any special characters and extra whitespace
-    const cleaned = value.replace(/[^\w\s\-:\/]/g, '').trim()
+    const cleaned = value.replace(/[^\w\s\-:\/]/g, "").trim()
     
     // Try different date formats
     const formats = [
@@ -79,8 +79,8 @@ export class GeminiProcessor {
       /(\d{1,2})-(\d{1,2})-(\d{4})/
     ]
 
-    let date = ''
-    let time = ''
+    let date = ""
+    let time = ""
 
     // Extract date
     for (const format of formats) {
@@ -89,9 +89,9 @@ export class GeminiProcessor {
         const [_, part1, part2, part3] = match
         if (format === formats[0] || format === formats[2]) {
           // Convert MM/DD/YYYY to YYYY-MM-DD
-          date = `${part3}-${part1.padStart(2, '0')}-${part2.padStart(2, '0')}`
+          date = `${part3}-${part1.padStart(2, "0")}-${part2.padStart(2, "0")}`
         } else {
-          date = `${part1}-${part2.padStart(2, '0')}-${part3.padStart(2, '0')}`
+          date = `${part1}-${part2.padStart(2, "0")}-${part3.padStart(2, "0")}`
         }
         break
       }
@@ -104,11 +104,11 @@ export class GeminiProcessor {
       if (meridian) {
         // Convert 12-hour to 24-hour
         let hour = parseInt(hours)
-        if (meridian.toUpperCase() === 'PM' && hour < 12) hour += 12
-        if (meridian.toUpperCase() === 'AM' && hour === 12) hour = 0
-        time = `${hour.toString().padStart(2, '0')}:${minutes}`
+        if (meridian.toUpperCase() === "PM" && hour < 12) hour += 12
+        if (meridian.toUpperCase() === "AM" && hour === 12) hour = 0
+        time = `${hour.toString().padStart(2, "0")}:${minutes}`
       } else {
-        time = `${hours.padStart(2, '0')}:${minutes}`
+        time = `${hours.padStart(2, "0")}:${minutes}`
       }
     }
 
@@ -117,19 +117,19 @@ export class GeminiProcessor {
 
   private static standardizeWorkerType(type: string): string {
     const typeMap: Record<string, string> = {
-      'crew chief': 'CC',
-      'crewchief': 'CC',
-      'stage hand': 'SH',
-      'stagehand': 'SH',
-      'fork operator': 'FO',
-      'forklift': 'FO',
-      'fork lift': 'FO',
-      'rough fork': 'RFO',
-      'roughfork': 'RFO',
-      'rigger': 'RG',
-      'general labor': 'GL',
-      'general': 'GL',
-      'labor': 'GL'
+      "crew chief": "CC",
+      "crewchief": "CC",
+      "stage hand": "SH",
+      "stagehand": "SH",
+      "fork operator": "FO",
+      "forklift": "FO",
+      "fork lift": "FO",
+      "rough fork": "RFO",
+      "roughfork": "RFO",
+      "rigger": "RG",
+      "general labor": "GL",
+      "general": "GL",
+      "labor": "GL"
     }
 
     const normalized = type.toLowerCase().trim()
@@ -138,7 +138,7 @@ export class GeminiProcessor {
 
   private static validateRow(row: Record<string, string>): string[] {
     const warnings: string[] = []
-    const required = ['client_name', 'job_name', 'shift_date', 'shift_start_time', 'shift_end_time', 'employee_name', 'worker_type']
+    const required = ["client_name", "job_name", "shift_date", "shift_start_time", "shift_end_time", "employee_name", "worker_type"]
 
     required.forEach(field => {
       if (!row[field]) {
@@ -146,7 +146,7 @@ export class GeminiProcessor {
       }
     })
 
-    if (row.worker_type && !['CC', 'SH', 'FO', 'RFO', 'RG', 'GL'].includes(row.worker_type)) {
+    if (row.worker_type && !["CC", "SH", "FO", "RFO", "RG", "GL"].includes(row.worker_type)) {
       warnings.push(`Invalid worker type: ${row.worker_type}. Must be one of: CC, SH, FO, RFO, RG, GL`)
     }
 
@@ -193,17 +193,17 @@ export class GeminiProcessor {
         warnings: processedData.warnings
       }
     } catch (error) {
-      console.error('Error processing sheet data:', error)
-      throw new Error('Failed to process sheet data: ' + (error instanceof Error ? error.message : 'Unknown error'))
+      console.error("Error processing sheet data:", error)
+      throw new Error("Failed to process sheet data: " + (error instanceof Error ? error.message : "Unknown error"))
     }
   }
 
   private static findMostRelevantSheet(sheets: SheetData[]): SheetData {
     // Score each sheet based on relevant column headers
-    const relevantTerms = ['client', 'job', 'shift', 'date', 'time', 'employee', 'worker', 'name']
+    const relevantTerms = ["client", "job", "shift", "date", "time", "employee", "worker", "name"]
     
     const sheetScores = sheets.map(sheet => {
-      const headerText = sheet.headers.join(' ').toLowerCase()
+      const headerText = sheet.headers.join(" ").toLowerCase()
       const score = relevantTerms.reduce((sum, term) => 
         sum + (headerText.includes(term) ? 1 : 0), 0
       )
@@ -225,14 +225,14 @@ export class GeminiProcessor {
     
     sheet.headers.forEach(header => {
       const normalized = header.toLowerCase()
-      if (normalized.includes('client')) mappings[header] = 'client_name'
-      else if (normalized.includes('job')) mappings[header] = 'job_name'
-      else if (normalized.includes('date')) mappings[header] = 'shift_date'
-      else if (normalized.includes('start')) mappings[header] = 'shift_start_time'
-      else if (normalized.includes('end')) mappings[header] = 'shift_end_time'
-      else if (normalized.includes('employee')) mappings[header] = 'employee_name'
-      else if (normalized.includes('type') || normalized.includes('role')) mappings[header] = 'worker_type'
-      else if (normalized.includes('note')) mappings[header] = 'notes'
+      if (normalized.includes("client")) mappings[header] = "client_name"
+      else if (normalized.includes("job")) mappings[header] = "job_name"
+      else if (normalized.includes("date")) mappings[header] = "shift_date"
+      else if (normalized.includes("start")) mappings[header] = "shift_start_time"
+      else if (normalized.includes("end")) mappings[header] = "shift_end_time"
+      else if (normalized.includes("employee")) mappings[header] = "employee_name"
+      else if (normalized.includes("type") || normalized.includes("role")) mappings[header] = "worker_type"
+      else if (normalized.includes("note")) mappings[header] = "notes"
     })
 
     return mappings
@@ -260,47 +260,47 @@ export class GeminiProcessor {
         const targetField = mappings[header]
         if (!targetField) return
 
-        const value = row[colIndex]?.toString() || ''
+        const value = row[colIndex]?.toString() || ""
 
         switch (targetField) {
-          case 'shift_date':
-          case 'shift_start_time':
-          case 'shift_end_time': {
-            const { date, time } = this.cleanDateTime(value)
-            if (targetField === 'shift_date') {
-              processedRow[targetField] = date
-              if (!date) {
-                warnings.push(`Row ${rowIndex + 1}: Invalid date format in column ${header}`)
-                rowConfidence *= 0.8
-                hasRequiredFields = false
-              }
-            } else {
-              processedRow[targetField] = time
-              if (!time) {
-                warnings.push(`Row ${rowIndex + 1}: Invalid time format in column ${header}`)
-                rowConfidence *= 0.8
-                hasRequiredFields = false
-              }
-            }
-            break
-          }
-          case 'worker_type': {
-            const standardized = this.standardizeWorkerType(value)
-            processedRow[targetField] = standardized
-            if (!['CC', 'SH', 'FO', 'RFO', 'RG', 'GL'].includes(standardized)) {
-              warnings.push(`Row ${rowIndex + 1}: Invalid worker type "${value}" in column ${header}`)
+        case "shift_date":
+        case "shift_start_time":
+        case "shift_end_time": {
+          const { date, time } = this.cleanDateTime(value)
+          if (targetField === "shift_date") {
+            processedRow[targetField] = date
+            if (!date) {
+              warnings.push(`Row ${rowIndex + 1}: Invalid date format in column ${header}`)
               rowConfidence *= 0.8
               hasRequiredFields = false
             }
-            break
-          }
-          default:
-            processedRow[targetField] = value.trim()
-            if (!value.trim() && targetField !== 'notes') {
-              warnings.push(`Row ${rowIndex + 1}: Missing required value in column ${header}`)
+          } else {
+            processedRow[targetField] = time
+            if (!time) {
+              warnings.push(`Row ${rowIndex + 1}: Invalid time format in column ${header}`)
               rowConfidence *= 0.8
               hasRequiredFields = false
             }
+          }
+          break
+        }
+        case "worker_type": {
+          const standardized = this.standardizeWorkerType(value)
+          processedRow[targetField] = standardized
+          if (!["CC", "SH", "FO", "RFO", "RG", "GL"].includes(standardized)) {
+            warnings.push(`Row ${rowIndex + 1}: Invalid worker type "${value}" in column ${header}`)
+            rowConfidence *= 0.8
+            hasRequiredFields = false
+          }
+          break
+        }
+        default:
+          processedRow[targetField] = value.trim()
+          if (!value.trim() && targetField !== "notes") {
+            warnings.push(`Row ${rowIndex + 1}: Missing required value in column ${header}`)
+            rowConfidence *= 0.8
+            hasRequiredFields = false
+          }
         }
       })
 
@@ -318,18 +318,18 @@ export class GeminiProcessor {
   }
 
   private static generateCSV(rows: Record<string, string>[]): string {
-    const headers = ['client_name', 'job_name', 'shift_date', 'shift_start_time', 'shift_end_time', 'employee_name', 'worker_type', 'notes']
+    const headers = ["client_name", "job_name", "shift_date", "shift_start_time", "shift_end_time", "employee_name", "worker_type", "notes"]
     
     const csvRows = [
-      headers.join(','),
+      headers.join(","),
       ...rows.map(row => 
         headers.map(header => 
-          JSON.stringify(row[header] || '')
-        ).join(',')
+          JSON.stringify(row[header] || "")
+        ).join(",")
       )
     ]
 
-    return csvRows.join('\n')
+    return csvRows.join("\n")
   }
 
   private static generateSummaryReport(data: { rows: Record<string, string>[]; confidence: number; warnings: string[] }): string {
@@ -352,18 +352,18 @@ Field Statistics:
 ----------------
 ${this.generateFieldStats(data.rows)}
 
-${warningCount > 0 ? `\nWarnings:\n---------\n${data.warnings.join('\n')}` : ''}
+${warningCount > 0 ? `\nWarnings:\n---------\n${data.warnings.join("\n")}` : ""}
 
 Processing completed successfully.`
   }
 
   private static generateFieldStats(rows: Record<string, string>[]): string {
-    const fields = ['client_name', 'job_name', 'shift_date', 'shift_start_time', 'shift_end_time', 'employee_name', 'worker_type', 'notes']
+    const fields = ["client_name", "job_name", "shift_date", "shift_start_time", "shift_end_time", "employee_name", "worker_type", "notes"]
     
     return fields.map(field => {
       const filledCount = rows.filter(row => row[field]).length
       const percentage = ((filledCount / rows.length) * 100).toFixed(1)
       return `${field}: ${filledCount}/${rows.length} (${percentage}% filled)`
-    }).join('\n')
+    }).join("\n")
   }
 }

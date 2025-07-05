@@ -3,7 +3,7 @@
 import React, { useState } from "react"
 
 // Force dynamic rendering to avoid build-time URL issues
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,8 +24,8 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function ImportClientsPage() {
   const { user } = useUser()
@@ -37,8 +37,8 @@ function ImportClientsPage() {
   const [csvData, setCsvData] = useState("")
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -46,7 +46,7 @@ function ImportClientsPage() {
     const file = event.target.files?.[0]
     if (!file) return
 
-    if (!file.name.endsWith('.csv')) {
+    if (!file.name.endsWith(".csv")) {
       toast({
         title: "Invalid File Type",
         description: "Please upload a CSV file.",
@@ -71,10 +71,10 @@ function ImportClientsPage() {
       }, 200)
 
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append("file", file)
 
-      const response = await fetch('/api/clients/import', {
-        method: 'POST',
+      const response = await fetch("/api/clients/import", {
+        method: "POST",
         body: formData,
       })
 
@@ -82,7 +82,7 @@ function ImportClientsPage() {
       setUploadProgress(100)
 
       if (!response.ok) {
-        throw new Error('Failed to import clients')
+        throw new Error("Failed to import clients")
       }
 
       const result = await response.json()
@@ -117,16 +117,16 @@ function ImportClientsPage() {
 
     setIsUploading(true)
     try {
-      const response = await fetch('/api/clients/import', {
-        method: 'POST',
+      const response = await fetch("/api/clients/import", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ csvData }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to import clients')
+        throw new Error("Failed to import clients")
       }
 
       const result = await response.json()
@@ -153,11 +153,11 @@ function ImportClientsPage() {
 "ABC Construction","John Smith","john@abcconstruction.com","555-0123","123 Main St, City, State 12345","Primary contractor for downtown projects"
 "XYZ Logistics","Jane Doe","jane@xyzlogistics.com","555-0456","456 Oak Ave, City, State 12345","Warehouse and distribution services"`
 
-    const blob = new Blob([csvTemplate], { type: 'text/csv' })
+    const blob = new Blob([csvTemplate], { type: "text/csv" })
     const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
+    const a = document.createElement("a")
     a.href = url
-    a.download = 'client_import_template.csv'
+    a.download = "client_import_template.csv"
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -167,7 +167,7 @@ function ImportClientsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/clients')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/clients")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Clients
         </Button>
@@ -250,7 +250,7 @@ function ImportClientsPage() {
               className="w-full"
             >
               <Upload className="mr-2 h-4 w-4" />
-              {isUploading ? 'Importing...' : 'Import Data'}
+              {isUploading ? "Importing..." : "Import Data"}
             </Button>
           </CardContent>
         </Card>
@@ -352,7 +352,7 @@ function ImportClientsPage() {
             )}
 
             <div className="mt-4 flex gap-2">
-              <Button onClick={() => router.push('/admin/clients')}>
+              <Button onClick={() => router.push("/admin/clients")}>
                 <Building2 className="mr-2 h-4 w-4" />
                 View Clients
               </Button>
@@ -367,4 +367,4 @@ function ImportClientsPage() {
   )
 }
 
-export default withAuth(ImportClientsPage, hasAdminAccess);
+export default withAuth(ImportClientsPage, hasAdminAccess)

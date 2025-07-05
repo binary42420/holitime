@@ -1,26 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
-import { globalCache } from '@/lib/cache'
-import { DocumentSubmission, SubmitDocumentRequest } from '@/types/documents'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import { globalCache } from "@/lib/cache"
+import { DocumentSubmission, SubmitDocumentRequest } from "@/types/documents"
+import { writeFile, mkdir } from "fs/promises"
+import path from "path"
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     const { searchParams } = new URL(request.url)
-    const assignmentId = searchParams.get('assignment_id')
-    const userId = searchParams.get('user_id')
-    const templateId = searchParams.get('template_id')
-    const isDraft = searchParams.get('is_draft')
+    const assignmentId = searchParams.get("assignment_id")
+    const userId = searchParams.get("user_id")
+    const templateId = searchParams.get("template_id")
+    const isDraft = searchParams.get("is_draft")
 
     // Build query conditions
     let whereConditions: string[] = []
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     let paramIndex = 1
 
     // For non-admin users, only show their own submissions
-    if (user.role !== 'Manager/Admin' && user.role !== 'Crew Chief') {
+    if (user.role !== "Manager/Admin" && user.role !== "Crew Chief") {
       whereConditions.push(`ds.user_id = $${paramIndex}`)
       queryParams.push(user.id)
       paramIndex++
@@ -52,11 +52,11 @@ export async function GET(request: NextRequest) {
 
     if (isDraft !== null) {
       whereConditions.push(`ds.is_draft = $${paramIndex}`)
-      queryParams.push(isDraft === 'true')
+      queryParams.push(isDraft === "true")
       paramIndex++
     }
 
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : ""
 
     const submissionsQuery = `
       SELECT 
@@ -97,18 +97,18 @@ export async function GET(request: NextRequest) {
       template: {
         id: row.template_id,
         name: row.template_name,
-        description: '',
+        description: "",
         document_type: row.document_type,
-        file_path: '',
+        file_path: "",
         file_size: 0,
-        mime_type: '',
+        mime_type: "",
         version: 1,
         is_active: true,
         is_required: false,
         applicable_roles: [],
         auto_assign_new_users: false,
-        created_at: '',
-        updated_at: ''
+        created_at: "",
+        updated_at: ""
       },
       user: {
         id: row.user_id,
@@ -119,9 +119,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ submissions })
   } catch (error) {
-    console.error('Error fetching document submissions:', error)
+    console.error("Error fetching document submissions:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!submissionData.assignment_id || !submissionData.submission_data) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       )
     }
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     
     if (assignmentResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Assignment not found' },
+        { error: "Assignment not found" },
         { status: 404 }
       )
     }
@@ -167,16 +167,16 @@ export async function POST(request: NextRequest) {
     const assignment = assignmentResult.rows[0]
 
     // Check if user can submit this document
-    if (user.role !== 'Manager/Admin' && user.role !== 'Crew Chief' && assignment.user_id !== user.id) {
+    if (user.role !== "Manager/Admin" && user.role !== "Crew Chief" && assignment.user_id !== user.id) {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
 
     // Get current submission version
     const versionResult = await query(
-      'SELECT COALESCE(MAX(version), 0) + 1 as next_version FROM document_submissions WHERE assignment_id = $1',
+      "SELECT COALESCE(MAX(version), 0) + 1 as next_version FROM document_submissions WHERE assignment_id = $1",
       [submissionData.assignment_id]
     )
     const nextVersion = versionResult.rows[0].next_version
@@ -187,8 +187,8 @@ export async function POST(request: NextRequest) {
       signatureData = {
         signature: submissionData.signature_data.signature,
         timestamp: new Date().toISOString(),
-        ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-        user_agent: request.headers.get('user-agent') || 'unknown'
+        ip_address: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
+        user_agent: request.headers.get("user-agent") || "unknown"
       }
     }
 
@@ -209,20 +209,20 @@ export async function POST(request: NextRequest) {
       nextVersion,
       submissionData.is_draft,
       signatureData ? JSON.stringify(signatureData) : null,
-      request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip'),
-      request.headers.get('user-agent')
+      request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip"),
+      request.headers.get("user-agent")
     ])
 
     const submission = result.rows[0]
 
     // Update assignment status
-    let newStatus = 'in_progress'
+    let newStatus = "in_progress"
     if (!submissionData.is_draft) {
-      newStatus = 'completed'
+      newStatus = "completed"
     }
 
     await query(
-      'UPDATE document_assignments SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+      "UPDATE document_assignments SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2",
       [newStatus, submissionData.assignment_id]
     )
 
@@ -236,24 +236,24 @@ export async function POST(request: NextRequest) {
 
       // Update assignment status to under_review
       await query(
-        'UPDATE document_assignments SET status = $1 WHERE id = $2',
-        ['under_review', submissionData.assignment_id]
+        "UPDATE document_assignments SET status = $1 WHERE id = $2",
+        ["under_review", submissionData.assignment_id]
       )
     }
 
     // Invalidate cache
-    globalCache.invalidateByTag('document_submissions');
-    globalCache.invalidateByTag('document_assignments');
+    globalCache.invalidateByTag("document_submissions")
+    globalCache.invalidateByTag("document_assignments")
 
     return NextResponse.json({
       success: true,
       submission,
-      message: submissionData.is_draft ? 'Document saved as draft' : 'Document submitted successfully'
+      message: submissionData.is_draft ? "Document saved as draft" : "Document submitted successfully"
     })
   } catch (error) {
-    console.error('Error submitting document:', error)
+    console.error("Error submitting document:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -264,17 +264,17 @@ export async function PUT(request: NextRequest) {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     const { searchParams } = new URL(request.url)
-    const submissionId = searchParams.get('id')
+    const submissionId = searchParams.get("id")
     
     if (!submissionId) {
       return NextResponse.json(
-        { error: 'Submission ID required' },
+        { error: "Submission ID required" },
         { status: 400 }
       )
     }
@@ -283,13 +283,13 @@ export async function PUT(request: NextRequest) {
 
     // Get existing submission
     const existingResult = await query(
-      'SELECT ds.*, da.user_id as assignment_user_id FROM document_submissions ds JOIN document_assignments da ON ds.assignment_id = da.id WHERE ds.id = $1',
+      "SELECT ds.*, da.user_id as assignment_user_id FROM document_submissions ds JOIN document_assignments da ON ds.assignment_id = da.id WHERE ds.id = $1",
       [submissionId]
     )
 
     if (existingResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Submission not found' },
+        { error: "Submission not found" },
         { status: 404 }
       )
     }
@@ -297,9 +297,9 @@ export async function PUT(request: NextRequest) {
     const existingSubmission = existingResult.rows[0]
 
     // Check permissions
-    if (user.role !== 'Manager/Admin' && user.role !== 'Crew Chief' && existingSubmission.assignment_user_id !== user.id) {
+    if (user.role !== "Manager/Admin" && user.role !== "Crew Chief" && existingSubmission.assignment_user_id !== user.id) {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -321,8 +321,8 @@ export async function PUT(request: NextRequest) {
       signatureData = JSON.stringify({
         signature: updateData.signature_data.signature,
         timestamp: new Date().toISOString(),
-        ip_address: request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
-        user_agent: request.headers.get('user-agent') || 'unknown'
+        ip_address: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
+        user_agent: request.headers.get("user-agent") || "unknown"
       })
     }
 
@@ -338,24 +338,24 @@ export async function PUT(request: NextRequest) {
     // Update assignment status if needed
     if (updateData.is_draft === false && existingSubmission.is_draft === true) {
       await query(
-        'UPDATE document_assignments SET status = $1 WHERE id = $2',
-        ['under_review', existingSubmission.assignment_id]
+        "UPDATE document_assignments SET status = $1 WHERE id = $2",
+        ["under_review", existingSubmission.assignment_id]
       )
     }
 
     // Invalidate cache
-    globalCache.invalidateByTag('document_submissions');
-    globalCache.invalidateByTag('document_assignments');
+    globalCache.invalidateByTag("document_submissions")
+    globalCache.invalidateByTag("document_assignments")
 
     return NextResponse.json({
       success: true,
       submission: updatedSubmission,
-      message: 'Document updated successfully'
+      message: "Document updated successfully"
     })
   } catch (error) {
-    console.error('Error updating document submission:', error)
+    console.error("Error updating document submission:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

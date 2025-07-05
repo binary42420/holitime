@@ -1,11 +1,11 @@
 "use client"
 
-import React, { useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react';
-import SignatureCanvas from 'react-signature-canvas';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { RefreshCw, Download } from 'lucide-react';
+import React, { useRef, useImperativeHandle, forwardRef, useState, useEffect } from "react"
+import SignatureCanvas from "react-signature-canvas"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Separator } from "@/components/ui/separator"
+import { RefreshCw, Download } from "lucide-react"
 
 interface SignaturePadProps {
   penColor?: string;
@@ -27,63 +27,63 @@ export interface SignaturePadRef {
 
 const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref) => {
   const {
-    penColor = 'black',
-    backgroundColor = 'transparent',
+    penColor = "black",
+    backgroundColor = "transparent",
     width,
     height = 200,
     showControls = true,
     label,
     required = false,
     ...canvasProps
-  } = props;
+  } = props
 
-  const sigCanvas = useRef<SignatureCanvas>(null);
-  const [hasSignature, setHasSignature] = useState(false);
+  const sigCanvas = useRef<SignatureCanvas>(null)
+  const [hasSignature, setHasSignature] = useState(false)
 
   useImperativeHandle(ref, () => ({
     clear: () => {
-      sigCanvas.current?.clear();
-      setHasSignature(false);
+      sigCanvas.current?.clear()
+      setHasSignature(false)
     },
     getTrimmedCanvas: () => {
       if (!sigCanvas.current) {
-        throw new Error("Signature canvas not available");
+        throw new Error("Signature canvas not available")
       }
-      return sigCanvas.current.getTrimmedCanvas();
+      return sigCanvas.current.getTrimmedCanvas()
     },
     isEmpty: () => {
-      return sigCanvas.current?.isEmpty() ?? true;
+      return sigCanvas.current?.isEmpty() ?? true
     },
     fromDataURL: (dataURL: string) => {
-      sigCanvas.current?.fromDataURL(dataURL);
-      setHasSignature(true);
+      sigCanvas.current?.fromDataURL(dataURL)
+      setHasSignature(true)
     },
     toDataURL: (type?: string, encoderOptions?: number) => {
       if (!sigCanvas.current) {
-        throw new Error("Signature canvas not available");
+        throw new Error("Signature canvas not available")
       }
-      return sigCanvas.current.toDataURL(type, encoderOptions);
+      return sigCanvas.current.toDataURL(type, encoderOptions)
     }
-  }));
+  }))
 
   const handleBegin = () => {
-    setHasSignature(true);
-  };
+    setHasSignature(true)
+  }
 
   const handleClear = () => {
-    sigCanvas.current?.clear();
-    setHasSignature(false);
-  };
+    sigCanvas.current?.clear()
+    setHasSignature(false)
+  }
 
   const handleDownload = () => {
     if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-      const dataURL = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = 'signature.png';
-      link.href = dataURL;
-      link.click();
+      const dataURL = sigCanvas.current.getTrimmedCanvas().toDataURL("image/png")
+      const link = document.createElement("a")
+      link.download = "signature.png"
+      link.href = dataURL
+      link.click()
     }
-  };
+  }
 
   return (
     <div className="space-y-4">
@@ -104,7 +104,7 @@ const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref)
           backgroundColor={backgroundColor}
           onBegin={handleBegin}
           canvasProps={{
-            className: 'w-full h-full rounded-lg',
+            className: "w-full h-full rounded-lg",
             width: width,
             height: height,
             ...canvasProps
@@ -149,15 +149,15 @@ const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref)
             </div>
 
             <p className="text-xs text-muted-foreground">
-              {hasSignature ? 'Signature captured' : 'No signature'}
+              {hasSignature ? "Signature captured" : "No signature"}
             </p>
           </div>
         </>
       )}
     </div>
-  );
-});
+  )
+})
 
-SignaturePad.displayName = 'SignaturePad';
+SignaturePad.displayName = "SignaturePad"
 
-export default SignaturePad;
+export default SignaturePad

@@ -24,12 +24,12 @@ interface WorkerAssignmentManagerProps {
 }
 
 const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string; bgColor: string }> = {
-  'CC': { name: 'Crew Chief', color: 'text-purple-700', bgColor: 'bg-purple-100' },
-  'SH': { name: 'Stage Hand', color: 'text-blue-700', bgColor: 'bg-blue-100' },
-  'FO': { name: 'Fork Operator', color: 'text-green-700', bgColor: 'bg-green-100' },
-  'RFO': { name: 'Reach Fork Operator', color: 'text-yellow-700', bgColor: 'bg-yellow-100' },
-  'RG': { name: 'Rigger', color: 'text-red-700', bgColor: 'bg-red-100' },
-  'GL': { name: 'General Labor', color: 'text-gray-700', bgColor: 'bg-gray-100' },
+  "CC": { name: "Crew Chief", color: "text-purple-700", bgColor: "bg-purple-100" },
+  "SH": { name: "Stage Hand", color: "text-blue-700", bgColor: "bg-blue-100" },
+  "FO": { name: "Fork Operator", color: "text-green-700", bgColor: "bg-green-100" },
+  "RFO": { name: "Reach Fork Operator", color: "text-yellow-700", bgColor: "bg-yellow-100" },
+  "RG": { name: "Rigger", color: "text-red-700", bgColor: "bg-red-100" },
+  "GL": { name: "General Labor", color: "text-gray-700", bgColor: "bg-gray-100" },
 } as const
 
 export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: WorkerAssignmentManagerProps) {
@@ -46,7 +46,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
       const initialRequirements = Object.entries(ROLE_DEFINITIONS).map(([code, def]) => ({
         roleCode: code as RoleCode,
         roleName: def.name,
-        count: code === 'CC' ? 1 : code === 'SH' ? Math.max(0, requestedWorkers - 1) : 0,
+        count: code === "CC" ? 1 : code === "SH" ? Math.max(0, requestedWorkers - 1) : 0,
         color: def.color
       }))
       setWorkerRequirements(initialRequirements)
@@ -70,15 +70,15 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
 
       // Update API with just the total (current system limitation)
       const response = await fetch(`/api/shifts/${shiftId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
           requestedWorkers: newTotal
         }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update worker requirements')
+        throw new Error("Failed to update worker requirements")
       }
 
       onUpdate()
@@ -93,7 +93,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
       const revertedRequirements = Object.entries(ROLE_DEFINITIONS).map(([code, def]) => ({
         roleCode: code as RoleCode,
         roleName: def.name,
-        count: code === 'CC' ? 1 : code === 'SH' ? Math.max(0, requestedWorkers - 1) : 0,
+        count: code === "CC" ? 1 : code === "SH" ? Math.max(0, requestedWorkers - 1) : 0,
         color: def.color
       }))
       setWorkerRequirements(revertedRequirements)

@@ -1,17 +1,17 @@
-'use client'
+"use client"
 
-import React, { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, FileSignature, MapPin, User, Shield } from 'lucide-react'
+import React, { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, FileSignature, MapPin, User, Shield } from "lucide-react"
 import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
-import SignatureCaptureModal from '@/components/signature-capture-modal'
-import { useToast } from '@/hooks/use-toast'
-import { useSession } from 'next-auth/react'
+import SignatureCaptureModal from "@/components/signature-capture-modal"
+import { useToast } from "@/hooks/use-toast"
+import { useSession } from "next-auth/react"
 
 interface TimeEntry {
   id: string
@@ -64,7 +64,7 @@ export default function ManagerApprovalPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { data: session } = useSession()
-  const [timesheetId, setTimesheetId] = useState<string>('')
+  const [timesheetId, setTimesheetId] = useState<string>("")
 
   // Unwrap params
   useEffect(() => {
@@ -80,9 +80,9 @@ export default function ManagerApprovalPage() {
   const [submitting, setSubmitting] = useState(false)
 
   // Check if user is manager
-  const isManager = session?.user?.role === 'Manager/Admin'
+  const isManager = session?.user?.role === "Manager/Admin"
 
-  const fetchTimesheetData = async () => {
+  const fetchTimesheetData = React.useCallback(async () => {
     if (!timesheetId) return
 
     try {
@@ -90,7 +90,7 @@ export default function ManagerApprovalPage() {
       const response = await fetch(`/api/timesheets/${timesheetId}`)
 
       if (!response.ok) {
-        throw new Error('Failed to fetch timesheet data')
+        throw new Error("Failed to fetch timesheet data")
       }
 
       const result = await response.json()
@@ -106,23 +106,23 @@ export default function ManagerApprovalPage() {
         }
         setData(transformedData)
       } else {
-        throw new Error('Invalid response structure')
+        throw new Error("Invalid response structure")
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setLoading(false)
     }
-  }
+  }, [timesheetId])
 
   useEffect(() => {
     if (timesheetId) {
       fetchTimesheetData()
     }
-  }, [timesheetId])
+  }, [timesheetId, fetchTimesheetData])
 
   const calculateTotalHours = (timeEntries: { clockIn?: string; clockOut?: string }[]) => {
-    return calculateTotalRoundedHours(timeEntries);
+    return calculateTotalRoundedHours(timeEntries)
   }
 
   const handleManagerApproval = async (signatureData: string) => {
@@ -130,19 +130,19 @@ export default function ManagerApprovalPage() {
       setSubmitting(true)
 
       const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           signature: signatureData,
-          approvalType: 'manager'
+          approvalType: "manager"
         }),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to approve timesheet')
+        throw new Error(errorData.error || "Failed to approve timesheet")
       }
 
       const result = await response.json()
@@ -164,7 +164,7 @@ export default function ManagerApprovalPage() {
     } catch (err) {
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : 'Failed to approve timesheet',
+        description: err instanceof Error ? err.message : "Failed to approve timesheet",
         variant: "destructive",
       })
     } finally {
@@ -274,7 +274,7 @@ export default function ManagerApprovalPage() {
   }
 
   // Check timesheet status
-  if (timesheet.status !== 'pending_final_approval') {
+  if (timesheet.status !== "pending_final_approval") {
     return (
       <div className="container mx-auto py-6">
         <Card>
@@ -285,7 +285,7 @@ export default function ManagerApprovalPage() {
               <p className="text-muted-foreground">
                 This timesheet is currently in "{timesheet.status}" status and does not require final approval.
               </p>
-              <Button onClick={() => router.push('/timesheets')}>View All Timesheets</Button>
+              <Button onClick={() => router.push("/timesheets")}>View All Timesheets</Button>
             </div>
           </CardContent>
         </Card>
@@ -327,11 +327,11 @@ export default function ManagerApprovalPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm mb-6">
             <div className="space-y-1">
               <p className="text-muted-foreground">Client</p>
-              <p className="font-medium">{client?.name || 'N/A'}</p>
+              <p className="font-medium">{client?.name || "N/A"}</p>
             </div>
             <div className="space-y-1">
               <p className="text-muted-foreground">Location</p>
-              <p className="font-medium">{shift?.location || 'N/A'}</p>
+              <p className="font-medium">{shift?.location || "N/A"}</p>
             </div>
             <div className="space-y-1">
               <p className="text-muted-foreground">Shift Date</p>
@@ -342,19 +342,19 @@ export default function ManagerApprovalPage() {
               <p className="font-medium">{formatTo12Hour(shift?.startTime)}</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm mb-6">
             <div className="space-y-1">
               <p className="text-muted-foreground">Crew Chief</p>
-              <p className="font-medium">{shift?.crewChief?.name || 'Not Assigned'}</p>
+              <p className="font-medium">{shift?.crewChief?.name || "Not Assigned"}</p>
             </div>
             <div className="space-y-1">
               <p className="text-muted-foreground">Job</p>
-              <p className="font-medium">{job?.name || shift?.jobName || 'N/A'}</p>
+              <p className="font-medium">{job?.name || shift?.jobName || "N/A"}</p>
             </div>
             <div className="space-y-1">
               <p className="text-muted-foreground">Client Approved</p>
               <p className="font-medium text-green-600">
-                {timesheet.clientApprovedAt ? formatDate(timesheet.clientApprovedAt) : 'Not yet approved'}
+                {timesheet.clientApprovedAt ? formatDate(timesheet.clientApprovedAt) : "Not yet approved"}
               </p>
             </div>
           </div>
@@ -412,36 +412,36 @@ export default function ManagerApprovalPage() {
               {(shift?.assignedPersonnel || [])
                 .filter((p: any) => p && p.timeEntries && Array.isArray(p.timeEntries) && p.timeEntries.length > 0)
                 .map((person: any) => (
-                <TableRow key={person.employee?.id || person.id}>
-                  <TableCell className="font-medium">{person.employee?.name || 'Unknown Employee'}</TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{person.roleCode || person.role_on_shift || 'Worker'}</Badge>
-                  </TableCell>
-                  {[1, 2, 3].map((entryNum) => {
-                    const entry = person.timeEntries?.find((e: any) => e && e.entryNumber === entryNum)
-                    const display = getTimeEntryDisplay(entry?.clockIn, entry?.clockOut);
-                    return (
-                      <React.Fragment key={entryNum}>
-                        <TableCell className="text-sm">
-                          {display.displayClockIn}
-                        </TableCell>
-                        <TableCell className="text-sm">
-                          {display.displayClockOut}
-                        </TableCell>
-                      </React.Fragment>
-                    )
-                  })}
-                  <TableCell className="font-medium">{calculateTotalHours(person.timeEntries || [])}</TableCell>
-                </TableRow>
-              ))}
+                  <TableRow key={person.employee?.id || person.id}>
+                    <TableCell className="font-medium">{person.employee?.name || "Unknown Employee"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{person.roleCode || person.role_on_shift || "Worker"}</Badge>
+                    </TableCell>
+                    {[1, 2, 3].map((entryNum) => {
+                      const entry = person.timeEntries?.find((e: any) => e && e.entryNumber === entryNum)
+                      const display = getTimeEntryDisplay(entry?.clockIn, entry?.clockOut)
+                      return (
+                        <React.Fragment key={entryNum}>
+                          <TableCell className="text-sm">
+                            {display.displayClockIn}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {display.displayClockOut}
+                          </TableCell>
+                        </React.Fragment>
+                      )
+                    })}
+                    <TableCell className="font-medium">{calculateTotalHours(person.timeEntries || [])}</TableCell>
+                  </TableRow>
+                ))}
               <TableRow className="border-t-2 font-semibold bg-muted/50">
                 <TableCell colSpan={8} className="text-right">Total Hours:</TableCell>
                 <TableCell className="text-right font-mono">
                   {(() => {
                     const allTimeEntries = (shift?.assignedPersonnel || [])
                       .filter((p: any) => p && p.timeEntries && Array.isArray(p.timeEntries) && p.timeEntries.length > 0)
-                      .flatMap((p: any) => p.timeEntries || []);
-                    return calculateTotalHours(allTimeEntries);
+                      .flatMap((p: any) => p.timeEntries || [])
+                    return calculateTotalHours(allTimeEntries)
                   })()}
                 </TableCell>
               </TableRow>
@@ -473,7 +473,7 @@ export default function ManagerApprovalPage() {
                 className="px-8"
               >
                 <FileSignature className="h-4 w-4 mr-2" />
-                {submitting ? 'Processing...' : 'Provide Final Approval'}
+                {submitting ? "Processing..." : "Provide Final Approval"}
               </Button>
             </div>
           </div>

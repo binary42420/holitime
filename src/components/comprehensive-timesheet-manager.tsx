@@ -44,7 +44,7 @@ interface AssignedWorker {
   employeeAvatar: string;
   roleOnShift: string;
   roleCode: string;
-  status: 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended' | 'shift_ended' | 'not_started';
+  status: "Clocked Out" | "Clocked In" | "On Break" | "Shift Ended" | "shift_ended" | "not_started";
   timeEntries: TimeEntry[];
 }
 
@@ -55,45 +55,45 @@ interface ComprehensiveTimesheetManagerProps {
 }
 
 type WorkerSlot =
-  | { type: 'assigned'; worker: AssignedWorker }
-  | { type: 'empty'; roleCode: RoleCode }
+  | { type: "assigned"; worker: AssignedWorker }
+  | { type: "empty"; roleCode: RoleCode }
 
 const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string; bgColor: string; borderColor: string }> = {
-  'CC': { 
-    name: 'Crew Chief', 
-    color: 'text-purple-700', 
-    bgColor: 'bg-purple-50', 
-    borderColor: 'border-purple-200' 
+  "CC": { 
+    name: "Crew Chief", 
+    color: "text-purple-700", 
+    bgColor: "bg-purple-50", 
+    borderColor: "border-purple-200" 
   },
-  'SH': { 
-    name: 'Stage Hand', 
-    color: 'text-blue-700', 
-    bgColor: 'bg-blue-50', 
-    borderColor: 'border-blue-200' 
+  "SH": { 
+    name: "Stage Hand", 
+    color: "text-blue-700", 
+    bgColor: "bg-blue-50", 
+    borderColor: "border-blue-200" 
   },
-  'FO': { 
-    name: 'Fork Operator', 
-    color: 'text-green-700', 
-    bgColor: 'bg-green-50', 
-    borderColor: 'border-green-200' 
+  "FO": { 
+    name: "Fork Operator", 
+    color: "text-green-700", 
+    bgColor: "bg-green-50", 
+    borderColor: "border-green-200" 
   },
-  'RFO': { 
-    name: 'Reach Fork Operator', 
-    color: 'text-yellow-700', 
-    bgColor: 'bg-yellow-50', 
-    borderColor: 'border-yellow-200' 
+  "RFO": { 
+    name: "Reach Fork Operator", 
+    color: "text-yellow-700", 
+    bgColor: "bg-yellow-50", 
+    borderColor: "border-yellow-200" 
   },
-  'RG': { 
-    name: 'Rigger', 
-    color: 'text-red-700', 
-    bgColor: 'bg-red-50', 
-    borderColor: 'border-red-200' 
+  "RG": { 
+    name: "Rigger", 
+    color: "text-red-700", 
+    bgColor: "bg-red-50", 
+    borderColor: "border-red-200" 
   },
-  'GL': { 
-    name: 'General Labor', 
-    color: 'text-gray-700', 
-    bgColor: 'bg-gray-50', 
-    borderColor: 'border-gray-200' 
+  "GL": { 
+    name: "General Labor", 
+    color: "text-gray-700", 
+    bgColor: "bg-gray-50", 
+    borderColor: "border-gray-200" 
   },
 } as const
 
@@ -113,32 +113,32 @@ export default function ComprehensiveTimesheetManager({
   )
 
   // Fetch available employees for assignment
-  const { data: usersData } = useApi<{ users: any[] }>('/api/users')
+  const { data: usersData } = useApi<{ users: any[] }>("/api/users")
   const availableEmployees = usersData?.users?.filter(user =>
-    user.role === 'Employee' || user.role === 'Crew Chief' || user.role === 'Manager/Admin'
+    user.role === "Employee" || user.role === "Crew Chief" || user.role === "Manager/Admin"
   ) || []
 
   // Filter employees by role eligibility
   const getEligibleEmployees = (roleCode: RoleCode) => {
     return availableEmployees.filter(employee => {
       // Manager/Admin users can be assigned to any role
-      if (employee.role === 'Manager/Admin') {
+      if (employee.role === "Manager/Admin") {
         return true
       }
 
       switch (roleCode) {
-        case 'CC':
-          return employee.crewChiefEligible || employee.role === 'Crew Chief'
-        case 'FO':
-        case 'RFO':
-          return employee.forkOperatorEligible
-        case 'SH':
-        case 'RG':
-        case 'GL':
-          // All employees are eligible for these roles
-          return true
-        default:
-          return true
+      case "CC":
+        return employee.crewChiefEligible || employee.role === "Crew Chief"
+      case "FO":
+      case "RFO":
+        return employee.forkOperatorEligible
+      case "SH":
+      case "RG":
+      case "GL":
+        // All employees are eligible for these roles
+        return true
+      default:
+        return true
       }
     })
   }
@@ -149,12 +149,12 @@ export default function ComprehensiveTimesheetManager({
     } else if (requirementsData && requirementsData.workerRequirements?.length === 0) {
       // Initialize with default requirements if none exist
       const defaultRequirements: WorkerRequirement[] = [
-        { roleCode: 'CC', requiredCount: 1 },
-        { roleCode: 'SH', requiredCount: 0 },
-        { roleCode: 'FO', requiredCount: 0 },
-        { roleCode: 'RFO', requiredCount: 0 },
-        { roleCode: 'RG', requiredCount: 0 },
-        { roleCode: 'GL', requiredCount: 0 },
+        { roleCode: "CC", requiredCount: 1 },
+        { roleCode: "SH", requiredCount: 0 },
+        { roleCode: "FO", requiredCount: 0 },
+        { roleCode: "RFO", requiredCount: 0 },
+        { roleCode: "RG", requiredCount: 0 },
+        { roleCode: "GL", requiredCount: 0 },
       ]
       setWorkerRequirements(defaultRequirements)
     }
@@ -166,7 +166,7 @@ export default function ComprehensiveTimesheetManager({
 
     try {
       // Create a complete requirements array with all role types
-      const allRoleTypes: RoleCode[] = ['CC', 'SH', 'FO', 'RFO', 'RG', 'GL']
+      const allRoleTypes: RoleCode[] = ["CC", "SH", "FO", "RFO", "RG", "GL"]
       const updatedRequirements: WorkerRequirement[] = allRoleTypes.map(role => {
         if (role === roleCode) {
           return { roleCode: role, requiredCount: newCount }
@@ -176,14 +176,14 @@ export default function ComprehensiveTimesheetManager({
       })
 
       const response = await fetch(`/api/shifts/${shiftId}/worker-requirements`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workerRequirements: updatedRequirements })
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update worker requirements')
+        throw new Error(errorData.error || "Failed to update worker requirements")
       }
 
       setWorkerRequirements(updatedRequirements)
@@ -192,7 +192,7 @@ export default function ComprehensiveTimesheetManager({
         description: `${ROLE_DEFINITIONS[roleCode].name} requirement set to ${newCount}`,
       })
     } catch (error) {
-      console.error('Error updating worker requirement:', error)
+      console.error("Error updating worker requirement:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update worker requirements",
@@ -206,8 +206,8 @@ export default function ComprehensiveTimesheetManager({
   const checkTimeConflicts = async (employeeId: string) => {
     try {
       const response = await fetch(`/api/shifts/${shiftId}/check-conflicts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ employeeId })
       })
 
@@ -218,7 +218,7 @@ export default function ComprehensiveTimesheetManager({
       const data = await response.json()
       return data
     } catch (error) {
-      console.error('Error checking conflicts:', error)
+      console.error("Error checking conflicts:", error)
       return { hasConflicts: false, conflicts: [] }
     }
   }
@@ -241,8 +241,8 @@ export default function ComprehensiveTimesheetManager({
       }
 
       const response = await fetch(`/api/shifts/${shiftId}/assign-worker`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           employeeId,
           roleCode,
@@ -252,7 +252,7 @@ export default function ComprehensiveTimesheetManager({
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to assign worker')
+        throw new Error(error.error || "Failed to assign worker")
       }
 
       toast({
@@ -261,7 +261,7 @@ export default function ComprehensiveTimesheetManager({
       })
       onUpdate()
     } catch (error) {
-      console.error('Error assigning worker:', error)
+      console.error("Error assigning worker:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to assign worker",
@@ -273,12 +273,12 @@ export default function ComprehensiveTimesheetManager({
   const unassignWorker = async (assignmentId: string, workerName: string) => {
     try {
       const response = await fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}`, {
-        method: 'DELETE'
+        method: "DELETE"
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to unassign worker')
+        throw new Error(error.error || "Failed to unassign worker")
       }
 
       toast({
@@ -287,7 +287,7 @@ export default function ComprehensiveTimesheetManager({
       })
       onUpdate()
     } catch (error) {
-      console.error('Error unassigning worker:', error)
+      console.error("Error unassigning worker:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to unassign worker",
@@ -296,31 +296,31 @@ export default function ComprehensiveTimesheetManager({
     }
   }
 
-  const handleClockAction = async (assignmentId: string, action: 'clock_in' | 'clock_out') => {
+  const handleClockAction = async (assignmentId: string, action: "clock_in" | "clock_out") => {
     setIsProcessing(true)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}/clock`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action })
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || `Failed to ${action.replace('_', ' ')}`)
+        throw new Error(error.error || `Failed to ${action.replace("_", " ")}`)
       }
 
       const worker = assignedPersonnel.find(w => w.id === assignmentId)
       toast({
-        title: action === 'clock_in' ? "Clocked In" : "Clocked Out",
-        description: `${worker?.employeeName} has been ${action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully`,
+        title: action === "clock_in" ? "Clocked In" : "Clocked Out",
+        description: `${worker?.employeeName} has been ${action === "clock_in" ? "clocked in" : "clocked out"} successfully`,
       })
       onUpdate()
     } catch (error) {
       console.error(`Error ${action}:`, error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : `Failed to ${action.replace('_', ' ')}`,
+        description: error instanceof Error ? error.message : `Failed to ${action.replace("_", " ")}`,
         variant: "destructive",
       })
     } finally {
@@ -332,12 +332,12 @@ export default function ComprehensiveTimesheetManager({
     setIsProcessing(true)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}/end-shift`, {
-        method: 'POST'
+        method: "POST"
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to end shift')
+        throw new Error(error.error || "Failed to end shift")
       }
 
       toast({
@@ -346,7 +346,7 @@ export default function ComprehensiveTimesheetManager({
       })
       onUpdate()
     } catch (error) {
-      console.error('Error ending shift:', error)
+      console.error("Error ending shift:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to end shift",
@@ -358,7 +358,7 @@ export default function ComprehensiveTimesheetManager({
   }
 
   const endAllShifts = async () => {
-    const activeWorkers = assignedPersonnel.filter(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended')
+    const activeWorkers = assignedPersonnel.filter(w => w.status !== "Shift Ended" && w.status !== "shift_ended")
     if (activeWorkers.length === 0) {
       toast({
         title: "No Active Workers",
@@ -370,12 +370,12 @@ export default function ComprehensiveTimesheetManager({
     setIsProcessing(true)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/end-all-shifts`, {
-        method: 'POST'
+        method: "POST"
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to end all shifts')
+        throw new Error(error.error || "Failed to end all shifts")
       }
 
       toast({
@@ -384,7 +384,7 @@ export default function ComprehensiveTimesheetManager({
       })
       onUpdate()
     } catch (error) {
-      console.error('Error ending all shifts:', error)
+      console.error("Error ending all shifts:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to end all shifts",
@@ -396,7 +396,7 @@ export default function ComprehensiveTimesheetManager({
   }
 
   const finalizeTimesheet = async () => {
-    const activeWorkers = assignedPersonnel.filter(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended')
+    const activeWorkers = assignedPersonnel.filter(w => w.status !== "Shift Ended" && w.status !== "shift_ended")
     if (activeWorkers.length > 0) {
       toast({
         title: "Cannot Finalize",
@@ -409,12 +409,12 @@ export default function ComprehensiveTimesheetManager({
     setIsProcessing(true)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/finalize-timesheet-simple`, {
-        method: 'POST'
+        method: "POST"
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to finalize timesheet')
+        throw new Error(error.error || "Failed to finalize timesheet")
       }
 
       const result = await response.json()
@@ -425,12 +425,12 @@ export default function ComprehensiveTimesheetManager({
 
       // Optionally redirect to timesheet approval page
       if (result.timesheetId) {
-        window.open(`/timesheets/${result.timesheetId}/approve`, '_blank')
+        window.open(`/timesheets/${result.timesheetId}/approve`, "_blank")
       }
 
       onUpdate()
     } catch (error) {
-      console.error('Error finalizing timesheet:', error)
+      console.error("Error finalizing timesheet:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to finalize timesheet",
@@ -446,7 +446,7 @@ export default function ComprehensiveTimesheetManager({
       // First check if there's a timesheet for this shift
       const timesheetResponse = await fetch(`/api/timesheets?shiftId=${shiftId}`)
       if (!timesheetResponse.ok) {
-        throw new Error('No timesheet found for this shift')
+        throw new Error("No timesheet found for this shift")
       }
 
       const timesheetData = await timesheetResponse.json()
@@ -464,12 +464,12 @@ export default function ComprehensiveTimesheetManager({
       // Download the PDF
       const pdfResponse = await fetch(`/api/timesheets/${timesheetId}/pdf`)
       if (!pdfResponse.ok) {
-        throw new Error('Failed to generate PDF')
+        throw new Error("Failed to generate PDF")
       }
 
       const blob = await pdfResponse.blob()
       const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
+      const a = document.createElement("a")
       a.href = url
       a.download = `timesheet-${shiftId}.pdf`
       document.body.appendChild(a)
@@ -482,7 +482,7 @@ export default function ComprehensiveTimesheetManager({
         description: "Timesheet PDF has been downloaded successfully",
       })
     } catch (error) {
-      console.error('Error downloading timesheet:', error)
+      console.error("Error downloading timesheet:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to download timesheet",
@@ -506,33 +506,33 @@ export default function ComprehensiveTimesheetManager({
 
     // Add assigned workers
     assignedWorkers.forEach(worker => {
-      slots.push({ type: 'assigned', worker })
+      slots.push({ type: "assigned", worker })
     })
 
     // Add empty slots for remaining requirements
     const emptySlots = Math.max(0, requiredCount - assignedWorkers.length)
     for (let i = 0; i < emptySlots; i++) {
-      slots.push({ type: 'empty', roleCode })
+      slots.push({ type: "empty", roleCode })
     }
 
     return slots
   }
 
   const getClockButtonText = (worker: AssignedWorker): string => {
-    if (worker.status === 'Shift Ended' || worker.status === 'shift_ended') return 'Shift Ended'
-    if (worker.status === 'Clocked In') return 'Clock Out'
-    return 'Clock In'
+    if (worker.status === "Shift Ended" || worker.status === "shift_ended") return "Shift Ended"
+    if (worker.status === "Clocked In") return "Clock Out"
+    return "Clock In"
   }
 
-  const getClockButtonAction = (worker: AssignedWorker): 'clock_in' | 'clock_out' | null => {
-    if (worker.status === 'Shift Ended' || worker.status === 'shift_ended') return null
-    if (worker.status === 'Clocked In') return 'clock_out'
-    return 'clock_in'
+  const getClockButtonAction = (worker: AssignedWorker): "clock_in" | "clock_out" | null => {
+    if (worker.status === "Shift Ended" || worker.status === "shift_ended") return null
+    if (worker.status === "Clocked In") return "clock_out"
+    return "clock_in"
   }
 
   const formatTime = (timestamp?: string): string => {
-    if (!timestamp) return '-'
-    return format(new Date(timestamp), 'HH:mm')
+    if (!timestamp) return "-"
+    return format(new Date(timestamp), "HH:mm")
   }
 
   if (requirementsLoading) {
@@ -647,13 +647,13 @@ export default function ComprehensiveTimesheetManager({
                         key={`${roleCode}-${index}`} 
                         className={`p-3 rounded-lg border ${roleDef.bgColor} ${roleDef.borderColor}`}
                       >
-                        {slot.type === 'assigned' ? (
+                        {slot.type === "assigned" ? (
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={slot.worker.employeeAvatar} />
                                 <AvatarFallback>
-                                  {slot.worker.employeeName.split(' ').map((n: string) => n[0]).join('')}
+                                  {slot.worker.employeeName.split(" ").map((n: string) => n[0]).join("")}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
@@ -683,13 +683,13 @@ export default function ComprehensiveTimesheetManager({
                                     <div className="flex items-center justify-between w-full">
                                       <span>{employee.name}</span>
                                       <div className="flex gap-1">
-                                        {employee.role === 'Manager/Admin' && (
+                                        {employee.role === "Manager/Admin" && (
                                           <Badge variant="secondary" className="text-xs">Manager</Badge>
                                         )}
-                                        {roleCode === 'CC' && employee.crewChiefEligible && (
+                                        {roleCode === "CC" && employee.crewChiefEligible && (
                                           <span className="text-xs text-muted-foreground">(CC Eligible)</span>
                                         )}
-                                        {(roleCode === 'FO' || roleCode === 'RFO') && employee.forkOperatorEligible && (
+                                        {(roleCode === "FO" || roleCode === "RFO") && employee.forkOperatorEligible && (
                                           <span className="text-xs text-muted-foreground">(FO Eligible)</span>
                                         )}
                                       </div>
@@ -751,13 +751,13 @@ export default function ComprehensiveTimesheetManager({
                     const clockAction = getClockButtonAction(worker)
 
                     return (
-                      <TableRow key={worker.id} className={`${roleDef?.bgColor || 'bg-gray-50'}`}>
+                      <TableRow key={worker.id} className={`${roleDef?.bgColor || "bg-gray-50"}`}>
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
                               <AvatarImage src={worker.employeeAvatar} />
                               <AvatarFallback>
-                                {worker.employeeName.split(' ').map(n => n[0]).join('')}
+                                {worker.employeeName.split(" ").map(n => n[0]).join("")}
                               </AvatarFallback>
                             </Avatar>
                             <div>
@@ -766,7 +766,7 @@ export default function ComprehensiveTimesheetManager({
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className={`${roleDef?.color || 'text-gray-700'}`}>
+                          <Badge variant="outline" className={`${roleDef?.color || "text-gray-700"}`}>
                             {worker.roleCode}
                           </Badge>
                           <div className="text-sm text-muted-foreground">{worker.roleOnShift}</div>
@@ -789,15 +789,15 @@ export default function ComprehensiveTimesheetManager({
 
                         <TableCell>
                           <Badge
-                            variant={(worker.status === 'Shift Ended' || worker.status === 'shift_ended') ? 'secondary' :
-                                   worker.status === 'Clocked In' ? 'default' : 'outline'}
+                            variant={(worker.status === "Shift Ended" || worker.status === "shift_ended") ? "secondary" :
+                              worker.status === "Clocked In" ? "default" : "outline"}
                             className={
-                              worker.status === 'Clocked In' ? 'bg-green-100 text-green-800' :
-                              (worker.status === 'Shift Ended' || worker.status === 'shift_ended') ? 'bg-gray-100 text-gray-800' :
-                              'bg-yellow-100 text-yellow-800'
+                              worker.status === "Clocked In" ? "bg-green-100 text-green-800" :
+                                (worker.status === "Shift Ended" || worker.status === "shift_ended") ? "bg-gray-100 text-gray-800" :
+                                  "bg-yellow-100 text-yellow-800"
                             }
                           >
-                            {worker.status === 'shift_ended' ? 'Shift Ended' : worker.status}
+                            {worker.status === "shift_ended" ? "Shift Ended" : worker.status}
                           </Badge>
                         </TableCell>
 
@@ -806,7 +806,7 @@ export default function ComprehensiveTimesheetManager({
                             {clockAction && (
                               <Button
                                 size="sm"
-                                variant={clockAction === 'clock_in' ? 'default' : 'outline'}
+                                variant={clockAction === "clock_in" ? "default" : "outline"}
                                 onClick={() => handleClockAction(worker.id, clockAction)}
                                 disabled={isProcessing}
                                 className="min-w-[80px]"
@@ -816,7 +816,7 @@ export default function ComprehensiveTimesheetManager({
                               </Button>
                             )}
 
-                            {worker.status !== 'Shift Ended' && worker.status !== 'shift_ended' && (
+                            {worker.status !== "Shift Ended" && worker.status !== "shift_ended" && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button
@@ -863,7 +863,7 @@ export default function ComprehensiveTimesheetManager({
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="outline"
-                      disabled={isProcessing || assignedPersonnel.filter(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended').length === 0}
+                      disabled={isProcessing || assignedPersonnel.filter(w => w.status !== "Shift Ended" && w.status !== "shift_ended").length === 0}
                     >
                       <Users className="h-4 w-4 mr-2" />
                       End All Shifts
@@ -882,7 +882,7 @@ export default function ComprehensiveTimesheetManager({
                           <strong>Affected workers:</strong>
                           <ul className="mt-1">
                             {assignedPersonnel
-                              .filter(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended')
+                              .filter(w => w.status !== "Shift Ended" && w.status !== "shift_ended")
                               .map(w => (
                                 <li key={w.id} className="text-sm">• {w.employeeName} ({w.roleOnShift})</li>
                               ))}
@@ -914,7 +914,7 @@ export default function ComprehensiveTimesheetManager({
                 </Button>
                 <Button
                   onClick={finalizeTimesheet}
-                  disabled={isProcessing || assignedPersonnel.some(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended')}
+                  disabled={isProcessing || assignedPersonnel.some(w => w.status !== "Shift Ended" && w.status !== "shift_ended")}
                   className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   <FileText className="h-4 w-4 mr-2" />

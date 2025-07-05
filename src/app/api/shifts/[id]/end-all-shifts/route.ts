@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/db"
 
 export async function POST(
   request: NextRequest,
@@ -8,7 +8,7 @@ export async function POST(
   try {
     const { id: shiftId } = await params
 
-    console.log(`End all shifts request:`, { shiftId })
+    console.log("End all shifts request:", { shiftId })
 
     // Get all assigned personnel for this shift
     const assignedPersonnelResult = await query(`
@@ -20,7 +20,7 @@ export async function POST(
     if (assignedPersonnelResult.rows.length === 0) {
       return NextResponse.json({
         success: true,
-        message: 'No active workers to end shifts for'
+        message: "No active workers to end shifts for"
       })
     }
 
@@ -47,9 +47,9 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error ending all shifts:', error)
+    console.error("Error ending all shifts:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

@@ -1,5 +1,5 @@
-import { query } from '../db';
-import type { CrewChiefPermission, CrewChiefPermissionCheck, CrewChiefPermissionType } from '../types';
+import { query } from "../db"
+import type { CrewChiefPermission, CrewChiefPermissionCheck, CrewChiefPermissionType } from "../types"
 
 // Grant crew chief permission
 export async function grantCrewChiefPermission(
@@ -10,19 +10,19 @@ export async function grantCrewChiefPermission(
 ): Promise<CrewChiefPermission | null> {
   try {
     // First revoke any existing permission of the same type for the same target
-    await revokeCrewChiefPermission(userId, permissionType, targetId);
+    await revokeCrewChiefPermission(userId, permissionType, targetId)
     
     const result = await query(`
       INSERT INTO crew_chief_permissions (user_id, permission_type, target_id, granted_by_user_id)
       VALUES ($1, $2, $3, $4)
       RETURNING id, user_id, permission_type, target_id, granted_by_user_id, granted_at, revoked_at
-    `, [userId, permissionType, targetId, grantedByUserId]);
+    `, [userId, permissionType, targetId, grantedByUserId])
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0]
     return {
       id: row.id,
       userId: row.user_id,
@@ -31,10 +31,10 @@ export async function grantCrewChiefPermission(
       grantedByUserId: row.granted_by_user_id,
       grantedAt: row.granted_at,
       revokedAt: row.revoked_at,
-    };
+    }
   } catch (error) {
-    console.error('Error granting crew chief permission:', error);
-    return null;
+    console.error("Error granting crew chief permission:", error)
+    return null
   }
 }
 
@@ -49,12 +49,12 @@ export async function revokeCrewChiefPermission(
       UPDATE crew_chief_permissions 
       SET revoked_at = NOW()
       WHERE user_id = $1 AND permission_type = $2 AND target_id = $3 AND revoked_at IS NULL
-    `, [userId, permissionType, targetId]);
+    `, [userId, permissionType, targetId])
 
-    return (result.rowCount ?? 0) > 0;
+    return (result.rowCount ?? 0) > 0
   } catch (error) {
-    console.error('Error revoking crew chief permission:', error);
-    return false;
+    console.error("Error revoking crew chief permission:", error)
+    return false
   }
 }
 
@@ -66,7 +66,7 @@ export async function getUserCrewChiefPermissions(userId: string): Promise<CrewC
       FROM crew_chief_permissions
       WHERE user_id = $1 AND revoked_at IS NULL
       ORDER BY granted_at DESC
-    `, [userId]);
+    `, [userId])
 
     return result.rows.map(row => ({
       id: row.id,
@@ -76,10 +76,10 @@ export async function getUserCrewChiefPermissions(userId: string): Promise<CrewC
       grantedByUserId: row.granted_by_user_id,
       grantedAt: row.granted_at,
       revokedAt: row.revoked_at,
-    }));
+    }))
   } catch (error) {
-    console.error('Error getting user crew chief permissions:', error);
-    return [];
+    console.error("Error getting user crew chief permissions:", error)
+    return []
   }
 }
 
@@ -92,14 +92,14 @@ export async function checkCrewChiefPermission(
     // First check if user is the designated crew chief for this shift
     const designatedResult = await query(`
       SELECT crew_chief_id FROM shifts WHERE id = $1
-    `, [shiftId]);
+    `, [shiftId])
 
     if (designatedResult.rows.length > 0 && designatedResult.rows[0].crew_chief_id === userId) {
       return {
         hasPermission: true,
-        permissionSource: 'designated',
+        permissionSource: "designated",
         permissions: [],
-      };
+      }
     }
 
     // Get shift details to check job and client permissions
@@ -108,17 +108,17 @@ export async function checkCrewChiefPermission(
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       WHERE s.id = $1
-    `, [shiftId]);
+    `, [shiftId])
 
     if (shiftResult.rows.length === 0) {
       return {
         hasPermission: false,
-        permissionSource: 'none',
+        permissionSource: "none",
         permissions: [],
-      };
+      }
     }
 
-    const { job_id: jobId, client_id: clientId } = shiftResult.rows[0];
+    const { job_id: jobId, client_id: clientId } = shiftResult.rows[0]
 
     // Check for admin-granted permissions (shift-level, job-level, client-level)
     const permissionsResult = await query(`
@@ -136,7 +136,7 @@ export async function checkCrewChiefPermission(
           WHEN 'job' THEN 2 
           WHEN 'client' THEN 3 
         END
-    `, [userId, shiftId, jobId, clientId]);
+    `, [userId, shiftId, jobId, clientId])
 
     const permissions = permissionsResult.rows.map(row => ({
       id: row.id,
@@ -146,30 +146,30 @@ export async function checkCrewChiefPermission(
       grantedByUserId: row.granted_by_user_id,
       grantedAt: row.granted_at,
       revokedAt: row.revoked_at,
-    }));
+    }))
 
     if (permissions.length > 0) {
       // Return the most specific permission type
-      const permissionSource = permissions[0].permissionType as CrewChiefPermissionCheck['permissionSource'];
+      const permissionSource = permissions[0].permissionType as CrewChiefPermissionCheck["permissionSource"]
       return {
         hasPermission: true,
         permissionSource,
         permissions,
-      };
+      }
     }
 
     return {
       hasPermission: false,
-      permissionSource: 'none',
+      permissionSource: "none",
       permissions: [],
-    };
+    }
   } catch (error) {
-    console.error('Error checking crew chief permission:', error);
+    console.error("Error checking crew chief permission:", error)
     return {
       hasPermission: false,
-      permissionSource: 'none',
+      permissionSource: "none",
       permissions: [],
-    };
+    }
   }
 }
 
@@ -189,7 +189,7 @@ export async function getPermissionsForTarget(
       JOIN users gb ON p.granted_by_user_id = gb.id
       WHERE p.permission_type = $1 AND p.target_id = $2 AND p.revoked_at IS NULL
       ORDER BY p.granted_at DESC
-    `, [permissionType, targetId]);
+    `, [permissionType, targetId])
 
     return result.rows.map(row => ({
       id: row.id,
@@ -203,10 +203,10 @@ export async function getPermissionsForTarget(
       userName: row.user_name,
       userRole: row.user_role,
       grantedByName: row.granted_by_name,
-    }));
+    }))
   } catch (error) {
-    console.error('Error getting permissions for target:', error);
-    return [];
+    console.error("Error getting permissions for target:", error)
+    return []
   }
 }
 
@@ -232,7 +232,7 @@ export async function getAllCrewChiefPermissions(): Promise<CrewChiefPermission[
       LEFT JOIN jobs sj ON s.job_id = sj.id
       WHERE p.revoked_at IS NULL
       ORDER BY p.granted_at DESC
-    `);
+    `)
 
     return result.rows.map(row => ({
       id: row.id,
@@ -246,9 +246,9 @@ export async function getAllCrewChiefPermissions(): Promise<CrewChiefPermission[
       userName: row.user_name,
       grantedByName: row.granted_by_name,
       targetName: row.target_name,
-    }));
+    }))
   } catch (error) {
-    console.error('Error getting all crew chief permissions:', error);
-    return [];
+    console.error("Error getting all crew chief permissions:", error)
+    return []
   }
 }

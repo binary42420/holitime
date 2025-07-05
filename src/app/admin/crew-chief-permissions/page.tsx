@@ -1,19 +1,19 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { Shield, ShieldCheck, Plus, Trash2, Building, Briefcase, Users, Crown } from 'lucide-react';
-import type { CrewChiefPermission, CrewChiefPermissionType, User, ClientCompany } from '@/lib/types';
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
+import { Shield, ShieldCheck, Plus, Trash2, Building, Briefcase, Users, Crown } from "lucide-react"
+import type { CrewChiefPermission, CrewChiefPermissionType, User, ClientCompany } from "@/lib/types"
 
 interface PermissionWithDetails extends CrewChiefPermission {
   userName?: string;
@@ -22,26 +22,26 @@ interface PermissionWithDetails extends CrewChiefPermission {
 }
 
 export default function CrewChiefPermissionsPage() {
-  const { data: session } = useSession();
-  const { toast } = useToast();
+  const { data: session } = useSession()
+  const { toast } = useToast()
   
-  const [permissions, setPermissions] = useState<PermissionWithDetails[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
-  const [clients, setClients] = useState<ClientCompany[]>([]);
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [shifts, setShifts] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isGranting, setIsGranting] = useState(false);
+  const [permissions, setPermissions] = useState<PermissionWithDetails[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [clients, setClients] = useState<ClientCompany[]>([])
+  const [jobs, setJobs] = useState<any[]>([])
+  const [shifts, setShifts] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isGranting, setIsGranting] = useState(false)
   
   // Grant permission form state
   const [grantForm, setGrantForm] = useState({
-    userId: '',
-    permissionType: '' as CrewChiefPermissionType,
-    targetId: '',
-  });
+    userId: "",
+    permissionType: "" as CrewChiefPermissionType,
+    targetId: "",
+  })
 
   // Check if user is admin
-  if (session?.user?.role !== 'Manager/Admin') {
+  if (session?.user?.role !== "Manager/Admin") {
     return (
       <div className="container mx-auto py-8">
         <Card>
@@ -54,167 +54,167 @@ export default function CrewChiefPermissionsPage() {
           </CardContent>
         </Card>
       </div>
-    );
+    )
   }
 
   // Fetch data
   useEffect(() => {
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const fetchData = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       // Fetch all permissions, users, clients, jobs, and shifts
       const [permissionsRes, usersRes, clientsRes, jobsRes, shiftsRes] = await Promise.all([
-        fetch('/api/crew-chief-permissions?all=true'),
-        fetch('/api/users'),
-        fetch('/api/clients'),
-        fetch('/api/jobs'),
-        fetch('/api/shifts'),
-      ]);
+        fetch("/api/crew-chief-permissions?all=true"),
+        fetch("/api/users"),
+        fetch("/api/clients"),
+        fetch("/api/jobs"),
+        fetch("/api/shifts"),
+      ])
 
       if (permissionsRes.ok) {
-        const permissionsData = await permissionsRes.json();
-        setPermissions(permissionsData.permissions || []);
+        const permissionsData = await permissionsRes.json()
+        setPermissions(permissionsData.permissions || [])
       }
 
       if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        const users = usersData.users || [];
-        setUsers(users.filter((u: User) => ['Employee', 'Crew Chief'].includes(u.role)));
+        const usersData = await usersRes.json()
+        const users = usersData.users || []
+        setUsers(users.filter((u: User) => ["Employee", "Crew Chief"].includes(u.role)))
       }
 
       if (clientsRes.ok) {
-        const clientsData = await clientsRes.json();
-        setClients(clientsData);
+        const clientsData = await clientsRes.json()
+        setClients(clientsData)
       }
 
       if (jobsRes.ok) {
-        const jobsData = await jobsRes.json();
-        setJobs(jobsData);
+        const jobsData = await jobsRes.json()
+        setJobs(jobsData)
       }
 
       if (shiftsRes.ok) {
-        const shiftsData = await shiftsRes.json();
-        setShifts(shiftsData);
+        const shiftsData = await shiftsRes.json()
+        setShifts(shiftsData)
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to load data',
-        variant: 'destructive',
-      });
+        title: "Error",
+        description: "Failed to load data",
+        variant: "destructive",
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleGrantPermission = async () => {
     if (!grantForm.userId || !grantForm.permissionType || !grantForm.targetId) {
       toast({
-        title: 'Error',
-        description: 'Please fill in all fields',
-        variant: 'destructive',
-      });
-      return;
+        title: "Error",
+        description: "Please fill in all fields",
+        variant: "destructive",
+      })
+      return
     }
 
-    setIsGranting(true);
+    setIsGranting(true)
     try {
-      const response = await fetch('/api/crew-chief-permissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/crew-chief-permissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(grantForm),
-      });
+      })
 
       if (response.ok) {
         toast({
-          title: 'Success',
-          description: 'Permission granted successfully',
-        });
-        setGrantForm({ userId: '', permissionType: '' as CrewChiefPermissionType, targetId: '' });
-        fetchData(); // Refresh data
+          title: "Success",
+          description: "Permission granted successfully",
+        })
+        setGrantForm({ userId: "", permissionType: "" as CrewChiefPermissionType, targetId: "" })
+        fetchData() // Refresh data
       } else {
-        throw new Error('Failed to grant permission');
+        throw new Error("Failed to grant permission")
       }
     } catch (error) {
-      console.error('Error granting permission:', error);
+      console.error("Error granting permission:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to grant permission',
-        variant: 'destructive',
-      });
+        title: "Error",
+        description: "Failed to grant permission",
+        variant: "destructive",
+      })
     } finally {
-      setIsGranting(false);
+      setIsGranting(false)
     }
-  };
+  }
 
   const handleRevokePermission = async (permission: PermissionWithDetails) => {
     try {
       const response = await fetch(
         `/api/crew-chief-permissions?userId=${permission.userId}&permissionType=${permission.permissionType}&targetId=${permission.targetId}`,
-        { method: 'DELETE' }
-      );
+        { method: "DELETE" }
+      )
 
       if (response.ok) {
         toast({
-          title: 'Success',
-          description: 'Permission revoked successfully',
-        });
-        fetchData(); // Refresh data
+          title: "Success",
+          description: "Permission revoked successfully",
+        })
+        fetchData() // Refresh data
       } else {
-        throw new Error('Failed to revoke permission');
+        throw new Error("Failed to revoke permission")
       }
     } catch (error) {
-      console.error('Error revoking permission:', error);
+      console.error("Error revoking permission:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to revoke permission',
-        variant: 'destructive',
-      });
+        title: "Error",
+        description: "Failed to revoke permission",
+        variant: "destructive",
+      })
     }
-  };
+  }
 
   const getTargetOptions = () => {
     switch (grantForm.permissionType) {
-      case 'client':
-        return clients.map(c => ({ value: c.id, label: c.companyName }));
-      case 'job':
-        return jobs.map(j => ({ value: j.id, label: `${j.name} (${j.clientName})` }));
-      case 'shift':
-        return shifts.map(s => ({ value: s.id, label: `${s.jobName} - ${s.date} ${s.startTime}` }));
-      default:
-        return [];
+    case "client":
+      return clients.map(c => ({ value: c.id, label: c.companyName }))
+    case "job":
+      return jobs.map(j => ({ value: j.id, label: `${j.name} (${j.clientName})` }))
+    case "shift":
+      return shifts.map(s => ({ value: s.id, label: `${s.jobName} - ${s.date} ${s.startTime}` }))
+    default:
+      return []
     }
-  };
+  }
 
   const getPermissionIcon = (type: CrewChiefPermissionType) => {
     switch (type) {
-      case 'client':
-        return <Building className="h-4 w-4" />;
-      case 'job':
-        return <Briefcase className="h-4 w-4" />;
-      case 'shift':
-        return <ShieldCheck className="h-4 w-4" />;
-      default:
-        return <Shield className="h-4 w-4" />;
+    case "client":
+      return <Building className="h-4 w-4" />
+    case "job":
+      return <Briefcase className="h-4 w-4" />
+    case "shift":
+      return <ShieldCheck className="h-4 w-4" />
+    default:
+      return <Shield className="h-4 w-4" />
     }
-  };
+  }
 
   const getPermissionColor = (type: CrewChiefPermissionType) => {
     switch (type) {
-      case 'client':
-        return 'bg-blue-100 text-blue-800';
-      case 'job':
-        return 'bg-green-100 text-green-800';
-      case 'shift':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+    case "client":
+      return "bg-blue-100 text-blue-800"
+    case "job":
+      return "bg-green-100 text-green-800"
+    case "shift":
+      return "bg-yellow-100 text-yellow-800"
+    default:
+      return "bg-gray-100 text-gray-800"
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -229,7 +229,7 @@ export default function CrewChiefPermissionsPage() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -277,7 +277,7 @@ export default function CrewChiefPermissionsPage() {
                         <div>
                           <p className="font-medium">{permission.userName}</p>
                           <p className="text-sm text-muted-foreground">
-                            Granted by {permission.grantedByName} on{' '}
+                            Granted by {permission.grantedByName} on{" "}
                             {new Date(permission.grantedAt).toLocaleDateString()}
                           </p>
                         </div>
@@ -345,7 +345,7 @@ export default function CrewChiefPermissionsPage() {
                   <Label htmlFor="permissionType">Permission Type</Label>
                   <Select 
                     value={grantForm.permissionType} 
-                    onValueChange={(value: CrewChiefPermissionType) => setGrantForm(prev => ({ ...prev, permissionType: value, targetId: '' }))}
+                    onValueChange={(value: CrewChiefPermissionType) => setGrantForm(prev => ({ ...prev, permissionType: value, targetId: "" }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select type" />
@@ -400,7 +400,7 @@ export default function CrewChiefPermissionsPage() {
                 className="w-full"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                {isGranting ? 'Granting Permission...' : 'Grant Permission'}
+                {isGranting ? "Granting Permission..." : "Grant Permission"}
               </Button>
             </CardContent>
           </Card>
@@ -417,7 +417,7 @@ export default function CrewChiefPermissionsPage() {
             <CardContent>
               <div className="space-y-4">
                 {users.map(user => {
-                  const userPermissions = permissions.filter(p => p.userId === user.id);
+                  const userPermissions = permissions.filter(p => p.userId === user.id)
                   return (
                     <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center space-x-4">
@@ -431,7 +431,7 @@ export default function CrewChiefPermissionsPage() {
                       </div>
                       <div className="flex items-center space-x-2">
                         <Badge variant="outline">
-                          {userPermissions.length} permission{userPermissions.length !== 1 ? 's' : ''}
+                          {userPermissions.length} permission{userPermissions.length !== 1 ? "s" : ""}
                         </Badge>
                         {userPermissions.map(permission => (
                           <Badge key={permission.id} className={getPermissionColor(permission.permissionType)}>
@@ -440,7 +440,7 @@ export default function CrewChiefPermissionsPage() {
                         ))}
                       </div>
                     </div>
-                  );
+                  )
                 })}
               </div>
             </CardContent>
@@ -448,5 +448,5 @@ export default function CrewChiefPermissionsPage() {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

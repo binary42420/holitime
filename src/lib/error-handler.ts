@@ -18,57 +18,57 @@ export interface AppError extends Error {
 }
 
 export class NetworkError extends Error implements AppError {
-  code = 'NETWORK_ERROR'
+  code = "NETWORK_ERROR"
   statusCode = 0
   retryable = true
   
   constructor(message: string, public context?: ErrorContext) {
     super(message)
-    this.name = 'NetworkError'
+    this.name = "NetworkError"
   }
 }
 
 export class ValidationError extends Error implements AppError {
-  code = 'VALIDATION_ERROR'
+  code = "VALIDATION_ERROR"
   statusCode = 400
   retryable = false
   
   constructor(message: string, public context?: ErrorContext) {
     super(message)
-    this.name = 'ValidationError'
+    this.name = "ValidationError"
   }
 }
 
 export class AuthenticationError extends Error implements AppError {
-  code = 'AUTH_ERROR'
+  code = "AUTH_ERROR"
   statusCode = 401
   retryable = false
   
   constructor(message: string, public context?: ErrorContext) {
     super(message)
-    this.name = 'AuthenticationError'
+    this.name = "AuthenticationError"
   }
 }
 
 export class ConflictError extends Error implements AppError {
-  code = 'CONFLICT_ERROR'
+  code = "CONFLICT_ERROR"
   statusCode = 409
   retryable = false
   
   constructor(message: string, public context?: ErrorContext) {
     super(message)
-    this.name = 'ConflictError'
+    this.name = "ConflictError"
   }
 }
 
 export class ServerError extends Error implements AppError {
-  code = 'SERVER_ERROR'
+  code = "SERVER_ERROR"
   statusCode = 500
   retryable = true
   
   constructor(message: string, public context?: ErrorContext) {
     super(message)
-    this.name = 'ServerError'
+    this.name = "ServerError"
   }
 }
 
@@ -83,44 +83,44 @@ export function classifyError(error: any, context?: ErrorContext): AppError {
     return error
   }
 
-  if (error instanceof TypeError && error.message.includes('fetch')) {
-    return new NetworkError('Network connection failed. Please check your internet connection.', context)
+  if (error instanceof TypeError && error.message.includes("fetch")) {
+    return new NetworkError("Network connection failed. Please check your internet connection.", context)
   }
 
-  if (error.name === 'AbortError') {
-    return new NetworkError('Request was cancelled or timed out.', context)
+  if (error.name === "AbortError") {
+    return new NetworkError("Request was cancelled or timed out.", context)
   }
 
   if (error.status || error.statusCode) {
     const statusCode = error.status || error.statusCode
     
     switch (statusCode) {
-      case 400:
-        return new ValidationError(error.message || 'Invalid request data.', context)
-      case 401:
-        return new AuthenticationError(error.message || 'Authentication required.', context)
-      case 403:
-        return new AuthenticationError(error.message || 'Access denied.', context)
-      case 409:
-        return new ConflictError(error.message || 'Data conflict detected.', context)
-      case 429:
-        return new NetworkError(error.message || 'Too many requests. Please try again later.', context)
-      case 500:
-      case 502:
-      case 503:
-      case 504:
-        return new ServerError(error.message || 'Server error. Please try again.', context)
-      default:
-        if (statusCode >= 400 && statusCode < 500) {
-          return new ValidationError(error.message || 'Client error occurred.', context)
-        } else {
-          return new ServerError(error.message || 'Server error occurred.', context)
-        }
+    case 400:
+      return new ValidationError(error.message || "Invalid request data.", context)
+    case 401:
+      return new AuthenticationError(error.message || "Authentication required.", context)
+    case 403:
+      return new AuthenticationError(error.message || "Access denied.", context)
+    case 409:
+      return new ConflictError(error.message || "Data conflict detected.", context)
+    case 429:
+      return new NetworkError(error.message || "Too many requests. Please try again later.", context)
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      return new ServerError(error.message || "Server error. Please try again.", context)
+    default:
+      if (statusCode >= 400 && statusCode < 500) {
+        return new ValidationError(error.message || "Client error occurred.", context)
+      } else {
+        return new ServerError(error.message || "Server error occurred.", context)
+      }
     }
   }
 
   // Default to server error for unknown errors
-  return new ServerError(error.message || 'An unexpected error occurred.', context)
+  return new ServerError(error.message || "An unexpected error occurred.", context)
 }
 
 // Retry configuration
@@ -137,7 +137,7 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   baseDelay: 500,
   maxDelay: 2000,
   backoffFactor: 1.5,
-  retryableErrors: ['NETWORK_ERROR', 'SERVER_ERROR']
+  retryableErrors: ["NETWORK_ERROR", "SERVER_ERROR"]
 }
 
 // Exponential backoff with jitter
@@ -168,7 +168,7 @@ export async function withRetry<T>(
       lastError = classifyError(error, context)
       
       // Don't retry if error is not retryable
-      if (!lastError.retryable || !retryConfig.retryableErrors.includes(lastError.code || '')) {
+      if (!lastError.retryable || !retryConfig.retryableErrors.includes(lastError.code || "")) {
         throw lastError
       }
       
@@ -202,18 +202,18 @@ export function logError(error: AppError): void {
     context: error.context,
     stack: error.stack,
     timestamp: new Date().toISOString(),
-    userAgent: typeof window !== 'undefined' ? window.navigator.userAgent : 'server',
-    url: typeof window !== 'undefined' ? window.location.href : 'server'
+    userAgent: typeof window !== "undefined" ? window.navigator.userAgent : "server",
+    url: typeof window !== "undefined" ? window.location.href : "server"
   }
   
   // Log to console in development
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Application Error:', logData)
+  if (process.env.NODE_ENV === "development") {
+    console.error("Application Error:", logData)
   }
   
   // In production, you would send this to your error tracking service
   // Example: Sentry, LogRocket, Bugsnag, etc.
-  if (process.env.NODE_ENV === 'production') {
+  if (process.env.NODE_ENV === "production") {
     // Send to error tracking service
     // Example: Sentry.captureException(error, { extra: logData })
   }
@@ -239,18 +239,18 @@ export function handleError(error: any, context?: ErrorContext): void {
 // Get user-friendly error messages
 export function getUserFriendlyMessage(error: AppError): string {
   switch (error.code) {
-    case 'NETWORK_ERROR':
-      return 'Connection problem. Please check your internet and try again.'
-    case 'VALIDATION_ERROR':
-      return error.message || 'Please check your input and try again.'
-    case 'AUTH_ERROR':
-      return 'Please log in again to continue.'
-    case 'CONFLICT_ERROR':
-      return error.message || 'This action conflicts with existing data.'
-    case 'SERVER_ERROR':
-      return 'Server is temporarily unavailable. Please try again in a moment.'
-    default:
-      return error.message || 'Something went wrong. Please try again.'
+  case "NETWORK_ERROR":
+    return "Connection problem. Please check your internet and try again."
+  case "VALIDATION_ERROR":
+    return error.message || "Please check your input and try again."
+  case "AUTH_ERROR":
+    return "Please log in again to continue."
+  case "CONFLICT_ERROR":
+    return error.message || "This action conflicts with existing data."
+  case "SERVER_ERROR":
+    return "Server is temporarily unavailable. Please try again in a moment."
+  default:
+    return error.message || "Something went wrong. Please try again."
   }
 }
 
@@ -285,7 +285,7 @@ export async function handleApiResponse(response: Response, context?: ErrorConte
   try {
     return await response.json()
   } catch (error) {
-    throw new ValidationError('Invalid response format from server.', context)
+    throw new ValidationError("Invalid response format from server.", context)
   }
 }
 
@@ -305,7 +305,7 @@ export async function enhancedFetch(
         ...options,
         signal: controller.signal,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...options.headers,
         },
       })

@@ -56,7 +56,7 @@ export default function ClientReviewPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
-  const [timesheetId, setTimesheetId] = useState<string>('')
+  const [timesheetId, setTimesheetId] = useState<string>("")
 
   // Unwrap params
   useEffect(() => {
@@ -67,8 +67,8 @@ export default function ClientReviewPage() {
   
   const [isApproving, setIsApproving] = useState(false)
   const [isRejecting, setIsRejecting] = useState(false)
-  const [rejectionReason, setRejectionReason] = useState('')
-  const [signature, setSignature] = useState('')
+  const [rejectionReason, setRejectionReason] = useState("")
+  const [signature, setSignature] = useState("")
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
 
@@ -110,7 +110,7 @@ export default function ClientReviewPage() {
     if (!canvas) return
     
     const rect = canvas.getBoundingClientRect()
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
     
     ctx.beginPath()
@@ -124,7 +124,7 @@ export default function ClientReviewPage() {
     if (!canvas) return
     
     const rect = canvas.getBoundingClientRect()
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
     
     ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top)
@@ -145,11 +145,11 @@ export default function ClientReviewPage() {
     const canvas = canvasRef.current
     if (!canvas) return
     
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
     
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    setSignature('')
+    setSignature("")
   }
 
   const approveTimesheet = async () => {
@@ -165,17 +165,17 @@ export default function ClientReviewPage() {
     setIsApproving(true)
     try {
       const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          approvalType: 'client',
+          approvalType: "client",
           signature
         })
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to approve timesheet')
+        throw new Error(error.error || "Failed to approve timesheet")
       }
 
       toast({
@@ -183,9 +183,9 @@ export default function ClientReviewPage() {
         description: "The timesheet has been approved and sent to management for final approval",
       })
 
-      router.push('/timesheets')
+      router.push("/timesheets")
     } catch (error) {
-      console.error('Error approving timesheet:', error)
+      console.error("Error approving timesheet:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to approve timesheet",
@@ -209,8 +209,8 @@ export default function ClientReviewPage() {
     setIsRejecting(true)
     try {
       const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           reason: rejectionReason
         })
@@ -218,7 +218,7 @@ export default function ClientReviewPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to reject timesheet')
+        throw new Error(error.error || "Failed to reject timesheet")
       }
 
       toast({
@@ -226,9 +226,9 @@ export default function ClientReviewPage() {
         description: "The timesheet has been rejected and returned for corrections",
       })
 
-      router.push('/timesheets')
+      router.push("/timesheets")
     } catch (error) {
-      console.error('Error rejecting timesheet:', error)
+      console.error("Error rejecting timesheet:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to reject timesheet",
@@ -240,8 +240,8 @@ export default function ClientReviewPage() {
   }
 
   const formatTime = (timeString?: string) => {
-    if (!timeString) return '-'
-    return format(new Date(timeString), 'h:mm a')
+    if (!timeString) return "-"
+    return format(new Date(timeString), "h:mm a")
   }
 
   const calculateHours = (clockIn?: string, clockOut?: string) => {
@@ -285,7 +285,7 @@ export default function ClientReviewPage() {
         </div>
         <Badge variant="outline" className="flex items-center gap-1">
           <FileText className="h-3 w-3" />
-          {timesheetData.status.replace('_', ' ').toUpperCase()}
+          {timesheetData.status.replace("_", " ").toUpperCase()}
         </Badge>
       </div>
 
@@ -305,7 +305,7 @@ export default function ClientReviewPage() {
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-              <p className="font-medium">{format(new Date(shift.date), 'MMMM d, yyyy')}</p>
+              <p className="font-medium">{format(new Date(shift.date), "MMMM d, yyyy")}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Time</Label>
@@ -358,7 +358,7 @@ export default function ClientReviewPage() {
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={worker.employeeAvatar} />
                           <AvatarFallback>
-                            {worker.employeeName.split(' ').map(n => n[0]).join('')}
+                            {worker.employeeName.split(" ").map(n => n[0]).join("")}
                           </AvatarFallback>
                         </Avatar>
                         <span className="font-medium">{worker.employeeName}</span>
@@ -444,7 +444,7 @@ export default function ClientReviewPage() {
       <div className="flex gap-4 justify-end">
         <Button
           variant="outline"
-          onClick={() => router.push('/timesheets')}
+          onClick={() => router.push("/timesheets")}
         >
           Cancel
         </Button>

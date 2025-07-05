@@ -1,12 +1,12 @@
-import { query, cachedQuery } from '../db';
+import { query, cachedQuery } from "../db"
 import type { 
   Shift, 
   AssignedPersonnel, 
   TimesheetStatus, 
   Employee, 
   WorkerRequirement 
-} from '../types';
-import { getWorkerRequirements } from './worker-requirements';
+} from "../types"
+import { getWorkerRequirements } from "./worker-requirements"
 
 interface ShiftRow {
   id: string;
@@ -31,7 +31,7 @@ interface ShiftRow {
   worker_requirements?: WorkerRequirement[];
 }
 
-const SHIFTS_PER_PAGE = 50; // Default page size
+const SHIFTS_PER_PAGE = 50 // Default page size
 
 interface ShiftQueryOptions {
   page?: number;
@@ -47,13 +47,13 @@ interface ShiftQueryOptions {
 function mapShiftRow(row: ShiftRow): Shift {
   return {
     id: row.id,
-    timesheetId: row.timesheet_id || '',
+    timesheetId: row.timesheet_id || "",
     date: row.date,
     startTime: row.start_time,
     endTime: row.end_time,
-    location: row.location || '',
-    status: row.status as Shift['status'],
-    notes: row.notes || '',
+    location: row.location || "",
+    status: row.status as Shift["status"],
+    notes: row.notes || "",
     requestedWorkers: parseInt(row.requested_workers.toString()) || 1,
     assignedCount: row.assigned_count ? parseInt(row.assigned_count.toString()) : 0,
     jobId: row.job_id,
@@ -63,19 +63,19 @@ function mapShiftRow(row: ShiftRow): Shift {
     authorizedCrewChiefIds: row.crew_chief_id ? [row.crew_chief_id] : [],
     crewChief: row.crew_chief_id ? {
       id: row.crew_chief_id,
-      name: row.crew_chief_name || '',
-      avatar: row.crew_chief_avatar || '',
+      name: row.crew_chief_name || "",
+      avatar: row.crew_chief_avatar || "",
       certifications: [],
       performance: 0,
-      location: '',
+      location: "",
     } : null,
     crewChiefId: row.crew_chief_id || undefined,
     crewChiefName: row.crew_chief_name || undefined,
     crewChiefAvatar: row.crew_chief_avatar || undefined,
     assignedPersonnel: row.assigned_personnel || [],
     workerRequirements: row.worker_requirements || [],
-    timesheetStatus: (row.timesheet_status as TimesheetStatus) || 'Pending Finalization',
-  };
+    timesheetStatus: (row.timesheet_status as TimesheetStatus) || "Pending Finalization",
+  }
 }
 
 // Reusable CTE for shift personnel
@@ -101,7 +101,7 @@ const SHIFT_PERSONNEL_CTE = "WITH shift_personnel AS (" +
   "FROM assigned_personnel ap " +
   "LEFT JOIN users u ON ap.employee_id = u.id " +
   "GROUP BY ap.shift_id " +
-")";
+")"
 
 export async function getTodaysShifts(): Promise<Shift[]> {
   try {
@@ -129,13 +129,13 @@ export async function getTodaysShifts(): Promise<Shift[]> {
       "LEFT JOIN shift_personnel sp ON s.id = sp.shift_id " +
       "WHERE s.date = CURRENT_DATE " +
       "ORDER BY s.start_time",
-      [], 'todays_shifts', 5 * 60 * 1000
-    );
+      [], "todays_shifts", 5 * 60 * 1000
+    )
 
-    return result.rows.map(mapShiftRow);
+    return result.rows.map(mapShiftRow)
   } catch (error) {
-    console.error("Error getting today's shifts:", error);
-    return [];
+    console.error("Error getting today's shifts:", error)
+    return []
   }
 }
 
@@ -153,46 +153,46 @@ export async function getAllShifts(options: ShiftQueryOptions = {}): Promise<{
       endDate,
       jobId,
       clientId
-    } = options;
+    } = options
 
-    const offset = (page - 1) * pageSize;
-    const params: any[] = [pageSize, offset];
-    let paramIndex = 3;
+    const offset = (page - 1) * pageSize
+    const params: any[] = [pageSize, offset]
+    let paramIndex = 3
 
     // Build WHERE clause
-    const conditions: string[] = [];
+    const conditions: string[] = []
     if (status?.length) {
-      conditions.push("s.status = ANY($" + paramIndex++ + ")");
-      params.push(status);
+      conditions.push("s.status = ANY($" + paramIndex++ + ")")
+      params.push(status)
     }
     if (startDate) {
-      conditions.push("s.date >= $" + paramIndex++);
-      params.push(startDate);
+      conditions.push("s.date >= $" + paramIndex++)
+      params.push(startDate)
     }
     if (endDate) {
-      conditions.push("s.date <= $" + paramIndex++);
-      params.push(endDate);
+      conditions.push("s.date <= $" + paramIndex++)
+      params.push(endDate)
     }
     if (jobId) {
-      conditions.push("s.job_id = $" + paramIndex++);
-      params.push(jobId);
+      conditions.push("s.job_id = $" + paramIndex++)
+      params.push(jobId)
     }
     if (clientId) {
-      conditions.push("j.client_id = $" + paramIndex++);
-      params.push(clientId);
+      conditions.push("j.client_id = $" + paramIndex++)
+      params.push(clientId)
     }
 
     const whereClause = conditions.length
       ? "WHERE " + conditions.join(" AND ")
-      : "";
+      : ""
 
     // Get total count
     const countResult = await query(
       "SELECT COUNT(*) FROM shifts s " + whereClause,
       params.slice(2)
-    );
-    const total = parseInt(countResult.rows[0].count);
-    const pages = Math.ceil(total / pageSize);
+    )
+    const total = parseInt(countResult.rows[0].count)
+    const pages = Math.ceil(total / pageSize)
 
     // Get paginated results with optimized query
     const result = await query(
@@ -221,22 +221,22 @@ export async function getAllShifts(options: ShiftQueryOptions = {}): Promise<{
       " ORDER BY s.date DESC, s.start_time " +
       "LIMIT $1 OFFSET $2",
       params
-    );
+    )
 
     return {
       shifts: result.rows.map(mapShiftRow),
       total,
       pages
-    };
+    }
   } catch (error) {
-    console.error("Error getting all shifts:", error);
-    return { shifts: [], total: 0, pages: 0 };
+    console.error("Error getting all shifts:", error)
+    return { shifts: [], total: 0, pages: 0 }
   }
 }
 
 export async function getShiftById(id: string): Promise<Shift | null> {
   try {
-    console.log("getShiftById called with ID:", id);
+    console.log("getShiftById called with ID:", id)
     // Use simpler query similar to getAllShifts that we know works
     const result = await query(
       "SELECT " +
@@ -254,12 +254,12 @@ export async function getShiftById(id: string): Promise<Shift | null> {
       "LEFT JOIN timesheets t ON s.id = t.shift_id " +
       "WHERE s.id = $1",
       [id]
-    );
+    )
 
-    console.log("getShiftById query result:", result.rows.length, "rows found");
+    console.log("getShiftById query result:", result.rows.length, "rows found")
     if (result.rows.length === 0) {
-      console.log("No shift found with ID:", id);
-      return null;
+      console.log("No shift found with ID:", id)
+      return null
     }
 
     // Get assigned personnel separately for the simplified query
@@ -285,19 +285,19 @@ export async function getShiftById(id: string): Promise<Shift | null> {
       "LEFT JOIN users u ON ap.employee_id = u.id " +
       "WHERE ap.shift_id = $1",
       [id]
-    );
+    )
 
-    const row = result.rows[0];
-    row.assigned_personnel = assignedResult.rows[0]?.assigned_personnel || [];
+    const row = result.rows[0]
+    row.assigned_personnel = assignedResult.rows[0]?.assigned_personnel || []
 
     // Get worker requirements for this shift
-    const workerRequirements = await getWorkerRequirements(id);
-    row.worker_requirements = workerRequirements;
+    const workerRequirements = await getWorkerRequirements(id)
+    row.worker_requirements = workerRequirements
 
-    return mapShiftRow(row);
+    return mapShiftRow(row)
   } catch (error) {
-    console.error("Error getting shift by ID:", error);
-    return null;
+    console.error("Error getting shift by ID:", error)
+    return null
   }
 }
 
@@ -328,12 +328,12 @@ export async function getShiftsByCrewChief(crewChiefId: string): Promise<Shift[]
       "WHERE s.crew_chief_id = $1 " +
       "ORDER BY s.date DESC, s.start_time",
       [crewChiefId]
-    );
+    )
 
-    return result.rows.map(mapShiftRow);
+    return result.rows.map(mapShiftRow)
   } catch (error) {
-    console.error("Error getting shifts by crew chief:", error);
-    return [];
+    console.error("Error getting shifts by crew chief:", error)
+    return []
   }
 }
 
@@ -357,18 +357,18 @@ export async function createShift(shiftData: {
         shiftData.date,
         shiftData.startTime,
         shiftData.endTime,
-        shiftData.location || '',
+        shiftData.location || "",
         shiftData.crewChiefId || null,
         shiftData.requestedWorkers,
-        shiftData.notes || ''
+        shiftData.notes || ""
       ]
-    );
+    )
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const shiftId = result.rows[0].id;
+    const shiftId = result.rows[0].id
 
     // If a crew chief is assigned, add them to assigned_personnel table
     if (shiftData.crewChiefId) {
@@ -378,17 +378,17 @@ export async function createShift(shiftData: {
           "VALUES ($1, $2, 'Crew Chief', 'CC', 'Clocked Out') " +
           "ON CONFLICT (shift_id, employee_id) DO NOTHING",
           [shiftId, shiftData.crewChiefId]
-        );
+        )
       } catch (error) {
-        console.error("Error adding crew chief to assigned personnel:", error);
+        console.error("Error adding crew chief to assigned personnel:", error)
         // Continue without failing the shift creation
       }
     }
 
-    return await getShiftById(shiftId);
+    return await getShiftById(shiftId)
   } catch (error) {
-    console.error("Error creating shift:", error);
-    return null;
+    console.error("Error creating shift:", error)
+    return null
   }
 }
 
@@ -402,50 +402,50 @@ export async function updateShift(shiftId: string, shiftData: {
   notes?: string;
 }): Promise<Shift | null> {
   try {
-    const updates: string[] = [];
-    const values: any[] = [];
-    let paramCount = 1;
+    const updates: string[] = []
+    const values: any[] = []
+    let paramCount = 1
 
     if (shiftData.date !== undefined) {
-      updates.push("date = $" + paramCount++);
-      values.push(shiftData.date);
+      updates.push("date = $" + paramCount++)
+      values.push(shiftData.date)
     }
     if (shiftData.startTime !== undefined) {
-      updates.push("start_time = $" + paramCount++);
-      values.push(shiftData.startTime);
+      updates.push("start_time = $" + paramCount++)
+      values.push(shiftData.startTime)
     }
     if (shiftData.endTime !== undefined) {
-      updates.push("end_time = $" + paramCount++);
-      values.push(shiftData.endTime);
+      updates.push("end_time = $" + paramCount++)
+      values.push(shiftData.endTime)
     }
     if (shiftData.location !== undefined) {
-      updates.push("location = $" + paramCount++);
-      values.push(shiftData.location);
+      updates.push("location = $" + paramCount++)
+      values.push(shiftData.location)
     }
     if (shiftData.crewChiefId !== undefined) {
-      updates.push("crew_chief_id = $" + paramCount++);
-      values.push(shiftData.crewChiefId === "" ? null : shiftData.crewChiefId);
+      updates.push("crew_chief_id = $" + paramCount++)
+      values.push(shiftData.crewChiefId === "" ? null : shiftData.crewChiefId)
     }
     if (shiftData.requestedWorkers !== undefined) {
-      updates.push("requested_workers = $" + paramCount++);
-      values.push(shiftData.requestedWorkers);
+      updates.push("requested_workers = $" + paramCount++)
+      values.push(shiftData.requestedWorkers)
     }
     if (shiftData.notes !== undefined) {
-      updates.push("notes = $" + paramCount++);
-      values.push(shiftData.notes);
+      updates.push("notes = $" + paramCount++)
+      values.push(shiftData.notes)
     }
 
     if (updates.length === 0) {
-      return await getShiftById(shiftId);
+      return await getShiftById(shiftId)
     }
 
-    updates.push("updated_at = NOW()");
-    values.push(shiftId);
+    updates.push("updated_at = NOW()")
+    values.push(shiftId)
 
     await query(
       "UPDATE shifts SET " + updates.join(", ") + " WHERE id = $" + paramCount,
       values
-    );
+    )
 
     // Handle crew chief assignment changes
     if (shiftData.crewChiefId !== undefined) {
@@ -456,22 +456,22 @@ export async function updateShift(shiftId: string, shiftData: {
             "VALUES ($1, $2, 'Crew Chief', 'CC', 'Clocked Out') " +
             "ON CONFLICT (shift_id, employee_id) DO NOTHING",
             [shiftId, shiftData.crewChiefId]
-          );
+          )
         } else {
           await query(
             "DELETE FROM assigned_personnel WHERE shift_id = $1 AND role_code = 'CC'",
             [shiftId]
-          );
+          )
         }
       } catch (error) {
-        console.error("Error updating crew chief assignment:", error);
+        console.error("Error updating crew chief assignment:", error)
       }
     }
 
-    return await getShiftById(shiftId);
+    return await getShiftById(shiftId)
   } catch (error) {
-    console.error("Error updating shift:", error);
-    return null;
+    console.error("Error updating shift:", error)
+    return null
   }
 }
 
@@ -481,22 +481,22 @@ export async function deleteShift(shiftId: string): Promise<boolean> {
     await query(
       "DELETE FROM time_entries WHERE assigned_personnel_id IN (SELECT id FROM assigned_personnel WHERE shift_id = $1)",
       [shiftId]
-    );
+    )
 
     await query(
       "DELETE FROM assigned_personnel WHERE shift_id = $1",
       [shiftId]
-    );
+    )
 
     // Delete the shift
     const result = await query(
       "DELETE FROM shifts WHERE id = $1",
       [shiftId]
-    );
+    )
 
-    return (result.rowCount || 0) > 0;
+    return (result.rowCount || 0) > 0
   } catch (error) {
-    console.error("Error deleting shift:", error);
-    return false;
+    console.error("Error deleting shift:", error)
+    return false
   }
 }

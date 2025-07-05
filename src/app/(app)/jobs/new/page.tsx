@@ -1,20 +1,20 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react"
 
 // Force dynamic rendering to avoid build-time URL issues
-export const dynamic = 'force-dynamic'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useUser } from '@/hooks/use-user'
-import { useApi } from '@/hooks/use-api'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Save } from 'lucide-react'
+export const dynamic = "force-dynamic"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useUser } from "@/hooks/use-user"
+import { useApi } from "@/hooks/use-api"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/hooks/use-toast"
+import { ArrowLeft, Save } from "lucide-react"
 
 interface Client {
   id: string
@@ -28,16 +28,16 @@ export default function NewJobPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   
-  const { data: clientsData } = useApi<{ clients: Client[] }>('/api/clients')
+  const { data: clientsData } = useApi<{ clients: Client[] }>("/api/clients")
   
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    clientId: searchParams.get('clientId') || ''
+    name: "",
+    description: "",
+    clientId: searchParams.get("clientId") || ""
   })
 
   // Only managers can create jobs
-  if (user?.role !== 'Manager/Admin') {
+  if (user?.role !== "Manager/Admin") {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
@@ -53,16 +53,16 @@ export default function NewJobPage() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/jobs', {
-        method: 'POST',
+      const response = await fetch("/api/jobs", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create job')
+        throw new Error("Failed to create job")
       }
 
       const result = await response.json()
@@ -74,7 +74,7 @@ export default function NewJobPage() {
 
       router.push(`/jobs/${result.job.id}`)
     } catch (error) {
-      console.error('Error creating job:', error)
+      console.error("Error creating job:", error)
       toast({
         title: "Error",
         description: "Failed to create job. Please try again.",
@@ -181,7 +181,7 @@ export default function NewJobPage() {
                 className="flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
-                {loading ? 'Creating...' : 'Create Job'}
+                {loading ? "Creating..." : "Create Job"}
               </Button>
             </div>
           </form>

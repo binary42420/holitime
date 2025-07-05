@@ -1,19 +1,19 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useUser } from '@/hooks/use-user'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Save } from 'lucide-react'
-import { LogoUpload } from '@/components/ui/logo-upload'
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { useUser } from "@/hooks/use-user"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/hooks/use-toast"
+import { ArrowLeft, Save } from "lucide-react"
+import { LogoUpload } from "@/components/ui/logo-upload"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function NewClientPage() {
   const { user } = useUser()
@@ -22,18 +22,18 @@ function NewClientPage() {
   const [loading, setLoading] = useState(false)
   
   const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    contactPerson: '',
-    contactEmail: '',
-    contactPhone: ''
+    name: "",
+    address: "",
+    contactPerson: "",
+    contactEmail: "",
+    contactPhone: ""
   })
 
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
 
   // Only managers can create clients
-  if (user?.role !== 'Manager/Admin') {
+  if (user?.role !== "Manager/Admin") {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
@@ -50,16 +50,16 @@ function NewClientPage() {
 
     try {
       // First create the client
-      const response = await fetch('/api/clients', {
-        method: 'POST',
+      const response = await fetch("/api/clients", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create client')
+        throw new Error("Failed to create client")
       }
 
       const result = await response.json()
@@ -69,11 +69,11 @@ function NewClientPage() {
       let finalLogoUrl = null
       if (logoFile) {
         const logoFormData = new FormData()
-        logoFormData.append('logo', logoFile)
-        logoFormData.append('clientId', clientId)
+        logoFormData.append("logo", logoFile)
+        logoFormData.append("clientId", clientId)
 
-        const logoResponse = await fetch('/api/upload/logo', {
-          method: 'POST',
+        const logoResponse = await fetch("/api/upload/logo", {
+          method: "POST",
           body: logoFormData,
         })
 
@@ -83,9 +83,9 @@ function NewClientPage() {
 
           // Update client with logo URL
           await fetch(`/api/clients/${clientId}`, {
-            method: 'PATCH',
+            method: "PATCH",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             body: JSON.stringify({ logoUrl: finalLogoUrl }),
           })
@@ -99,7 +99,7 @@ function NewClientPage() {
 
       router.push(`/clients/${clientId}`)
     } catch (error) {
-      console.error('Error creating client:', error)
+      console.error("Error creating client:", error)
       toast({
         title: "Error",
         description: "Failed to create client. Please try again.",
@@ -213,7 +213,7 @@ function NewClientPage() {
             <div className="space-y-2">
               <Label>Company Logo</Label>
               <LogoUpload
-                companyName={formData.name || 'New Company'}
+                companyName={formData.name || "New Company"}
                 currentLogoUrl={logoUrl}
                 onLogoChange={setLogoFile}
                 onLogoRemove={() => {
@@ -243,7 +243,7 @@ function NewClientPage() {
                 className="w-full md:w-auto flex items-center justify-center gap-2"
               >
                 <Save className="h-4 w-4" />
-                {loading ? 'Creating...' : 'Create Client'}
+                {loading ? "Creating..." : "Create Client"}
               </Button>
             </div>
           </form>
@@ -253,4 +253,4 @@ function NewClientPage() {
   )
 }
 
-export default withAuth(NewClientPage, hasAdminAccess);
+export default withAuth(NewClientPage, hasAdminAccess)

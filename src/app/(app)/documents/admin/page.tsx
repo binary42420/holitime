@@ -1,17 +1,17 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { 
   FileText, 
   Users, 
@@ -32,10 +32,10 @@ import {
   Mail,
   UserPlus,
   Calendar
-} from 'lucide-react'
-import Link from 'next/link'
-import { DocumentAssignment, DocumentStatus, Priority, DocumentComplianceReport } from '@/types/documents'
-import { useToast } from '@/hooks/use-toast'
+} from "lucide-react"
+import Link from "next/link"
+import { DocumentAssignment, DocumentStatus, Priority, DocumentComplianceReport } from "@/types/documents"
+import { useToast } from "@/hooks/use-toast"
 
 export default function DocumentAdminPage() {
   const { data: session } = useSession()
@@ -43,10 +43,10 @@ export default function DocumentAdminPage() {
   const [assignments, setAssignments] = useState<DocumentAssignment[]>([])
   const [complianceReport, setComplianceReport] = useState<DocumentComplianceReport | null>(null)
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<DocumentStatus | 'all'>('all')
-  const [roleFilter, setRoleFilter] = useState<string>('all')
-  const [activeTab, setActiveTab] = useState('overview')
+  const [searchTerm, setSearchTerm] = useState("")
+  const [statusFilter, setStatusFilter] = useState<DocumentStatus | "all">("all")
+  const [roleFilter, setRoleFilter] = useState<string>("all")
+  const [activeTab, setActiveTab] = useState("overview")
 
   useEffect(() => {
     fetchAdminData()
@@ -58,34 +58,34 @@ export default function DocumentAdminPage() {
       
       // Fetch assignments
       const params = new URLSearchParams()
-      if (statusFilter !== 'all') {
-        params.append('status', statusFilter)
+      if (statusFilter !== "all") {
+        params.append("status", statusFilter)
       }
-      if (roleFilter !== 'all') {
-        params.append('role', roleFilter)
+      if (roleFilter !== "all") {
+        params.append("role", roleFilter)
       }
       if (searchTerm) {
-        params.append('search', searchTerm)
+        params.append("search", searchTerm)
       }
 
       const assignmentsResponse = await fetch(`/api/documents/assignments?${params}`)
-      if (!assignmentsResponse.ok) throw new Error('Failed to fetch assignments')
+      if (!assignmentsResponse.ok) throw new Error("Failed to fetch assignments")
       
       const assignmentsData = await assignmentsResponse.json()
       setAssignments(assignmentsData.assignments || [])
 
       // Fetch compliance report
-      const complianceResponse = await fetch('/api/documents/compliance-report')
+      const complianceResponse = await fetch("/api/documents/compliance-report")
       if (complianceResponse.ok) {
         const complianceData = await complianceResponse.json()
         setComplianceReport(complianceData)
       }
     } catch (error) {
-      console.error('Error fetching admin data:', error)
+      console.error("Error fetching admin data:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to load admin data',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load admin data",
+        variant: "destructive"
       })
     } finally {
       setLoading(false)
@@ -95,71 +95,71 @@ export default function DocumentAdminPage() {
   const handleBulkAssign = async () => {
     // TODO: Implement bulk assignment dialog
     toast({
-      title: 'Feature Coming Soon',
-      description: 'Bulk assignment feature will be available soon'
+      title: "Feature Coming Soon",
+      description: "Bulk assignment feature will be available soon"
     })
   }
 
   const handleSendReminder = async (assignmentId: number) => {
     try {
       const response = await fetch(`/api/documents/assignments/${assignmentId}/remind`, {
-        method: 'POST'
+        method: "POST"
       })
 
-      if (!response.ok) throw new Error('Failed to send reminder')
+      if (!response.ok) throw new Error("Failed to send reminder")
 
       toast({
-        title: 'Success',
-        description: 'Reminder email sent successfully'
+        title: "Success",
+        description: "Reminder email sent successfully"
       })
     } catch (error) {
-      console.error('Error sending reminder:', error)
+      console.error("Error sending reminder:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to send reminder',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to send reminder",
+        variant: "destructive"
       })
     }
   }
 
   const getStatusIcon = (status: DocumentStatus) => {
     switch (status) {
-      case 'approved':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'completed':
-      case 'under_review':
-        return <Clock className="h-4 w-4 text-blue-500" />
-      case 'in_progress':
-        return <Edit className="h-4 w-4 text-yellow-500" />
-      case 'rejected':
-        return <XCircle className="h-4 w-4 text-red-500" />
-      case 'expired':
-        return <AlertTriangle className="h-4 w-4 text-orange-500" />
-      default:
-        return <FileText className="h-4 w-4 text-gray-500" />
+    case "approved":
+      return <CheckCircle className="h-4 w-4 text-green-500" />
+    case "completed":
+    case "under_review":
+      return <Clock className="h-4 w-4 text-blue-500" />
+    case "in_progress":
+      return <Edit className="h-4 w-4 text-yellow-500" />
+    case "rejected":
+      return <XCircle className="h-4 w-4 text-red-500" />
+    case "expired":
+      return <AlertTriangle className="h-4 w-4 text-orange-500" />
+    default:
+      return <FileText className="h-4 w-4 text-gray-500" />
     }
   }
 
   const getStatusColor = (status: DocumentStatus) => {
     switch (status) {
-      case 'approved':
-        return 'bg-green-100 text-green-800'
-      case 'completed':
-      case 'under_review':
-        return 'bg-blue-100 text-blue-800'
-      case 'in_progress':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'rejected':
-        return 'bg-red-100 text-red-800'
-      case 'expired':
-        return 'bg-orange-100 text-orange-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+    case "approved":
+      return "bg-green-100 text-green-800"
+    case "completed":
+    case "under_review":
+      return "bg-blue-100 text-blue-800"
+    case "in_progress":
+      return "bg-yellow-100 text-yellow-800"
+    case "rejected":
+      return "bg-red-100 text-red-800"
+    case "expired":
+      return "bg-orange-100 text-orange-800"
+    default:
+      return "bg-gray-100 text-gray-800"
     }
   }
 
-  const isAdmin = session?.user?.role === 'Manager/Admin'
-  const isCrewChief = session?.user?.role === 'Crew Chief'
+  const isAdmin = session?.user?.role === "Manager/Admin"
+  const isCrewChief = session?.user?.role === "Crew Chief"
   const canManageDocuments = isAdmin || isCrewChief
 
   if (!canManageDocuments) {
@@ -292,7 +292,7 @@ export default function DocumentAdminPage() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge className={getStatusColor(assignment.status)}>
-                        {assignment.status.replace('_', ' ')}
+                        {assignment.status.replace("_", " ")}
                       </Badge>
                       <span className="text-sm text-muted-foreground">
                         {new Date(assignment.updated_at).toLocaleDateString()}
@@ -327,7 +327,7 @@ export default function DocumentAdminPage() {
                     />
                   </div>
                 </div>
-                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as DocumentStatus | 'all')}>
+                <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as DocumentStatus | "all")}>
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Filter by status" />
                   </SelectTrigger>
@@ -400,7 +400,7 @@ export default function DocumentAdminPage() {
                         </TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(assignment.status)}>
-                            {assignment.status.replace('_', ' ')}
+                            {assignment.status.replace("_", " ")}
                           </Badge>
                         </TableCell>
                         <TableCell>

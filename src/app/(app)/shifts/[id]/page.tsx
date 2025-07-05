@@ -43,18 +43,6 @@ export default function ShiftPage() {
 
   return (
     <>
-      {/* WORKER TYPE CONFIGURATION */}
-      {typeof canManage !== "undefined" && canManage && (
-        <div className="px-4 sm:px-6 md:px-0 mb-6">
-          <WorkerTypeConfigurator
-            shiftId={shiftId}
-            assignedPersonnel={assignedPersonnel}
-            onUpdatePersonnel={handleUpdatePersonnel}
-            onFinalizeUpdate={handleRefresh}
-          />
-        </div>
-      )}
-
       <ShiftTimeManagement
         shiftId={shiftId}
         assignedPersonnel={assignedPersonnel}

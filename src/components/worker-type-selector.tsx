@@ -22,41 +22,41 @@ interface WorkerTypeSelectorProps {
 }
 
 const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string; bgColor: string; description: string }> = {
-  'CC': { 
-    name: 'Crew Chief', 
-    color: 'text-purple-700', 
-    bgColor: 'bg-purple-100',
-    description: 'Supervises the crew and manages the shift'
+  "CC": { 
+    name: "Crew Chief", 
+    color: "text-purple-700", 
+    bgColor: "bg-purple-100",
+    description: "Supervises the crew and manages the shift"
   },
-  'SH': { 
-    name: 'Stage Hand', 
-    color: 'text-blue-700', 
-    bgColor: 'bg-blue-100',
-    description: 'General labor and equipment handling'
+  "SH": { 
+    name: "Stage Hand", 
+    color: "text-blue-700", 
+    bgColor: "bg-blue-100",
+    description: "General labor and equipment handling"
   },
-  'FO': { 
-    name: 'Fork Operator', 
-    color: 'text-green-700', 
-    bgColor: 'bg-green-100',
-    description: 'Operates forklift and heavy machinery'
+  "FO": { 
+    name: "Fork Operator", 
+    color: "text-green-700", 
+    bgColor: "bg-green-100",
+    description: "Operates forklift and heavy machinery"
   },
-  'RFO': { 
-    name: 'Reach Fork Operator', 
-    color: 'text-yellow-700', 
-    bgColor: 'bg-yellow-100',
-    description: 'Operates reach forklift for high stacking'
+  "RFO": { 
+    name: "Reach Fork Operator", 
+    color: "text-yellow-700", 
+    bgColor: "bg-yellow-100",
+    description: "Operates reach forklift for high stacking"
   },
-  'RG': { 
-    name: 'Rigger', 
-    color: 'text-red-700', 
-    bgColor: 'bg-red-100',
-    description: 'Specialized rigging and lifting operations'
+  "RG": { 
+    name: "Rigger", 
+    color: "text-red-700", 
+    bgColor: "bg-red-100",
+    description: "Specialized rigging and lifting operations"
   },
-  'GL': { 
-    name: 'General Labor', 
-    color: 'text-gray-700', 
-    bgColor: 'bg-gray-100',
-    description: 'Basic labor and support tasks'
+  "GL": { 
+    name: "General Labor", 
+    color: "text-gray-700", 
+    bgColor: "bg-gray-100",
+    description: "Basic labor and support tasks"
   },
 }
 
@@ -68,7 +68,7 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
     if (value.length === 0 && requirements.length === 0) {
       const defaultRequirements = [
         {
-          roleCode: 'CC' as RoleCode,
+          roleCode: "CC" as RoleCode,
           roleName: ROLE_DEFINITIONS.CC.name,
           count: 1,
           color: ROLE_DEFINITIONS.CC.color
@@ -140,17 +140,17 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
               <div key={roleCode} className={`p-4 rounded-lg border-2 transition-all ${
                 currentCount > 0 
                   ? `${roleDef.bgColor} border-current` 
-                  : 'bg-muted/50 border-muted'
+                  : "bg-muted/50 border-muted"
               }`}>
                 <div className="space-y-3">
                   {/* Role Header */}
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className={currentCount > 0 ? roleDef.color : 'text-muted-foreground'}>
+                        <Badge variant="outline" className={currentCount > 0 ? roleDef.color : "text-muted-foreground"}>
                           {roleCode}
                         </Badge>
-                        <span className={`font-medium ${currentCount > 0 ? roleDef.color : 'text-muted-foreground'}`}>
+                        <span className={`font-medium ${currentCount > 0 ? roleDef.color : "text-muted-foreground"}`}>
                           {roleDef.name}
                         </span>
                       </div>
@@ -189,7 +189,7 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
                     
                     {currentCount > 0 && (
                       <Badge variant="secondary" className="text-xs">
-                        {currentCount === 1 ? '1 worker' : `${currentCount} workers`}
+                        {currentCount === 1 ? "1 worker" : `${currentCount} workers`}
                       </Badge>
                     )}
                   </div>
@@ -209,7 +209,7 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
               variant="outline"
               onClick={() => {
                 const preset = [
-                  { roleCode: 'CC' as RoleCode, roleName: ROLE_DEFINITIONS.CC.name, count: 1, color: ROLE_DEFINITIONS.CC.color }
+                  { roleCode: "CC" as RoleCode, roleName: ROLE_DEFINITIONS.CC.name, count: 1, color: ROLE_DEFINITIONS.CC.color }
                 ]
                 setRequirements(preset)
                 onChange(preset, 1)
@@ -223,8 +223,8 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
               variant="outline"
               onClick={() => {
                 const preset = [
-                  { roleCode: 'CC' as RoleCode, roleName: ROLE_DEFINITIONS.CC.name, count: 1, color: ROLE_DEFINITIONS.CC.color },
-                  { roleCode: 'SH' as RoleCode, roleName: ROLE_DEFINITIONS.SH.name, count: 3, color: ROLE_DEFINITIONS.SH.color }
+                  { roleCode: "CC" as RoleCode, roleName: ROLE_DEFINITIONS.CC.name, count: 1, color: ROLE_DEFINITIONS.CC.color },
+                  { roleCode: "SH" as RoleCode, roleName: ROLE_DEFINITIONS.SH.name, count: 3, color: ROLE_DEFINITIONS.SH.color }
                 ]
                 setRequirements(preset)
                 onChange(preset, 4)
@@ -237,9 +237,9 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
               variant="outline"
               onClick={() => {
                 const preset = [
-                  { roleCode: 'CC' as RoleCode, roleName: ROLE_DEFINITIONS.CC.name, count: 1, color: ROLE_DEFINITIONS.CC.color },
-                  { roleCode: 'SH' as RoleCode, roleName: ROLE_DEFINITIONS.SH.name, count: 6, color: ROLE_DEFINITIONS.SH.color },
-                  { roleCode: 'FO' as RoleCode, roleName: ROLE_DEFINITIONS.FO.name, count: 2, color: ROLE_DEFINITIONS.FO.color }
+                  { roleCode: "CC" as RoleCode, roleName: ROLE_DEFINITIONS.CC.name, count: 1, color: ROLE_DEFINITIONS.CC.color },
+                  { roleCode: "SH" as RoleCode, roleName: ROLE_DEFINITIONS.SH.name, count: 6, color: ROLE_DEFINITIONS.SH.color },
+                  { roleCode: "FO" as RoleCode, roleName: ROLE_DEFINITIONS.FO.name, count: 2, color: ROLE_DEFINITIONS.FO.color }
                 ]
                 setRequirements(preset)
                 onChange(preset, 9)
@@ -252,10 +252,10 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
               variant="outline"
               onClick={() => {
                 const preset = [
-                  { roleCode: 'CC' as RoleCode, roleName: ROLE_DEFINITIONS.CC.name, count: 2, color: ROLE_DEFINITIONS.CC.color },
-                  { roleCode: 'SH' as RoleCode, roleName: ROLE_DEFINITIONS.SH.name, count: 10, color: ROLE_DEFINITIONS.SH.color },
-                  { roleCode: 'FO' as RoleCode, roleName: ROLE_DEFINITIONS.FO.name, count: 3, color: ROLE_DEFINITIONS.FO.color },
-                  { roleCode: 'RG' as RoleCode, roleName: ROLE_DEFINITIONS.RG.name, count: 2, color: ROLE_DEFINITIONS.RG.color }
+                  { roleCode: "CC" as RoleCode, roleName: ROLE_DEFINITIONS.CC.name, count: 2, color: ROLE_DEFINITIONS.CC.color },
+                  { roleCode: "SH" as RoleCode, roleName: ROLE_DEFINITIONS.SH.name, count: 10, color: ROLE_DEFINITIONS.SH.color },
+                  { roleCode: "FO" as RoleCode, roleName: ROLE_DEFINITIONS.FO.name, count: 3, color: ROLE_DEFINITIONS.FO.color },
+                  { roleCode: "RG" as RoleCode, roleName: ROLE_DEFINITIONS.RG.name, count: 2, color: ROLE_DEFINITIONS.RG.color }
                 ]
                 setRequirements(preset)
                 onChange(preset, 17)

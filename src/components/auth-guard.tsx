@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
-import { useUser } from '@/hooks/use-user'
-import { Loader2 } from 'lucide-react'
+import { useEffect } from "react"
+import { useRouter, usePathname } from "next/navigation"
+import { useUser } from "@/hooks/use-user"
+import { Loader2 } from "lucide-react"
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -16,13 +16,13 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
   useEffect(() => {
     // Don't redirect if we're still loading or already on login page
-    if (isLoading || pathname === '/login') {
+    if (isLoading || pathname === "/login") {
       return
     }
 
     // Redirect to login if not authenticated
     if (!user) {
-      router.push('/login')
+      router.push("/login")
       return
     }
   }, [user, isLoading, router, pathname])
@@ -40,7 +40,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   }
 
   // Don't render children if not authenticated (will redirect)
-  if (!user && pathname !== '/login') {
+  if (!user && pathname !== "/login") {
     return null
   }
 

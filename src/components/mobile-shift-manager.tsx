@@ -1,10 +1,10 @@
-'use client'
+"use client"
 
-import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import React, { useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { 
   Users, 
   Clock, 
@@ -14,9 +14,9 @@ import {
   RefreshCw,
   StopCircle,
   Download
-} from 'lucide-react'
-import { MobileWorkerTimeCard } from './mobile-worker-time-card'
-import { cn } from '@/lib/utils'
+} from "lucide-react"
+import { MobileWorkerTimeCard } from "./mobile-worker-time-card"
+import { cn } from "@/lib/utils"
 
 interface Worker {
   id: string
@@ -74,11 +74,11 @@ export const MobileShiftManager: React.FC<MobileShiftManagerProps> = ({
     return acc
   }, {} as Record<string, number>)
 
-  const workingCount = statusCounts['clocked in'] || 0
-  const onBreakCount = statusCounts['clocked out'] || 0
-  const finishedCount = statusCounts['shift ended'] || 0
-  const noShowCount = statusCounts['no show'] || 0
-  const notStartedCount = statusCounts['not_started'] || 0
+  const workingCount = statusCounts["clocked in"] || 0
+  const onBreakCount = statusCounts["clocked out"] || 0
+  const finishedCount = statusCounts["shift ended"] || 0
+  const noShowCount = statusCounts["no show"] || 0
+  const notStartedCount = statusCounts["not_started"] || 0
 
   const canFinalizeTimesheet = workers.length > 0 && 
     (finishedCount + noShowCount) === workers.length &&
@@ -135,7 +135,7 @@ export const MobileShiftManager: React.FC<MobileShiftManagerProps> = ({
                     disabled={loading || bulkActionLoading !== null}
                     className="h-12 w-full border-yellow-500 text-yellow-700 hover:bg-yellow-50"
                   >
-                    {bulkActionLoading === 'clock_out_all' ? (
+                    {bulkActionLoading === "clock_out_all" ? (
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
                       <Clock className="h-4 w-4 mr-2" />
@@ -156,7 +156,7 @@ export const MobileShiftManager: React.FC<MobileShiftManagerProps> = ({
                   </AlertDialogHeader>
                   <AlertDialogFooter className="flex-col gap-2">
                     <AlertDialogAction
-                      onClick={() => handleBulkAction('clock_out_all', onClockOutAll)}
+                      onClick={() => handleBulkAction("clock_out_all", onClockOutAll)}
                       className="w-full bg-yellow-600 hover:bg-yellow-700"
                     >
                       Yes, Clock Out All
@@ -176,7 +176,7 @@ export const MobileShiftManager: React.FC<MobileShiftManagerProps> = ({
                     disabled={loading || bulkActionLoading !== null}
                     className="h-12 w-full"
                   >
-                    {bulkActionLoading === 'end_all_shifts' ? (
+                    {bulkActionLoading === "end_all_shifts" ? (
                       <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
                       <StopCircle className="h-4 w-4 mr-2" />
@@ -199,7 +199,7 @@ export const MobileShiftManager: React.FC<MobileShiftManagerProps> = ({
                   </AlertDialogHeader>
                   <AlertDialogFooter className="flex-col gap-2">
                     <AlertDialogAction
-                      onClick={() => handleBulkAction('end_all_shifts', onEndAllShifts)}
+                      onClick={() => handleBulkAction("end_all_shifts", onEndAllShifts)}
                       className="w-full bg-red-600 hover:bg-red-700"
                     >
                       Yes, End All Shifts
@@ -228,7 +228,7 @@ export const MobileShiftManager: React.FC<MobileShiftManagerProps> = ({
                 <CheckCircle className="h-6 w-6 mx-auto mb-2 text-green-600" />
                 <p className="font-medium text-green-700">Timesheet Status</p>
                 <Badge className="mt-1 bg-green-100 text-green-800">
-                  {timesheetStatus.replace('_', ' ').toUpperCase()}
+                  {timesheetStatus.replace("_", " ").toUpperCase()}
                 </Badge>
               </div>
             )}

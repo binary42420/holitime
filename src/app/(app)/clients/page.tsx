@@ -23,13 +23,13 @@ import { useToast } from "@/hooks/use-toast"
 import { generateClientUrl } from "@/lib/url-utils"
 import { CompanyLogoWithName } from "@/components/ui/company-logo"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function ClientsPage() {
   const { user } = useUser()
   const router = useRouter()
-  const canEdit = user?.role === 'Manager/Admin'
+  const canEdit = user?.role === "Manager/Admin"
   const { toast } = useToast()
   const { data: clientsData, loading, error } = useClients()
 
@@ -61,7 +61,7 @@ function ClientsPage() {
             </p>
           </div>
           {canEdit && (
-            <Button size="mobile" className="w-full md:w-auto" onClick={() => router.push('/clients/new')}>
+            <Button size="mobile" className="w-full md:w-auto" onClick={() => router.push("/clients/new")}>
               <Plus className="mr-2 h-4 w-4" />
               Add Client
             </Button>
@@ -115,7 +115,7 @@ function ClientsPage() {
                           <Button variant="link" asChild className="p-0 h-auto font-normal justify-start">
                             <Link href={`/shifts/${client.mostRecentCompletedShift.id}`}>
                               <Calendar className="mr-1 h-3 w-3" />
-                              {format(new Date(client.mostRecentCompletedShift.date), 'MMM d, yyyy')}
+                              {format(new Date(client.mostRecentCompletedShift.date), "MMM d, yyyy")}
                             </Link>
                           </Button>
                           <span className="text-xs text-muted-foreground">
@@ -132,7 +132,7 @@ function ClientsPage() {
                           <Button variant="link" asChild className="p-0 h-auto font-normal justify-start">
                             <Link href={`/shifts/${client.mostRecentUpcomingShift.id}`}>
                               <Calendar className="mr-1 h-3 w-3" />
-                              {format(new Date(client.mostRecentUpcomingShift.date), 'MMM d, yyyy')} at {client.mostRecentUpcomingShift.startTime}
+                              {format(new Date(client.mostRecentUpcomingShift.date), "MMM d, yyyy")} at {client.mostRecentUpcomingShift.startTime}
                             </Link>
                           </Button>
                           <span className="text-xs text-muted-foreground">
@@ -141,10 +141,10 @@ function ClientsPage() {
                           <div className="flex items-center gap-1 text-xs">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                               client.mostRecentUpcomingShift.assignedCount >= client.mostRecentUpcomingShift.requestedWorkers
-                                ? 'bg-green-100 text-green-800'
+                                ? "bg-green-100 text-green-800"
                                 : client.mostRecentUpcomingShift.assignedCount > 0
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-red-100 text-red-800'
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-red-100 text-red-800"
                             }`}>
                               {client.mostRecentUpcomingShift.assignedCount}/{client.mostRecentUpcomingShift.requestedWorkers} workers
                             </span>
@@ -195,7 +195,7 @@ function ClientsPage() {
                         variant="outline"
                         size="sm"
                         className="mt-4"
-                        onClick={() => router.push('/clients/new')}
+                        onClick={() => router.push("/clients/new")}
                       >
                         <Plus className="mr-2 h-4 w-4" />
                         Add Client
@@ -212,4 +212,4 @@ function ClientsPage() {
   )
 }
 
-export default withAuth(ClientsPage, hasAdminAccess);
+export default withAuth(ClientsPage, hasAdminAccess)

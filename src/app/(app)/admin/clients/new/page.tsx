@@ -11,8 +11,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Building2, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function NewClientPage() {
   const { user } = useUser()
@@ -20,16 +20,16 @@ function NewClientPage() {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
-    address: '',
-    contactPerson: '',
-    contactEmail: '',
-    contactPhone: '',
+    name: "",
+    address: "",
+    contactPerson: "",
+    contactEmail: "",
+    contactPhone: "",
   })
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -43,10 +43,10 @@ function NewClientPage() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/clients', {
-        method: 'POST',
+      const response = await fetch("/api/clients", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       })
@@ -57,10 +57,10 @@ function NewClientPage() {
           title: "Client Created",
           description: `${formData.name} has been successfully added.`,
         })
-        router.push('/admin/clients')
+        router.push("/admin/clients")
       } else {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to create client')
+        throw new Error(error.error || "Failed to create client")
       }
     } catch (error) {
       toast({
@@ -76,7 +76,7 @@ function NewClientPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/clients')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/clients")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Clients
         </Button>
@@ -164,12 +164,12 @@ function NewClientPage() {
             <div className="flex gap-4 pt-4">
               <Button type="submit" disabled={loading}>
                 <Save className="mr-2 h-4 w-4" />
-                {loading ? 'Creating...' : 'Create Client'}
+                {loading ? "Creating..." : "Create Client"}
               </Button>
               <Button 
                 type="button" 
                 variant="outline" 
-                onClick={() => router.push('/admin/clients')}
+                onClick={() => router.push("/admin/clients")}
               >
                 Cancel
               </Button>
@@ -181,4 +181,4 @@ function NewClientPage() {
   )
 }
 
-export default withAuth(NewClientPage, hasAdminAccess);
+export default withAuth(NewClientPage, hasAdminAccess)

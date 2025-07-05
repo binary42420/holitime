@@ -1,9 +1,9 @@
-'use client'
+"use client"
 
-import { useApi } from '@/hooks/use-api'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useApi } from "@/hooks/use-api"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { 
   Calendar, 
   Users, 
@@ -13,7 +13,7 @@ import {
   CheckCircle,
   Building2,
   FileText
-} from 'lucide-react'
+} from "lucide-react"
 
 interface StatsData {
   totalShifts: number
@@ -34,38 +34,38 @@ const StatCard = ({
   description, 
   icon: Icon, 
   trend, 
-  variant = 'default' 
+  variant = "default" 
 }: {
   title: string
   value: string | number
   description: string
   icon: any
   trend?: { value: number; label: string }
-  variant?: 'default' | 'success' | 'warning' | 'destructive'
+  variant?: "default" | "success" | "warning" | "destructive"
 }) => {
   const getVariantStyles = () => {
     switch (variant) {
-      case 'success':
-        return 'border-green-200 bg-green-50'
-      case 'warning':
-        return 'border-yellow-200 bg-yellow-50'
-      case 'destructive':
-        return 'border-red-200 bg-red-50'
-      default:
-        return ''
+    case "success":
+      return "border-green-200 bg-green-50"
+    case "warning":
+      return "border-yellow-200 bg-yellow-50"
+    case "destructive":
+      return "border-red-200 bg-red-50"
+    default:
+      return ""
     }
   }
 
   const getIconColor = () => {
     switch (variant) {
-      case 'success':
-        return 'text-green-600'
-      case 'warning':
-        return 'text-yellow-600'
-      case 'destructive':
-        return 'text-red-600'
-      default:
-        return 'text-muted-foreground'
+    case "success":
+      return "text-green-600"
+    case "warning":
+      return "text-yellow-600"
+    case "destructive":
+      return "text-red-600"
+    default:
+      return "text-muted-foreground"
     }
   }
 
@@ -82,7 +82,7 @@ const StatCard = ({
           <div className="flex items-center pt-1">
             <TrendingUp className="h-3 w-3 text-green-600 mr-1" />
             <span className="text-xs text-green-600">
-              {trend.value > 0 ? '+' : ''}{trend.value}% {trend.label}
+              {trend.value > 0 ? "+" : ""}{trend.value}% {trend.label}
             </span>
           </div>
         )}
@@ -92,7 +92,7 @@ const StatCard = ({
 }
 
 export default function QuickStats() {
-  const { data: statsData, loading: statsLoading } = useApi<{ stats: any }>('/api/admin/stats')
+  const { data: statsData, loading: statsLoading } = useApi<{ stats: any }>("/api/admin/stats")
 
   const isLoading = statsLoading || !statsData
 
@@ -151,7 +151,7 @@ export default function QuickStats() {
         value={activeShifts}
         description="Currently in progress"
         icon={Clock}
-        variant={activeShifts > 0 ? 'success' : 'default'}
+        variant={activeShifts > 0 ? "success" : "default"}
       />
       
       <StatCard
@@ -159,7 +159,7 @@ export default function QuickStats() {
         value={upcomingShifts}
         description="Next 7 days"
         icon={Calendar}
-        variant={upcomingShifts > 10 ? 'warning' : 'default'}
+        variant={upcomingShifts > 10 ? "warning" : "default"}
       />
       
       <StatCard
@@ -167,7 +167,7 @@ export default function QuickStats() {
         value={understaffedShifts}
         description="Shifts needing workers"
         icon={AlertTriangle}
-        variant={understaffedShifts > 0 ? 'destructive' : 'success'}
+        variant={understaffedShifts > 0 ? "destructive" : "success"}
       />
       
       <StatCard
@@ -189,7 +189,7 @@ export default function QuickStats() {
         value={pendingTimesheets}
         description="Awaiting approval"
         icon={FileText}
-        variant={pendingTimesheets > 5 ? 'warning' : 'default'}
+        variant={pendingTimesheets > 5 ? "warning" : "default"}
       />
       
       <StatCard
@@ -197,7 +197,7 @@ export default function QuickStats() {
         value={overdueTimesheets}
         description="More than 3 days old"
         icon={AlertTriangle}
-        variant={overdueTimesheets > 0 ? 'destructive' : 'success'}
+        variant={overdueTimesheets > 0 ? "destructive" : "success"}
       />
     </div>
   )

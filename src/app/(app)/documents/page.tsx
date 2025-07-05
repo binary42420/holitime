@@ -1,10 +1,10 @@
-'use client'
+"use client"
 
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { useUser } from '@/hooks/use-user'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { useUser } from "@/hooks/use-user"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { 
   FileText, 
   Users, 
@@ -12,8 +12,8 @@ import {
   User,
   Shield,
   ArrowRight
-} from 'lucide-react'
-import Link from 'next/link'
+} from "lucide-react"
+import Link from "next/link"
 
 export default function DocumentsPage() {
   const { user, loading } = useUser()
@@ -23,10 +23,10 @@ export default function DocumentsPage() {
   useEffect(() => {
     if (!loading && user) {
       // Auto-redirect to appropriate documents page based on role
-      if (user.role === 'Manager/Admin') {
-        router.push('/documents/admin')
+      if (user.role === "Manager/Admin") {
+        router.push("/documents/admin")
       } else {
-        router.push('/documents/my-documents')
+        router.push("/documents/my-documents")
       }
     }
   }, [user, loading, router])
@@ -48,7 +48,7 @@ export default function DocumentsPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-red-600 mb-4">Authentication required</p>
-              <Button onClick={() => router.push('/login')}>Login</Button>
+              <Button onClick={() => router.push("/login")}>Login</Button>
             </div>
           </CardContent>
         </Card>
@@ -112,7 +112,7 @@ export default function DocumentsPage() {
         </Card>
 
         {/* Admin Panel (Manager/Admin only) */}
-        {user.role === 'Manager/Admin' && (
+        {user.role === "Manager/Admin" && (
           <Card className="hover:shadow-lg transition-shadow border-primary/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">

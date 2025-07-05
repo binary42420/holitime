@@ -1,40 +1,40 @@
-'use client';
+"use client"
 
-import { useUser } from '@/hooks/use-user';
-import { useApi } from '@/hooks/use-api';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Calendar, Briefcase, Building2 } from 'lucide-react';
+import { useUser } from "@/hooks/use-user"
+import { useApi } from "@/hooks/use-api"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Calendar, Briefcase, Building2 } from "lucide-react"
 
 export default function ManagerDashboard() {
-  const { user } = useUser();
-  const router = useRouter();
+  const { user } = useUser()
+  const router = useRouter()
 
-  const { data: clientsData, loading: clientsLoading, error: clientsError, refetch: refetchClients } = useApi<{ clients: any[] }>('/api/clients');
-  const { data: jobsData, loading: jobsLoading, error: jobsError, refetch: refetchJobs } = useApi<{ jobs: any[] }>('/api/jobs');
-  const { data: shiftsData, loading: shiftsLoading, error: shiftsError, refetch: refetchShifts } = useApi<{ shifts: any[] }>('/api/shifts?filter=all');
+  const { data: clientsData, loading: clientsLoading, error: clientsError, refetch: refetchClients } = useApi<{ clients: any[] }>("/api/clients")
+  const { data: jobsData, loading: jobsLoading, error: jobsError, refetch: refetchJobs } = useApi<{ jobs: any[] }>("/api/jobs")
+  const { data: shiftsData, loading: shiftsLoading, error: shiftsError, refetch: refetchShifts } = useApi<{ shifts: any[] }>("/api/shifts?filter=all")
 
   useEffect(() => {
     refetchClients();
     refetchJobs();
     refetchShifts();
-  }, []);
+  }, [refetchClients, refetchJobs, refetchShifts]);
 
   if (clientsLoading || jobsLoading || shiftsLoading) {
-    return <div className="p-6 text-center">Loading dashboard data...</div>;
+    return <div className="p-6 text-center">Loading dashboard data...</div>
   }
 
   if (clientsError || jobsError || shiftsError) {
-    return <div className="p-6 text-center text-red-600">Error loading dashboard data.</div>;
+    return <div className="p-6 text-center text-red-600">Error loading dashboard data.</div>
   }
 
-  const clients = clientsData?.clients || [];
-  const jobs = jobsData?.jobs || [];
-  const shifts = shiftsData?.shifts || [];
+  const clients = clientsData?.clients || []
+  const jobs = jobsData?.jobs || []
+  const shifts = shiftsData?.shifts || []
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -106,6 +106,13 @@ export default function ManagerDashboard() {
                   </CardContent>
                 </Card>
               ))}
+              {shifts.length > 5 && (
+                <Button size="mobile" variant="outline" className="w-full" asChild>
+                  <Link href="/shifts">
+                    View All Shifts
+                  </Link>
+                </Button>
+              )}
             </div>
 
             {/* Desktop: Table Layout */}
@@ -120,35 +127,35 @@ export default function ManagerDashboard() {
                     <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
                   </tr>
                 </thead>
-              <tbody>
-                {shifts.slice(0, 10).map((shift) => (
-                  <tr key={shift.id} className="hover:bg-gray-50 cursor-pointer">
-                    <td className="border border-gray-300 px-4 py-2">{new Date(shift.date).toLocaleDateString()}</td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <Link href={`/jobs/${shift.jobId}`} className="text-blue-600 hover:underline">
-                        {shift.jobName}
-                      </Link>
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <Link href={`/clients/${shift.clientId}`} className="text-blue-600 hover:underline">
-                        {shift.clientName}
-                      </Link>
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <Badge variant={shift.status === 'Completed' ? 'default' : 'secondary'}>
-                        {shift.status}
-                      </Badge>
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <Button size="sm" variant="outline" onClick={() => router.push(`/shifts/${shift.id}`)}>
+                <tbody>
+                  {shifts.slice(0, 10).map((shift) => (
+                    <tr key={shift.id} className="hover:bg-gray-50 cursor-pointer">
+                      <td className="border border-gray-300 px-4 py-2">{new Date(shift.date).toLocaleDateString()}</td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        <Link href={`/jobs/${shift.jobId}`} className="text-blue-600 hover:underline">
+                          {shift.jobName}
+                        </Link>
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        <Link href={`/clients/${shift.clientId}`} className="text-blue-600 hover:underline">
+                          {shift.clientName}
+                        </Link>
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        <Badge variant={shift.status === "Completed" ? "default" : "secondary"}>
+                          {shift.status}
+                        </Badge>
+                      </td>
+                      <td className="border border-gray-300 px-4 py-2">
+                        <Button size="sm" variant="outline" onClick={() => router.push(`/shifts/${shift.id}`)}>
                         View
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </>
         ) : (
           <Card className="card-mobile">
@@ -160,5 +167,5 @@ export default function ManagerDashboard() {
       </section>
 
     </div>
-  );
+  )
 }

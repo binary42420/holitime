@@ -73,8 +73,8 @@ const mockTemplates = [
   },
 ]
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function ShiftTemplatesPage() {
   const { user } = useUser()
@@ -83,8 +83,8 @@ function ShiftTemplatesPage() {
   const [searchTerm, setSearchTerm] = useState("")
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -103,7 +103,7 @@ function ShiftTemplatesPage() {
       requestedWorkers: template.requestedWorkers.toString(),
       location: template.location,
       description: template.description,
-      requirements: template.requirements.join(', '),
+      requirements: template.requirements.join(", "),
     })
     router.push(`/admin/shifts/new?${queryParams.toString()}`)
   }
@@ -123,25 +123,25 @@ function ShiftTemplatesPage() {
   }
 
   const getShiftTypeColor = (startTime: string) => {
-    const hour = parseInt(startTime.split(':')[0])
-    if (hour >= 6 && hour < 12) return 'default' // Morning
-    if (hour >= 12 && hour < 18) return 'secondary' // Afternoon
-    if (hour >= 18 && hour < 22) return 'outline' // Evening
-    return 'destructive' // Night
+    const hour = parseInt(startTime.split(":")[0])
+    if (hour >= 6 && hour < 12) return "default" // Morning
+    if (hour >= 12 && hour < 18) return "secondary" // Afternoon
+    if (hour >= 18 && hour < 22) return "outline" // Evening
+    return "destructive" // Night
   }
 
   const getShiftTypeLabel = (startTime: string) => {
-    const hour = parseInt(startTime.split(':')[0])
-    if (hour >= 6 && hour < 12) return 'Morning'
-    if (hour >= 12 && hour < 18) return 'Afternoon'
-    if (hour >= 18 && hour < 22) return 'Evening'
-    return 'Night'
+    const hour = parseInt(startTime.split(":")[0])
+    if (hour >= 6 && hour < 12) return "Morning"
+    if (hour >= 12 && hour < 18) return "Afternoon"
+    if (hour >= 18 && hour < 22) return "Evening"
+    return "Night"
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/shifts')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/shifts")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Shifts
         </Button>
@@ -183,7 +183,7 @@ function ShiftTemplatesPage() {
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Templates Found</h3>
               <p className="text-muted-foreground">
-                {searchTerm ? 'No templates match your search criteria.' : 'No shift templates available.'}
+                {searchTerm ? "No templates match your search criteria." : "No shift templates available."}
               </p>
             </div>
           ) : (
@@ -269,4 +269,4 @@ function ShiftTemplatesPage() {
   )
 }
 
-export default withAuth(ShiftTemplatesPage, hasAdminAccess);
+export default withAuth(ShiftTemplatesPage, hasAdminAccess)

@@ -21,17 +21,17 @@ import {
   Shield
 } from "lucide-react"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
-import QuickStats from '@/components/quick-stats';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
+import QuickStats from "@/components/quick-stats"
 
 function AdminPage() {
   const { user } = useUser()
   const router = useRouter()
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -238,4 +238,4 @@ function AdminPage() {
   )
 }
 
-export default withAuth(AdminPage, hasAdminAccess);
+export default withAuth(AdminPage, hasAdminAccess)

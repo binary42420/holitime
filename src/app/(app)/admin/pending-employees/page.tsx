@@ -1,16 +1,16 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useUser } from '@/hooks/use-user'
-import { useApi } from '@/hooks/use-api'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { useToast } from '@/hooks/use-toast'
+import { useState, useEffect } from "react"
+import { useUser } from "@/hooks/use-user"
+import { useApi } from "@/hooks/use-api"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
 import { 
   UserCheck, 
   UserX, 
@@ -23,8 +23,8 @@ import {
   Phone,
   MapPin,
   Award
-} from 'lucide-react'
-import { format } from 'date-fns'
+} from "lucide-react"
+import { format } from "date-fns"
 import {
   Dialog,
   DialogContent,
@@ -52,17 +52,21 @@ export default function PendingEmployeesPage() {
   const { toast } = useToast()
   const [selectedEmployee, setSelectedEmployee] = useState<PendingEmployee | null>(null)
   const [approvalForm, setApprovalForm] = useState({
-    email: '',
-    phone: '',
-    certifications: '',
-    location: '',
-    notes: ''
+    email: "",
+    phone: "",
+    certifications: "",
+    location: "",
+    notes: ""
   })
-  const [rejectionReason, setRejectionReason] = useState('')
+  const [rejectionReason, setRejectionReason] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
 
+  const { data: pendingData, loading, error, refetch } = useApi<{ pendingEmployees: PendingEmployee[] }>(
+    user?.role === "Manager/Admin" ? "/api/admin/pending-employees" : null
+  )
+
   // Only managers can access this page
-  if (user?.role !== 'Manager/Admin') {
+  if (user?.role !== "Manager/Admin") {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
@@ -73,10 +77,6 @@ export default function PendingEmployeesPage() {
     )
   }
 
-  const { data: pendingData, loading, error, refetch } = useApi<{ pendingEmployees: PendingEmployee[] }>(
-    '/api/admin/pending-employees'
-  )
-
   const pendingEmployees = pendingData?.pendingEmployees || []
 
   const handleApprove = async () => {
@@ -85,14 +85,14 @@ export default function PendingEmployeesPage() {
     setIsProcessing(true)
     try {
       const response = await fetch(`/api/admin/pending-employees/${selectedEmployee.id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(approvalForm)
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to approve employee')
+        throw new Error(error.error || "Failed to approve employee")
       }
 
       toast({
@@ -101,10 +101,10 @@ export default function PendingEmployeesPage() {
       })
 
       setSelectedEmployee(null)
-      setApprovalForm({ email: '', phone: '', certifications: '', location: '', notes: '' })
+      setApprovalForm({ email: "", phone: "", certifications: "", location: "", notes: "" })
       refetch()
     } catch (error) {
-      console.error('Error approving employee:', error)
+      console.error("Error approving employee:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to approve employee",
@@ -121,14 +121,14 @@ export default function PendingEmployeesPage() {
     setIsProcessing(true)
     try {
       const response = await fetch(`/api/admin/pending-employees/${selectedEmployee.id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reason: rejectionReason })
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to reject employee')
+        throw new Error(error.error || "Failed to reject employee")
       }
 
       toast({
@@ -137,10 +137,10 @@ export default function PendingEmployeesPage() {
       })
 
       setSelectedEmployee(null)
-      setRejectionReason('')
+      setRejectionReason("")
       refetch()
     } catch (error) {
-      console.error('Error rejecting employee:', error)
+      console.error("Error rejecting employee:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to reject employee",
@@ -246,7 +246,7 @@ export default function PendingEmployeesPage() {
           <CardDescription>
             {pendingEmployees.length === 0 
               ? "No pending employee accounts require approval"
-              : `${pendingEmployees.length} employee account${pendingEmployees.length === 1 ? '' : 's'} awaiting approval`
+              : `${pendingEmployees.length} employee account${pendingEmployees.length === 1 ? "" : "s"} awaiting approval`
             }
           </CardDescription>
         </CardHeader>
@@ -289,15 +289,15 @@ export default function PendingEmployeesPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {format(new Date(employee.created_at), 'MMM d, yyyy')}
+                        {format(new Date(employee.created_at), "MMM d, yyyy")}
                         <div className="text-muted-foreground">
-                          {format(new Date(employee.created_at), 'h:mm a')}
+                          {format(new Date(employee.created_at), "h:mm a")}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant={employee.assigned_shifts_count > 0 ? "default" : "secondary"}>
-                        {employee.assigned_shifts_count} shift{employee.assigned_shifts_count === 1 ? '' : 's'}
+                        {employee.assigned_shifts_count} shift{employee.assigned_shifts_count === 1 ? "" : "s"}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -382,7 +382,7 @@ export default function PendingEmployeesPage() {
                                 disabled={!approvalForm.email.trim() || isProcessing}
                                 className="bg-green-600 hover:bg-green-700"
                               >
-                                {isProcessing ? 'Approving...' : 'Approve & Activate'}
+                                {isProcessing ? "Approving..." : "Approve & Activate"}
                               </Button>
                             </DialogFooter>
                           </DialogContent>
@@ -425,7 +425,7 @@ export default function PendingEmployeesPage() {
                                 onClick={handleReject}
                                 disabled={!rejectionReason.trim() || isProcessing}
                               >
-                                {isProcessing ? 'Rejecting...' : 'Reject Account'}
+                                {isProcessing ? "Rejecting..." : "Reject Account"}
                               </Button>
                             </DialogFooter>
                           </DialogContent>

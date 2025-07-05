@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { query } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
-    let whereClause = '';
-    let params: any[] = [];
+    let whereClause = ""
+    let params: any[] = []
 
     // Filter based on user role
-    if (user.role === 'Client') {
+    if (user.role === "Client") {
       // Clients only see timesheets for their projects that need their approval
       whereClause = `
         WHERE t.status = 'pending_client_approval' 
@@ -24,15 +24,15 @@ export async function GET(request: NextRequest) {
           SELECT 1 FROM client_user_links cul 
           WHERE cul.client_id = c.id AND cul.user_id = $1
         )
-      `;
-      params = [user.id];
-    } else if (user.role === 'Manager/Admin') {
+      `
+      params = [user.id]
+    } else if (user.role === "Manager/Admin") {
       // Managers see all pending timesheets
-      whereClause = `WHERE t.status IN ('pending_client_approval', 'pending_manager_approval')`;
+      whereClause = "WHERE t.status IN ('pending_client_approval', 'pending_manager_approval')"
     } else {
       // Other roles see timesheets they submitted
-      whereClause = `WHERE t.submitted_by = $1`;
-      params = [user.id];
+      whereClause = "WHERE t.submitted_by = $1"
+      params = [user.id]
     }
 
     const result = await query(`
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       GROUP BY t.id, t.status, t.submitted_at, t.client_approved_at, t.manager_approved_at,
                s.id, s.date, s.location, j.name, c.name, cc.name
       ORDER BY t.submitted_at DESC
-    `, params);
+    `, params)
 
     const timesheets = result.rows.map(row => ({
       id: row.id,
@@ -74,17 +74,17 @@ export async function GET(request: NextRequest) {
       clientName: row.client_name,
       crewChiefName: row.crew_chief_name,
       workerCount: parseInt(row.worker_count) || 0,
-    }));
+    }))
 
     return NextResponse.json({
       success: true,
       timesheets,
-    });
+    })
   } catch (error) {
-    console.error('Error getting pending timesheets:', error);
+    console.error("Error getting pending timesheets:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

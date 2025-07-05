@@ -1,21 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { query } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
-    const { id } = await params;
+    const { id } = await params
 
     const result = await query(`
       SELECT
@@ -34,7 +34,7 @@ export async function GET(
       GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
                s.requested_workers, j.name, c.company_name, cc.name, cc.avatar
       ORDER BY s.date ASC, s.start_time ASC
-    `, [id]);
+    `, [id])
 
     const shifts = result.rows.map(row => ({
       id: row.id,
@@ -53,17 +53,17 @@ export async function GET(
       } : null,
       assignedCount: parseInt(row.assigned_count) || 0,
       assignedPersonnel: Array(parseInt(row.assigned_count) || 0).fill({}), // Simplified for count
-    }));
+    }))
 
     return NextResponse.json({
       success: true,
       shifts,
-    });
+    })
   } catch (error) {
-    console.error('Error getting shifts for job:', error);
+    console.error("Error getting shifts for job:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

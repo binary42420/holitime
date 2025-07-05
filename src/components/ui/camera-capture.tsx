@@ -1,10 +1,10 @@
-'use client'
+"use client"
 
-import React, { useRef, useState, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Camera, X, RotateCcw, Download } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
+import React, { useRef, useState, useCallback } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Camera, X, RotateCcw, Download } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface CameraCaptureProps {
   onCapture: (file: File) => void
@@ -28,7 +28,7 @@ export function CameraCapture({ onCapture, onCancel, disabled }: CameraCapturePr
         video: {
           width: { ideal: 1280 },
           height: { ideal: 720 },
-          facingMode: 'environment' // Use back camera on mobile
+          facingMode: "environment" // Use back camera on mobile
         }
       })
 
@@ -38,7 +38,7 @@ export function CameraCapture({ onCapture, onCancel, disabled }: CameraCapturePr
         setIsStreaming(true)
       }
     } catch (error) {
-      console.error('Error accessing camera:', error)
+      console.error("Error accessing camera:", error)
       toast({
         title: "Camera Error",
         description: "Unable to access camera. Please check permissions and try again.",
@@ -63,7 +63,7 @@ export function CameraCapture({ onCapture, onCancel, disabled }: CameraCapturePr
 
     const video = videoRef.current
     const canvas = canvasRef.current
-    const context = canvas.getContext('2d')
+    const context = canvas.getContext("2d")
 
     if (!context) return
 
@@ -77,10 +77,10 @@ export function CameraCapture({ onCapture, onCancel, disabled }: CameraCapturePr
     // Convert to blob and create file
     canvas.toBlob((blob) => {
       if (blob) {
-        const imageUrl = canvas.toDataURL('image/jpeg', 0.8)
+        const imageUrl = canvas.toDataURL("image/jpeg", 0.8)
         setCapturedImage(imageUrl)
       }
-    }, 'image/jpeg', 0.8)
+    }, "image/jpeg", 0.8)
   }, [])
 
   const confirmCapture = useCallback(() => {
@@ -89,12 +89,12 @@ export function CameraCapture({ onCapture, onCancel, disabled }: CameraCapturePr
     canvasRef.current.toBlob((blob) => {
       if (blob) {
         const file = new File([blob], `camera-capture-${Date.now()}.jpg`, {
-          type: 'image/jpeg'
+          type: "image/jpeg"
         })
         onCapture(file)
         stopCamera()
       }
-    }, 'image/jpeg', 0.8)
+    }, "image/jpeg", 0.8)
   }, [capturedImage, onCapture, stopCamera])
 
   const retakePhoto = useCallback(() => {
@@ -138,7 +138,7 @@ export function CameraCapture({ onCapture, onCancel, disabled }: CameraCapturePr
               disabled={disabled || isLoading}
               className="w-full"
             >
-              {isLoading ? 'Starting Camera...' : 'Start Camera'}
+              {isLoading ? "Starting Camera..." : "Start Camera"}
             </Button>
           </div>
         )}

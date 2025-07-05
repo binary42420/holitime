@@ -1,26 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
 
 // Define the expected CSV headers
 export const CSV_HEADERS = [
-  'client_name',
-  'contact_name', 
-  'contact_phone',
-  'job_name',
-  'job_start_date',
-  'shift_date',
-  'shift_start_time',
-  'shift_end_time',
-  'employee_name',
-  'employee_email',
-  'employee_phone',
-  'worker_type',
-  'clock_in_1',
-  'clock_out_1',
-  'clock_in_2',
-  'clock_out_2',
-  'clock_in_3',
-  'clock_out_3'
+  "client_name",
+  "contact_name", 
+  "contact_phone",
+  "job_name",
+  "job_start_date",
+  "shift_date",
+  "shift_start_time",
+  "shift_end_time",
+  "employee_name",
+  "employee_email",
+  "employee_phone",
+  "worker_type",
+  "clock_in_1",
+  "clock_out_1",
+  "clock_in_2",
+  "clock_out_2",
+  "clock_in_3",
+  "clock_out_3"
 ] as const
 
 export type CSVRow = {
@@ -52,7 +52,7 @@ function validateEmail(email: string): boolean {
 }
 
 function validateWorkerType(workerType: string): boolean {
-  const validTypes = ['CC', 'SH', 'FO', 'RFO', 'RG', 'GL']
+  const validTypes = ["CC", "SH", "FO", "RFO", "RG", "GL"]
   return validTypes.includes(workerType)
 }
 
@@ -60,8 +60,8 @@ function validateTimeOrder(clockIn: string, clockOut: string): boolean {
   if (!clockIn || !clockOut) return true // Optional pairs
   if (!validateTime(clockIn) || !validateTime(clockOut)) return false
   
-  const [inHour, inMin] = clockIn.split(':').map(Number)
-  const [outHour, outMin] = clockOut.split(':').map(Number)
+  const [inHour, inMin] = clockIn.split(":").map(Number)
+  const [outHour, outMin] = clockOut.split(":").map(Number)
   const inMinutes = inHour * 60 + inMin
   const outMinutes = outHour * 60 + outMin
   
@@ -77,45 +77,45 @@ function validateRow(row: any, rowNumber: number): CSVRow {
   }
 
   // Required field validation
-  if (!row.client_name?.trim()) errors.push('Client name is required')
-  if (!row.job_name?.trim()) errors.push('Job name is required')
-  if (!row.shift_date?.trim()) errors.push('Shift date is required')
-  if (!row.shift_start_time?.trim()) errors.push('Shift start time is required')
-  if (!row.shift_end_time?.trim()) errors.push('Shift end time is required')
-  if (!row.employee_name?.trim()) errors.push('Employee name is required')
-  if (!row.worker_type?.trim()) errors.push('Worker type is required')
+  if (!row.client_name?.trim()) errors.push("Client name is required")
+  if (!row.job_name?.trim()) errors.push("Job name is required")
+  if (!row.shift_date?.trim()) errors.push("Shift date is required")
+  if (!row.shift_start_time?.trim()) errors.push("Shift start time is required")
+  if (!row.shift_end_time?.trim()) errors.push("Shift end time is required")
+  if (!row.employee_name?.trim()) errors.push("Employee name is required")
+  if (!row.worker_type?.trim()) errors.push("Worker type is required")
 
   // Date validation
   if (row.job_start_date && !validateDate(row.job_start_date)) {
-    errors.push('Job start date must be in YYYY-MM-DD format')
+    errors.push("Job start date must be in YYYY-MM-DD format")
   }
   if (row.shift_date && !validateDate(row.shift_date)) {
-    errors.push('Shift date must be in YYYY-MM-DD format')
+    errors.push("Shift date must be in YYYY-MM-DD format")
   }
 
   // Time validation
   if (row.shift_start_time && !validateTime(row.shift_start_time)) {
-    errors.push('Shift start time must be in HH:MM format (24-hour)')
+    errors.push("Shift start time must be in HH:MM format (24-hour)")
   }
   if (row.shift_end_time && !validateTime(row.shift_end_time)) {
-    errors.push('Shift end time must be in HH:MM format (24-hour)')
+    errors.push("Shift end time must be in HH:MM format (24-hour)")
   }
 
   // Validate shift time order
   if (row.shift_start_time && row.shift_end_time) {
     if (!validateTimeOrder(row.shift_start_time, row.shift_end_time)) {
-      errors.push('Shift end time must be after start time')
+      errors.push("Shift end time must be after start time")
     }
   }
 
   // Email validation (if provided)
   if (row.employee_email && !validateEmail(row.employee_email)) {
-    errors.push('Employee email format is invalid')
+    errors.push("Employee email format is invalid")
   }
 
   // Worker type validation
   if (row.worker_type && !validateWorkerType(row.worker_type)) {
-    errors.push('Worker type must be one of: CC, SH, FO, RFO, RG, GL')
+    errors.push("Worker type must be one of: CC, SH, FO, RFO, RG, GL")
   }
 
   // Clock in/out validation
@@ -140,49 +140,49 @@ function validateRow(row: any, rowNumber: number): CSVRow {
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
-    if (!user || user.role !== 'Manager/Admin') {
+    if (!user || user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
 
     const formData = await request.formData()
-    const file = formData.get('file') as File
+    const file = formData.get("file") as File
     
     if (!file) {
       return NextResponse.json(
-        { error: 'No file provided' },
+        { error: "No file provided" },
         { status: 400 }
       )
     }
 
-    if (!file.name.toLowerCase().endsWith('.csv')) {
+    if (!file.name.toLowerCase().endsWith(".csv")) {
       return NextResponse.json(
-        { error: 'File must be a CSV' },
+        { error: "File must be a CSV" },
         { status: 400 }
       )
     }
 
     const text = await file.text()
-    const lines = text.split('\n').map(line => line.trim()).filter(line => line)
+    const lines = text.split("\n").map(line => line.trim()).filter(line => line)
     
     if (lines.length < 2) {
       return NextResponse.json(
-        { error: 'CSV must contain headers and at least one data row' },
+        { error: "CSV must contain headers and at least one data row" },
         { status: 400 }
       )
     }
 
     // Parse headers
-    const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+    const headers = lines[0].split(",").map(h => h.trim().replace(/"/g, ""))
     
     // Validate headers
     const missingHeaders = CSV_HEADERS.filter(required => !headers.includes(required))
     if (missingHeaders.length > 0) {
       return NextResponse.json(
         { 
-          error: 'Missing required headers',
+          error: "Missing required headers",
           missingHeaders,
           expectedHeaders: CSV_HEADERS
         },
@@ -193,11 +193,11 @@ export async function POST(request: NextRequest) {
     // Parse data rows
     const rows: CSVRow[] = []
     for (let i = 1; i < lines.length; i++) {
-      const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''))
+      const values = lines[i].split(",").map(v => v.trim().replace(/"/g, ""))
       const row: any = {}
       
       headers.forEach((header, index) => {
-        row[header] = values[index] || ''
+        row[header] = values[index] || ""
       })
 
       const validatedRow = validateRow(row, i)
@@ -226,9 +226,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error parsing CSV:', error)
+    console.error("Error parsing CSV:", error)
     return NextResponse.json(
-      { error: 'Failed to parse CSV file' },
+      { error: "Failed to parse CSV file" },
       { status: 500 }
     )
   }

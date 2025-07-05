@@ -1,28 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-    const status = searchParams.get('status')
-    const documentType = searchParams.get('documentType')
+    const userId = searchParams.get("userId")
+    const status = searchParams.get("status")
+    const documentType = searchParams.get("documentType")
 
     // Build query based on user role and filters
-    let whereClause = ''
+    let whereClause = ""
     let queryParams: any[] = []
     let paramIndex = 1
 
-    if (user.role === 'Manager/Admin') {
+    if (user.role === "Manager/Admin") {
       // Managers can see all documents
       if (userId) {
         whereClause += `WHERE d.user_id = $${paramIndex++}`
@@ -101,9 +101,9 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error fetching documents:', error)
+    console.error("Error fetching documents:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

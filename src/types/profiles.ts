@@ -91,7 +91,7 @@ export interface UserProfileFilters {
   page?: number
   limit?: number
   sort_by?: string
-  sort_order?: 'asc' | 'desc'
+  sort_order?: "asc" | "desc"
 }
 
 export interface ProfileStats {
@@ -110,23 +110,23 @@ export interface EmergencyContact {
 }
 
 export interface WorkAuthorization {
-  status: 'citizen' | 'permanent_resident' | 'work_visa' | 'other'
+  status: "citizen" | "permanent_resident" | "work_visa" | "other"
   document_type?: string
   expiration_date?: string
   notes?: string
 }
 
 export interface BankingInfo {
-  account_type: 'checking' | 'savings'
+  account_type: "checking" | "savings"
   routing_number_last_four: string
   account_number_last_four: string
   bank_name: string
 }
 
 export interface TaxInfo {
-  tax_id_type: 'ssn' | 'itin' | 'other'
+  tax_id_type: "ssn" | "itin" | "other"
   tax_id_last_four: string
-  filing_status: 'single' | 'married' | 'head_of_household' | 'other'
+  filing_status: "single" | "married" | "head_of_household" | "other"
   allowances: number
   additional_withholding?: number
 }
@@ -186,115 +186,115 @@ export interface CertificationCategory {
 
 // Predefined options for dropdowns
 export const SHIFT_TYPES = [
-  'Day Shift',
-  'Night Shift',
-  'Weekend',
-  'Overtime',
-  'Emergency',
-  'Seasonal',
-  'Part-time',
-  'Full-time'
+  "Day Shift",
+  "Night Shift",
+  "Weekend",
+  "Overtime",
+  "Emergency",
+  "Seasonal",
+  "Part-time",
+  "Full-time"
 ] as const
 
 export const TRANSPORTATION_METHODS = [
-  'Own Vehicle',
-  'Public Transit',
-  'Bicycle',
-  'Walking',
-  'Rideshare',
-  'Company Transport',
-  'Other'
+  "Own Vehicle",
+  "Public Transit",
+  "Bicycle",
+  "Walking",
+  "Rideshare",
+  "Company Transport",
+  "Other"
 ] as const
 
 export const WORK_AUTHORIZATION_STATUSES = [
-  'US Citizen',
-  'Permanent Resident',
-  'Work Visa',
-  'Student Visa with Work Authorization',
-  'Asylum/Refugee Status',
-  'Other'
+  "US Citizen",
+  "Permanent Resident",
+  "Work Visa",
+  "Student Visa with Work Authorization",
+  "Asylum/Refugee Status",
+  "Other"
 ] as const
 
 export const RELATIONSHIP_TYPES = [
-  'Spouse',
-  'Parent',
-  'Child',
-  'Sibling',
-  'Friend',
-  'Relative',
-  'Other'
+  "Spouse",
+  "Parent",
+  "Child",
+  "Sibling",
+  "Friend",
+  "Relative",
+  "Other"
 ] as const
 
 export const US_STATES = [
-  'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-  'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-  'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-  'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-  'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
+  "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+  "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+  "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+  "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
 ] as const
 
 export const COMMON_SKILLS = [
   // Construction & Labor
-  'General Labor',
-  'Construction',
-  'Carpentry',
-  'Electrical Work',
-  'Plumbing',
-  'Painting',
-  'Roofing',
-  'Concrete Work',
-  'Demolition',
-  'Landscaping',
+  "General Labor",
+  "Construction",
+  "Carpentry",
+  "Electrical Work",
+  "Plumbing",
+  "Painting",
+  "Roofing",
+  "Concrete Work",
+  "Demolition",
+  "Landscaping",
   
   // Equipment Operation
-  'Forklift Operation',
-  'Crane Operation',
-  'Heavy Machinery',
-  'Power Tools',
-  'Hand Tools',
-  'Welding',
-  'Cutting Tools',
+  "Forklift Operation",
+  "Crane Operation",
+  "Heavy Machinery",
+  "Power Tools",
+  "Hand Tools",
+  "Welding",
+  "Cutting Tools",
   
   // Warehouse & Logistics
-  'Warehouse Operations',
-  'Inventory Management',
-  'Shipping & Receiving',
-  'Order Picking',
-  'Packing',
-  'Loading/Unloading',
-  'Material Handling',
+  "Warehouse Operations",
+  "Inventory Management",
+  "Shipping & Receiving",
+  "Order Picking",
+  "Packing",
+  "Loading/Unloading",
+  "Material Handling",
   
   // Safety & Compliance
-  'OSHA Safety',
-  'First Aid/CPR',
-  'Safety Training',
-  'Quality Control',
-  'Environmental Compliance',
+  "OSHA Safety",
+  "First Aid/CPR",
+  "Safety Training",
+  "Quality Control",
+  "Environmental Compliance",
   
   // Specialized Skills
-  'Customer Service',
-  'Team Leadership',
-  'Problem Solving',
-  'Communication',
-  'Time Management',
-  'Attention to Detail',
-  'Physical Stamina',
-  'Reliability'
+  "Customer Service",
+  "Team Leadership",
+  "Problem Solving",
+  "Communication",
+  "Time Management",
+  "Attention to Detail",
+  "Physical Stamina",
+  "Reliability"
 ] as const
 
 export const SAFETY_CERTIFICATIONS = [
-  'OSHA 10-Hour',
-  'OSHA 30-Hour',
-  'First Aid/CPR',
-  'Forklift Certification',
-  'Crane Operator License',
-  'Confined Space Entry',
-  'Fall Protection',
-  'Hazmat Handling',
-  'Scaffold Safety',
-  'Electrical Safety',
-  'Welding Certification',
-  'Fire Safety',
-  'Emergency Response',
-  'Safety Leadership'
+  "OSHA 10-Hour",
+  "OSHA 30-Hour",
+  "First Aid/CPR",
+  "Forklift Certification",
+  "Crane Operator License",
+  "Confined Space Entry",
+  "Fall Protection",
+  "Hazmat Handling",
+  "Scaffold Safety",
+  "Electrical Safety",
+  "Welding Certification",
+  "Fire Safety",
+  "Emergency Response",
+  "Safety Leadership"
 ] as const

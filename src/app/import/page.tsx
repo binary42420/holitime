@@ -1,5 +1,5 @@
-import ImportPageClient from '@/components/import-page-client';
+import ImportPageClient from "@/components/import-page-client"
 
 export default function ImportPage() {
-  return <ImportPageClient />;
+  return <ImportPageClient />
 }

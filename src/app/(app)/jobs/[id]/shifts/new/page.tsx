@@ -1,17 +1,17 @@
-'use client'
+"use client"
 
-import { useState, use } from 'react'
-import { useRouter } from 'next/navigation'
-import { useUser } from '@/hooks/use-user'
-import { useApi } from '@/hooks/use-api'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useToast } from '@/hooks/use-toast'
-import { ArrowLeft, Save } from 'lucide-react'
+import { useState, use } from "react"
+import { useRouter } from "next/navigation"
+import { useUser } from "@/hooks/use-user"
+import { useApi } from "@/hooks/use-api"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useToast } from "@/hooks/use-toast"
+import { ArrowLeft, Save } from "lucide-react"
 import { generateShiftUrl } from "@/lib/url-utils"
 
 interface JobShiftPageProps {
@@ -34,21 +34,21 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
   const [loading, setLoading] = useState(false)
   
   const { data: jobData } = useApi<{ job: any }>(`/api/jobs/${id}`)
-  const { data: usersData } = useApi<{ users: User[] }>('/api/users')
+  const { data: usersData } = useApi<{ users: User[] }>("/api/users")
 
   const [formData, setFormData] = useState({
     jobId: id,
-    date: '',
-    startTime: '',
-    endTime: '',
-    location: '',
-    crewChiefId: '',
-    requestedWorkers: '1',
-    notes: ''
+    date: "",
+    startTime: "",
+    endTime: "",
+    location: "",
+    crewChiefId: "",
+    requestedWorkers: "1",
+    notes: ""
   })
 
   // Only managers can create shifts
-  if (user?.role !== 'Manager/Admin') {
+  if (user?.role !== "Manager/Admin") {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
@@ -64,10 +64,10 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/shifts', {
-        method: 'POST',
+      const response = await fetch("/api/shifts", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           ...formData,
@@ -76,7 +76,7 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create shift')
+        throw new Error("Failed to create shift")
       }
 
       const result = await response.json()
@@ -88,7 +88,7 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
 
       router.push(generateShiftUrl(result.shift.clientName, result.shift.jobName, result.shift.date, result.shift.startTime))
     } catch (error) {
-      console.error('Error creating shift:', error)
+      console.error("Error creating shift:", error)
       toast({
         title: "Error",
         description: "Failed to create shift. Please try again.",
@@ -115,7 +115,7 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
   }
 
   // Filter crew chiefs
-  const crewChiefs = usersData?.users?.filter(u => u.role === 'Crew Chief') || []
+  const crewChiefs = usersData?.users?.filter(u => u.role === "Crew Chief") || []
 
   if (!jobData) {
     return (
@@ -152,7 +152,7 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="crewChiefId">Crew Chief *</Label>
-                <Select value={formData.crewChiefId} onValueChange={handleSelectChange('crewChiefId')} required>
+                <Select value={formData.crewChiefId} onValueChange={handleSelectChange("crewChiefId")} required>
                   <SelectTrigger>
                     <SelectValue placeholder="Select crew chief" />
                   </SelectTrigger>
@@ -254,7 +254,7 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
                 className="flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
-                {loading ? 'Creating...' : 'Create Shift'}
+                {loading ? "Creating..." : "Create Shift"}
               </Button>
             </div>
           </form>

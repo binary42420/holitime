@@ -1,6 +1,6 @@
-'use client';
+"use client"
 
-import Link from 'next/link';
+import Link from "next/link"
 
 export default function UnauthorizedPage() {
   return (
@@ -11,5 +11,5 @@ export default function UnauthorizedPage() {
         Go to Dashboard
       </Link>
     </div>
-  );
+  )
 }

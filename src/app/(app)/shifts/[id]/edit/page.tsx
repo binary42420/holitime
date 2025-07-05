@@ -22,12 +22,12 @@ import type { WorkerRequirement, RoleCode } from "@/lib/types"
 
 // Role definitions for worker type conversion
 const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string }> = {
-  'CC': { name: 'Crew Chief', color: 'text-purple-700' },
-  'SH': { name: 'Stage Hand', color: 'text-blue-700' },
-  'FO': { name: 'Fork Operator', color: 'text-green-700' },
-  'RFO': { name: 'Reach Fork Operator', color: 'text-yellow-700' },
-  'RG': { name: 'Rigger', color: 'text-red-700' },
-  'GL': { name: 'General Laborer', color: 'text-gray-700' },
+  "CC": { name: "Crew Chief", color: "text-purple-700" },
+  "SH": { name: "Stage Hand", color: "text-blue-700" },
+  "FO": { name: "Fork Operator", color: "text-green-700" },
+  "RFO": { name: "Reach Fork Operator", color: "text-yellow-700" },
+  "RG": { name: "Rigger", color: "text-red-700" },
+  "GL": { name: "General Laborer", color: "text-gray-700" },
 }
 
 const shiftSchema = z.object({
@@ -54,7 +54,7 @@ export default function EditShiftPage() {
   const params = useParams()
   const router = useRouter()
   const { toast } = useToast()
-  const [shiftId, setShiftId] = useState<string>('')
+  const [shiftId, setShiftId] = useState<string>("")
 
   // Unwrap params
   useEffect(() => {
@@ -68,7 +68,7 @@ export default function EditShiftPage() {
   const shift = shiftData
 
   // Fetch users for crew chief selection
-  const { data: usersData } = useApi<{ users: any[] }>('/api/users')
+  const { data: usersData } = useApi<{ users: any[] }>("/api/users")
   const users = usersData?.users || []
 
   const form = useForm<ShiftFormData>({
@@ -84,8 +84,8 @@ export default function EditShiftPage() {
 
   const handleWorkerRequirementsChange = (requirements: any[], totalCount: number) => {
     setWorkerRequirements(requirements)
-    form.setValue('requestedWorkers', totalCount)
-    form.setValue('workerRequirements', requirements)
+    form.setValue("requestedWorkers", totalCount)
+    form.setValue("workerRequirements", requirements)
   }
 
   // Populate form when shift data loads
@@ -96,21 +96,21 @@ export default function EditShiftPage() {
         roleCode: req.roleCode,
         roleName: ROLE_DEFINITIONS[req.roleCode as RoleCode]?.name || req.roleCode,
         count: req.requiredCount,
-        color: ROLE_DEFINITIONS[req.roleCode as RoleCode]?.color || 'text-gray-700'
+        color: ROLE_DEFINITIONS[req.roleCode as RoleCode]?.color || "text-gray-700"
       })) || []
 
       setWorkerRequirements(convertedRequirements)
 
       form.reset({
-        date: shift.date ? new Date(shift.date).toISOString().split('T')[0] : '',
-        startTime: shift.startTime || '',
-        endTime: shift.endTime || '',
+        date: shift.date ? new Date(shift.date).toISOString().split("T")[0] : "",
+        startTime: shift.startTime || "",
+        endTime: shift.endTime || "",
         requestedWorkers: shift.requestedWorkers || 1,
-        crewChiefId: shift.crewChiefId || 'none',
-        location: shift.location || '',
-        description: '',
-        requirements: '',
-        notes: shift.notes || '',
+        crewChiefId: shift.crewChiefId || "none",
+        location: shift.location || "",
+        description: "",
+        requirements: "",
+        notes: shift.notes || "",
         workerRequirements: convertedRequirements,
       })
     }
@@ -124,19 +124,19 @@ export default function EditShiftPage() {
       // Handle "none" value for crew chief
       const submitData = {
         ...data,
-        crewChiefId: data.crewChiefId === 'none' ? '' : data.crewChiefId
+        crewChiefId: data.crewChiefId === "none" ? "" : data.crewChiefId
       }
 
       const response = await fetch(`/api/shifts/${shiftId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(submitData),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update shift')
+        throw new Error("Failed to update shift")
       }
 
       toast({
@@ -177,7 +177,7 @@ export default function EditShiftPage() {
               <p className="text-muted-foreground mb-4">
                 The shift you're looking for doesn't exist or you don't have permission to edit it.
               </p>
-              <Button onClick={() => router.push('/shifts')}>
+              <Button onClick={() => router.push("/shifts")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Shifts
               </Button>
@@ -283,12 +283,12 @@ export default function EditShiftPage() {
                   <SelectContent>
                     <SelectItem value="none">No crew chief assigned</SelectItem>
                     {users
-                      .filter(user => user.id && user.id.trim() !== '')
+                      .filter(user => user.id && user.id.trim() !== "")
                       .map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.name}
-                      </SelectItem>
-                    ))}
+                        <SelectItem key={user.id} value={user.id}>
+                          {user.name}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>

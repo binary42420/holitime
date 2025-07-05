@@ -1,17 +1,17 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useToast } from '@/hooks/use-toast'
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuTrigger,
   DropdownMenuSeparator 
-} from '@/components/ui/dropdown-menu'
+} from "@/components/ui/dropdown-menu"
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +21,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+} from "@/components/ui/alert-dialog"
 import { 
   MoreHorizontal, 
   CheckCircle, 
@@ -31,7 +31,7 @@ import {
   Trash2,
   Copy,
   Edit
-} from 'lucide-react'
+} from "lucide-react"
 
 interface BulkShiftOperationsProps {
   selectedShifts: string[]
@@ -49,7 +49,7 @@ export default function BulkShiftOperations({
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [bulkAction, setBulkAction] = useState<string>('')
+  const [bulkAction, setBulkAction] = useState<string>("")
 
   const allSelected = shifts.length > 0 && selectedShifts.length === shifts.length
   const someSelected = selectedShifts.length > 0 && selectedShifts.length < shifts.length
@@ -67,8 +67,8 @@ export default function BulkShiftOperations({
     try {
       const promises = selectedShifts.map(shiftId =>
         fetch(`/api/shifts/${shiftId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status })
         })
       )
@@ -98,7 +98,7 @@ export default function BulkShiftOperations({
     try {
       const promises = selectedShifts.map(shiftId =>
         fetch(`/api/shifts/${shiftId}`, {
-          method: 'DELETE'
+          method: "DELETE"
         })
       )
 
@@ -128,8 +128,8 @@ export default function BulkShiftOperations({
     try {
       const promises = selectedShifts.map(shiftId =>
         fetch(`/api/shifts/${shiftId}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ crewChiefId })
         })
       )
@@ -183,7 +183,7 @@ export default function BulkShiftOperations({
             onCheckedChange={handleSelectAll}
           />
           <span className="text-sm font-medium">
-            {selectedShifts.length} shift{selectedShifts.length !== 1 ? 's' : ''} selected
+            {selectedShifts.length} shift{selectedShifts.length !== 1 ? "s" : ""} selected
           </span>
         </div>
 
@@ -263,7 +263,7 @@ export default function BulkShiftOperations({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Selected Shifts</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete {selectedShifts.length} shift{selectedShifts.length !== 1 ? 's' : ''}? 
+              Are you sure you want to delete {selectedShifts.length} shift{selectedShifts.length !== 1 ? "s" : ""}? 
               This action cannot be undone and will remove all associated data including time entries and assignments.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -274,7 +274,7 @@ export default function BulkShiftOperations({
               disabled={loading}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {loading ? 'Deleting...' : 'Delete'}
+              {loading ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

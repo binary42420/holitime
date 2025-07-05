@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
-import { v4 as uuidv4 } from 'uuid'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import { v4 as uuidv4 } from "uuid"
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Check if user has permission to create pending employees
-    if (!['Manager/Admin', 'Crew Chief'].includes(user.role)) {
+    if (!["Manager/Admin", "Crew Chief"].includes(user.role)) {
       return NextResponse.json(
-        { error: 'Insufficient permissions. Only Manager/Admin and Crew Chief users can create pending employees.' },
+        { error: "Insufficient permissions. Only Manager/Admin and Crew Chief users can create pending employees." },
         { status: 403 }
       )
     }
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     if (!name || !name.trim()) {
       return NextResponse.json(
-        { error: 'Employee name is required' },
+        { error: "Employee name is required" },
         { status: 400 }
       )
     }
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     // Generate temporary email and password
     const tempUuid = uuidv4()
     const tempEmail = `pending-${tempUuid}@temp.local`
-    const tempPasswordHash = 'pending-activation-placeholder'
+    const tempPasswordHash = "pending-activation-placeholder"
 
     // Create pending user account
     const result = await query(`
@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
       tempEmail,
       tempPasswordHash,
       trimmedName,
-      'Employee',
-      'pending_activation',
+      "Employee",
+      "pending_activation",
       user.id,
       true
     ])
@@ -105,9 +105,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error creating pending employee:', error)
+    console.error("Error creating pending employee:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

@@ -25,8 +25,8 @@ import {
 import { format, subDays, startOfMonth, endOfMonth } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function EmployeeReportsPage() {
   const { user } = useUser()
@@ -36,33 +36,33 @@ function EmployeeReportsPage() {
   const [dateRange, setDateRange] = useState("thisMonth")
   const [selectedEmployee, setSelectedEmployee] = useState("all")
 
-  const { data: usersData } = useApi<{ users: any[] }>('/api/users')
-  const { data: shiftsData } = useApi<{ shifts: any[] }>('/api/shifts')
+  const { data: usersData } = useApi<{ users: any[] }>("/api/users")
+  const { data: shiftsData } = useApi<{ shifts: any[] }>("/api/shifts")
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
-  const employees = usersData?.users?.filter(u => u.role !== 'Client') || []
+  const employees = usersData?.users?.filter(u => u.role !== "Client") || []
   const shifts = shiftsData?.shifts || []
 
   // Calculate date range
   const getDateRange = () => {
     const now = new Date()
     switch (dateRange) {
-      case 'lastWeek':
-        return { start: subDays(now, 7), end: now }
-      case 'thisMonth':
-        return { start: startOfMonth(now), end: endOfMonth(now) }
-      case 'lastMonth':
-        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-        return { start: startOfMonth(lastMonth), end: endOfMonth(lastMonth) }
-      case 'last3Months':
-        return { start: subDays(now, 90), end: now }
-      default:
-        return { start: startOfMonth(now), end: endOfMonth(now) }
+    case "lastWeek":
+      return { start: subDays(now, 7), end: now }
+    case "thisMonth":
+      return { start: startOfMonth(now), end: endOfMonth(now) }
+    case "lastMonth":
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+      return { start: startOfMonth(lastMonth), end: endOfMonth(lastMonth) }
+    case "last3Months":
+      return { start: subDays(now, 90), end: now }
+    default:
+      return { start: startOfMonth(now), end: endOfMonth(now) }
     }
   }
 
@@ -77,7 +77,7 @@ function EmployeeReportsPage() {
         new Date(shift.date) <= end
       )
 
-      const completedShifts = employeeShifts.filter(shift => shift.status === 'Completed')
+      const completedShifts = employeeShifts.filter(shift => shift.status === "Completed")
       const totalHours = completedShifts.reduce((sum, shift) => {
         const start = new Date(`2000-01-01 ${shift.startTime}`)
         const end = new Date(`2000-01-01 ${shift.endTime}`)
@@ -94,7 +94,7 @@ function EmployeeReportsPage() {
         totalHours: totalHours,
         avgHoursPerShift: completedShifts.length > 0 ? totalHours / completedShifts.length : 0,
       }
-    }).filter(emp => selectedEmployee === 'all' || emp.id === selectedEmployee)
+    }).filter(emp => selectedEmployee === "all" || emp.id === selectedEmployee)
   }
 
   // Generate attendance report data
@@ -109,9 +109,9 @@ function EmployeeReportsPage() {
       )
 
       const attendedShifts = employeeShifts.filter(shift => 
-        shift.status === 'Completed' || shift.status === 'In Progress'
+        shift.status === "Completed" || shift.status === "In Progress"
       )
-      const noShowShifts = employeeShifts.filter(shift => shift.status === 'Cancelled')
+      const noShowShifts = employeeShifts.filter(shift => shift.status === "Cancelled")
 
       return {
         id: employee.id,
@@ -122,7 +122,7 @@ function EmployeeReportsPage() {
         noShows: noShowShifts.length,
         attendanceRate: employeeShifts.length > 0 ? (attendedShifts.length / employeeShifts.length * 100) : 0,
       }
-    }).filter(emp => selectedEmployee === 'all' || emp.id === selectedEmployee)
+    }).filter(emp => selectedEmployee === "all" || emp.id === selectedEmployee)
   }
 
   const handleExportReport = () => {
@@ -139,7 +139,7 @@ function EmployeeReportsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/employees')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/employees")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Employees
         </Button>
@@ -210,7 +210,7 @@ function EmployeeReportsPage() {
         </CardContent>
       </Card>
 
-      {reportType === 'performance' && (
+      {reportType === "performance" && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -244,7 +244,7 @@ function EmployeeReportsPage() {
                     <TableCell>{employee.shiftsAssigned}</TableCell>
                     <TableCell>{employee.shiftsCompleted}</TableCell>
                     <TableCell>
-                      <Badge variant={employee.completionRate >= 90 ? 'default' : employee.completionRate >= 70 ? 'secondary' : 'destructive'}>
+                      <Badge variant={employee.completionRate >= 90 ? "default" : employee.completionRate >= 70 ? "secondary" : "destructive"}>
                         {employee.completionRate.toFixed(1)}%
                       </Badge>
                     </TableCell>
@@ -258,7 +258,7 @@ function EmployeeReportsPage() {
         </Card>
       )}
 
-      {reportType === 'attendance' && (
+      {reportType === "attendance" && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -299,7 +299,7 @@ function EmployeeReportsPage() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={employee.attendanceRate >= 95 ? 'default' : employee.attendanceRate >= 80 ? 'secondary' : 'destructive'}>
+                      <Badge variant={employee.attendanceRate >= 95 ? "default" : employee.attendanceRate >= 80 ? "secondary" : "destructive"}>
                         {employee.attendanceRate.toFixed(1)}%
                       </Badge>
                     </TableCell>
@@ -314,4 +314,4 @@ function EmployeeReportsPage() {
   )
 }
 
-export default withAuth(EmployeeReportsPage, hasAdminAccess);
+export default withAuth(EmployeeReportsPage, hasAdminAccess)

@@ -2,47 +2,47 @@
 // Comprehensive type definitions for the document management system
 
 export type DocumentType = 
-  | 'I9' 
-  | 'W4' 
-  | 'DirectDeposit' 
-  | 'EmergencyContact' 
-  | 'SafetyTraining' 
-  | 'CompanyPolicy' 
-  | 'BackgroundCheck' 
-  | 'DrugTesting' 
-  | 'SkillsAssessment' 
-  | 'EquipmentCheckout'
-  | 'Timesheet'
-  | 'Other';
+  | "I9" 
+  | "W4" 
+  | "DirectDeposit" 
+  | "EmergencyContact" 
+  | "SafetyTraining" 
+  | "CompanyPolicy" 
+  | "BackgroundCheck" 
+  | "DrugTesting" 
+  | "SkillsAssessment" 
+  | "EquipmentCheckout"
+  | "Timesheet"
+  | "Other";
 
 export type DocumentStatus = 
-  | 'not_started' 
-  | 'in_progress' 
-  | 'completed' 
-  | 'under_review' 
-  | 'approved' 
-  | 'rejected' 
-  | 'expired';
+  | "not_started" 
+  | "in_progress" 
+  | "completed" 
+  | "under_review" 
+  | "approved" 
+  | "rejected" 
+  | "expired";
 
 export type ApprovalStatus = 
-  | 'pending' 
-  | 'approved' 
-  | 'rejected' 
-  | 'needs_revision';
+  | "pending" 
+  | "approved" 
+  | "rejected" 
+  | "needs_revision";
 
-export type Priority = 'low' | 'normal' | 'high' | 'urgent';
+export type Priority = "low" | "normal" | "high" | "urgent";
 
-export type ReminderType = 'due_soon' | 'overdue' | 'expiring';
+export type ReminderType = "due_soon" | "overdue" | "expiring";
 
 export type AuditAction = 
-  | 'created' 
-  | 'updated' 
-  | 'deleted' 
-  | 'submitted' 
-  | 'approved' 
-  | 'rejected' 
-  | 'assigned' 
-  | 'completed';
+  | "created" 
+  | "updated" 
+  | "deleted" 
+  | "submitted" 
+  | "approved" 
+  | "rejected" 
+  | "assigned" 
+  | "completed";
 
 export interface DocumentCategory {
   id: number;
@@ -166,7 +166,7 @@ export interface DocumentApproval {
 export interface EmailTemplate {
   id: number;
   name: string;
-  category: 'user_management' | 'shift_management' | 'document_management';
+  category: "user_management" | "shift_management" | "document_management";
   subject: string;
   html_body: string;
   text_body: string;
@@ -181,7 +181,7 @@ export interface EmailTemplate {
 
 export interface DocumentAuditTrail {
   id: number;
-  entity_type: 'template' | 'assignment' | 'submission' | 'approval';
+  entity_type: "template" | "assignment" | "submission" | "approval";
   entity_id: number;
   user_id?: number;
   action: AuditAction;
@@ -277,7 +277,7 @@ export interface ApproveDocumentRequest {
 
 export interface CreateEmailTemplateRequest {
   name: string;
-  category: 'user_management' | 'shift_management' | 'document_management';
+  category: "user_management" | "shift_management" | "document_management";
   subject: string;
   html_body: string;
   text_body: string;
@@ -353,7 +353,7 @@ export interface DocumentAssignmentFilters {
   page?: number;
   limit?: number;
   sort_by?: string;
-  sort_order?: 'asc' | 'desc';
+  sort_order?: "asc" | "desc";
 }
 
 export interface DocumentTemplateFilters {
@@ -367,5 +367,5 @@ export interface DocumentTemplateFilters {
   page?: number;
   limit?: number;
   sort_by?: string;
-  sort_order?: 'asc' | 'desc';
+  sort_order?: "asc" | "desc";
 }

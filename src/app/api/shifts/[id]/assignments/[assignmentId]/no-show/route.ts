@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function POST(
   request: NextRequest,
@@ -10,15 +10,15 @@ export async function POST(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers and crew chiefs can mark no-shows
-    if (user.role !== 'Manager/Admin' && user.role !== 'Crew Chief') {
+    if (user.role !== "Manager/Admin" && user.role !== "Crew Chief") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -36,7 +36,7 @@ export async function POST(
 
     if (shiftResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Shift assignment not found' },
+        { error: "Shift assignment not found" },
         { status: 404 }
       )
     }
@@ -46,7 +46,7 @@ export async function POST(
     // Check if it's been at least 30 minutes since shift start
     const now = new Date()
     const shiftDate = new Date(assignment.date)
-    const [hours, minutes] = assignment.start_time.split(':').map(Number)
+    const [hours, minutes] = assignment.start_time.split(":").map(Number)
     const shiftStart = new Date(shiftDate)
     shiftStart.setHours(hours, minutes, 0, 0)
     
@@ -55,7 +55,7 @@ export async function POST(
     if (timeDiffMinutes < 30) {
       return NextResponse.json(
         { 
-          error: 'Cannot mark no-show within 30 minutes of shift start time',
+          error: "Cannot mark no-show within 30 minutes of shift start time",
           minutesRemaining: Math.ceil(30 - timeDiffMinutes)
         },
         { status: 400 }
@@ -88,9 +88,9 @@ export async function POST(
       markedAt: updateTime
     })
   } catch (error) {
-    console.error('Error marking worker as no-show:', error)
+    console.error("Error marking worker as no-show:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

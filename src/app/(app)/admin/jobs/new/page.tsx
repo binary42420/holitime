@@ -30,8 +30,8 @@ const jobSchema = z.object({
 
 type JobFormData = z.infer<typeof jobSchema>
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function NewJobPage() {
   const { user } = useUser()
@@ -39,11 +39,11 @@ function NewJobPage() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  const { data: clientsData } = useApi<{ clients: any[] }>('/api/clients')
+  const { data: clientsData } = useApi<{ clients: any[] }>("/api/clients")
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -57,16 +57,16 @@ function NewJobPage() {
   const onSubmit = async (data: JobFormData) => {
     setIsSubmitting(true)
     try {
-      const response = await fetch('/api/jobs', {
-        method: 'POST',
+      const response = await fetch("/api/jobs", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create job')
+        throw new Error("Failed to create job")
       }
 
       const result = await response.json()
@@ -93,7 +93,7 @@ function NewJobPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/jobs')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/jobs")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Jobs
         </Button>
@@ -232,13 +232,13 @@ function NewJobPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/admin/jobs')}
+            onClick={() => router.push("/admin/jobs")}
           >
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Creating...' : 'Create Job'}
+            {isSubmitting ? "Creating..." : "Create Job"}
           </Button>
         </div>
       </form>
@@ -246,4 +246,4 @@ function NewJobPage() {
   )
 }
 
-export default withAuth(NewJobPage, hasAdminAccess);
+export default withAuth(NewJobPage, hasAdminAccess)

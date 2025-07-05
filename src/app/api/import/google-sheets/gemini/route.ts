@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
 
 const GEMINI_PROMPT = `
 You are a data extraction and transformation specialist for the Holitime workforce management system. Your task is to analyze Google Sheets documents and extract workforce scheduling data, transforming it into a standardized CSV format for import.
@@ -290,14 +290,14 @@ function findColumnContainingKeywords(headerRowArray, keywords) {
     }
 }
     
-IMPORTANT: once you extract that data, go back and reanalyze the data you've extracted and to what column you've extracted them to, and try to infer as to what is likely misaligned. fix it before responding`;
+IMPORTANT: once you extract that data, go back and reanalyze the data you've extracted and to what column you've extracted them to, and try to infer as to what is likely misaligned. fix it before responding`
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
-    if (!user || user.role !== 'Manager/Admin') {
+    if (!user || user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -306,19 +306,19 @@ export async function POST(request: NextRequest) {
 
     if (!googleSheetsId || !sheetsData) {
       return NextResponse.json(
-        { error: 'Google Sheets ID and data are required' },
+        { error: "Google Sheets ID and data are required" },
         { status: 400 }
       )
     }
 
     if (!process.env.GOOGLE_AI_API_KEY) {
       return NextResponse.json(
-        { error: 'Gemini API not configured. Please set GOOGLE_AI_API_KEY environment variable.' },
+        { error: "Gemini API not configured. Please set GOOGLE_AI_API_KEY environment variable." },
         { status: 500 }
       )
     }
 
-    console.log('Gemini Processing: Starting analysis of Google Sheets data')
+    console.log("Gemini Processing: Starting analysis of Google Sheets data")
 
     // Prepare the data for Gemini
     const sheetsContent = JSON.stringify(sheetsData, null, 2)
@@ -340,9 +340,9 @@ Begin your response with "CSV_DATA:" followed by the CSV content, then "SUMMARY_
 
     // Call Gemini API
     const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${process.env.GOOGLE_AI_API_KEY}`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         contents: [{
@@ -379,9 +379,9 @@ Begin your response with "CSV_DATA:" followed by the CSV content, then "SUMMARY_
 
     if (!geminiResponse.ok) {
       const errorText = await geminiResponse.text()
-      console.error('Gemini API Error:', errorText)
+      console.error("Gemini API Error:", errorText)
       return NextResponse.json(
-        { error: 'Failed to process data with Gemini API' },
+        { error: "Failed to process data with Gemini API" },
         { status: 500 }
       )
     }
@@ -390,7 +390,7 @@ Begin your response with "CSV_DATA:" followed by the CSV content, then "SUMMARY_
     
     if (!geminiResult.candidates || geminiResult.candidates.length === 0) {
       return NextResponse.json(
-        { error: 'No response from Gemini API' },
+        { error: "No response from Gemini API" },
         { status: 500 }
       )
     }
@@ -403,15 +403,15 @@ Begin your response with "CSV_DATA:" followed by the CSV content, then "SUMMARY_
     
     if (!csvMatch) {
       return NextResponse.json(
-        { error: 'Could not extract CSV data from Gemini response' },
+        { error: "Could not extract CSV data from Gemini response" },
         { status: 500 }
       )
     }
 
     const csvData = csvMatch[1].trim()
-    const summaryReport = summaryMatch ? summaryMatch[1].trim() : 'No summary provided'
+    const summaryReport = summaryMatch ? summaryMatch[1].trim() : "No summary provided"
 
-    console.log('Gemini Processing: Successfully processed data')
+    console.log("Gemini Processing: Successfully processed data")
 
     return NextResponse.json({
       success: true,
@@ -421,9 +421,9 @@ Begin your response with "CSV_DATA:" followed by the CSV content, then "SUMMARY_
     })
 
   } catch (error) {
-    console.error('Error processing with Gemini:', error)
+    console.error("Error processing with Gemini:", error)
     return NextResponse.json(
-      { error: 'Failed to process Google Sheets data' },
+      { error: "Failed to process Google Sheets data" },
       { status: 500 }
     )
   }

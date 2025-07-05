@@ -101,14 +101,14 @@ export default function TimesheetViewPage() {
 
   // Robust date formatting function with mobile optimization
   const formatApprovalDate = (dateString?: string) => {
-    if (!dateString) return 'Not yet approved'
+    if (!dateString) return "Not yet approved"
 
     try {
       // Handle various date formats
       let date: Date
 
       // Try parsing as ISO string first
-      if (typeof dateString === 'string' && (dateString.includes('T') || dateString.includes('Z'))) {
+      if (typeof dateString === "string" && (dateString.includes("T") || dateString.includes("Z"))) {
         date = parseISO(dateString)
       } else {
         date = new Date(dateString)
@@ -116,23 +116,23 @@ export default function TimesheetViewPage() {
 
       // Validate the date
       if (!isValid(date)) {
-        console.warn('Invalid date received:', dateString)
-        return 'Invalid date'
+        console.warn("Invalid date received:", dateString)
+        return "Invalid date"
       }
 
       // Mobile: shorter format, Desktop: full format
-      if (typeof window !== 'undefined' && window.innerWidth < 768) {
-        return format(date, 'MMM d, yyyy h:mm a')
+      if (typeof window !== "undefined" && window.innerWidth < 768) {
+        return format(date, "MMM d, yyyy h:mm a")
       }
-      return format(date, 'MMMM d, yyyy \'at\' h:mm a')
+      return format(date, "MMMM d, yyyy 'at' h:mm a")
     } catch (error) {
-      console.error('Error formatting approval date:', dateString, error)
-      return 'Invalid date'
+      console.error("Error formatting approval date:", dateString, error)
+      return "Invalid date"
     }
   }
 
   const formatTime = (timeString?: string) => {
-    if (!timeString) return '-'
+    if (!timeString) return "-"
     return formatTo12Hour(timeString)
   }
 
@@ -144,7 +144,7 @@ export default function TimesheetViewPage() {
   }
 
   const formatTotalHours = (totalHours: number) => {
-    if (totalHours === 0) return '0h 0m'
+    if (totalHours === 0) return "0h 0m"
     const hours = Math.floor(totalHours)
     const minutes = Math.round((totalHours - hours) * 60)
     return `${hours}h ${minutes}m`
@@ -152,27 +152,27 @@ export default function TimesheetViewPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed':
-        return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Completed</Badge>
-      case 'rejected':
-        return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>
-      case 'pending_client_approval':
-        return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />Pending Client Approval</Badge>
-      case 'pending_manager_approval':
-        return <Badge variant="outline"><Shield className="h-3 w-3 mr-1" />Pending Manager Approval</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+    case "completed":
+      return <Badge className="bg-green-100 text-green-800"><CheckCircle className="h-3 w-3 mr-1" />Completed</Badge>
+    case "rejected":
+      return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" />Rejected</Badge>
+    case "pending_client_approval":
+      return <Badge variant="outline"><Clock className="h-3 w-3 mr-1" />Pending Client Approval</Badge>
+    case "pending_manager_approval":
+      return <Badge variant="outline"><Shield className="h-3 w-3 mr-1" />Pending Manager Approval</Badge>
+    default:
+      return <Badge variant="outline">{status}</Badge>
     }
   }
 
   const downloadPDF = async () => {
     try {
       const response = await fetch(`/api/timesheets/${timesheetId}/pdf`)
-      if (!response.ok) throw new Error('Failed to generate PDF')
+      if (!response.ok) throw new Error("Failed to generate PDF")
       
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
+      const a = document.createElement("a")
       a.href = url
       a.download = `timesheet-${timesheetData?.shift.jobName}-${timesheetData?.shift.date}.pdf`
       document.body.appendChild(a)
@@ -180,7 +180,7 @@ export default function TimesheetViewPage() {
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
     } catch (error) {
-      console.error('Error downloading PDF:', error)
+      console.error("Error downloading PDF:", error)
     }
   }
 
@@ -213,7 +213,7 @@ export default function TimesheetViewPage() {
         <Button
           variant="ghost"
           size="mobile"
-          onClick={() => router.push('/timesheets')}
+          onClick={() => router.push("/timesheets")}
           className="self-start -ml-2"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -224,7 +224,7 @@ export default function TimesheetViewPage() {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold font-headline">Timesheet Details 📋</h1>
             <p className="text-sm md:text-base text-muted-foreground">
-              {shift.jobName} • {format(new Date(shift.date), 'MMM d, yyyy')}
+              {shift.jobName} • {format(new Date(shift.date), "MMM d, yyyy")}
             </p>
           </div>
           <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2">
@@ -243,7 +243,7 @@ export default function TimesheetViewPage() {
       </div>
 
       {/* Rejection Notice */}
-      {timesheetData.status === 'rejected' && timesheetData.rejectionReason && (
+      {timesheetData.status === "rejected" && timesheetData.rejectionReason && (
         <Card className="border-red-200 bg-red-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-800">
@@ -346,7 +346,7 @@ export default function TimesheetViewPage() {
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-              <p className="font-medium">{format(new Date(shift.date), 'MMMM d, yyyy')}</p>
+              <p className="font-medium">{format(new Date(shift.date), "MMMM d, yyyy")}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Crew Chief</Label>
@@ -407,7 +407,7 @@ export default function TimesheetViewPage() {
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={worker.employeeAvatar} />
                             <AvatarFallback>
-                              {worker.employeeName.split(' ').map(n => n[0]).join('')}
+                              {worker.employeeName.split(" ").map(n => n[0]).join("")}
                             </AvatarFallback>
                           </Avatar>
                           <span className="font-medium">{worker.employeeName}</span>

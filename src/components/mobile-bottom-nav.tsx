@@ -1,18 +1,9 @@
-'use client'
+"use client"
 
-import React from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { 
-  Home, 
-  Calendar, 
-  Clock, 
-  User, 
-  FileText,
-  Bell,
-  Settings
-} from 'lucide-react'
+import React from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 
 interface NavItem {
   href: string
@@ -23,44 +14,18 @@ interface NavItem {
 
 interface MobileBottomNavProps {
   className?: string
-  pendingApprovals?: number
-  notifications?: number
+  navItems: NavItem[]
 }
 
-export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({ 
+export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   className = "",
-  pendingApprovals = 0,
-  notifications = 0
+  navItems
 }) => {
   const pathname = usePathname()
 
-  const navItems: NavItem[] = [
-    {
-      href: '/dashboard',
-      icon: Home,
-      label: 'Home'
-    },
-    {
-      href: '/shifts',
-      icon: Calendar,
-      label: 'Shifts'
-    },
-    {
-      href: '/timesheets',
-      icon: Clock,
-      label: 'Time',
-      badge: pendingApprovals
-    },
-    {
-      href: '/profile',
-      icon: User,
-      label: 'Profile'
-    }
-  ]
-
   const isActive = (href: string) => {
-    if (href === '/dashboard') {
-      return pathname === '/' || pathname === '/dashboard'
+    if (href === "/dashboard") {
+      return pathname === "/" || pathname === "/dashboard"
     }
     return pathname.startsWith(href)
   }
@@ -72,7 +37,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       "safe-area-inset-bottom", // For devices with home indicator
       className
     )}>
-      <div className="grid grid-cols-4 gap-1 px-2 py-1">
+      <div className={`grid grid-cols-${navItems.length} gap-1 px-2 py-1`}>
         {navItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.href)
@@ -100,7 +65,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 {/* Badge for notifications/pending items */}
                 {item.badge && item.badge > 0 && (
                   <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center">
-                    {item.badge > 99 ? '99+' : item.badge}
+                    {item.badge > 99 ? "99+" : item.badge}
                   </div>
                 )}
               </div>
@@ -188,9 +153,9 @@ export const useMobileNav = () => {
   const shouldShowBottomNav = React.useMemo(() => {
     // Hide bottom nav on certain pages
     const hiddenPaths = [
-      '/login',
-      '/register',
-      '/onboarding'
+      "/login",
+      "/register",
+      "/onboarding"
     ]
     
     return !hiddenPaths.some(path => pathname.startsWith(path))

@@ -1,41 +1,41 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
-import { globalCache } from '@/lib/cache'
-import { DocumentAssignment, DocumentAssignmentFilters, CreateDocumentAssignmentRequest, BulkAssignDocumentsRequest } from '@/types/documents'
-import { emailService } from '@/lib/email-service'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import { globalCache } from "@/lib/cache"
+import { DocumentAssignment, DocumentAssignmentFilters, CreateDocumentAssignmentRequest, BulkAssignDocumentsRequest } from "@/types/documents"
+import { emailService } from "@/lib/email-service"
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     const { searchParams } = new URL(request.url)
     const filters: DocumentAssignmentFilters = {
-      user_id: searchParams.get('user_id') ? parseInt(searchParams.get('user_id')!) : undefined,
-      template_id: searchParams.get('template_id') ? parseInt(searchParams.get('template_id')!) : undefined,
-      status: searchParams.get('status')?.split(',') as any,
-      priority: searchParams.get('priority')?.split(',') as any,
-      due_date_from: searchParams.get('due_date_from') || undefined,
-      due_date_to: searchParams.get('due_date_to') || undefined,
-      assigned_date_from: searchParams.get('assigned_date_from') || undefined,
-      assigned_date_to: searchParams.get('assigned_date_to') || undefined,
-      is_required: searchParams.get('is_required') === 'true' ? true : searchParams.get('is_required') === 'false' ? false : undefined,
-      role: searchParams.get('role')?.split(','),
-      search: searchParams.get('search') || undefined,
-      page: parseInt(searchParams.get('page') || '1'),
-      limit: parseInt(searchParams.get('limit') || '50'),
-      sort_by: searchParams.get('sort_by') || 'assigned_at',
-      sort_order: (searchParams.get('sort_order') as 'asc' | 'desc') || 'desc'
+      user_id: searchParams.get("user_id") ? parseInt(searchParams.get("user_id")!) : undefined,
+      template_id: searchParams.get("template_id") ? parseInt(searchParams.get("template_id")!) : undefined,
+      status: searchParams.get("status")?.split(",") as any,
+      priority: searchParams.get("priority")?.split(",") as any,
+      due_date_from: searchParams.get("due_date_from") || undefined,
+      due_date_to: searchParams.get("due_date_to") || undefined,
+      assigned_date_from: searchParams.get("assigned_date_from") || undefined,
+      assigned_date_to: searchParams.get("assigned_date_to") || undefined,
+      is_required: searchParams.get("is_required") === "true" ? true : searchParams.get("is_required") === "false" ? false : undefined,
+      role: searchParams.get("role")?.split(","),
+      search: searchParams.get("search") || undefined,
+      page: parseInt(searchParams.get("page") || "1"),
+      limit: parseInt(searchParams.get("limit") || "50"),
+      sort_by: searchParams.get("sort_by") || "assigned_at",
+      sort_order: (searchParams.get("sort_order") as "asc" | "desc") || "desc"
     }
 
     // For non-admin users, only show their own assignments
-    if (user.role !== 'Manager/Admin' && user.role !== 'Crew Chief') {
+    if (user.role !== "Manager/Admin" && user.role !== "Crew Chief") {
       filters.user_id = user.id
     }
 
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
       paramIndex++
     }
 
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(" AND ")}` : ""
 
     // Get total count
     const countQuery = `
@@ -187,16 +187,16 @@ export async function GET(request: NextRequest) {
         name: row.template_name,
         description: row.template_description,
         document_type: row.document_type,
-        file_path: '',
+        file_path: "",
         file_size: 0,
-        mime_type: '',
+        mime_type: "",
         version: 1,
         is_active: true,
         is_required: row.template_required,
         applicable_roles: [],
         auto_assign_new_users: false,
-        created_at: '',
-        updated_at: ''
+        created_at: "",
+        updated_at: ""
       },
       user: {
         id: row.user_id,
@@ -242,9 +242,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('Error fetching document assignments:', error)
+    console.error("Error fetching document assignments:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -255,15 +255,15 @@ export async function POST(request: NextRequest) {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers, admins, and crew chiefs can assign documents
-    if (user.role !== 'Manager/Admin' && user.role !== 'Crew Chief') {
+    if (user.role !== "Manager/Admin" && user.role !== "Crew Chief") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -271,15 +271,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     // Check if this is a bulk assignment
-    if ('template_ids' in body && 'user_ids' in body) {
+    if ("template_ids" in body && "user_ids" in body) {
       return handleBulkAssignment(body as BulkAssignDocumentsRequest, user)
     } else {
       return handleSingleAssignment(body as CreateDocumentAssignmentRequest, user)
     }
   } catch (error) {
-    console.error('Error creating document assignment:', error)
+    console.error("Error creating document assignment:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -289,20 +289,20 @@ async function handleSingleAssignment(assignmentData: CreateDocumentAssignmentRe
   // Validate required fields
   if (!assignmentData.user_id || !assignmentData.template_id) {
     return NextResponse.json(
-      { error: 'Missing required fields' },
+      { error: "Missing required fields" },
       { status: 400 }
     )
   }
 
   // Check if assignment already exists
   const existingResult = await query(
-    'SELECT id FROM document_assignments WHERE user_id = $1 AND template_id = $2',
+    "SELECT id FROM document_assignments WHERE user_id = $1 AND template_id = $2",
     [assignmentData.user_id, assignmentData.template_id]
   )
 
   if (existingResult.rows.length > 0) {
     return NextResponse.json(
-      { error: 'Document already assigned to this user' },
+      { error: "Document already assigned to this user" },
       { status: 400 }
     )
   }
@@ -347,21 +347,21 @@ async function handleSingleAssignment(assignmentData: CreateDocumentAssignmentRe
       variables: {
         userName: details.user_name,
         documentName: details.template_name,
-        dueDate: assignmentData.due_date ? new Date(assignmentData.due_date).toLocaleDateString() : 'No due date',
+        dueDate: assignmentData.due_date ? new Date(assignmentData.due_date).toLocaleDateString() : "No due date",
         priority: assignmentData.priority
       }
     })
   } catch (emailError) {
-    console.error('Failed to send assignment email:', emailError)
+    console.error("Failed to send assignment email:", emailError)
   }
 
   // Invalidate cache
-  globalCache.invalidateByTag('document_assignments')
+  globalCache.invalidateByTag("document_assignments")
 
   return NextResponse.json({
     success: true,
     assignment,
-    message: 'Document assigned successfully'
+    message: "Document assigned successfully"
   })
 }
 
@@ -369,7 +369,7 @@ async function handleBulkAssignment(bulkData: BulkAssignDocumentsRequest, user: 
   // Validate required fields
   if (!bulkData.template_ids?.length || !bulkData.user_ids?.length) {
     return NextResponse.json(
-      { error: 'Missing required fields' },
+      { error: "Missing required fields" },
       { status: 400 }
     )
   }
@@ -382,7 +382,7 @@ async function handleBulkAssignment(bulkData: BulkAssignDocumentsRequest, user: 
       try {
         // Check if assignment already exists
         const existingResult = await query(
-          'SELECT id FROM document_assignments WHERE user_id = $1 AND template_id = $2',
+          "SELECT id FROM document_assignments WHERE user_id = $1 AND template_id = $2",
           [userId, templateId]
         )
 
@@ -413,7 +413,7 @@ async function handleBulkAssignment(bulkData: BulkAssignDocumentsRequest, user: 
   }
 
   // Invalidate cache
-  globalCache.invalidateByTag('document_assignments')
+  globalCache.invalidateByTag("document_assignments")
 
   return NextResponse.json({
     success: true,

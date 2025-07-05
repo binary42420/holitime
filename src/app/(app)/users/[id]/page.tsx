@@ -1,7 +1,7 @@
-'use client'
+"use client"
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -41,13 +41,13 @@ interface UserProfilePageProps {
   params: Promise<{ id: string }>
 }
 
-type TimeFilter = 'weekly' | 'biweekly' | 'monthly' | 'yearly'
+type TimeFilter = "weekly" | "biweekly" | "monthly" | "yearly"
 
 function UserProfilePage({ params }: UserProfilePageProps) {
   const { toast } = useToast()
   const router = useRouter()
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('monthly')
-  const [userId, setUserId] = useState<string>('')
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>("monthly")
+  const [userId, setUserId] = useState<string>("")
 
   // Unwrap params
   React.useEffect(() => {
@@ -73,23 +73,23 @@ function UserProfilePage({ params }: UserProfilePageProps) {
     let startDate = new Date()
 
     switch (timeFilter) {
-      case 'weekly':
-        startDate.setDate(now.getDate() - 7)
-        break
-      case 'biweekly':
-        startDate.setDate(now.getDate() - 14)
-        break
-      case 'monthly':
-        startDate.setMonth(now.getMonth() - 1)
-        break
-      case 'yearly':
-        startDate.setFullYear(now.getFullYear() - 1)
-        break
+    case "weekly":
+      startDate.setDate(now.getDate() - 7)
+      break
+    case "biweekly":
+      startDate.setDate(now.getDate() - 14)
+      break
+    case "monthly":
+      startDate.setMonth(now.getMonth() - 1)
+      break
+    case "yearly":
+      startDate.setFullYear(now.getFullYear() - 1)
+      break
     }
 
     const filteredShifts = shifts.filter(shift => {
       const shiftDate = new Date(shift.date)
-      return shiftDate >= startDate && shift.status === 'Completed'
+      return shiftDate >= startDate && shift.status === "Completed"
     })
 
     return filteredShifts.reduce((total, shift) => {
@@ -105,8 +105,8 @@ function UserProfilePage({ params }: UserProfilePageProps) {
     
     try {
       const response = await fetch(`/api/users/${user.id}/password-reset`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
       })
 
       if (response.ok) {
@@ -115,7 +115,7 @@ function UserProfilePage({ params }: UserProfilePageProps) {
           description: `Password reset email sent to ${user.email}`,
         })
       } else {
-        throw new Error('Failed to send password reset')
+        throw new Error("Failed to send password reset")
       }
     } catch (error) {
       toast({
@@ -146,27 +146,27 @@ function UserProfilePage({ params }: UserProfilePageProps) {
 
   const getRoleIcon = (role: string) => {
     switch (role) {
-      case 'Manager/Admin':
-        return <Shield className="h-4 w-4" />
-      case 'Client':
-        return <Building2 className="h-4 w-4" />
-      case 'Crew Chief':
-        return <UserCheck className="h-4 w-4" />
-      default:
-        return <User className="h-4 w-4" />
+    case "Manager/Admin":
+      return <Shield className="h-4 w-4" />
+    case "Client":
+      return <Building2 className="h-4 w-4" />
+    case "Crew Chief":
+      return <UserCheck className="h-4 w-4" />
+    default:
+      return <User className="h-4 w-4" />
     }
   }
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case 'Manager/Admin':
-        return 'destructive'
-      case 'Client':
-        return 'secondary'
-      case 'Crew Chief':
-        return 'default'
-      default:
-        return 'outline'
+    case "Manager/Admin":
+      return "destructive"
+    case "Client":
+      return "secondary"
+    case "Crew Chief":
+      return "default"
+    default:
+      return "outline"
     }
   }
 
@@ -184,7 +184,7 @@ function UserProfilePage({ params }: UserProfilePageProps) {
               <p className="text-muted-foreground mb-4">
                 The user you're looking for doesn't exist or you don't have permission to view it.
               </p>
-              <Button onClick={() => router.push('/users')}>
+              <Button onClick={() => router.push("/users")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Users
               </Button>
@@ -202,7 +202,7 @@ function UserProfilePage({ params }: UserProfilePageProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/users')}>
+          <Button variant="ghost" size="sm" onClick={() => router.push("/users")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Users
           </Button>
@@ -210,7 +210,7 @@ function UserProfilePage({ params }: UserProfilePageProps) {
             <Avatar className="h-16 w-16">
               <AvatarImage src={user.avatar} />
               <AvatarFallback className="text-lg">
-                {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                {user.name.split(" ").map(n => n[0]).join("").toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div>
@@ -251,6 +251,10 @@ function UserProfilePage({ params }: UserProfilePageProps) {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <Button onClick={() => router.push(`/users/${user.id}/edit`)}>
+          <Edit className="mr-2 h-4 w-4" />
+          Edit User
+        </Button>
       </div>
 
       {/* User Details */}
@@ -298,7 +302,7 @@ function UserProfilePage({ params }: UserProfilePageProps) {
             </CardTitle>
             <CardDescription>
               <Select value={timeFilter} onValueChange={(value) => setTimeFilter(value as TimeFilter)}>
-                <SelectTrigger className="w-32">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -314,7 +318,7 @@ function UserProfilePage({ params }: UserProfilePageProps) {
             <div className="text-center">
               <div className="text-3xl font-bold text-primary">{totalHours.toFixed(1)}</div>
               <div className="text-sm text-muted-foreground">
-                hours in the last {timeFilter === 'biweekly' ? '2 weeks' : timeFilter.replace('ly', '')}
+                hours in the last {timeFilter === "biweekly" ? "2 weeks" : timeFilter.replace("ly", "")}
               </div>
             </div>
           </CardContent>
@@ -322,7 +326,7 @@ function UserProfilePage({ params }: UserProfilePageProps) {
       </div>
 
       {/* Employee Certifications */}
-      {(user.role === 'Employee' || user.role === 'Crew Chief') && (
+      {(user.role === "Employee" || user.role === "Crew Chief") && (
         <Card>
           <CardHeader>
             <CardTitle>Certifications & Eligibility</CardTitle>
@@ -384,7 +388,7 @@ function UserProfilePage({ params }: UserProfilePageProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={shift.status === 'Completed' ? 'default' : 'secondary'}>
+                    <Badge variant={shift.status === "Completed" ? "default" : "secondary"}>
                       {shift.status}
                     </Badge>
                     <Button variant="outline" size="sm" onClick={() => router.push(`/shifts/${shift.id}`)}>
@@ -393,6 +397,13 @@ function UserProfilePage({ params }: UserProfilePageProps) {
                   </div>
                 </div>
               ))}
+              {shifts.length > 10 && (
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href={`/shifts?userId=${user.id}`}>
+                    View All Shifts
+                  </Link>
+                </Button>
+              )}
             </div>
           ) : (
             <div className="text-center py-12">

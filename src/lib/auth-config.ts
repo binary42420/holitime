@@ -1,27 +1,27 @@
-import { NextAuthOptions } from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { authenticateUser, createUser, getUserByEmail } from './auth';
+import { NextAuthOptions } from "next-auth"
+import GoogleProvider from "next-auth/providers/google"
+import CredentialsProvider from "next-auth/providers/credentials"
+import { authenticateUser, createUser, getUserByEmail } from "./auth"
 
 export const authOptions: NextAuthOptions = {
   providers: [
     // Credentials Provider (existing username/password)
     CredentialsProvider({
-      name: 'credentials',
+      name: "credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null;
+          return null
         }
 
         try {
           const result = await authenticateUser({
             email: credentials.email,
             password: credentials.password
-          });
+          })
 
           if (result) {
             return {
@@ -30,12 +30,12 @@ export const authOptions: NextAuthOptions = {
               name: result.user.name,
               role: result.user.role,
               image: result.user.avatar,
-            };
+            }
           }
-          return null;
+          return null
         } catch (error) {
-          console.error('Credentials auth error:', error);
-          return null;
+          console.error("Credentials auth error:", error)
+          return null
         }
       }
     }),
@@ -48,14 +48,14 @@ export const authOptions: NextAuthOptions = {
         authorization: {
           params: {
             scope: [
-              'https://www.googleapis.com/auth/userinfo.email',
-              'https://www.googleapis.com/auth/userinfo.profile',
-              'openid',
-              'email',
-              'profile'
-            ].join(' '),
-            access_type: 'offline',
-            prompt: 'consent'
+              "https://www.googleapis.com/auth/userinfo.email",
+              "https://www.googleapis.com/auth/userinfo.profile",
+              "openid",
+              "email",
+              "profile"
+            ].join(" "),
+            access_type: "offline",
+            prompt: "consent"
           }
         }
       })
@@ -65,30 +65,30 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async signIn({ user, account, profile }) {
       try {
-        if (account?.provider === 'google') {
+        if (account?.provider === "google") {
           // Check if user exists in our database
-          const existingUser = await getUserByEmail(user.email!);
+          const existingUser = await getUserByEmail(user.email!)
 
           if (!existingUser) {
             // Create new user for Google OAuth
             const newUser = await createUser({
               email: user.email!,
-              password: 'oauth_user', // Placeholder password for OAuth users
+              password: "oauth_user", // Placeholder password for OAuth users
               name: user.name!,
-              role: 'Employee', // Default role, can be changed by admin
-            });
+              role: "Employee", // Default role, can be changed by admin
+            })
 
             if (!newUser) {
-              console.error('Failed to create user for Google OAuth');
-              return false;
+              console.error("Failed to create user for Google OAuth")
+              return false
             }
           }
         }
 
-        return true;
+        return true
       } catch (error) {
-        console.error('Sign-in error:', error);
-        return true; // Allow sign-in even if database operations fail
+        console.error("Sign-in error:", error)
+        return true // Allow sign-in even if database operations fail
       }
     },
 
@@ -96,61 +96,61 @@ export const authOptions: NextAuthOptions = {
       try {
         if (user) {
           // Get user data from our database
-          const dbUser = await getUserByEmail(user.email!);
+          const dbUser = await getUserByEmail(user.email!)
           if (dbUser) {
-            token.id = dbUser.id;
-            token.role = dbUser.role;
-            token.clientCompanyId = dbUser.clientCompanyId || undefined;
+            token.id = dbUser.id
+            token.role = dbUser.role
+            token.clientCompanyId = dbUser.clientCompanyId || undefined
           }
         }
-        return token;
+        return token
       } catch (error) {
-        console.error('JWT callback error:', error);
+        console.error("JWT callback error:", error)
         // Return token even if there's an error to prevent auth failure
-        return token;
+        return token
       }
     },
 
     async session({ session, token }) {
       try {
         if (token && session.user) {
-          session.user.id = token.id as string;
-          session.user.role = token.role as string;
-          session.user.clientCompanyId = token.clientCompanyId as string;
+          session.user.id = token.id as string
+          session.user.role = token.role as string
+          session.user.clientCompanyId = token.clientCompanyId as string
         }
-        return session;
+        return session
       } catch (error) {
-        console.error('Session callback error:', error);
+        console.error("Session callback error:", error)
         // Return session even if there's an error to prevent auth failure
-        return session;
+        return session
       }
     }
   },
 
   pages: {
-    signIn: '/login',
-    error: '/login',
+    signIn: "/login",
+    error: "/login",
   },
 
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env.NODE_ENV === "development",
 
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
 
-  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-for-development',
+  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-development",
 
   // Add CORS configuration for production
   cookies: {
     sessionToken: {
-      name: process.env.NODE_ENV === 'production' ? '__Secure-next-auth.session-token' : 'next-auth.session-token',
+      name: process.env.NODE_ENV === "production" ? "__Secure-next-auth.session-token" : "next-auth.session-token",
       options: {
         httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NODE_ENV === 'production',
+        sameSite: "lax",
+        path: "/",
+        secure: process.env.NODE_ENV === "production",
       },
     },
   },
-};
+}

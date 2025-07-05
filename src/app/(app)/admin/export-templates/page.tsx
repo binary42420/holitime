@@ -1,9 +1,9 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import React, { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Table,
   TableBody,
@@ -11,7 +11,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'
+} from "@/components/ui/table"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,9 +22,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog'
-import { useToast } from '@/hooks/use-toast'
-import { format } from 'date-fns'
+} from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
+import { format } from "date-fns"
 import { 
   FileSpreadsheet, 
   Plus, 
@@ -33,8 +33,8 @@ import {
   Settings,
   Star,
   Copy
-} from 'lucide-react'
-import Link from 'next/link'
+} from "lucide-react"
+import Link from "next/link"
 
 interface ExportTemplate {
   id: string
@@ -58,12 +58,12 @@ export default function ExportTemplatesPage() {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/admin/export-templates')
+      const response = await fetch("/api/admin/export-templates")
       if (response.ok) {
         const data = await response.json()
         setTemplates(data.templates)
       } else {
-        throw new Error('Failed to fetch templates')
+        throw new Error("Failed to fetch templates")
       }
     } catch (error) {
       toast({
@@ -80,7 +80,7 @@ export default function ExportTemplatesPage() {
     setDeleteLoading(templateId)
     try {
       const response = await fetch(`/api/admin/export-templates/${templateId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       })
 
       if (response.ok) {
@@ -91,7 +91,7 @@ export default function ExportTemplatesPage() {
         fetchTemplates()
       } else {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to delete template')
+        throw new Error(errorData.error || "Failed to delete template")
       }
     } catch (error) {
       toast({
@@ -109,17 +109,17 @@ export default function ExportTemplatesPage() {
       // First, get the template details
       const response = await fetch(`/api/admin/export-templates/${templateId}`)
       if (!response.ok) {
-        throw new Error('Failed to fetch template details')
+        throw new Error("Failed to fetch template details")
       }
 
       const data = await response.json()
       const template = data.template
 
       // Create a duplicate with modified name
-      const duplicateResponse = await fetch('/api/admin/export-templates', {
-        method: 'POST',
+      const duplicateResponse = await fetch("/api/admin/export-templates", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: `${template.name} (Copy)`,
@@ -137,7 +137,7 @@ export default function ExportTemplatesPage() {
         fetchTemplates()
       } else {
         const errorData = await duplicateResponse.json()
-        throw new Error(errorData.error || 'Failed to duplicate template')
+        throw new Error(errorData.error || "Failed to duplicate template")
       }
     } catch (error) {
       toast({
@@ -223,7 +223,7 @@ export default function ExportTemplatesPage() {
                     </TableCell>
                     <TableCell>
                       <span className="text-muted-foreground">
-                        {template.description || 'No description'}
+                        {template.description || "No description"}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -233,9 +233,9 @@ export default function ExportTemplatesPage() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div>{format(new Date(template.createdAt), 'MMM dd, yyyy')}</div>
+                        <div>{format(new Date(template.createdAt), "MMM dd, yyyy")}</div>
                         <div className="text-muted-foreground">
-                          by {template.createdBy || 'System'}
+                          by {template.createdBy || "System"}
                         </div>
                       </div>
                     </TableCell>

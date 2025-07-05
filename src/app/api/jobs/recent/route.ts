@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { query } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
     // Get jobs with their most recent activity (shifts)
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       GROUP BY j.id, j.name, j.description, j.client_id, j.created_at, j.updated_at, c.company_name
       ORDER BY last_activity DESC, j.created_at DESC
       LIMIT 50
-    `);
+    `)
 
     const jobs = result.rows.map(row => ({
       id: row.id,
@@ -53,18 +53,18 @@ export async function GET(request: NextRequest) {
       lastActivity: row.last_activity,
       upcomingShifts: parseInt(row.upcoming_shifts) || 0,
       activeShifts: parseInt(row.active_shifts) || 0,
-      lastActivityType: row.most_recent_shift ? 'shift' : 'created'
-    }));
+      lastActivityType: row.most_recent_shift ? "shift" : "created"
+    }))
 
     return NextResponse.json({
       success: true,
       jobs,
-    });
+    })
   } catch (error) {
-    console.error('Error getting recent jobs:', error);
+    console.error("Error getting recent jobs:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

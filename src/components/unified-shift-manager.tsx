@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -69,7 +69,7 @@ interface AssignedWorker {
   employeeAvatar: string;
   roleOnShift: string;
   roleCode: string;
-  status: 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended' | 'shift_ended' | 'not_started';
+  status: "Clocked Out" | "Clocked In" | "On Break" | "Shift Ended" | "shift_ended" | "not_started";
   timeEntries: TimeEntry[];
 }
 
@@ -88,59 +88,59 @@ interface ActionState {
 }
 
 const roleColors = {
-  'CC': { name: 'Crew Chief', color: 'text-blue-700', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' },
-  'SH': { name: 'Stage Hand', color: 'text-green-700', bgColor: 'bg-green-50', borderColor: 'border-green-200' },
-  'FO': { name: 'Fork Operator', color: 'text-purple-700', bgColor: 'bg-purple-50', borderColor: 'border-purple-200' },
-  'RFO': { name: 'Rough Fork Operator', color: 'text-orange-700', bgColor: 'bg-orange-50', borderColor: 'border-orange-200' },
-  'RG': { name: 'Rigger', color: 'text-red-700', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
-  'GL': { name: 'General Labor', color: 'text-gray-700', bgColor: 'bg-gray-50', borderColor: 'border-gray-200' },
+  "CC": { name: "Crew Chief", color: "text-blue-700", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
+  "SH": { name: "Stage Hand", color: "text-green-700", bgColor: "bg-green-50", borderColor: "border-green-200" },
+  "FO": { name: "Fork Operator", color: "text-purple-700", bgColor: "bg-purple-50", borderColor: "border-purple-200" },
+  "RFO": { name: "Rough Fork Operator", color: "text-orange-700", bgColor: "bg-orange-50", borderColor: "border-orange-200" },
+  "RG": { name: "Rigger", color: "text-red-700", bgColor: "bg-red-50", borderColor: "border-red-200" },
+  "GL": { name: "General Labor", color: "text-gray-700", bgColor: "bg-gray-50", borderColor: "border-gray-200" },
 } as const
 
 const getStatusConfig = (status: string) => {
   switch (status) {
-    case 'not_started':
-      return {
-        label: 'Not Started',
-        color: 'bg-gray-100 text-gray-800',
-        icon: Clock,
-        description: 'Ready to clock in'
-      }
-    case 'Clocked In':
-      return {
-        label: 'Working',
-        color: 'bg-green-100 text-green-800',
-        icon: Play,
-        description: 'Currently working'
-      }
-    case 'Clocked Out':
-      return {
-        label: 'On Break',
-        color: 'bg-yellow-100 text-yellow-800',
-        icon: Coffee,
-        description: 'On break'
-      }
-    case 'Shift Ended':
-    case 'shift_ended':
-      return {
-        label: 'Completed',
-        color: 'bg-blue-100 text-blue-800',
-        icon: CheckCircle2,
-        description: 'Shift completed'
-      }
-    case 'no_show':
-      return {
-        label: 'No Show',
-        color: 'bg-red-100 text-red-800',
-        icon: UserX,
-        description: 'Did not show up for shift'
-      }
-    default:
-      return {
-        label: status,
-        color: 'bg-gray-100 text-gray-800',
-        icon: AlertCircle,
-        description: 'Unknown status'
-      }
+  case "not_started":
+    return {
+      label: "Not Started",
+      color: "bg-gray-100 text-gray-800",
+      icon: Clock,
+      description: "Ready to clock in"
+    }
+  case "Clocked In":
+    return {
+      label: "Working",
+      color: "bg-green-100 text-green-800",
+      icon: Play,
+      description: "Currently working"
+    }
+  case "Clocked Out":
+    return {
+      label: "On Break",
+      color: "bg-yellow-100 text-yellow-800",
+      icon: Coffee,
+      description: "On break"
+    }
+  case "Shift Ended":
+  case "shift_ended":
+    return {
+      label: "Completed",
+      color: "bg-blue-100 text-blue-800",
+      icon: CheckCircle2,
+      description: "Shift completed"
+    }
+  case "no_show":
+    return {
+      label: "No Show",
+      color: "bg-red-100 text-red-800",
+      icon: UserX,
+      description: "Did not show up for shift"
+    }
+  default:
+    return {
+      label: status,
+      color: "bg-gray-100 text-gray-800",
+      icon: AlertCircle,
+      description: "Unknown status"
+    }
   }
 }
 
@@ -162,12 +162,12 @@ const calculateTotalHours = (timeEntries: TimeEntry[] = []) => {
 
 // Helper function to format time in 12-hour format with AM/PM
 const formatTime12Hour = (timeString: string | undefined): string => {
-  if (!timeString) return ''
+  if (!timeString) return ""
   try {
     const date = new Date(timeString)
-    return format(date, 'h:mm a')
+    return format(date, "h:mm a")
   } catch {
-    return ''
+    return ""
   }
 }
 
@@ -190,7 +190,7 @@ export default function UnifiedShiftManager({
   isOnline = true,
   shift
 }: UnifiedShiftManagerProps) {
-  const { hasPermission, permissionCheck, isLoading: permissionLoading } = useCrewChiefPermissions(shiftId);
+  const { hasPermission, permissionCheck, isLoading: permissionLoading } = useCrewChiefPermissions(shiftId)
   const { toast } = useToast()
   const [actionState, setActionState] = useState<ActionState>({
     isProcessing: false,
@@ -203,10 +203,10 @@ export default function UnifiedShiftManager({
 
   // Calculate shift statistics
   const totalWorkers = assignedPersonnel.length
-  const workingCount = assignedPersonnel.filter(w => w.status === 'Clocked In').length
-  const completedCount = assignedPersonnel.filter(w => ['Shift Ended', 'shift_ended'].includes(w.status)).length
-  const notStartedCount = assignedPersonnel.filter(w => w.status === 'not_started').length
-  const onBreakCount = assignedPersonnel.filter(w => w.status === 'Clocked Out').length
+  const workingCount = assignedPersonnel.filter(w => w.status === "Clocked In").length
+  const completedCount = assignedPersonnel.filter(w => ["Shift Ended", "shift_ended"].includes(w.status)).length
+  const notStartedCount = assignedPersonnel.filter(w => w.status === "not_started").length
+  const onBreakCount = assignedPersonnel.filter(w => w.status === "Clocked Out").length
 
   // Calculate completion percentage
   const completionPercentage = totalWorkers > 0 ? (completedCount / totalWorkers) * 100 : 0
@@ -227,7 +227,7 @@ export default function UnifiedShiftManager({
         }
       }
     } catch (error) {
-      console.warn('Failed to fetch timesheet status:', error)
+      console.warn("Failed to fetch timesheet status:", error)
     }
   }, [shiftId])
 
@@ -275,7 +275,7 @@ export default function UnifiedShiftManager({
         // For server errors (5xx), retry
         throw new Error(`Server error: ${response.status}`)
       } catch (error) {
-        lastError = error instanceof Error ? error : new Error('Unknown error')
+        lastError = error instanceof Error ? error : new Error("Unknown error")
 
         if (attempt < maxRetries) {
           await new Promise(resolve => setTimeout(resolve, delay * attempt))
@@ -284,10 +284,10 @@ export default function UnifiedShiftManager({
       }
     }
 
-    throw lastError || new Error('Operation failed after retries')
+    throw lastError || new Error("Operation failed after retries")
   }, [])
 
-  const handleClockAction = async (assignmentId: string, action: 'clock_in' | 'clock_out') => {
+  const handleClockAction = async (assignmentId: string, action: "clock_in" | "clock_out") => {
     if (!isOnline) {
       toast({
         title: "Offline",
@@ -316,15 +316,15 @@ export default function UnifiedShiftManager({
     try {
       await executeWithRetry(async () => {
         return fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}/clock`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action })
         })
       })
 
       toast({
-        title: action === 'clock_in' ? "Clocked In" : "Clocked Out",
-        description: `${worker.employeeName} has been ${action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully`,
+        title: action === "clock_in" ? "Clocked In" : "Clocked Out",
+        description: `${worker.employeeName} has been ${action === "clock_in" ? "clocked in" : "clocked out"} successfully`,
       })
 
       // Immediate update after successful action
@@ -335,7 +335,7 @@ export default function UnifiedShiftManager({
       console.error(`Error ${action}:`, error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : `Failed to ${action.replace('_', ' ')}`,
+        description: error instanceof Error ? error.message : `Failed to ${action.replace("_", " ")}`,
         variant: "destructive",
       })
     } finally {
@@ -366,7 +366,7 @@ export default function UnifiedShiftManager({
     try {
       await executeWithRetry(async () => {
         return fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}/end-shift`, {
-          method: 'POST'
+          method: "POST"
         })
       })
 
@@ -379,7 +379,7 @@ export default function UnifiedShiftManager({
       setLastUpdateTime(new Date())
 
     } catch (error) {
-      console.error('Error ending shift:', error)
+      console.error("Error ending shift:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to end shift",
@@ -405,7 +405,7 @@ export default function UnifiedShiftManager({
     }
 
     const activeWorkers = assignedPersonnel.filter(w =>
-      !['Shift Ended', 'shift_ended'].includes(w.status)
+      !["Shift Ended", "shift_ended"].includes(w.status)
     )
 
     if (activeWorkers.length === 0) {
@@ -419,13 +419,13 @@ export default function UnifiedShiftManager({
     setActionState(prev => ({
       ...prev,
       isProcessing: true,
-      lastAction: 'end_all_shifts'
+      lastAction: "end_all_shifts"
     }))
 
     try {
       await executeWithRetry(async () => {
         return fetch(`/api/shifts/${shiftId}/end-all-shifts`, {
-          method: 'POST'
+          method: "POST"
         })
       })
 
@@ -438,7 +438,7 @@ export default function UnifiedShiftManager({
       setLastUpdateTime(new Date())
 
     } catch (error) {
-      console.error('Error ending all shifts:', error)
+      console.error("Error ending all shifts:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to end all shifts",
@@ -472,8 +472,8 @@ export default function UnifiedShiftManager({
     try {
       await executeWithRetry(async () => {
         return fetch(`/api/shifts/${shiftId}/no-show`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ workerId }),
         })
       })
@@ -487,7 +487,7 @@ export default function UnifiedShiftManager({
       setLastUpdateTime(new Date())
 
     } catch (error) {
-      console.error('Error marking no-show:', error)
+      console.error("Error marking no-show:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to mark no-show",
@@ -513,7 +513,7 @@ export default function UnifiedShiftManager({
     }
 
     const incompleteWorkers = assignedPersonnel.filter(w =>
-      !['Shift Ended', 'shift_ended'].includes(w.status)
+      !["Shift Ended", "shift_ended"].includes(w.status)
     )
 
     if (incompleteWorkers.length > 0) {
@@ -528,13 +528,13 @@ export default function UnifiedShiftManager({
     setActionState(prev => ({
       ...prev,
       isProcessing: true,
-      lastAction: 'finalize_timesheet'
+      lastAction: "finalize_timesheet"
     }))
 
     try {
       const response = await executeWithRetry(async () => {
         return fetch(`/api/shifts/${shiftId}/finalize-timesheet-simple`, {
-          method: 'POST'
+          method: "POST"
         })
       })
 
@@ -547,9 +547,9 @@ export default function UnifiedShiftManager({
       if (result.timesheetId) {
         // Open in new tab with error handling
         try {
-          window.open(`/timesheets/${result.timesheetId}/approve`, '_blank')
+          window.open(`/timesheets/${result.timesheetId}/approve`, "_blank")
         } catch (popupError) {
-          console.warn('Popup blocked, showing link instead')
+          console.warn("Popup blocked, showing link instead")
           toast({
             title: "Timesheet Ready",
             description: "Click here to view the timesheet approval page",
@@ -570,7 +570,7 @@ export default function UnifiedShiftManager({
       setLastUpdateTime(new Date())
 
     } catch (error) {
-      console.error('Error finalizing timesheet:', error)
+      console.error("Error finalizing timesheet:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to finalize timesheet",
@@ -615,13 +615,13 @@ export default function UnifiedShiftManager({
                 onClick={handleManualRefresh}
                 disabled={actionState.isProcessing}
               >
-                <RefreshCw className={`h-4 w-4 ${actionState.isProcessing ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 ${actionState.isProcessing ? "animate-spin" : ""}`} />
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
-                className={autoRefreshEnabled ? 'text-green-600' : 'text-gray-400'}
+                className={autoRefreshEnabled ? "text-green-600" : "text-gray-400"}
               >
                 <Timer className="h-4 w-4" />
               </Button>
@@ -630,8 +630,8 @@ export default function UnifiedShiftManager({
           <CardDescription>
             Track employee attendance and manage shift operations
             <div className="text-xs text-muted-foreground mt-1">
-              Last updated: {format(lastUpdateTime, 'HH:mm:ss')}
-              {autoRefreshEnabled && ' • Auto-refresh enabled'}
+              Last updated: {format(lastUpdateTime, "HH:mm:ss")}
+              {autoRefreshEnabled && " • Auto-refresh enabled"}
             </div>
           </CardDescription>
         </CardHeader>
@@ -718,7 +718,7 @@ export default function UnifiedShiftManager({
                         <div className="flex items-center gap-3">
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={worker.employeeAvatar} alt={worker.employeeName} />
-                            <AvatarFallback>{worker.employeeName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                            <AvatarFallback>{worker.employeeName.split(" ").map(n => n[0]).join("")}</AvatarFallback>
                           </Avatar>
                           <div>
                             <div className="font-medium">{worker.employeeName}</div>
@@ -775,7 +775,7 @@ export default function UnifiedShiftManager({
                             }
                           >
                             {/* No Show Button */}
-                            {worker.status === 'not_started' && (
+                            {worker.status === "not_started" && (
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
@@ -795,17 +795,17 @@ export default function UnifiedShiftManager({
                                     </Button>
                                   </TooltipTrigger>
                                   <TooltipContent>
-                                    <p>{noShowEnabled ? 'Mark worker as no-show' : 'Available 30 minutes after shift start'}</p>
+                                    <p>{noShowEnabled ? "Mark worker as no-show" : "Available 30 minutes after shift start"}</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
                             )}
 
                             {/* Clock In Button */}
-                            {worker.status === 'not_started' && (
+                            {worker.status === "not_started" && (
                               <Button
                                 size="sm"
-                                onClick={() => handleClockAction(worker.id, 'clock_in')}
+                                onClick={() => handleClockAction(worker.id, "clock_in")}
                                 disabled={actionState.isProcessing || !isOnline || !hasPermission}
                                 className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
                               >
@@ -819,11 +819,11 @@ export default function UnifiedShiftManager({
                             )}
 
                             {/* Clock Out Button */}
-                            {worker.status === 'Clocked In' && (
+                            {worker.status === "Clocked In" && (
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleClockAction(worker.id, 'clock_out')}
+                                onClick={() => handleClockAction(worker.id, "clock_out")}
                                 disabled={actionState.isProcessing || !isOnline || !hasPermission}
                               >
                                 {actionState.lastAction === `clock_out_${worker.id}` ? (
@@ -836,7 +836,7 @@ export default function UnifiedShiftManager({
                             )}
 
                             {/* End Shift Button */}
-                            {(worker.status === 'Clocked In' || worker.status === 'Clocked Out') && (
+                            {(worker.status === "Clocked In" || worker.status === "Clocked Out") && (
                               <Button
                                 size="sm"
                                 variant="destructive"
@@ -853,11 +853,11 @@ export default function UnifiedShiftManager({
                             )}
 
                             {/* Clock Back In Button */}
-                            {worker.status === 'Clocked Out' && (
+                            {worker.status === "Clocked Out" && (
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleClockAction(worker.id, 'clock_in')}
+                                onClick={() => handleClockAction(worker.id, "clock_in")}
                                 disabled={actionState.isProcessing || !isOnline}
                               >
                                 {actionState.lastAction === `clock_in_${worker.id}` ? (
@@ -913,21 +913,21 @@ export default function UnifiedShiftManager({
                     End All Shifts
                   </Button>
                 </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
                     This will end the shift for all workers who have not yet completed their shift. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleEndAllShifts}>
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleEndAllShifts}>
                     End All Shifts
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
 
               {/* Dynamic Timesheet Button based on status */}
               {!timesheetStatus ? (
@@ -957,28 +957,28 @@ export default function UnifiedShiftManager({
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
-              ) : timesheetStatus === 'pending_client_approval' ? (
+              ) : timesheetStatus === "pending_client_approval" ? (
                 // Timesheet pending client approval
                 <Button
-                  onClick={() => window.open(`/timesheets/${timesheetId}/approve`, '_blank')}
+                  onClick={() => window.open(`/timesheets/${timesheetId}/approve`, "_blank")}
                   className="bg-orange-600 hover:bg-orange-700"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   View Client Approval
                 </Button>
-              ) : timesheetStatus === 'pending_final_approval' ? (
+              ) : timesheetStatus === "pending_final_approval" ? (
                 // Timesheet pending manager approval
                 <Button
-                  onClick={() => window.open(`/timesheets/${timesheetId}/manager-approval`, '_blank')}
+                  onClick={() => window.open(`/timesheets/${timesheetId}/manager-approval`, "_blank")}
                   className="bg-purple-600 hover:bg-purple-700"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Manager Approval Required
                 </Button>
-              ) : timesheetStatus === 'completed' ? (
+              ) : timesheetStatus === "completed" ? (
                 // Timesheet completed - show view button
                 <Button
-                  onClick={() => window.open(`/timesheets/${timesheetId}`, '_blank')}
+                  onClick={() => window.open(`/timesheets/${timesheetId}`, "_blank")}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <FileText className="h-4 w-4 mr-2" />
@@ -987,7 +987,7 @@ export default function UnifiedShiftManager({
               ) : (
                 // Other statuses - show generic view button
                 <Button
-                  onClick={() => window.open(`/timesheets/${timesheetId}`, '_blank')}
+                  onClick={() => window.open(`/timesheets/${timesheetId}`, "_blank")}
                   variant="outline"
                 >
                   <FileText className="h-4 w-4 mr-2" />

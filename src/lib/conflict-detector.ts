@@ -1,5 +1,5 @@
-import { query } from './db'
-import type { RoleCode } from './types'
+import { query } from "./db"
+import type { RoleCode } from "./types"
 
 export interface TimeConflict {
   id: string
@@ -11,8 +11,8 @@ export interface TimeConflict {
   date: string
   startTime: string
   endTime: string
-  conflictType: 'overlap' | 'back_to_back' | 'travel_time' | 'rest_period'
-  severity: 'low' | 'medium' | 'high'
+  conflictType: "overlap" | "back_to_back" | "travel_time" | "rest_period"
+  severity: "low" | "medium" | "high"
   description: string
 }
 
@@ -33,14 +33,14 @@ export interface ConflictDetectionResult {
 }
 
 export interface ConflictSuggestion {
-  type: 'alternative_employee' | 'time_adjustment' | 'skill_training' | 'role_change'
+  type: "alternative_employee" | "time_adjustment" | "skill_training" | "role_change"
   description: string
   employeeId?: string
   employeeName?: string
   newStartTime?: string
   newEndTime?: string
   alternativeRole?: RoleCode
-  priority: 'low' | 'medium' | 'high'
+  priority: "low" | "medium" | "high"
 }
 
 // Check for time conflicts when assigning an employee to a shift
@@ -93,9 +93,9 @@ export async function checkTimeConflicts(
         date: row.date,
         startTime: row.start_time,
         endTime: row.end_time,
-        conflictType: 'overlap',
-        severity: 'high',
-        description: `Employee is already assigned to another shift during this time period`
+        conflictType: "overlap",
+        severity: "high",
+        description: "Employee is already assigned to another shift during this time period"
       })
     }
 
@@ -137,9 +137,9 @@ export async function checkTimeConflicts(
         date: row.date,
         startTime: row.start_time,
         endTime: row.end_time,
-        conflictType: 'back_to_back',
-        severity: 'medium',
-        description: `Employee has another shift within 1 hour of this shift`
+        conflictType: "back_to_back",
+        severity: "medium",
+        description: "Employee has another shift within 1 hour of this shift"
       })
     }
 
@@ -180,15 +180,15 @@ export async function checkTimeConflicts(
         date: row.date,
         startTime: row.start_time,
         endTime: row.end_time,
-        conflictType: 'rest_period',
-        severity: 'low',
-        description: `Employee may not have sufficient rest period (8 hours) between shifts`
+        conflictType: "rest_period",
+        severity: "low",
+        description: "Employee may not have sufficient rest period (8 hours) between shifts"
       })
     }
 
     return conflicts
   } catch (error) {
-    console.error('Error checking time conflicts:', error)
+    console.error("Error checking time conflicts:", error)
     return []
   }
 }
@@ -223,29 +223,29 @@ export async function checkSkillConflicts(
 
     // Check role-specific requirements
     switch (roleCode) {
-      case 'CC': // Crew Chief
-        if (!employee.crew_chief_eligible && employee.role !== 'Crew Chief' && employee.role !== 'Manager/Admin') {
-          hasRequiredSkills = false
-          missingSkills.push('Crew Chief Certification')
-        }
-        break
+    case "CC": // Crew Chief
+      if (!employee.crew_chief_eligible && employee.role !== "Crew Chief" && employee.role !== "Manager/Admin") {
+        hasRequiredSkills = false
+        missingSkills.push("Crew Chief Certification")
+      }
+      break
 
-      case 'FO': // Fork Operator
-      case 'RFO': // Reach Fork Operator
-        if (!employee.fork_operator_eligible && employee.role !== 'Manager/Admin') {
-          hasRequiredSkills = false
-          missingSkills.push('Fork Operator Certification')
-        }
-        break
+    case "FO": // Fork Operator
+    case "RFO": // Reach Fork Operator
+      if (!employee.fork_operator_eligible && employee.role !== "Manager/Admin") {
+        hasRequiredSkills = false
+        missingSkills.push("Fork Operator Certification")
+      }
+      break
 
-      case 'SH': // Stage Hand
-      case 'RG': // Rigger
-      case 'GL': // General Labor
-        // These roles don't have specific skill requirements
-        break
+    case "SH": // Stage Hand
+    case "RG": // Rigger
+    case "GL": // General Labor
+      // These roles don't have specific skill requirements
+      break
 
-      default:
-        break
+    default:
+      break
     }
 
     if (!hasRequiredSkills) {
@@ -261,7 +261,7 @@ export async function checkSkillConflicts(
 
     return conflicts
   } catch (error) {
-    console.error('Error checking skill conflicts:', error)
+    console.error("Error checking skill conflicts:", error)
     return []
   }
 }
@@ -321,65 +321,65 @@ export async function generateConflictSuggestions(
 
       for (const employee of alternativeResult.rows) {
         suggestions.push({
-          type: 'alternative_employee',
+          type: "alternative_employee",
           description: `Assign ${employee.name} instead - they have the required skills for ${roleCode}`,
           employeeId: employee.id,
           employeeName: employee.name,
-          priority: 'high'
+          priority: "high"
         })
       }
     }
 
     // Suggest time adjustments for time conflicts
     if (timeConflicts.length > 0) {
-      const highSeverityConflicts = timeConflicts.filter(c => c.severity === 'high')
+      const highSeverityConflicts = timeConflicts.filter(c => c.severity === "high")
       
       if (highSeverityConflicts.length > 0) {
         // Suggest moving shift time
         suggestions.push({
-          type: 'time_adjustment',
-          description: 'Consider adjusting shift start/end times to avoid conflicts',
-          priority: 'high'
+          type: "time_adjustment",
+          description: "Consider adjusting shift start/end times to avoid conflicts",
+          priority: "high"
         })
       }
 
-      const mediumSeverityConflicts = timeConflicts.filter(c => c.severity === 'medium')
+      const mediumSeverityConflicts = timeConflicts.filter(c => c.severity === "medium")
       
       if (mediumSeverityConflicts.length > 0) {
         suggestions.push({
-          type: 'time_adjustment',
-          description: 'Add buffer time between shifts to reduce fatigue',
-          priority: 'medium'
+          type: "time_adjustment",
+          description: "Add buffer time between shifts to reduce fatigue",
+          priority: "medium"
         })
       }
     }
 
     // Suggest role changes for skill conflicts
     for (const skillConflict of skillConflicts) {
-      if (roleCode === 'CC') {
+      if (roleCode === "CC") {
         suggestions.push({
-          type: 'role_change',
+          type: "role_change",
           description: `Assign ${skillConflict.employeeName} to a different role (SH, GL) that doesn't require crew chief certification`,
           employeeId: skillConflict.employeeId,
           employeeName: skillConflict.employeeName,
-          alternativeRole: 'SH',
-          priority: 'medium'
+          alternativeRole: "SH",
+          priority: "medium"
         })
-      } else if (roleCode === 'FO' || roleCode === 'RFO') {
+      } else if (roleCode === "FO" || roleCode === "RFO") {
         suggestions.push({
-          type: 'role_change',
+          type: "role_change",
           description: `Assign ${skillConflict.employeeName} to a different role (SH, RG, GL) that doesn't require fork operator certification`,
           employeeId: skillConflict.employeeId,
           employeeName: skillConflict.employeeName,
-          alternativeRole: 'SH',
-          priority: 'medium'
+          alternativeRole: "SH",
+          priority: "medium"
         })
       }
     }
 
     return suggestions
   } catch (error) {
-    console.error('Error generating conflict suggestions:', error)
+    console.error("Error generating conflict suggestions:", error)
     return []
   }
 }
@@ -416,7 +416,7 @@ export async function detectConflicts(
       suggestions
     }
   } catch (error) {
-    console.error('Error detecting conflicts:', error)
+    console.error("Error detecting conflicts:", error)
     return {
       hasConflicts: false,
       timeConflicts: [],
@@ -461,7 +461,7 @@ export async function batchDetectConflicts(
 
     return results
   } catch (error) {
-    console.error('Error in batch conflict detection:', error)
+    console.error("Error in batch conflict detection:", error)
     return {}
   }
 }
@@ -492,7 +492,7 @@ export async function getOptimalEmployeeSuggestions(
         u.performance
       FROM users u
       WHERE u.role IN ('Employee', 'Crew Chief', 'Manager/Admin')
-        AND u.id NOT IN (${excludeEmployeeIds.map((_, i) => `$${i + 5}`).join(',')})
+        AND u.id NOT IN (${excludeEmployeeIds.map((_, i) => `$${i + 5}`).join(",")})
         AND (
           ($1 = 'CC' AND (u.crew_chief_eligible = true OR u.role IN ('Crew Chief', 'Manager/Admin'))) OR
           ($1 IN ('FO', 'RFO') AND (u.fork_operator_eligible = true OR u.role = 'Manager/Admin')) OR
@@ -517,7 +517,7 @@ export async function getOptimalEmployeeSuggestions(
       // Check conflicts for this employee
       const conflicts = await detectConflicts(
         employee.id,
-        'temp_shift_id', // Temporary ID for conflict checking
+        "temp_shift_id", // Temporary ID for conflict checking
         roleCode,
         date,
         startTime,
@@ -529,8 +529,8 @@ export async function getOptimalEmployeeSuggestions(
       
       // Reduce score for conflicts
       if (conflicts.timeConflicts.length > 0) {
-        const highSeverityConflicts = conflicts.timeConflicts.filter(c => c.severity === 'high').length
-        const mediumSeverityConflicts = conflicts.timeConflicts.filter(c => c.severity === 'medium').length
+        const highSeverityConflicts = conflicts.timeConflicts.filter(c => c.severity === "high").length
+        const mediumSeverityConflicts = conflicts.timeConflicts.filter(c => c.severity === "medium").length
         score -= (highSeverityConflicts * 2) + (mediumSeverityConflicts * 1)
       }
 
@@ -539,7 +539,7 @@ export async function getOptimalEmployeeSuggestions(
       }
 
       // Bonus for role match
-      if (roleCode === 'CC' && employee.role === 'Crew Chief') {
+      if (roleCode === "CC" && employee.role === "Crew Chief") {
         score += 1
       }
 
@@ -560,7 +560,7 @@ export async function getOptimalEmployeeSuggestions(
     // Sort by score (highest first)
     return suggestions.sort((a, b) => b.score - a.score).slice(0, 10) // Return top 10
   } catch (error) {
-    console.error('Error getting optimal employee suggestions:', error)
+    console.error("Error getting optimal employee suggestions:", error)
     return []
   }
 }

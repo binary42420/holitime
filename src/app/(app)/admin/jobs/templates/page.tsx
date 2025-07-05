@@ -58,8 +58,8 @@ const mockTemplates = [
   },
 ]
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function JobTemplatesPage() {
   const { user } = useUser()
@@ -68,8 +68,8 @@ function JobTemplatesPage() {
   const [searchTerm, setSearchTerm] = useState("")
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -106,17 +106,17 @@ function JobTemplatesPage() {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      'Warehouse': 'default',
-      'Construction': 'secondary',
-      'Events': 'outline',
+      "Warehouse": "default",
+      "Construction": "secondary",
+      "Events": "outline",
     }
-    return colors[category] || 'default'
+    return colors[category] || "default"
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/jobs')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/jobs")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Jobs
         </Button>
@@ -158,7 +158,7 @@ function JobTemplatesPage() {
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Templates Found</h3>
               <p className="text-muted-foreground">
-                {searchTerm ? 'No templates match your search criteria.' : 'No job templates available.'}
+                {searchTerm ? "No templates match your search criteria." : "No job templates available."}
               </p>
             </div>
           ) : (
@@ -240,4 +240,4 @@ function JobTemplatesPage() {
   )
 }
 
-export default withAuth(JobTemplatesPage, hasAdminAccess);
+export default withAuth(JobTemplatesPage, hasAdminAccess)

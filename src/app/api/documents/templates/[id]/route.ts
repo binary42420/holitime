@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
-import { globalCache } from '@/lib/cache'
-import { DocumentTemplate, UpdateDocumentTemplateRequest } from '@/types/documents'
-import { writeFile, mkdir, unlink } from 'fs/promises'
-import path from 'path'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import { globalCache } from "@/lib/cache"
+import { DocumentTemplate, UpdateDocumentTemplateRequest } from "@/types/documents"
+import { writeFile, mkdir, unlink } from "fs/promises"
+import path from "path"
 
 export async function GET(
   request: NextRequest,
@@ -14,7 +14,7 @@ export async function GET(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
@@ -45,7 +45,7 @@ export async function GET(
     
     if (result.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Template not found' },
+        { error: "Template not found" },
         { status: 404 }
       )
     }
@@ -72,10 +72,10 @@ export async function GET(
         name: row.category_name,
         color: row.category_color,
         icon: row.category_icon,
-        description: '',
+        description: "",
         sort_order: 0,
         is_active: true,
-        created_at: ''
+        created_at: ""
       } : undefined,
       created_by: row.created_by,
       created_at: row.created_at,
@@ -86,9 +86,9 @@ export async function GET(
 
     return NextResponse.json({ template })
   } catch (error) {
-    console.error('Error fetching document template:', error)
+    console.error("Error fetching document template:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -102,15 +102,15 @@ export async function PUT(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers and admins can update templates
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -118,10 +118,10 @@ export async function PUT(
     const { id } = await params
     
     // Check if template exists
-    const existingResult = await query('SELECT * FROM document_templates WHERE id = $1', [id])
+    const existingResult = await query("SELECT * FROM document_templates WHERE id = $1", [id])
     if (existingResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Template not found' },
+        { error: "Template not found" },
         { status: 404 }
       )
     }
@@ -132,22 +132,22 @@ export async function PUT(
     let updateData: UpdateDocumentTemplateRequest
     let newFile: File | null = null
 
-    const contentType = request.headers.get('content-type')
-    if (contentType?.includes('multipart/form-data')) {
+    const contentType = request.headers.get("content-type")
+    if (contentType?.includes("multipart/form-data")) {
       const formData = await request.formData()
-      newFile = formData.get('file') as File
+      newFile = formData.get("file") as File
       
       updateData = {
-        name: formData.get('name') as string || undefined,
-        description: formData.get('description') as string || undefined,
-        document_type: formData.get('document_type') as any || undefined,
-        applicable_roles: formData.get('applicable_roles') ? JSON.parse(formData.get('applicable_roles') as string) : undefined,
-        is_required: formData.get('is_required') ? formData.get('is_required') === 'true' : undefined,
-        expiration_days: formData.get('expiration_days') ? parseInt(formData.get('expiration_days') as string) : undefined,
-        auto_assign_new_users: formData.get('auto_assign_new_users') ? formData.get('auto_assign_new_users') === 'true' : undefined,
-        conditional_logic: formData.get('conditional_logic') ? JSON.parse(formData.get('conditional_logic') as string) : undefined,
-        category_id: formData.get('category_id') ? parseInt(formData.get('category_id') as string) : undefined,
-        is_active: formData.get('is_active') ? formData.get('is_active') === 'true' : undefined
+        name: formData.get("name") as string || undefined,
+        description: formData.get("description") as string || undefined,
+        document_type: formData.get("document_type") as any || undefined,
+        applicable_roles: formData.get("applicable_roles") ? JSON.parse(formData.get("applicable_roles") as string) : undefined,
+        is_required: formData.get("is_required") ? formData.get("is_required") === "true" : undefined,
+        expiration_days: formData.get("expiration_days") ? parseInt(formData.get("expiration_days") as string) : undefined,
+        auto_assign_new_users: formData.get("auto_assign_new_users") ? formData.get("auto_assign_new_users") === "true" : undefined,
+        conditional_logic: formData.get("conditional_logic") ? JSON.parse(formData.get("conditional_logic") as string) : undefined,
+        category_id: formData.get("category_id") ? parseInt(formData.get("category_id") as string) : undefined,
+        is_active: formData.get("is_active") ? formData.get("is_active") === "true" : undefined
       }
     } else {
       updateData = await request.json()
@@ -160,12 +160,12 @@ export async function PUT(
 
     if (newFile) {
       // Create uploads directory if it doesn't exist
-      const uploadsDir = path.join(process.cwd(), 'uploads', 'document-templates')
+      const uploadsDir = path.join(process.cwd(), "uploads", "document-templates")
       await mkdir(uploadsDir, { recursive: true })
 
       // Generate unique filename
       const timestamp = Date.now()
-      const sanitizedName = (updateData.name || existingTemplate.name).replace(/[^a-zA-Z0-9]/g, '_')
+      const sanitizedName = (updateData.name || existingTemplate.name).replace(/[^a-zA-Z0-9]/g, "_")
       const filename = `${sanitizedName}_${timestamp}.pdf`
       const newFilePath = path.join(uploadsDir, filename)
 
@@ -177,16 +177,16 @@ export async function PUT(
       // Delete old file if it exists
       if (existingTemplate.file_path) {
         try {
-          const oldFilePath = path.join(process.cwd(), existingTemplate.file_path.replace(/^\//, ''))
+          const oldFilePath = path.join(process.cwd(), existingTemplate.file_path.replace(/^\//, ""))
           await unlink(oldFilePath)
         } catch (error) {
-          console.log('Could not delete old file:', error)
+          console.log("Could not delete old file:", error)
         }
       }
 
       filePath = `/uploads/document-templates/${filename}`
       fileSize = buffer.length
-      mimeType = newFile.type || 'application/pdf'
+      mimeType = newFile.type || "application/pdf"
     }
 
     // Build update query
@@ -262,17 +262,17 @@ export async function PUT(
 
     if (updateFields.length === 0) {
       return NextResponse.json(
-        { error: 'No fields to update' },
+        { error: "No fields to update" },
         { status: 400 }
       )
     }
 
-    updateFields.push(`updated_at = CURRENT_TIMESTAMP`)
+    updateFields.push("updated_at = CURRENT_TIMESTAMP")
     updateValues.push(id)
 
     const updateQuery = `
       UPDATE document_templates 
-      SET ${updateFields.join(', ')}
+      SET ${updateFields.join(", ")}
       WHERE id = ${paramIndex}
       RETURNING *
     `
@@ -281,17 +281,17 @@ export async function PUT(
     const updatedTemplate = result.rows[0]
 
     // Invalidate cache
-    globalCache.invalidateByTag('document_templates')
+    globalCache.invalidateByTag("document_templates")
 
     return NextResponse.json({
       success: true,
       template: updatedTemplate,
-      message: 'Document template updated successfully'
+      message: "Document template updated successfully"
     })
   } catch (error) {
-    console.error('Error updating document template:', error)
+    console.error("Error updating document template:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -305,15 +305,15 @@ export async function DELETE(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers and admins can delete templates
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -321,10 +321,10 @@ export async function DELETE(
     const { id } = await params
 
     // Check if template exists and get file path
-    const existingResult = await query('SELECT * FROM document_templates WHERE id = $1', [id])
+    const existingResult = await query("SELECT * FROM document_templates WHERE id = $1", [id])
     if (existingResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Template not found' },
+        { error: "Template not found" },
         { status: 404 }
       )
     }
@@ -333,7 +333,7 @@ export async function DELETE(
 
     // Check if template is in use
     const assignmentsResult = await query(
-      'SELECT COUNT(*) as count FROM document_assignments WHERE template_id = $1',
+      "SELECT COUNT(*) as count FROM document_assignments WHERE template_id = $1",
       [id]
     )
     
@@ -346,29 +346,29 @@ export async function DELETE(
     }
 
     // Delete the template
-    await query('DELETE FROM document_templates WHERE id = $1', [id])
+    await query("DELETE FROM document_templates WHERE id = $1", [id])
 
     // Delete the file if it exists
     if (template.file_path) {
       try {
-        const filePath = path.join(process.cwd(), template.file_path.replace(/^\//, ''))
+        const filePath = path.join(process.cwd(), template.file_path.replace(/^\//, ""))
         await unlink(filePath)
       } catch (error) {
-        console.log('Could not delete file:', error)
+        console.log("Could not delete file:", error)
       }
     }
 
     // Invalidate cache
-    globalCache.invalidateByTag('document_templates')
+    globalCache.invalidateByTag("document_templates")
 
     return NextResponse.json({
       success: true,
-      message: 'Document template deleted successfully'
+      message: "Document template deleted successfully"
     })
   } catch (error) {
-    console.error('Error deleting document template:', error)
+    console.error("Error deleting document template:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
-import bcrypt from 'bcryptjs'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import bcrypt from "bcryptjs"
 
 export async function POST(
   request: NextRequest,
@@ -11,15 +11,15 @@ export async function POST(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers can approve pending employees
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions. Only Manager/Admin users can approve employees.' },
+        { error: "Insufficient permissions. Only Manager/Admin users can approve employees." },
         { status: 403 }
       )
     }
@@ -29,7 +29,7 @@ export async function POST(
 
     if (!email || !email.trim()) {
       return NextResponse.json(
-        { error: 'Email address is required' },
+        { error: "Email address is required" },
         { status: 400 }
       )
     }
@@ -42,7 +42,7 @@ export async function POST(
 
     if (employeeCheck.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Pending employee not found' },
+        { error: "Pending employee not found" },
         { status: 404 }
       )
     }
@@ -57,7 +57,7 @@ export async function POST(
 
     if (emailCheck.rows.length > 0) {
       return NextResponse.json(
-        { error: 'Email address is already in use by another user' },
+        { error: "Email address is already in use by another user" },
         { status: 409 }
       )
     }
@@ -68,7 +68,7 @@ export async function POST(
 
     // Parse certifications
     const certificationsArray = certifications 
-      ? certifications.split(',').map((cert: string) => cert.trim()).filter(Boolean)
+      ? certifications.split(",").map((cert: string) => cert.trim()).filter(Boolean)
       : []
 
     // Update user account to active status
@@ -108,9 +108,9 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error approving employee:', error)
+    console.error("Error approving employee:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

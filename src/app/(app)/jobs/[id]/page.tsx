@@ -24,7 +24,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
   const { id } = use(params)
   const { user } = useUser()
   const router = useRouter()
-  const canEdit = user?.role === 'Manager/Admin'
+  const canEdit = user?.role === "Manager/Admin"
   const { toast } = useToast()
   
   const { data: jobData, loading: jobLoading, error: jobError } = useJob(id)
@@ -51,29 +51,29 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Completed':
-        return <Badge variant="default">Completed</Badge>
-      case 'In Progress':
-        return <Badge variant="destructive">In Progress</Badge>
-      case 'Upcoming':
-        return <Badge variant="secondary">Upcoming</Badge>
-      case 'Cancelled':
-        return <Badge variant="outline">Cancelled</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+    case "Completed":
+      return <Badge variant="default">Completed</Badge>
+    case "In Progress":
+      return <Badge variant="destructive">In Progress</Badge>
+    case "Upcoming":
+      return <Badge variant="secondary">Upcoming</Badge>
+    case "Cancelled":
+      return <Badge variant="outline">Cancelled</Badge>
+    default:
+      return <Badge variant="outline">{status}</Badge>
     }
   }
 
   const getJobStatusBadge = (status: string) => {
     switch (status) {
-      case 'Active':
-        return <Badge variant="default">Active</Badge>
-      case 'Completed':
-        return <Badge variant="secondary">Completed</Badge>
-      case 'Planning':
-        return <Badge variant="outline">Planning</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+    case "Active":
+      return <Badge variant="default">Active</Badge>
+    case "Completed":
+      return <Badge variant="secondary">Completed</Badge>
+    case "Planning":
+      return <Badge variant="outline">Planning</Badge>
+    default:
+      return <Badge variant="outline">{status}</Badge>
     }
   }
 
@@ -120,7 +120,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Description</label>
-              <p>{job.description || 'No description provided'}</p>
+              <p>{job.description || "No description provided"}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Status</label>
@@ -143,11 +143,11 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Start Date</label>
-              <p>{job.startDate ? format(new Date(job.startDate), 'EEEE, MMMM d, yyyy') : 'Not scheduled'}</p>
+              <p>{job.startDate ? format(new Date(job.startDate), "EEEE, MMMM d, yyyy") : "Not scheduled"}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">End Date</label>
-              <p>{job.endDate ? format(new Date(job.endDate), 'EEEE, MMMM d, yyyy') : 'Not scheduled'}</p>
+              <p>{job.endDate ? format(new Date(job.endDate), "EEEE, MMMM d, yyyy") : "Not scheduled"}</p>
             </div>
             {job.startDate && job.endDate && (
               <div>
@@ -207,7 +207,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                     key={shift.id}
                     onClick={() => {
                       if (!shift.startTime) {
-                        console.error('Missing startTime for shift:', shift)
+                        console.error("Missing startTime for shift:", shift)
                         return
                       }
                       router.push(generateShiftUrl(shift.id))
@@ -215,7 +215,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                     className="cursor-pointer hover:bg-muted/50"
                   >
                     <TableCell className="font-medium">
-                      {format(new Date(shift.date), 'EEE, MMM d, yyyy')}
+                      {format(new Date(shift.date), "EEE, MMM d, yyyy")}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
@@ -238,7 +238,7 @@ export default function JobDetailPage({ params }: JobDetailPageProps) {
                     </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link href={shift.id ? generateShiftUrl(shift.id) : '#'}>
+                        <Link href={shift.id ? generateShiftUrl(shift.id) : "#"}>
                           View
                         </Link>
                       </Button>

@@ -1,18 +1,18 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { 
   FileText, 
   Upload, 
@@ -30,23 +30,23 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock
-} from 'lucide-react'
-import { DocumentTemplate, DocumentType, CreateDocumentTemplateRequest } from '@/types/documents'
-import { useToast } from '@/hooks/use-toast'
+} from "lucide-react"
+import { DocumentTemplate, DocumentType, CreateDocumentTemplateRequest } from "@/types/documents"
+import { useToast } from "@/hooks/use-toast"
 
 export default function DocumentTemplatesPage() {
   const { data: session } = useSession()
   const { toast } = useToast()
   const [templates, setTemplates] = useState<DocumentTemplate[]>([])
   const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [typeFilter, setTypeFilter] = useState<DocumentType | 'all'>('all')
+  const [searchTerm, setSearchTerm] = useState("")
+  const [typeFilter, setTypeFilter] = useState<DocumentType | "all">("all")
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [createFormData, setCreateFormData] = useState<CreateDocumentTemplateRequest>({
-    name: '',
-    description: '',
-    document_type: 'Other',
+    name: "",
+    description: "",
+    document_type: "Other",
     applicable_roles: [],
     is_required: false,
     auto_assign_new_users: false
@@ -61,24 +61,24 @@ export default function DocumentTemplatesPage() {
       setLoading(true)
       const params = new URLSearchParams()
       
-      if (typeFilter !== 'all') {
-        params.append('document_type', typeFilter)
+      if (typeFilter !== "all") {
+        params.append("document_type", typeFilter)
       }
       if (searchTerm) {
-        params.append('search', searchTerm)
+        params.append("search", searchTerm)
       }
 
       const response = await fetch(`/api/documents/templates?${params}`)
-      if (!response.ok) throw new Error('Failed to fetch templates')
+      if (!response.ok) throw new Error("Failed to fetch templates")
       
       const data = await response.json()
       setTemplates(data.templates || [])
     } catch (error) {
-      console.error('Error fetching templates:', error)
+      console.error("Error fetching templates:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to load templates',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load templates",
+        variant: "destructive"
       })
     } finally {
       setLoading(false)
@@ -89,42 +89,42 @@ export default function DocumentTemplatesPage() {
     try {
       if (!createFormData.name || !selectedFile) {
         toast({
-          title: 'Error',
-          description: 'Please provide a name and select a file',
-          variant: 'destructive'
+          title: "Error",
+          description: "Please provide a name and select a file",
+          variant: "destructive"
         })
         return
       }
 
       const formData = new FormData()
-      formData.append('name', createFormData.name)
-      formData.append('description', createFormData.description || '')
-      formData.append('document_type', createFormData.document_type)
-      formData.append('applicable_roles', JSON.stringify(createFormData.applicable_roles))
-      formData.append('is_required', createFormData.is_required.toString())
-      formData.append('auto_assign_new_users', createFormData.auto_assign_new_users.toString())
+      formData.append("name", createFormData.name)
+      formData.append("description", createFormData.description || "")
+      formData.append("document_type", createFormData.document_type)
+      formData.append("applicable_roles", JSON.stringify(createFormData.applicable_roles))
+      formData.append("is_required", createFormData.is_required.toString())
+      formData.append("auto_assign_new_users", createFormData.auto_assign_new_users.toString())
       if (createFormData.expiration_days) {
-        formData.append('expiration_days', createFormData.expiration_days.toString())
+        formData.append("expiration_days", createFormData.expiration_days.toString())
       }
-      formData.append('file', selectedFile)
+      formData.append("file", selectedFile)
 
-      const response = await fetch('/api/documents/templates', {
-        method: 'POST',
+      const response = await fetch("/api/documents/templates", {
+        method: "POST",
         body: formData
       })
 
-      if (!response.ok) throw new Error('Failed to create template')
+      if (!response.ok) throw new Error("Failed to create template")
 
       toast({
-        title: 'Success',
-        description: 'Template created successfully'
+        title: "Success",
+        description: "Template created successfully"
       })
 
       setIsCreateDialogOpen(false)
       setCreateFormData({
-        name: '',
-        description: '',
-        document_type: 'Other',
+        name: "",
+        description: "",
+        document_type: "Other",
         applicable_roles: [],
         is_required: false,
         auto_assign_new_users: false
@@ -132,60 +132,60 @@ export default function DocumentTemplatesPage() {
       setSelectedFile(null)
       fetchTemplates()
     } catch (error) {
-      console.error('Error creating template:', error)
+      console.error("Error creating template:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to create template',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to create template",
+        variant: "destructive"
       })
     }
   }
 
   const handleDeleteTemplate = async (templateId: number) => {
-    if (!confirm('Are you sure you want to delete this template?')) return
+    if (!confirm("Are you sure you want to delete this template?")) return
 
     try {
       const response = await fetch(`/api/documents/templates/${templateId}`, {
-        method: 'DELETE'
+        method: "DELETE"
       })
 
-      if (!response.ok) throw new Error('Failed to delete template')
+      if (!response.ok) throw new Error("Failed to delete template")
 
       toast({
-        title: 'Success',
-        description: 'Template deleted successfully'
+        title: "Success",
+        description: "Template deleted successfully"
       })
 
       fetchTemplates()
     } catch (error) {
-      console.error('Error deleting template:', error)
+      console.error("Error deleting template:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to delete template',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to delete template",
+        variant: "destructive"
       })
     }
   }
 
   const getDocumentTypeColor = (type: DocumentType) => {
     const colors = {
-      'I9': 'bg-blue-100 text-blue-800',
-      'W4': 'bg-green-100 text-green-800',
-      'DirectDeposit': 'bg-purple-100 text-purple-800',
-      'EmergencyContact': 'bg-orange-100 text-orange-800',
-      'SafetyTraining': 'bg-red-100 text-red-800',
-      'CompanyPolicy': 'bg-indigo-100 text-indigo-800',
-      'BackgroundCheck': 'bg-yellow-100 text-yellow-800',
-      'DrugTesting': 'bg-pink-100 text-pink-800',
-      'SkillsAssessment': 'bg-cyan-100 text-cyan-800',
-      'EquipmentCheckout': 'bg-teal-100 text-teal-800',
-      'Timesheet': 'bg-gray-100 text-gray-800',
-      'Other': 'bg-gray-100 text-gray-800'
+      "I9": "bg-blue-100 text-blue-800",
+      "W4": "bg-green-100 text-green-800",
+      "DirectDeposit": "bg-purple-100 text-purple-800",
+      "EmergencyContact": "bg-orange-100 text-orange-800",
+      "SafetyTraining": "bg-red-100 text-red-800",
+      "CompanyPolicy": "bg-indigo-100 text-indigo-800",
+      "BackgroundCheck": "bg-yellow-100 text-yellow-800",
+      "DrugTesting": "bg-pink-100 text-pink-800",
+      "SkillsAssessment": "bg-cyan-100 text-cyan-800",
+      "EquipmentCheckout": "bg-teal-100 text-teal-800",
+      "Timesheet": "bg-gray-100 text-gray-800",
+      "Other": "bg-gray-100 text-gray-800"
     }
-    return colors[type] || colors['Other']
+    return colors[type] || colors["Other"]
   }
 
-  const isAdmin = session?.user?.role === 'Manager/Admin'
+  const isAdmin = session?.user?.role === "Manager/Admin"
 
   if (!isAdmin) {
     return (
@@ -278,7 +278,7 @@ export default function DocumentTemplatesPage() {
               <div>
                 <Label>Applicable Roles *</Label>
                 <div className="grid grid-cols-2 gap-2 mt-2">
-                  {['Employee', 'Crew Chief', 'Manager/Admin', 'Client'].map(role => (
+                  {["Employee", "Crew Chief", "Manager/Admin", "Client"].map(role => (
                     <div key={role} className="flex items-center space-x-2">
                       <Checkbox
                         id={role}
@@ -366,7 +366,7 @@ export default function DocumentTemplatesPage() {
                 />
               </div>
             </div>
-            <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as DocumentType | 'all')}>
+            <Select value={typeFilter} onValueChange={(value) => setTypeFilter(value as DocumentType | "all")}>
               <SelectTrigger className="w-[200px]">
                 <SelectValue placeholder="Filter by type" />
               </SelectTrigger>
@@ -448,7 +448,7 @@ export default function DocumentTemplatesPage() {
                           <Clock className="h-4 w-4 text-gray-500" />
                         )}
                         <span className="text-sm">
-                          {template.is_active ? 'Active' : 'Inactive'}
+                          {template.is_active ? "Active" : "Inactive"}
                         </span>
                         {template.is_required && (
                           <Badge variant="destructive" className="text-xs">Required</Badge>

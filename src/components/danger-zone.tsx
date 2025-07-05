@@ -1,12 +1,12 @@
-'use client';
+"use client"
 
-import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertTriangle } from 'lucide-react';
-import { CascadeDeleteDialog } from './cascade-delete-dialog';
+import { useSession } from "next-auth/react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertTriangle } from "lucide-react"
+import { CascadeDeleteDialog } from "./cascade-delete-dialog"
 
 interface DangerZoneProps {
-  entityType: 'client' | 'job' | 'shift';
+  entityType: "client" | "job" | "shift";
   entityId: string;
   entityName: string;
   onSuccess?: () => void;
@@ -22,38 +22,38 @@ export function DangerZone({
   redirectTo,
   className
 }: DangerZoneProps) {
-  const { data: session } = useSession();
+  const { data: session } = useSession()
 
   // Only show for admins/managers
-  if (session?.user?.role !== 'Manager/Admin') {
-    return null;
+  if (session?.user?.role !== "Manager/Admin") {
+    return null
   }
 
   const getEntityTypeLabel = () => {
     switch (entityType) {
-      case 'client':
-        return 'Client Company';
-      case 'job':
-        return 'Job';
-      case 'shift':
-        return 'Shift';
-      default:
-        return 'Entity';
+    case "client":
+      return "Client Company"
+    case "job":
+      return "Job"
+    case "shift":
+      return "Shift"
+    default:
+      return "Entity"
     }
-  };
+  }
 
   const getDescription = () => {
     switch (entityType) {
-      case 'client':
-        return 'Permanently delete this client company and all associated jobs, shifts, and data. This action affects the most data and cannot be undone.';
-      case 'job':
-        return 'Permanently delete this job and all associated shifts and data. This action cannot be undone.';
-      case 'shift':
-        return 'Permanently delete this shift and all associated data. This action cannot be undone.';
-      default:
-        return 'Permanently delete this entity and all associated data.';
+    case "client":
+      return "Permanently delete this client company and all associated jobs, shifts, and data. This action affects the most data and cannot be undone."
+    case "job":
+      return "Permanently delete this job and all associated shifts and data. This action cannot be undone."
+    case "shift":
+      return "Permanently delete this shift and all associated data. This action cannot be undone."
+    default:
+      return "Permanently delete this entity and all associated data."
     }
-  };
+  }
 
   return (
     <Card className={`border-destructive/20 ${className}`}>
@@ -84,5 +84,5 @@ export function DangerZone({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

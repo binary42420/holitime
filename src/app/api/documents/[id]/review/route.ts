@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function POST(
   request: NextRequest,
@@ -10,15 +10,15 @@ export async function POST(
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers can review documents
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -26,16 +26,16 @@ export async function POST(
     const { id: documentId } = await params
     const { action, reviewNotes } = await request.json()
 
-    if (!action || !['approve', 'reject'].includes(action)) {
+    if (!action || !["approve", "reject"].includes(action)) {
       return NextResponse.json(
-        { error: 'Invalid action. Must be "approve" or "reject"' },
+        { error: "Invalid action. Must be \"approve\" or \"reject\"" },
         { status: 400 }
       )
     }
 
-    if (action === 'reject' && !reviewNotes?.trim()) {
+    if (action === "reject" && !reviewNotes?.trim()) {
       return NextResponse.json(
-        { error: 'Review notes are required when rejecting a document' },
+        { error: "Review notes are required when rejecting a document" },
         { status: 400 }
       )
     }
@@ -52,13 +52,13 @@ export async function POST(
 
     if (documentResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Document not found or already reviewed' },
+        { error: "Document not found or already reviewed" },
         { status: 404 }
       )
     }
 
     const document = documentResult.rows[0]
-    const newStatus = action === 'approve' ? 'approved' : 'rejected'
+    const newStatus = action === "approve" ? "approved" : "rejected"
 
     // Update document status
     const updateResult = await query(`
@@ -71,7 +71,7 @@ export async function POST(
     const updatedDocument = updateResult.rows[0]
 
     // If approved and it's a certification, update user eligibility
-    if (action === 'approve' && document.is_certification) {
+    if (action === "approve" && document.is_certification) {
       await updateUserCertificationStatus(document.user_id, document.document_type_name)
     }
 
@@ -91,9 +91,9 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error reviewing document:', error)
+    console.error("Error reviewing document:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -104,15 +104,15 @@ async function updateUserCertificationStatus(userId: string, documentTypeName: s
     let updateField = null
     
     switch (documentTypeName.toLowerCase()) {
-      case 'forklift certification':
-        updateField = 'fork_operator_eligible'
-        break
-      case 'osha certification':
-        updateField = 'osha_compliant'
-        break
-      default:
-        // No automatic eligibility update for this document type
-        return
+    case "forklift certification":
+      updateField = "fork_operator_eligible"
+      break
+    case "osha certification":
+      updateField = "osha_compliant"
+      break
+    default:
+      // No automatic eligibility update for this document type
+      return
     }
 
     if (updateField) {
@@ -125,7 +125,7 @@ async function updateUserCertificationStatus(userId: string, documentTypeName: s
       console.log(`Updated user ${userId} certification: ${updateField} = true`)
     }
   } catch (error) {
-    console.error('Error updating user certification status:', error)
+    console.error("Error updating user certification status:", error)
     // Don't throw error here as document review should still succeed
   }
 }

@@ -33,17 +33,17 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { format } from "date-fns"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function AdminShiftsPage() {
   const { user } = useUser()
   const router = useRouter()
-  const { data: shiftsData, loading, error } = useApi<{ shifts: any[] }>('/api/shifts')
+  const { data: shiftsData, loading, error } = useApi<{ shifts: any[] }>("/api/shifts")
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -51,13 +51,13 @@ function AdminShiftsPage() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      'Upcoming': 'outline',
-      'In Progress': 'default',
-      'Completed': 'secondary',
-      'Cancelled': 'destructive',
-      'Pending Approval': 'secondary'
+      "Upcoming": "outline",
+      "In Progress": "default",
+      "Completed": "secondary",
+      "Cancelled": "destructive",
+      "Pending Approval": "secondary"
     }
-    return <Badge variant={variants[status] || 'outline'}>{status}</Badge>
+    return <Badge variant={variants[status] || "outline"}>{status}</Badge>
   }
 
   const getStaffingStatus = (assigned: number, requested: number) => {
@@ -70,16 +70,16 @@ function AdminShiftsPage() {
     }
   }
 
-  const activeShifts = shifts.filter(shift => shift.status === 'In Progress').length
-  const upcomingShifts = shifts.filter(shift => shift.status === 'Upcoming').length
+  const activeShifts = shifts.filter(shift => shift.status === "In Progress").length
+  const upcomingShifts = shifts.filter(shift => shift.status === "Upcoming").length
   const understaffedShifts = shifts.filter(shift => 
-    shift.assignedWorkers < shift.requestedWorkers && shift.status !== 'Completed'
+    shift.assignedWorkers < shift.requestedWorkers && shift.status !== "Completed"
   ).length
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Admin
         </Button>
@@ -88,10 +88,10 @@ function AdminShiftsPage() {
           <p className="text-muted-foreground">Schedule and manage work shifts</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push('/admin/shifts/templates')}>
+          <Button variant="outline" onClick={() => router.push("/admin/shifts/templates")}>
             Shift Templates
           </Button>
-          <Button onClick={() => router.push('/admin/shifts/new')}>
+          <Button onClick={() => router.push("/admin/shifts/new")}>
             <Plus className="mr-2 h-4 w-4" />
             Schedule Shift
           </Button>
@@ -163,7 +163,7 @@ function AdminShiftsPage() {
               <p className="text-muted-foreground mb-4">
                 Get started by scheduling your first shift.
               </p>
-              <Button onClick={() => router.push('/admin/shifts/new')}>
+              <Button onClick={() => router.push("/admin/shifts/new")}>
                 <Plus className="mr-2 h-4 w-4" />
                 Schedule Shift
               </Button>
@@ -191,7 +191,7 @@ function AdminShiftsPage() {
                     <TableCell>
                       <div className="flex flex-col">
                         <div className="font-medium">
-                          {format(new Date(shift.date), 'MMM d, yyyy')}
+                          {format(new Date(shift.date), "MMM d, yyyy")}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {shift.startTime} - {shift.endTime}
@@ -207,7 +207,7 @@ function AdminShiftsPage() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{shift.crewChiefName || 'Unassigned'}</TableCell>
+                    <TableCell>{shift.crewChiefName || "Unassigned"}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <div className="text-sm">
@@ -218,7 +218,7 @@ function AdminShiftsPage() {
                     </TableCell>
                     <TableCell>{getStatusBadge(shift.status)}</TableCell>
                     <TableCell>
-                      {shift.createdAt ? format(new Date(shift.createdAt), 'MMM d') : 'N/A'}
+                      {shift.createdAt ? format(new Date(shift.createdAt), "MMM d") : "N/A"}
                     </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
@@ -260,4 +260,4 @@ function AdminShiftsPage() {
   )
 }
 
-export default withAuth(AdminShiftsPage, hasAdminAccess);
+export default withAuth(AdminShiftsPage, hasAdminAccess)

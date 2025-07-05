@@ -1,22 +1,22 @@
-"use client";
+"use client"
 
-import { useState, useCallback } from "react";
+import { useState, useCallback } from "react"
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, FileSpreadsheet, Upload } from "lucide-react";
-import GoogleDrivePicker from "./google-drive-picker";
-import CSVImport from "./csv-import";
-import GoogleSheetsGeminiProcessor from "./google-sheets-gemini-processor";
-import GoogleSheetsIdInput from "./google-sheets-id-input";
-import { ErrorBoundary } from './error-boundary'
+} from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Loader2, FileSpreadsheet, Upload } from "lucide-react"
+import GoogleDrivePicker from "./google-drive-picker"
+import CSVImport from "./csv-import"
+import GoogleSheetsGeminiProcessor from "./google-sheets-gemini-processor"
+import GoogleSheetsIdInput from "./google-sheets-id-input"
+import { ErrorBoundary } from "./error-boundary"
 
 interface DriveFile {
   id: string;
@@ -28,60 +28,60 @@ interface DriveFile {
 }
 
 export default function ImportPageClient() {
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<DriveFile | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [generatedCSV, setGeneratedCSV] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<DriveFile | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [generatedCSV, setGeneratedCSV] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<any>(null)
 
   const handleGoogleAuth = async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
 
     try {
       // Get auth URL from our backend
-      const authResponse = await fetch("/api/import/google-drive/auth");
+      const authResponse = await fetch("/api/import/google-drive/auth")
 
       if (!authResponse.ok) {
-        const errorData = await authResponse.json();
-        throw new Error(errorData.error || 'Failed to get authorization URL');
+        const errorData = await authResponse.json()
+        throw new Error(errorData.error || "Failed to get authorization URL")
       }
 
-      const { authUrl } = await authResponse.json();
+      const { authUrl } = await authResponse.json()
 
       // Open Google OAuth in a popup
-      const width = 600;
-      const height = 700;
-      const left = window.screenX + (window.outerWidth - width) / 2;
-      const top = window.screenY + (window.outerHeight - height) / 2;
+      const width = 600
+      const height = 700
+      const left = window.screenX + (window.outerWidth - width) / 2
+      const top = window.screenY + (window.outerHeight - height) / 2
       const popup = window.open(
         authUrl,
         "GoogleAuth",
         `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
-      );
+      )
 
       if (!popup) {
-        throw new Error("Popup blocked. Please allow popups for this site and try again.");
+        throw new Error("Popup blocked. Please allow popups for this site and try again.")
       }
 
       // Listen for the OAuth callback
       const handleCallback = async (event: MessageEvent) => {
-        if (event.origin !== window.location.origin) return;
+        if (event.origin !== window.location.origin) return
 
         if (event.data?.type === "GOOGLE_AUTH_ERROR") {
-          cleanup();
-          throw new Error(event.data.error || "Google authentication failed");
+          cleanup()
+          throw new Error(event.data.error || "Google authentication failed")
         }
 
-        if (event.data?.type !== "GOOGLE_AUTH_SUCCESS") return;
+        if (event.data?.type !== "GOOGLE_AUTH_SUCCESS") return
 
-        cleanup();
+        cleanup()
 
-        const { code } = event.data;
+        const { code } = event.data
 
         if (!code) {
-          throw new Error("No authorization code received from Google");
+          throw new Error("No authorization code received from Google")
         }
 
         // Exchange code for tokens
@@ -89,72 +89,72 @@ export default function ImportPageClient() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ code }),
-        });
+        })
 
         if (!tokenResponse.ok) {
-          const errorData = await tokenResponse.json().catch(() => ({ error: 'Unknown error' }));
-          throw new Error(errorData.error || "Failed to exchange auth code");
+          const errorData = await tokenResponse.json().catch(() => ({ error: "Unknown error" }))
+          throw new Error(errorData.error || "Failed to exchange auth code")
         }
 
-        const tokenData = await tokenResponse.json();
+        const tokenData = await tokenResponse.json()
         if (!tokenData.accessToken) {
-          throw new Error("No access token received from server");
+          throw new Error("No access token received from server")
         }
 
-        setAccessToken(tokenData.accessToken);
-      };
+        setAccessToken(tokenData.accessToken)
+      }
 
       // Cleanup function
       const cleanup = () => {
-        window.removeEventListener("message", handleCallback);
-        clearInterval(checkClosed);
-        clearTimeout(authTimeout);
+        window.removeEventListener("message", handleCallback)
+        clearInterval(checkClosed)
+        clearTimeout(authTimeout)
         try {
-          popup?.close();
+          popup?.close()
         } catch (error) {
-          console.warn('Unable to close popup due to COOP policy:', error);
+          console.warn("Unable to close popup due to COOP policy:", error)
         }
-      };
+      }
 
       // Add timeout for authentication (5 minutes)
       const authTimeout = setTimeout(() => {
-        cleanup();
-        setError("Authentication timed out. Please try again.");
-        setLoading(false);
-      }, 5 * 60 * 1000);
+        cleanup()
+        setError("Authentication timed out. Please try again.")
+        setLoading(false)
+      }, 5 * 60 * 1000)
 
       // Handle popup being closed manually with better error handling
       const checkClosed = setInterval(() => {
         try {
           if (popup.closed) {
-            cleanup();
-            setLoading(false);
+            cleanup()
+            setLoading(false)
           }
         } catch (error) {
           // Handle COOP errors when checking popup.closed
-          console.warn('Unable to check popup status due to COOP policy:', error);
+          console.warn("Unable to check popup status due to COOP policy:", error)
           // Continue checking, but don't throw error
         }
-      }, 1000);
+      }, 1000)
 
-      window.addEventListener("message", handleCallback);
+      window.addEventListener("message", handleCallback)
     } catch (err) {
-      console.error('Google authentication error:', err);
-      setError(err instanceof Error ? err.message : "Failed to authenticate with Google");
-      setLoading(false);
+      console.error("Google authentication error:", err)
+      setError(err instanceof Error ? err.message : "Failed to authenticate with Google")
+      setLoading(false)
       // Ensure cleanup happens even on error
       try {
-        window.removeEventListener("message", handleCallback);
+        window.removeEventListener("message", handleCallback)
       } catch (cleanupError) {
-        console.warn('Error during cleanup:', cleanupError);
+        console.warn("Error during cleanup:", cleanupError)
       }
     }
-  };
+  }
 
   const handleFileSelect = useCallback(async (file: DriveFile) => {
-    setSelectedFile(file);
-    setLoading(true);
-    setError(null);
+    setSelectedFile(file)
+    setLoading(true)
+    setError(null)
 
     try {
       // Extract data from selected file
@@ -165,76 +165,76 @@ export default function ImportPageClient() {
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ fileId: file.id }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error("Failed to extract file data");
+        throw new Error("Failed to extract file data")
       }
 
-      const data = await response.json();
+      const data = await response.json()
       // Handle the extracted data (e.g., show preview, validation results)
-      console.log("Extracted data:", data);
+      console.log("Extracted data:", data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to process file");
+      setError(err instanceof Error ? err.message : "Failed to process file")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, [accessToken]);
+  }, [accessToken])
 
   const handleCSVGenerated = useCallback((csvData: string) => {
-    setGeneratedCSV(csvData);
-  }, []);
+    setGeneratedCSV(csvData)
+  }, [])
 
   const debugToken = async () => {
-    if (!accessToken) return;
+    if (!accessToken) return
 
     try {
-      const response = await fetch('/api/debug/token-info', {
-        method: 'POST',
+      const response = await fetch("/api/debug/token-info", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ accessToken })
-      });
+      })
 
-      const result = await response.json();
-      setDebugInfo(result);
-      console.log('Token debug info:', result);
+      const result = await response.json()
+      setDebugInfo(result)
+      console.log("Token debug info:", result)
     } catch (error) {
-      console.error('Error debugging token:', error);
+      console.error("Error debugging token:", error)
     }
-  };
+  }
 
   const debugGoogleDrive = async () => {
-    if (!accessToken) return;
+    if (!accessToken) return
 
     try {
-      console.log('Starting comprehensive Google Drive debug...');
-      const response = await fetch('/api/debug/google-drive-detailed', {
-        method: 'POST',
+      console.log("Starting comprehensive Google Drive debug...")
+      const response = await fetch("/api/debug/google-drive-detailed", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ accessToken })
-      });
+      })
 
-      const result = await response.json();
-      console.log('=== COMPREHENSIVE GOOGLE DRIVE DEBUG RESULTS ===');
-      console.log('Summary:', result.summary);
-      console.log('Detailed Results:', result.debugResults);
+      const result = await response.json()
+      console.log("=== COMPREHENSIVE GOOGLE DRIVE DEBUG RESULTS ===")
+      console.log("Summary:", result.summary)
+      console.log("Detailed Results:", result.debugResults)
 
       // Show results in UI
       setDebugInfo({
         ...debugInfo,
         driveDebug: result
-      });
+      })
 
-      alert(`Debug Complete!\nPassed: ${result.summary?.passedTests || 0}/${result.summary?.totalTests || 0} tests\nCheck console for detailed results.`);
+      alert(`Debug Complete!\nPassed: ${result.summary?.passedTests || 0}/${result.summary?.totalTests || 0} tests\nCheck console for detailed results.`)
     } catch (error) {
-      console.error('Error debugging Google Drive:', error);
-      alert('Debug failed. Check console for details.');
+      console.error("Error debugging Google Drive:", error)
+      alert("Debug failed. Check console for details.")
     }
-  };
+  }
 
   return (
     <div className="container mx-auto py-6">
@@ -340,7 +340,7 @@ export default function ImportPageClient() {
                             </div>
                             {debugInfo && (
                               <div className="text-xs text-muted-foreground space-y-1">
-                                <div>Scopes: {debugInfo.scopes?.join(', ') || 'none'}</div>
+                                <div>Scopes: {debugInfo.scopes?.join(", ") || "none"}</div>
                                 {debugInfo.driveDebug && (
                                   <div>
                                     Drive Tests: {debugInfo.driveDebug.summary?.passedTests || 0}/{debugInfo.driveDebug.summary?.totalTests || 0} passed
@@ -391,5 +391,5 @@ export default function ImportPageClient() {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

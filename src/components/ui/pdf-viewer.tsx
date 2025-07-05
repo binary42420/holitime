@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import React, { useState, useCallback } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import React, { useState, useCallback } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { 
   AlertCircle,
   ChevronLeft,
@@ -13,7 +13,7 @@ import {
   ZoomIn,
   ZoomOut,
 } from "lucide-react"
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from "@/hooks/use-toast"
 
 interface PDFViewerProps {
   fileUrl: string
@@ -47,7 +47,7 @@ export function PDFViewer({ fileUrl, filename, className }: PDFViewerProps) {
 
   const handleDownload = useCallback(() => {
     try {
-      const link = document.createElement('a')
+      const link = document.createElement("a")
       link.href = fileUrl
       link.download = filename
       document.body.appendChild(link)
@@ -69,7 +69,7 @@ export function PDFViewer({ fileUrl, filename, className }: PDFViewerProps) {
 
   const handlePrint = useCallback(() => {
     try {
-      const printWindow = window.open(fileUrl, '_blank')
+      const printWindow = window.open(fileUrl, "_blank")
       if (printWindow) {
         printWindow.onload = () => {
           printWindow.print()
@@ -97,11 +97,11 @@ export function PDFViewer({ fileUrl, filename, className }: PDFViewerProps) {
 
   const handleError = useCallback(() => {
     setIsLoading(false)
-    setError('Failed to load PDF document')
+    setError("Failed to load PDF document")
   }, [])
 
   // Check if the file is a PDF
-  const isPDF = fileUrl.toLowerCase().endsWith('.pdf') || fileUrl.includes('application/pdf')
+  const isPDF = fileUrl.toLowerCase().endsWith(".pdf") || fileUrl.includes("application/pdf")
 
   if (error) {
     return (
@@ -146,8 +146,8 @@ export function PDFViewer({ fileUrl, filename, className }: PDFViewerProps) {
               </>
             )}
             <Button variant="outline" size="icon" onClick={handlePrint}>
-            <Printer className="h-4 w-4" />
-          </Button>
+              <Printer className="h-4 w-4" />
+            </Button>
             <Button variant="outline" size="sm" onClick={handleDownload}>
               <Download className="h-4 w-4" />
             </Button>

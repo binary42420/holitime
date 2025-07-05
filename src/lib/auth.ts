@@ -1,10 +1,10 @@
-import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
-import { query } from './db';
-import type { User } from './types';
+import jwt from "jsonwebtoken"
+import bcrypt from "bcryptjs"
+import { query } from "./db"
+import type { User } from "./types"
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
-const JWT_EXPIRES_IN = '7d';
+const JWT_SECRET = process.env.JWT_SECRET || "fallback-secret-key"
+const JWT_EXPIRES_IN = "7d"
 
 export interface AuthUser extends User {
   password?: string;
@@ -19,7 +19,7 @@ export interface RegisterData {
   email: string;
   password: string;
   name: string;
-  role: 'Employee' | 'Crew Chief' | 'Manager/Admin' | 'Client' | 'User';
+  role: "Employee" | "Crew Chief" | "Manager/Admin" | "Client" | "User";
   clientCompanyId?: string;
   companyName?: string;
   phone?: string;
@@ -27,7 +27,7 @@ export interface RegisterData {
 
 // Verify password using bcrypt
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
-  return await bcrypt.compare(password, hashedPassword);
+  return await bcrypt.compare(password, hashedPassword)
 }
 
 // Generate JWT token
@@ -37,25 +37,25 @@ export function generateToken(user: User): string {
     email: user.email,
     role: user.role,
     clientCompanyId: user.clientCompanyId,
-  };
+  }
 
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
 }
 
 // Verify JWT token
 export function verifyToken(token: string): User | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const decoded = jwt.verify(token, JWT_SECRET) as any
     return {
       id: decoded.id,
       email: decoded.email,
-      name: '', // Will be filled from database
-      avatar: '', // Will be filled from database
+      name: "", // Will be filled from database
+      avatar: "", // Will be filled from database
       role: decoded.role,
       clientCompanyId: decoded.clientCompanyId,
-    };
+    }
   } catch (error) {
-    return null;
+    return null
   }
 }
 
@@ -63,27 +63,27 @@ export function verifyToken(token: string): User | null {
 export async function getUserByEmail(email: string): Promise<AuthUser | null> {
   try {
     const result = await query(
-      'SELECT id, email, password_hash, name, role, avatar, client_company_id, is_active FROM users WHERE email = $1 AND is_active = true',
+      "SELECT id, email, password_hash, name, role, avatar, client_company_id, is_active FROM users WHERE email = $1 AND is_active = true",
       [email]
-    );
+    )
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0]
     return {
       id: row.id,
       email: row.email,
       password: row.password_hash,
       name: row.name,
       role: row.role,
-      avatar: row.avatar || '',
+      avatar: row.avatar || "",
       clientCompanyId: row.client_company_id,
-    };
+    }
   } catch (error) {
-    console.error('Error getting user by email:', error);
-    return null;
+    console.error("Error getting user by email:", error)
+    return null
   }
 }
 
@@ -91,33 +91,33 @@ export async function getUserByEmail(email: string): Promise<AuthUser | null> {
 export async function getUserById(id: string): Promise<User | null> {
   try {
     const result = await query(
-      'SELECT id, email, name, role, avatar, client_company_id FROM users WHERE id = $1 AND is_active = true',
+      "SELECT id, email, name, role, avatar, client_company_id FROM users WHERE id = $1 AND is_active = true",
       [id]
-    );
+    )
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0]
     return {
       id: row.id,
       email: row.email,
       name: row.name,
       role: row.role,
-      avatar: row.avatar || '',
+      avatar: row.avatar || "",
       clientCompanyId: row.client_company_id,
-    };
+    }
   } catch (error) {
-    console.error('Error getting user by ID:', error);
-    return null;
+    console.error("Error getting user by ID:", error)
+    return null
   }
 }
 
 // Create new user
 export async function createUser(userData: RegisterData): Promise<User | null> {
   try {
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const hashedPassword = await bcrypt.hash(userData.password, 10)
     const result = await query(
       `INSERT INTO users (email, password_hash, name, role, avatar, client_company_id, company_name, contact_phone)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -132,13 +132,13 @@ export async function createUser(userData: RegisterData): Promise<User | null> {
         userData.companyName || null,
         userData.phone || null
       ]
-    );
+    )
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0]
     return {
       id: row.id,
       email: row.email,
@@ -146,65 +146,65 @@ export async function createUser(userData: RegisterData): Promise<User | null> {
       role: row.role,
       avatar: row.avatar,
       clientCompanyId: row.client_company_id,
-    };
+    }
   } catch (error) {
-    console.error('Error creating user:', error);
-    return null;
+    console.error("Error creating user:", error)
+    return null
   }
 }
 
 // Permission checking functions
 export function hasShiftAccess(userRole: string): boolean {
-  return ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'].includes(userRole);
+  return ["Employee", "Crew Chief", "Manager/Admin", "Client"].includes(userRole)
 }
 
 export function hasClientAccess(userRole: string): boolean {
-  return ['Manager/Admin', 'Client'].includes(userRole);
+  return ["Manager/Admin", "Client"].includes(userRole)
 }
 
 export function hasAdminAccess(userRole: string): boolean {
-  return userRole === 'Manager/Admin';
+  return userRole === "Manager/Admin"
 }
 
 export function hasEmployeeAccess(userRole: string): boolean {
-  return ['Employee', 'Crew Chief', 'Manager/Admin'].includes(userRole);
+  return ["Employee", "Crew Chief", "Manager/Admin"].includes(userRole)
 }
 
 export function canViewSensitiveData(userRole: string): boolean {
-  return ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'].includes(userRole);
+  return ["Employee", "Crew Chief", "Manager/Admin", "Client"].includes(userRole)
 }
 
 // Authenticate user
 export async function authenticateUser(credentials: LoginCredentials): Promise<{ user: User; token: string } | null> {
   try {
-    const authUser = await getUserByEmail(credentials.email);
+    const authUser = await getUserByEmail(credentials.email)
     if (!authUser || !authUser.password) {
-      return null;
+      return null
     }
 
-    const isValidPassword = await verifyPassword(credentials.password, authUser.password);
+    const isValidPassword = await verifyPassword(credentials.password, authUser.password)
     if (!isValidPassword) {
-      return null;
+      return null
     }
 
     // Update last login
     await query(
-      'UPDATE users SET last_login = NOW() WHERE id = $1',
+      "UPDATE users SET last_login = NOW() WHERE id = $1",
       [authUser.id]
-    );
+    )
 
     // Remove password from user object
-    const { password, ...user } = authUser;
-    const token = generateToken(user);
+    const { password, ...user } = authUser
+    const token = generateToken(user)
 
-    return { user, token };
+    return { user, token }
   } catch (error) {
-    console.error('Error authenticating user:', error);
-    return null;
+    console.error("Error authenticating user:", error)
+    return null
   }
 }
 
 // Refresh user data (for token refresh)
 export async function refreshUserData(userId: string): Promise<User | null> {
-  return await getUserById(userId);
+  return await getUserById(userId)
 }

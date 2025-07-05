@@ -1,21 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { query } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
-    const { id } = await params;
+    const { id } = await params
 
     // Get timesheet with all related data
     const timesheetResult = await query(`
@@ -37,28 +37,28 @@ export async function GET(
       LEFT JOIN users ca ON t.client_approved_by = ca.id
       LEFT JOIN users ma ON t.manager_approved_by = ma.id
       WHERE t.id = $1
-    `, [id]);
+    `, [id])
 
     if (timesheetResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Timesheet not found' },
+        { error: "Timesheet not found" },
         { status: 404 }
-      );
+      )
     }
 
-    const row = timesheetResult.rows[0];
+    const row = timesheetResult.rows[0]
 
     // Check permissions
     const hasAccess = 
-      user.role === 'Manager/Admin' ||
-      (user.role === 'Crew Chief' && row.crew_chief_id === user.id) ||
-      (user.role === 'Client' && row.client_id === user.id);
+      user.role === "Manager/Admin" ||
+      (user.role === "Crew Chief" && row.crew_chief_id === user.id) ||
+      (user.role === "Client" && row.client_id === user.id)
 
     if (!hasAccess) {
       return NextResponse.json(
-        { error: 'Access denied' },
+        { error: "Access denied" },
         { status: 403 }
-      );
+      )
     }
 
     // Get assigned personnel and their time entries
@@ -84,7 +84,7 @@ export async function GET(
       WHERE ap.shift_id = $1
       GROUP BY ap.id, ap.role_on_shift, ap.role_code, ap.status, u.id, u.name, u.avatar
       ORDER BY u.name ASC
-    `, [row.shift_id]);
+    `, [row.shift_id])
 
     const timesheet = {
       id: row.id,
@@ -133,18 +133,18 @@ export async function GET(
           timeEntries: p.time_entries,
         })),
       },
-    };
+    }
 
     return NextResponse.json({
       success: true,
       timesheet,
-    });
+    })
 
   } catch (error) {
-    console.error('Error getting timesheet:', error);
+    console.error("Error getting timesheet:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

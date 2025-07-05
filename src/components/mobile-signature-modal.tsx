@@ -1,10 +1,10 @@
-'use client'
+"use client"
 
-import React, { useState, useRef, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { RotateCcw, Check, X, Smartphone } from 'lucide-react'
+import React, { useState, useRef, useEffect } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { RotateCcw, Check, X, Smartphone } from "lucide-react"
 
 interface MobileSignatureModalProps {
   isOpen: boolean
@@ -13,7 +13,7 @@ interface MobileSignatureModalProps {
   title?: string
   description?: string
   loading?: boolean
-  approvalType?: 'client' | 'manager'
+  approvalType?: "client" | "manager"
 }
 
 export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
@@ -23,7 +23,7 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
   title = "Digital Signature",
   description = "Please sign below to confirm approval",
   loading = false,
-  approvalType = 'client'
+  approvalType = "client"
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
@@ -33,12 +33,12 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
   // Detect mobile device
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window)
+      setIsMobile(window.innerWidth < 768 || "ontouchstart" in window)
     }
     
     checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    window.addEventListener("resize", checkMobile)
+    return () => window.removeEventListener("resize", checkMobile)
   }, [])
 
   // Initialize canvas
@@ -46,7 +46,7 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
     if (!isOpen || !canvasRef.current) return
 
     const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
 
     // Set canvas size based on container
@@ -57,13 +57,13 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
     canvas.height = rect.height * dpr
     
     ctx.scale(dpr, dpr)
-    ctx.lineCap = 'round'
-    ctx.lineJoin = 'round'
-    ctx.strokeStyle = '#000000'
+    ctx.lineCap = "round"
+    ctx.lineJoin = "round"
+    ctx.strokeStyle = "#000000"
     ctx.lineWidth = isMobile ? 3 : 2 // Thicker lines on mobile
     
     // Clear canvas
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = "#ffffff"
     ctx.fillRect(0, 0, canvas.width, canvas.height)
   }, [isOpen, isMobile])
 
@@ -73,7 +73,7 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
 
     const rect = canvas.getBoundingClientRect()
     
-    if ('touches' in e) {
+    if ("touches" in e) {
       // Touch event
       const touch = e.touches[0] || e.changedTouches[0]
       return {
@@ -95,7 +95,7 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
     setHasSignature(true)
     
     const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
+    const ctx = canvas?.getContext("2d")
     if (!ctx) return
 
     const pos = getEventPos(e)
@@ -108,7 +108,7 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
     if (!isDrawing) return
 
     const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
+    const ctx = canvas?.getContext("2d")
     if (!ctx) return
 
     const pos = getEventPos(e)
@@ -123,10 +123,10 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
 
   const clearSignature = () => {
     const canvas = canvasRef.current
-    const ctx = canvas?.getContext('2d')
+    const ctx = canvas?.getContext("2d")
     if (!ctx) return
 
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = "#ffffff"
     ctx.fillRect(0, 0, canvas.width, canvas.height)
     setHasSignature(false)
   }
@@ -134,7 +134,7 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
   const handleSubmit = () => {
     if (!hasSignature || !canvasRef.current) return
 
-    const signatureData = canvasRef.current.toDataURL('image/png')
+    const signatureData = canvasRef.current.toDataURL("image/png")
     onSignatureSubmit(signatureData)
   }
 
@@ -184,7 +184,7 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
                 <div className="text-center text-gray-400">
                   <div className="text-2xl mb-2">✍️</div>
                   <p className="text-sm">
-                    {isMobile ? 'Sign with your finger' : 'Click and drag to sign'}
+                    {isMobile ? "Sign with your finger" : "Click and drag to sign"}
                   </p>
                 </div>
               </div>
@@ -219,7 +219,7 @@ export const MobileSignatureModal: React.FC<MobileSignatureModalProps> = ({
             ) : (
               <>
                 <Check className="mr-2 h-4 w-4" />
-                {approvalType === 'manager' ? 'Approve Timesheet' : 'Submit Approval'}
+                {approvalType === "manager" ? "Approve Timesheet" : "Submit Approval"}
               </>
             )}
           </Button>

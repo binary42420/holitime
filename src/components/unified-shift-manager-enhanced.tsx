@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -40,7 +40,7 @@ interface MutationState<T = any> {
 
 interface ClockActionVariables {
   assignmentId: string
-  action: 'clock_in' | 'clock_out'
+  action: "clock_in" | "clock_out"
 }
 
 interface EndShiftVariables {
@@ -78,7 +78,7 @@ const useMutation = <T,>(
       options?.onSuccess?.(data, variables)
       return data
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred'
+      const errorMessage = error instanceof Error ? error.message : "An error occurred"
       setState(prev => ({ ...prev, loading: false, error: errorMessage }))
       throw error
     }
@@ -140,7 +140,7 @@ interface AssignedWorker {
   employeeAvatar: string;
   roleOnShift: string;
   roleCode: string;
-  status: 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended' | 'shift_ended' | 'not_started';
+  status: "Clocked Out" | "Clocked In" | "On Break" | "Shift Ended" | "shift_ended" | "not_started";
   timeEntries: TimeEntry[];
 }
 
@@ -152,52 +152,52 @@ interface UnifiedShiftManagerProps {
 }
 
 const roleColors = {
-  'CC': { name: 'Crew Chief', color: 'text-blue-700', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' },
-  'SH': { name: 'Stage Hand', color: 'text-green-700', bgColor: 'bg-green-50', borderColor: 'border-green-200' },
-  'FO': { name: 'Fork Operator', color: 'text-purple-700', bgColor: 'bg-purple-50', borderColor: 'border-purple-200' },
-  'RFO': { name: 'Rough Fork Operator', color: 'text-orange-700', bgColor: 'bg-orange-50', borderColor: 'border-orange-200' },
-  'RG': { name: 'Rigger', color: 'text-red-700', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
-  'GL': { name: 'General Labor', color: 'text-gray-700', bgColor: 'bg-gray-50', borderColor: 'border-gray-200' },
+  "CC": { name: "Crew Chief", color: "text-blue-700", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
+  "SH": { name: "Stage Hand", color: "text-green-700", bgColor: "bg-green-50", borderColor: "border-green-200" },
+  "FO": { name: "Fork Operator", color: "text-purple-700", bgColor: "bg-purple-50", borderColor: "border-purple-200" },
+  "RFO": { name: "Rough Fork Operator", color: "text-orange-700", bgColor: "bg-orange-50", borderColor: "border-orange-200" },
+  "RG": { name: "Rigger", color: "text-red-700", bgColor: "bg-red-50", borderColor: "border-red-200" },
+  "GL": { name: "General Labor", color: "text-gray-700", bgColor: "bg-gray-50", borderColor: "border-gray-200" },
 } as const
 
 const getStatusConfig = (status: string) => {
   switch (status) {
-    case 'not_started':
-      return { 
-        label: 'Not Started', 
-        color: 'bg-gray-100 text-gray-800', 
-        icon: Clock,
-        description: 'Ready to clock in'
-      }
-    case 'Clocked In':
-      return { 
-        label: 'Working', 
-        color: 'bg-green-100 text-green-800', 
-        icon: Play,
-        description: 'Currently working'
-      }
-    case 'Clocked Out':
-      return { 
-        label: 'On Break', 
-        color: 'bg-yellow-100 text-yellow-800', 
-        icon: Coffee,
-        description: 'On break'
-      }
-    case 'Shift Ended':
-    case 'shift_ended':
-      return { 
-        label: 'Completed', 
-        color: 'bg-blue-100 text-blue-800', 
-        icon: CheckCircle2,
-        description: 'Shift completed'
-      }
-    default:
-      return { 
-        label: status, 
-        color: 'bg-gray-100 text-gray-800', 
-        icon: AlertCircle,
-        description: 'Unknown status'
-      }
+  case "not_started":
+    return { 
+      label: "Not Started", 
+      color: "bg-gray-100 text-gray-800", 
+      icon: Clock,
+      description: "Ready to clock in"
+    }
+  case "Clocked In":
+    return { 
+      label: "Working", 
+      color: "bg-green-100 text-green-800", 
+      icon: Play,
+      description: "Currently working"
+    }
+  case "Clocked Out":
+    return { 
+      label: "On Break", 
+      color: "bg-yellow-100 text-yellow-800", 
+      icon: Coffee,
+      description: "On break"
+    }
+  case "Shift Ended":
+  case "shift_ended":
+    return { 
+      label: "Completed", 
+      color: "bg-blue-100 text-blue-800", 
+      icon: CheckCircle2,
+      description: "Shift completed"
+    }
+  default:
+    return { 
+      label: status, 
+      color: "bg-gray-100 text-gray-800", 
+      icon: AlertCircle,
+      description: "Unknown status"
+    }
   }
 }
 
@@ -230,16 +230,16 @@ export default function UnifiedShiftManagerEnhanced({
 
   // Enhanced mutations with error handling
   const clockActionMutation = useMutation(
-    async ({ assignmentId, action }: { assignmentId: string; action: 'clock_in' | 'clock_out' }) => {
+    async ({ assignmentId, action }: { assignmentId: string; action: "clock_in" | "clock_out" }) => {
       const response = await fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}/clock`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action })
       })
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || `Failed to ${action.replace('_', ' ')}`)
+        throw new Error(errorData.error || `Failed to ${action.replace("_", " ")}`)
       }
       
       return response.json()
@@ -248,15 +248,15 @@ export default function UnifiedShiftManagerEnhanced({
       onSuccess: (data, variables) => {
         const worker = assignedPersonnel.find(w => w.id === variables.assignmentId)
         toast({
-          title: variables.action === 'clock_in' ? "Clocked In" : "Clocked Out",
-          description: `${worker?.employeeName} has been ${variables.action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully`,
+          title: variables.action === "clock_in" ? "Clocked In" : "Clocked Out",
+          description: `${worker?.employeeName} has been ${variables.action === "clock_in" ? "clocked in" : "clocked out"} successfully`,
         })
         onUpdate()
         setLastUpdateTime(new Date())
       },
       context: {
-        component: 'UnifiedShiftManager',
-        action: 'clock_action',
+        component: "UnifiedShiftManager",
+        action: "clock_action",
         shiftId
       }
     }
@@ -265,12 +265,12 @@ export default function UnifiedShiftManagerEnhanced({
   const endShiftMutation = useMutation(
     async ({ assignmentId }: { assignmentId: string }) => {
       const response = await fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}/end-shift`, {
-        method: 'POST'
+        method: "POST"
       })
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to end shift')
+        throw new Error(errorData.error || "Failed to end shift")
       }
       
       return response.json()
@@ -286,8 +286,8 @@ export default function UnifiedShiftManagerEnhanced({
         setLastUpdateTime(new Date())
       },
       context: {
-        component: 'UnifiedShiftManager',
-        action: 'end_shift',
+        component: "UnifiedShiftManager",
+        action: "end_shift",
         shiftId
       }
     }
@@ -296,12 +296,12 @@ export default function UnifiedShiftManagerEnhanced({
   const endAllShiftsMutation = useMutation(
     async () => {
       const response = await fetch(`/api/shifts/${shiftId}/end-all-shifts`, {
-        method: 'POST'
+        method: "POST"
       })
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to end all shifts')
+        throw new Error(errorData.error || "Failed to end all shifts")
       }
       
       return response.json()
@@ -309,7 +309,7 @@ export default function UnifiedShiftManagerEnhanced({
     {
       onSuccess: () => {
         const activeWorkers = assignedPersonnel.filter(w => 
-          !['Shift Ended', 'shift_ended'].includes(w.status)
+          !["Shift Ended", "shift_ended"].includes(w.status)
         )
         toast({
           title: "All Shifts Ended",
@@ -319,8 +319,8 @@ export default function UnifiedShiftManagerEnhanced({
         setLastUpdateTime(new Date())
       },
       context: {
-        component: 'UnifiedShiftManager',
-        action: 'end_all_shifts',
+        component: "UnifiedShiftManager",
+        action: "end_all_shifts",
         shiftId
       }
     }
@@ -329,12 +329,12 @@ export default function UnifiedShiftManagerEnhanced({
   const finalizeTimesheetMutation = useMutation(
     async () => {
       const response = await fetch(`/api/shifts/${shiftId}/finalize-timesheet-simple`, {
-        method: 'POST'
+        method: "POST"
       })
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to finalize timesheet')
+        throw new Error(errorData.error || "Failed to finalize timesheet")
       }
       
       return response.json()
@@ -348,9 +348,9 @@ export default function UnifiedShiftManagerEnhanced({
 
         if (result.timesheetId) {
           try {
-            window.open(`/timesheets/${result.timesheetId}/approve`, '_blank')
+            window.open(`/timesheets/${result.timesheetId}/approve`, "_blank")
           } catch (popupError) {
-            console.warn('Popup blocked, showing link instead')
+            console.warn("Popup blocked, showing link instead")
             toast({
               title: "Timesheet Ready",
               description: "Click here to view the timesheet approval page",
@@ -371,8 +371,8 @@ export default function UnifiedShiftManagerEnhanced({
         setLastUpdateTime(new Date())
       },
       context: {
-        component: 'UnifiedShiftManager',
-        action: 'finalize_timesheet',
+        component: "UnifiedShiftManager",
+        action: "finalize_timesheet",
         shiftId
       }
     }
@@ -380,10 +380,10 @@ export default function UnifiedShiftManagerEnhanced({
 
   // Calculate shift statistics
   const totalWorkers = assignedPersonnel.length
-  const workingCount = assignedPersonnel.filter(w => w.status === 'Clocked In').length
-  const completedCount = assignedPersonnel.filter(w => ['Shift Ended', 'shift_ended'].includes(w.status)).length
-  const notStartedCount = assignedPersonnel.filter(w => w.status === 'not_started').length
-  const onBreakCount = assignedPersonnel.filter(w => w.status === 'Clocked Out').length
+  const workingCount = assignedPersonnel.filter(w => w.status === "Clocked In").length
+  const completedCount = assignedPersonnel.filter(w => ["Shift Ended", "shift_ended"].includes(w.status)).length
+  const notStartedCount = assignedPersonnel.filter(w => w.status === "not_started").length
+  const onBreakCount = assignedPersonnel.filter(w => w.status === "Clocked Out").length
   
   // Calculate completion percentage
   const completionPercentage = totalWorkers > 0 ? (completedCount / totalWorkers) * 100 : 0
@@ -408,7 +408,7 @@ export default function UnifiedShiftManagerEnhanced({
     return () => clearInterval(interval)
   }, [autoRefreshEnabled, isProcessing, isOnline, onUpdate])
 
-  const handleClockAction = async (assignmentId: string, action: 'clock_in' | 'clock_out') => {
+  const handleClockAction = async (assignmentId: string, action: "clock_in" | "clock_out") => {
     if (!isOnline) {
       return toast({
         title: "Offline",
@@ -427,7 +427,7 @@ export default function UnifiedShiftManagerEnhanced({
     }
 
     // Show instant feedback while action is processing
-    const feedbackMessage = `${action === 'clock_in' ? 'Clocking in' : 'Clocking out'} ${worker.employeeName}...`
+    const feedbackMessage = `${action === "clock_in" ? "Clocking in" : "Clocking out"} ${worker.employeeName}...`
     
     try {
       await clockActionMutation.mutate({ assignmentId, action })
@@ -461,7 +461,7 @@ export default function UnifiedShiftManagerEnhanced({
     }
 
     const activeWorkers = assignedPersonnel.filter(w => 
-      !['Shift Ended', 'shift_ended'].includes(w.status)
+      !["Shift Ended", "shift_ended"].includes(w.status)
     )
 
     if (activeWorkers.length === 0) {
@@ -486,7 +486,7 @@ export default function UnifiedShiftManagerEnhanced({
     }
 
     const incompleteWorkers = assignedPersonnel.filter(w => 
-      !['Shift Ended', 'shift_ended'].includes(w.status)
+      !["Shift Ended", "shift_ended"].includes(w.status)
     )
 
     if (incompleteWorkers.length > 0) {
@@ -502,7 +502,7 @@ export default function UnifiedShiftManagerEnhanced({
   }
 
   return (
-    <ErrorBoundary context={{ component: 'UnifiedShiftManager', shiftId }}>
+    <ErrorBoundary context={{ component: "UnifiedShiftManager", shiftId }}>
       <div className="space-y-6">
         {/* Connection Status */}
         <ConnectionStatus isOnline={isOnline} />
@@ -522,8 +522,8 @@ export default function UnifiedShiftManagerEnhanced({
               </div>
               <div className="flex items-center gap-2">
                 <StatusIndicator 
-                  status={isProcessing ? 'loading' : 'idle'}
-                  message={isProcessing ? 'Processing...' : `Last updated: ${format(lastUpdateTime, 'HH:mm:ss')}`}
+                  status={isProcessing ? "loading" : "idle"}
+                  message={isProcessing ? "Processing..." : `Last updated: ${format(lastUpdateTime, "HH:mm:ss")}`}
                 />
                 <FeedbackButton
                   variant="outline"
@@ -595,7 +595,7 @@ export default function UnifiedShiftManagerEnhanced({
                         <Avatar className="h-12 w-12">
                           <AvatarImage src={worker.employeeAvatar} alt={worker.employeeName} />
                           <AvatarFallback>
-                            {worker.employeeName.split(' ').map(n => n[0]).join('')}
+                            {worker.employeeName.split(" ").map(n => n[0]).join("")}
                           </AvatarFallback>
                         </Avatar>
                         
@@ -613,7 +613,7 @@ export default function UnifiedShiftManagerEnhanced({
                           <div className="flex items-center gap-2">
                             <AnimatedBadge 
                               className={statusConfig.color}
-                              animate={worker.status === 'Clocked In' ? 'pulse' : 'none'}
+                              animate={worker.status === "Clocked In" ? "pulse" : "none"}
                             >
                               <StatusIcon className="h-3 w-3 mr-1" />
                               {statusConfig.label}
@@ -631,12 +631,12 @@ export default function UnifiedShiftManagerEnhanced({
                       {/* Action Buttons */}
                       <div className="flex items-center gap-2">
                         <TooltipProvider>
-                          {worker.status === 'not_started' && (
+                          {worker.status === "not_started" && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <FeedbackButton
                                   size="sm"
-                                  onClick={() => handleClockAction(worker.id, 'clock_in')}
+                                  onClick={() => handleClockAction(worker.id, "clock_in")}
                                   loading={clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id}
                                   loadingText="Clocking In..."
                                   successText="Clocked In!"
@@ -650,14 +650,14 @@ export default function UnifiedShiftManagerEnhanced({
                             </Tooltip>
                           )}
 
-                          {worker.status === 'Clocked In' && (
+                          {worker.status === "Clocked In" && (
                             <>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <FeedbackButton
                                     variant="outline"
                                     size="sm"
-                                    onClick={() => handleClockAction(worker.id, 'clock_out')}
+                                    onClick={() => handleClockAction(worker.id, "clock_out")}
                                     loading={clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id}
                                     loadingText="Taking Break..."
                                     successText="On Break!"
@@ -690,13 +690,13 @@ export default function UnifiedShiftManagerEnhanced({
                             </>
                           )}
 
-                          {worker.status === 'Clocked Out' && (
+                          {worker.status === "Clocked Out" && (
                             <>
                               <Tooltip>
                                 <TooltipTrigger asChild>
                                   <FeedbackButton
                                     size="sm"
-                                    onClick={() => handleClockAction(worker.id, 'clock_in')}
+                                    onClick={() => handleClockAction(worker.id, "clock_in")}
                                     loading={clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id}
                                     loadingText="Returning..."
                                     successText="Back to Work!"
@@ -729,7 +729,7 @@ export default function UnifiedShiftManagerEnhanced({
                             </>
                           )}
 
-                          {(worker.status === 'Shift Ended' || worker.status === 'shift_ended') && (
+                          {(worker.status === "Shift Ended" || worker.status === "shift_ended") && (
                             <AnimatedBadge variant="secondary">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Completed
@@ -759,7 +759,7 @@ export default function UnifiedShiftManagerEnhanced({
                 <AlertDialogTrigger asChild>
                   <FeedbackButton
                     variant="destructive"
-                    disabled={!isOnline || assignedPersonnel.filter(w => !['Shift Ended', 'shift_ended'].includes(w.status)).length === 0}
+                    disabled={!isOnline || assignedPersonnel.filter(w => !["Shift Ended", "shift_ended"].includes(w.status)).length === 0}
                     loading={endAllShiftsMutation.loading}
                     loadingText="Ending All Shifts..."
                   >

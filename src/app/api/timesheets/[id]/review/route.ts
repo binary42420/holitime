@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { query } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 // GET /api/timesheets/[id]/review - Get timesheet details for review
 export async function GET(
@@ -8,15 +8,15 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
-    const { id: timesheetId } = await params;
+    const { id: timesheetId } = await params
 
     // Get timesheet with shift and client information
     const timesheetResult = await query(`
@@ -49,28 +49,28 @@ export async function GET(
       JOIN clients c ON j.client_id = c.id
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       WHERE t.id = $1
-    `, [timesheetId]);
+    `, [timesheetId])
 
     if (timesheetResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Timesheet not found' },
+        { error: "Timesheet not found" },
         { status: 404 }
-      );
+      )
     }
 
-    const timesheet = timesheetResult.rows[0];
+    const timesheet = timesheetResult.rows[0]
 
     // Check access permissions
     const hasAccess =
-      user.role === 'Manager/Admin' ||  // Managers have access to all
+      user.role === "Manager/Admin" ||  // Managers have access to all
       user.id === timesheet.crew_chief_id ||  // Assigned crew chief
-      (user.role === 'Client' && user.client_company_id === timesheet.client_id);  // Client users for their company
+      (user.role === "Client" && user.client_company_id === timesheet.client_id)  // Client users for their company
 
     if (!hasAccess) {
       return NextResponse.json(
-        { error: 'Access denied. You do not have permission to view this timesheet.' },
+        { error: "Access denied. You do not have permission to view this timesheet." },
         { status: 403 }
-      );
+      )
     }
 
     // Get assigned personnel with time entries
@@ -91,10 +91,10 @@ export async function GET(
       LEFT JOIN time_entries te ON ap.id = te.assigned_personnel_id
       WHERE ap.shift_id = $1
       ORDER BY u.name, te.entry_number
-    `, [timesheet.shift_id]);
+    `, [timesheet.shift_id])
 
     // Group time entries by employee
-    const employeeMap = new Map();
+    const employeeMap = new Map()
     
     personnelResult.rows.forEach(row => {
       if (!employeeMap.has(row.employee_id)) {
@@ -105,7 +105,7 @@ export async function GET(
           roleOnShift: row.role_on_shift,
           roleCode: row.role_code,
           timeEntries: []
-        });
+        })
       }
       
       if (row.time_entry_id) {
@@ -114,32 +114,32 @@ export async function GET(
           entryNumber: row.entry_number,
           clockIn: row.clock_in,
           clockOut: row.clock_out
-        });
+        })
       }
-    });
+    })
 
-    const assignedPersonnel = Array.from(employeeMap.values());
+    const assignedPersonnel = Array.from(employeeMap.values())
 
     // Calculate total hours for each employee
     assignedPersonnel.forEach(employee => {
-      let totalMinutes = 0;
+      let totalMinutes = 0
       
       employee.timeEntries.forEach(entry => {
         if (entry.clockIn && entry.clockOut) {
-          const clockIn = new Date(entry.clockIn);
-          const clockOut = new Date(entry.clockOut);
-          const diffMs = clockOut.getTime() - clockIn.getTime();
-          totalMinutes += Math.floor(diffMs / (1000 * 60));
+          const clockIn = new Date(entry.clockIn)
+          const clockOut = new Date(entry.clockOut)
+          const diffMs = clockOut.getTime() - clockIn.getTime()
+          totalMinutes += Math.floor(diffMs / (1000 * 60))
         }
-      });
+      })
       
-      employee.totalHours = (totalMinutes / 60).toFixed(2);
-      employee.totalMinutes = totalMinutes;
-    });
+      employee.totalHours = (totalMinutes / 60).toFixed(2)
+      employee.totalMinutes = totalMinutes
+    })
 
     // Calculate grand total hours
-    const grandTotalMinutes = assignedPersonnel.reduce((sum, emp) => sum + (emp.totalMinutes || 0), 0);
-    const grandTotalHours = (grandTotalMinutes / 60).toFixed(2);
+    const grandTotalMinutes = assignedPersonnel.reduce((sum, emp) => sum + (emp.totalMinutes || 0), 0)
+    const grandTotalHours = (grandTotalMinutes / 60).toFixed(2)
 
     return NextResponse.json({
       timesheet: {
@@ -151,7 +151,7 @@ export async function GET(
         managerApprovedAt: timesheet.manager_approved_at,
         submittedBy: timesheet.submitted_by,
         submittedAt: timesheet.submitted_at,
-        pdfFilePath: timesheet.pdf_data ? 'generated' : null,
+        pdfFilePath: timesheet.pdf_data ? "generated" : null,
         pdfGeneratedAt: timesheet.pdf_generated_at
       },
       shift: {
@@ -179,19 +179,19 @@ export async function GET(
         employeeCount: assignedPersonnel.length
       },
       permissions: {
-        canApprove: user.role === 'Manager/Admin' || user.role === 'Client' || user.id === timesheet.crew_chief_id,
-        canFinalApprove: user.role === 'Manager/Admin',
-        isClientUser: user.role === 'Client',
-        isManager: user.role === 'Manager/Admin',
+        canApprove: user.role === "Manager/Admin" || user.role === "Client" || user.id === timesheet.crew_chief_id,
+        canFinalApprove: user.role === "Manager/Admin",
+        isClientUser: user.role === "Client",
+        isManager: user.role === "Manager/Admin",
         isCrewChief: user.id === timesheet.crew_chief_id
       }
-    });
+    })
 
   } catch (error) {
-    console.error('Error fetching timesheet for review:', error);
+    console.error("Error fetching timesheet for review:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

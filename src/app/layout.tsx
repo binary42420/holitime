@@ -1,27 +1,27 @@
-import type { Metadata } from 'next';
+import type { Metadata } from "next"
 import { Toaster } from "@/components/ui/toaster"
-import { UserProvider } from '@/hooks/use-user';
-import NextAuthSessionProvider from '@/components/providers/session-provider';
-import './globals.css';
+import { UserProvider } from "@/hooks/use-user"
+import NextAuthSessionProvider from "@/components/providers/session-provider"
+import "./globals.css"
 
 export const metadata: Metadata = {
-  title: 'Hands On Labor - Workforce Management',
-  description: 'Mobile-first workforce management for construction teams',
+  title: "Hands On Labor - Workforce Management",
+  description: "Mobile-first workforce management for construction teams",
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'default',
-    title: 'HoliTime',
+    statusBarStyle: "default",
+    title: "HoliTime",
   },
-  manifest: '/manifest.json',
-};
+  manifest: "/manifest.json",
+}
 
 export const viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#2563eb',
-};
+  themeColor: "#2563eb",
+}
 
 export default function RootLayout({
   children,
@@ -44,5 +44,5 @@ export default function RootLayout({
         </NextAuthSessionProvider>
       </body>
     </html>
-  );
+  )
 }

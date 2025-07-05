@@ -1,7 +1,7 @@
- import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
-import { CSVRow } from '../parse/route'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import { CSVRow } from "../parse/route"
 
 interface ImportSummary {
   clients: { created: number; updated: number }
@@ -16,8 +16,8 @@ interface ImportSummary {
 async function createOrUpdateClient(clientName: string, contactName?: string, contactPhone?: string) {
   // Check if client exists (clients are stored as users with role 'Client')
   const existingClient = await query(
-    'SELECT id FROM users WHERE role = $1 AND (LOWER(company_name) = LOWER($2) OR LOWER(name) = LOWER($2))',
-    ['Client', clientName]
+    "SELECT id FROM users WHERE role = $1 AND (LOWER(company_name) = LOWER($2) OR LOWER(name) = LOWER($2))",
+    ["Client", clientName]
   )
 
   if (existingClient.rows.length > 0) {
@@ -26,7 +26,7 @@ async function createOrUpdateClient(clientName: string, contactName?: string, co
     // Update contact info if provided
     if (contactName || contactPhone) {
       await query(
-        'UPDATE users SET contact_person = COALESCE($2, contact_person), contact_phone = COALESCE($3, contact_phone), updated_at = NOW() WHERE id = $1',
+        "UPDATE users SET contact_person = COALESCE($2, contact_person), contact_phone = COALESCE($3, contact_phone), updated_at = NOW() WHERE id = $1",
         [clientId, contactName || null, contactPhone || null]
       )
       return { id: clientId, created: false }
@@ -36,10 +36,10 @@ async function createOrUpdateClient(clientName: string, contactName?: string, co
   }
 
   // Create new client user
-  const email = `${clientName.toLowerCase().replace(/\s+/g, '.')}@client.temp`
+  const email = `${clientName.toLowerCase().replace(/\s+/g, ".")}@client.temp`
   const result = await query(
-    'INSERT INTO users (name, email, password_hash, role, company_name, contact_person, contact_phone, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING id',
-    [clientName, email, 'temp_password_change_required', 'Client', clientName, contactName || null, contactPhone || null]
+    "INSERT INTO users (name, email, password_hash, role, company_name, contact_person, contact_phone, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING id",
+    [clientName, email, "temp_password_change_required", "Client", clientName, contactName || null, contactPhone || null]
   )
 
   return { id: result.rows[0].id, created: true }
@@ -48,7 +48,7 @@ async function createOrUpdateClient(clientName: string, contactName?: string, co
 async function createOrUpdateJob(clientId: string, jobName: string, jobStartDate?: string) {
   // Check if job exists for this client
   const existingJob = await query(
-    'SELECT id FROM jobs WHERE client_id = $1 AND LOWER(name) = LOWER($2)',
+    "SELECT id FROM jobs WHERE client_id = $1 AND LOWER(name) = LOWER($2)",
     [clientId, jobName]
   )
 
@@ -58,7 +58,7 @@ async function createOrUpdateJob(clientId: string, jobName: string, jobStartDate
 
   // Create new job
   const result = await query(
-    'INSERT INTO jobs (client_id, name, description, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id',
+    "INSERT INTO jobs (client_id, name, description, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW()) RETURNING id",
     [clientId, jobName, jobStartDate ? `Start Date: ${jobStartDate}` : null]
   )
 
@@ -68,7 +68,7 @@ async function createOrUpdateJob(clientId: string, jobName: string, jobStartDate
 async function createOrUpdateShift(jobId: string, shiftDate: string, startTime: string, endTime: string) {
   // Check if shift exists
   const existingShift = await query(
-    'SELECT id FROM shifts WHERE job_id = $1 AND date = $2 AND start_time = $3',
+    "SELECT id FROM shifts WHERE job_id = $1 AND date = $2 AND start_time = $3",
     [jobId, shiftDate, startTime]
   )
 
@@ -78,8 +78,8 @@ async function createOrUpdateShift(jobId: string, shiftDate: string, startTime: 
 
   // Create new shift
   const result = await query(
-    'INSERT INTO shifts (job_id, date, start_time, end_time, status, requested_workers, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id',
-    [jobId, shiftDate, startTime, endTime, 'Upcoming', 1]
+    "INSERT INTO shifts (job_id, date, start_time, end_time, status, requested_workers, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING id",
+    [jobId, shiftDate, startTime, endTime, "Upcoming", 1]
   )
 
   return { id: result.rows[0].id, created: true }
@@ -91,15 +91,15 @@ async function createOrUpdateUser(employeeName: string, employeeEmail?: string, 
 
   if (employeeEmail) {
     existingUser = await query(
-      'SELECT id FROM users WHERE LOWER(email) = LOWER($1) AND role IN ($2, $3, $4)',
-      [employeeEmail, 'Employee', 'Crew Chief', 'Manager/Admin']
+      "SELECT id FROM users WHERE LOWER(email) = LOWER($1) AND role IN ($2, $3, $4)",
+      [employeeEmail, "Employee", "Crew Chief", "Manager/Admin"]
     )
   }
 
   if (!existingUser?.rows.length) {
     existingUser = await query(
-      'SELECT id FROM users WHERE LOWER(name) = LOWER($1) AND role IN ($2, $3, $4)',
-      [employeeName, 'Employee', 'Crew Chief', 'Manager/Admin']
+      "SELECT id FROM users WHERE LOWER(name) = LOWER($1) AND role IN ($2, $3, $4)",
+      [employeeName, "Employee", "Crew Chief", "Manager/Admin"]
     )
   }
 
@@ -109,7 +109,7 @@ async function createOrUpdateUser(employeeName: string, employeeEmail?: string, 
     // Update user info if provided
     if (employeeEmail || employeePhone) {
       await query(
-        'UPDATE users SET email = COALESCE($2, email), contact_phone = COALESCE($3, contact_phone), updated_at = NOW() WHERE id = $1',
+        "UPDATE users SET email = COALESCE($2, email), contact_phone = COALESCE($3, contact_phone), updated_at = NOW() WHERE id = $1",
         [userId, employeeEmail || null, employeePhone || null]
       )
       return { id: userId, created: false }
@@ -119,10 +119,10 @@ async function createOrUpdateUser(employeeName: string, employeeEmail?: string, 
   }
 
   // Create new user
-  const email = employeeEmail || `${employeeName.toLowerCase().replace(/\s+/g, '.')}@temp.local`
+  const email = employeeEmail || `${employeeName.toLowerCase().replace(/\s+/g, ".")}@temp.local`
   const result = await query(
-    'INSERT INTO users (name, email, password_hash, contact_phone, role, created_at, updated_at, is_active) VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), true) RETURNING id',
-    [employeeName, email, 'temp_password_change_required', employeePhone || null, 'Employee']
+    "INSERT INTO users (name, email, password_hash, contact_phone, role, created_at, updated_at, is_active) VALUES ($1, $2, $3, $4, $5, NOW(), NOW(), true) RETURNING id",
+    [employeeName, email, "temp_password_change_required", employeePhone || null, "Employee"]
   )
 
   return { id: result.rows[0].id, created: true }
@@ -131,7 +131,7 @@ async function createOrUpdateUser(employeeName: string, employeeEmail?: string, 
 async function createAssignment(shiftId: string, employeeId: string, workerType: string) {
   // Check if assignment already exists
   const existingAssignment = await query(
-    'SELECT id FROM assigned_personnel WHERE shift_id = $1 AND employee_id = $2',
+    "SELECT id FROM assigned_personnel WHERE shift_id = $1 AND employee_id = $2",
     [shiftId, employeeId]
   )
 
@@ -141,17 +141,17 @@ async function createAssignment(shiftId: string, employeeId: string, workerType:
 
   // Create new assignment
   const roleNames: Record<string, string> = {
-    'CC': 'Crew Chief',
-    'SH': 'Stage Hand',
-    'FO': 'Fork Operator',
-    'RFO': 'Rough Fork Operator',
-    'RG': 'Rigger',
-    'GL': 'General Laborer'
+    "CC": "Crew Chief",
+    "SH": "Stage Hand",
+    "FO": "Fork Operator",
+    "RFO": "Rough Fork Operator",
+    "RG": "Rigger",
+    "GL": "General Laborer"
   }
 
   const result = await query(
-    'INSERT INTO assigned_personnel (shift_id, employee_id, role_on_shift, role_code, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING id',
-    [shiftId, employeeId, roleNames[workerType] || workerType, workerType, 'Clocked Out']
+    "INSERT INTO assigned_personnel (shift_id, employee_id, role_on_shift, role_code, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING id",
+    [shiftId, employeeId, roleNames[workerType] || workerType, workerType, "Clocked Out"]
   )
 
   return { id: result.rows[0].id, created: true }
@@ -166,7 +166,7 @@ async function createTimeEntries(assignmentId: string, clockTimes: Array<{clockI
 
     // Check if time entry already exists for this entry number
     const existingEntry = await query(
-      'SELECT id FROM time_entries WHERE assigned_personnel_id = $1 AND entry_number = $2',
+      "SELECT id FROM time_entries WHERE assigned_personnel_id = $1 AND entry_number = $2",
       [assignmentId, i + 1]
     )
 
@@ -177,7 +177,7 @@ async function createTimeEntries(assignmentId: string, clockTimes: Array<{clockI
     const clockOutTimestamp = clockOut ? `${shiftDate}T${clockOut}:00` : null
 
     await query(
-      'INSERT INTO time_entries (assigned_personnel_id, entry_number, clock_in, clock_out, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())',
+      "INSERT INTO time_entries (assigned_personnel_id, entry_number, clock_in, clock_out, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())",
       [assignmentId, i + 1, clockInTimestamp, clockOutTimestamp, !clockOut]
     )
     
@@ -190,9 +190,9 @@ async function createTimeEntries(assignmentId: string, clockTimes: Array<{clockI
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
-    if (!user || user.role !== 'Manager/Admin') {
+    if (!user || user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -201,12 +201,12 @@ export async function POST(request: NextRequest) {
 
     if (!data || !Array.isArray(data)) {
       return NextResponse.json(
-        { error: 'Invalid data provided' },
+        { error: "Invalid data provided" },
         { status: 400 }
       )
     }
 
-    console.log('CSV Import: Starting import process with', data.length, 'rows')
+    console.log("CSV Import: Starting import process with", data.length, "rows")
 
     const summary: ImportSummary = {
       clients: { created: 0, updated: 0 },
@@ -233,7 +233,7 @@ export async function POST(request: NextRequest) {
           console.log(`CSV Import: Skipping row ${row._rowNumber} due to validation errors:`, row._errors)
           summary.errors.push({
             rowNumber: row._rowNumber,
-            error: `Validation errors: ${row._errors.join(', ')}`
+            error: `Validation errors: ${row._errors.join(", ")}`
           })
           continue
         }
@@ -245,7 +245,7 @@ export async function POST(request: NextRequest) {
           row.contact_name,
           row.contact_phone
         )
-        console.log(`CSV Import: Client result:`, clientResult)
+        console.log("CSV Import: Client result:", clientResult)
         if (clientResult.created) summary.clients.created++
         else summary.clients.updated++
 
@@ -300,12 +300,12 @@ export async function POST(request: NextRequest) {
         console.error(`Error processing row ${row._rowNumber}:`, error)
         summary.errors.push({
           rowNumber: row._rowNumber,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : "Unknown error"
         })
       }
     }
 
-    console.log('CSV Import: Final summary:', summary)
+    console.log("CSV Import: Final summary:", summary)
 
     return NextResponse.json({
       success: true,
@@ -313,9 +313,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error importing CSV data:', error)
+    console.error("Error importing CSV data:", error)
     return NextResponse.json(
-      { error: 'Failed to import CSV data' },
+      { error: "Failed to import CSV data" },
       { status: 500 }
     )
   }

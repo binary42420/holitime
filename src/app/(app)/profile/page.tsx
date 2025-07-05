@@ -1,18 +1,18 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Progress } from '@/components/ui/progress'
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Progress } from "@/components/ui/progress"
 import { 
   User, 
   Mail, 
@@ -29,9 +29,9 @@ import {
   X,
   CheckCircle,
   AlertTriangle
-} from 'lucide-react'
-import { UserProfile, SHIFT_TYPES, TRANSPORTATION_METHODS, WORK_AUTHORIZATION_STATUSES, RELATIONSHIP_TYPES, US_STATES, COMMON_SKILLS, SAFETY_CERTIFICATIONS } from '@/types/profiles'
-import { useToast } from '@/hooks/use-toast'
+} from "lucide-react"
+import { UserProfile, SHIFT_TYPES, TRANSPORTATION_METHODS, WORK_AUTHORIZATION_STATUSES, RELATIONSHIP_TYPES, US_STATES, COMMON_SKILLS, SAFETY_CERTIFICATIONS } from "@/types/profiles"
+import { useToast } from "@/hooks/use-toast"
 
 export default function ProfilePage() {
   const { data: session } = useSession()
@@ -40,63 +40,63 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(false)
-  const [activeTab, setActiveTab] = useState('basic')
-  const [newSkill, setNewSkill] = useState('')
-  const [newCertification, setNewCertification] = useState('')
+  const [activeTab, setActiveTab] = useState("basic")
+  const [newSkill, setNewSkill] = useState("")
+  const [newCertification, setNewCertification] = useState("")
 
-  useEffect(() => {
-    fetchProfile()
-  }, [])
-
-  const fetchProfile = async () => {
+  const fetchProfile = React.useCallback(async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/profiles')
-      if (!response.ok) throw new Error('Failed to fetch profile')
+      const response = await fetch("/api/profiles")
+      if (!response.ok) throw new Error("Failed to fetch profile")
       
       const data = await response.json()
       setProfile(data.profile)
     } catch (error) {
-      console.error('Error fetching profile:', error)
+      console.error("Error fetching profile:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to load profile',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load profile",
+        variant: "destructive"
       })
     } finally {
       setLoading(false)
     }
-  }
+  }, [setLoading, setProfile, toast])
+
+  useEffect(() => {
+    fetchProfile()
+  }, [fetchProfile])
 
   const saveProfile = async () => {
     if (!profile) return
 
     try {
       setSaving(true)
-      const response = await fetch('/api/profiles', {
-        method: 'PUT',
+      const response = await fetch("/api/profiles", {
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         body: JSON.stringify(profile)
       })
 
-      if (!response.ok) throw new Error('Failed to save profile')
+      if (!response.ok) throw new Error("Failed to save profile")
 
       const data = await response.json()
       setProfile(data.profile)
       setEditing(false)
       
       toast({
-        title: 'Success',
-        description: 'Profile updated successfully'
+        title: "Success",
+        description: "Profile updated successfully"
       })
     } catch (error) {
-      console.error('Error saving profile:', error)
+      console.error("Error saving profile:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to save profile',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to save profile",
+        variant: "destructive"
       })
     } finally {
       setSaving(false)
@@ -122,27 +122,27 @@ export default function ProfilePage() {
   const addSkill = () => {
     if (!profile || !newSkill.trim()) return
     const skills = [...profile.skills, newSkill.trim()]
-    updateProfile('skills', skills)
-    setNewSkill('')
+    updateProfile("skills", skills)
+    setNewSkill("")
   }
 
   const removeSkill = (skillToRemove: string) => {
     if (!profile) return
     const skills = profile.skills.filter(skill => skill !== skillToRemove)
-    updateProfile('skills', skills)
+    updateProfile("skills", skills)
   }
 
   const addCertification = () => {
     if (!profile || !newCertification.trim()) return
     const certifications = [...profile.safety_certifications, newCertification.trim()]
-    updateProfile('safety_certifications', certifications)
-    setNewCertification('')
+    updateProfile("safety_certifications", certifications)
+    setNewCertification("")
   }
 
   const removeCertification = (certToRemove: string) => {
     if (!profile) return
     const certifications = profile.safety_certifications.filter(cert => cert !== certToRemove)
-    updateProfile('safety_certifications', certifications)
+    updateProfile("safety_certifications", certifications)
   }
 
   const calculateCompletionRate = (): number => {
@@ -210,7 +210,7 @@ export default function ProfilePage() {
                   Cancel
                 </Button>
                 <Button size="mobile" onClick={saveProfile} disabled={saving}>
-                  {saving ? 'Saving...' : 'Save Changes'}
+                  {saving ? "Saving..." : "Save Changes"}
                   <Save className="h-4 w-4 ml-2" />
                 </Button>
               </>
@@ -269,9 +269,9 @@ export default function ProfilePage() {
               {/* Profile Picture */}
               <div className="flex items-center gap-4">
                 <Avatar className="h-20 w-20">
-                  <AvatarImage src={profile.profile_picture_url || session?.user?.image || ''} />
+                  <AvatarImage src={profile.profile_picture_url || session?.user?.image || ""} />
                   <AvatarFallback>
-                    {session?.user?.name?.charAt(0) || 'U'}
+                    {session?.user?.name?.charAt(0) || "U"}
                   </AvatarFallback>
                 </Avatar>
                 {editing && (
@@ -287,7 +287,7 @@ export default function ProfilePage() {
                   <Label htmlFor="name">Full Name</Label>
                   <Input
                     id="name"
-                    value={session?.user?.name || ''}
+                    value={session?.user?.name || ""}
                     disabled
                     className="bg-muted"
                   />
@@ -300,7 +300,7 @@ export default function ProfilePage() {
                   <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
-                    value={session?.user?.email || ''}
+                    value={session?.user?.email || ""}
                     disabled
                     className="bg-muted"
                   />
@@ -314,8 +314,8 @@ export default function ProfilePage() {
                   <Input
                     id="date_of_birth"
                     type="date"
-                    value={profile.date_of_birth || ''}
-                    onChange={(e) => updateProfile('date_of_birth', e.target.value)}
+                    value={profile.date_of_birth || ""}
+                    onChange={(e) => updateProfile("date_of_birth", e.target.value)}
                     disabled={!editing}
                   />
                 </div>
@@ -325,8 +325,8 @@ export default function ProfilePage() {
                   <Input
                     id="hire_date"
                     type="date"
-                    value={profile.hire_date || ''}
-                    onChange={(e) => updateProfile('hire_date', e.target.value)}
+                    value={profile.hire_date || ""}
+                    onChange={(e) => updateProfile("hire_date", e.target.value)}
                     disabled={!editing}
                   />
                 </div>
@@ -337,8 +337,8 @@ export default function ProfilePage() {
                 <Textarea
                   id="bio"
                   placeholder="Tell us about yourself..."
-                  value={profile.bio || ''}
-                  onChange={(e) => updateProfile('bio', e.target.value)}
+                  value={profile.bio || ""}
+                  onChange={(e) => updateProfile("bio", e.target.value)}
                   disabled={!editing}
                   rows={3}
                 />
@@ -362,8 +362,8 @@ export default function ProfilePage() {
                   <Input
                     id="phone"
                     type="tel"
-                    value={profile.phone || ''}
-                    onChange={(e) => updateProfile('phone', e.target.value)}
+                    value={profile.phone || ""}
+                    onChange={(e) => updateProfile("phone", e.target.value)}
                     disabled={!editing}
                     placeholder="(555) 123-4567"
                   />
@@ -372,8 +372,8 @@ export default function ProfilePage() {
                 <div>
                   <Label htmlFor="transportation">Transportation</Label>
                   <Select
-                    value={profile.transportation_method || ''}
-                    onValueChange={(value) => updateProfile('transportation_method', value)}
+                    value={profile.transportation_method || ""}
+                    onValueChange={(value) => updateProfile("transportation_method", value)}
                     disabled={!editing}
                   >
                     <SelectTrigger>
@@ -392,8 +392,8 @@ export default function ProfilePage() {
                 <Label htmlFor="address">Address</Label>
                 <Input
                   id="address"
-                  value={profile.address || ''}
-                  onChange={(e) => updateProfile('address', e.target.value)}
+                  value={profile.address || ""}
+                  onChange={(e) => updateProfile("address", e.target.value)}
                   disabled={!editing}
                   placeholder="123 Main St"
                 />
@@ -404,8 +404,8 @@ export default function ProfilePage() {
                   <Label htmlFor="city">City</Label>
                   <Input
                     id="city"
-                    value={profile.city || ''}
-                    onChange={(e) => updateProfile('city', e.target.value)}
+                    value={profile.city || ""}
+                    onChange={(e) => updateProfile("city", e.target.value)}
                     disabled={!editing}
                   />
                 </div>
@@ -413,8 +413,8 @@ export default function ProfilePage() {
                 <div>
                   <Label htmlFor="state">State</Label>
                   <Select
-                    value={profile.state || ''}
-                    onValueChange={(value) => updateProfile('state', value)}
+                    value={profile.state || ""}
+                    onValueChange={(value) => updateProfile("state", value)}
                     disabled={!editing}
                   >
                     <SelectTrigger>
@@ -432,8 +432,8 @@ export default function ProfilePage() {
                   <Label htmlFor="zip_code">ZIP Code</Label>
                   <Input
                     id="zip_code"
-                    value={profile.zip_code || ''}
-                    onChange={(e) => updateProfile('zip_code', e.target.value)}
+                    value={profile.zip_code || ""}
+                    onChange={(e) => updateProfile("zip_code", e.target.value)}
                     disabled={!editing}
                     placeholder="12345"
                   />
@@ -455,8 +455,8 @@ export default function ProfilePage() {
                   <Label htmlFor="emergency_name">Emergency Contact Name</Label>
                   <Input
                     id="emergency_name"
-                    value={profile.emergency_contact_name || ''}
-                    onChange={(e) => updateProfile('emergency_contact_name', e.target.value)}
+                    value={profile.emergency_contact_name || ""}
+                    onChange={(e) => updateProfile("emergency_contact_name", e.target.value)}
                     disabled={!editing}
                   />
                 </div>
@@ -466,8 +466,8 @@ export default function ProfilePage() {
                   <Input
                     id="emergency_phone"
                     type="tel"
-                    value={profile.emergency_contact_phone || ''}
-                    onChange={(e) => updateProfile('emergency_contact_phone', e.target.value)}
+                    value={profile.emergency_contact_phone || ""}
+                    onChange={(e) => updateProfile("emergency_contact_phone", e.target.value)}
                     disabled={!editing}
                   />
                 </div>
@@ -476,8 +476,8 @@ export default function ProfilePage() {
               <div>
                 <Label htmlFor="emergency_relationship">Relationship</Label>
                 <Select
-                  value={profile.emergency_contact_relationship || ''}
-                  onValueChange={(value) => updateProfile('emergency_contact_relationship', value)}
+                  value={profile.emergency_contact_relationship || ""}
+                  onValueChange={(value) => updateProfile("emergency_contact_relationship", value)}
                   disabled={!editing}
                 >
                   <SelectTrigger>
@@ -503,8 +503,8 @@ export default function ProfilePage() {
               <div>
                 <Label htmlFor="work_auth">Work Authorization Status</Label>
                 <Select
-                  value={profile.work_authorization_status || ''}
-                  onValueChange={(value) => updateProfile('work_authorization_status', value)}
+                  value={profile.work_authorization_status || ""}
+                  onValueChange={(value) => updateProfile("work_authorization_status", value)}
                   disabled={!editing}
                 >
                   <SelectTrigger>
@@ -522,7 +522,7 @@ export default function ProfilePage() {
                 <Checkbox
                   id="has_tools"
                   checked={profile.has_own_tools}
-                  onCheckedChange={(checked) => updateProfile('has_own_tools', !!checked)}
+                  onCheckedChange={(checked) => updateProfile("has_own_tools", !!checked)}
                   disabled={!editing}
                 />
                 <Label htmlFor="has_tools">I have my own tools</Label>
@@ -623,7 +623,7 @@ export default function ProfilePage() {
                   </div>
                   <Checkbox
                     checked={profile.notification_preferences.email_notifications}
-                    onCheckedChange={(checked) => updateNotificationPreferences('email_notifications', !!checked)}
+                    onCheckedChange={(checked) => updateNotificationPreferences("email_notifications", !!checked)}
                     disabled={!editing}
                   />
                 </div>
@@ -635,7 +635,7 @@ export default function ProfilePage() {
                   </div>
                   <Checkbox
                     checked={profile.notification_preferences.shift_assignments}
-                    onCheckedChange={(checked) => updateNotificationPreferences('shift_assignments', !!checked)}
+                    onCheckedChange={(checked) => updateNotificationPreferences("shift_assignments", !!checked)}
                     disabled={!editing}
                   />
                 </div>
@@ -647,7 +647,7 @@ export default function ProfilePage() {
                   </div>
                   <Checkbox
                     checked={profile.notification_preferences.shift_reminders}
-                    onCheckedChange={(checked) => updateNotificationPreferences('shift_reminders', !!checked)}
+                    onCheckedChange={(checked) => updateNotificationPreferences("shift_reminders", !!checked)}
                     disabled={!editing}
                   />
                 </div>
@@ -659,7 +659,7 @@ export default function ProfilePage() {
                   </div>
                   <Checkbox
                     checked={profile.notification_preferences.document_reminders}
-                    onCheckedChange={(checked) => updateNotificationPreferences('document_reminders', !!checked)}
+                    onCheckedChange={(checked) => updateNotificationPreferences("document_reminders", !!checked)}
                     disabled={!editing}
                   />
                 </div>
@@ -671,7 +671,7 @@ export default function ProfilePage() {
                   </div>
                   <Checkbox
                     checked={profile.notification_preferences.system_messages}
-                    onCheckedChange={(checked) => updateNotificationPreferences('system_messages', !!checked)}
+                    onCheckedChange={(checked) => updateNotificationPreferences("system_messages", !!checked)}
                     disabled={!editing}
                   />
                 </div>

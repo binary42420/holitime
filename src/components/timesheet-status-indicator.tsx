@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Card, CardContent } from "@/components/ui/card"
 import { 
   Clock, 
   FileText, 
@@ -11,111 +11,111 @@ import {
   AlertCircle, 
   XCircle,
   Loader2
-} from 'lucide-react'
+} from "lucide-react"
 
 interface TimesheetStatusIndicatorProps {
   status: string
   showProgress?: boolean
-  size?: 'sm' | 'md' | 'lg'
+  size?: "sm" | "md" | "lg"
   className?: string
 }
 
 export function TimesheetStatusIndicator({ 
   status, 
   showProgress = false, 
-  size = 'md',
-  className = '' 
+  size = "md",
+  className = "" 
 }: TimesheetStatusIndicatorProps) {
   
   const getStatusConfig = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'draft':
-        return {
-          label: 'Draft',
-          variant: 'secondary' as const,
-          icon: FileText,
-          color: 'text-gray-500',
-          bgColor: 'bg-gray-100',
-          progress: 10,
-          description: 'Timesheet is being prepared'
-        }
-      case 'pending_client_approval':
-        return {
-          label: 'Pending Client Approval',
-          variant: 'default' as const,
-          icon: Clock,
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-100',
-          progress: 40,
-          description: 'Waiting for client to review and approve'
-        }
-      case 'pending_final_approval':
-        return {
-          label: 'Pending Final Approval',
-          variant: 'secondary' as const,
-          icon: UserCheck,
-          color: 'text-orange-600',
-          bgColor: 'bg-orange-100',
-          progress: 70,
-          description: 'Waiting for manager final approval'
-        }
-      case 'completed':
-        return {
-          label: 'Completed',
-          variant: 'default' as const,
-          icon: CheckCircle,
-          color: 'text-green-600',
-          bgColor: 'bg-green-100',
-          progress: 100,
-          description: 'Timesheet fully approved and finalized'
-        }
-      case 'rejected':
-        return {
-          label: 'Rejected',
-          variant: 'destructive' as const,
-          icon: XCircle,
-          color: 'text-red-600',
-          bgColor: 'bg-red-100',
-          progress: 0,
-          description: 'Timesheet has been rejected'
-        }
-      case 'pending approval':
-        return {
-          label: 'Pending Approval',
-          variant: 'default' as const,
-          icon: Clock,
-          color: 'text-yellow-600',
-          bgColor: 'bg-yellow-100',
-          progress: 30,
-          description: 'Timesheet submitted for approval'
-        }
-      case 'pending client approval':
-        return {
-          label: 'Pending Client Approval',
-          variant: 'default' as const,
-          icon: Clock,
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-100',
-          progress: 40,
-          description: 'Waiting for client approval'
-        }
-      default:
-        return {
-          label: status,
-          variant: 'outline' as const,
-          icon: AlertCircle,
-          color: 'text-gray-500',
-          bgColor: 'bg-gray-100',
-          progress: 0,
-          description: 'Unknown status'
-        }
+    case "draft":
+      return {
+        label: "Draft",
+        variant: "secondary" as const,
+        icon: FileText,
+        color: "text-gray-500",
+        bgColor: "bg-gray-100",
+        progress: 10,
+        description: "Timesheet is being prepared"
+      }
+    case "pending_client_approval":
+      return {
+        label: "Pending Client Approval",
+        variant: "default" as const,
+        icon: Clock,
+        color: "text-blue-600",
+        bgColor: "bg-blue-100",
+        progress: 40,
+        description: "Waiting for client to review and approve"
+      }
+    case "pending_final_approval":
+      return {
+        label: "Pending Final Approval",
+        variant: "secondary" as const,
+        icon: UserCheck,
+        color: "text-orange-600",
+        bgColor: "bg-orange-100",
+        progress: 70,
+        description: "Waiting for manager final approval"
+      }
+    case "completed":
+      return {
+        label: "Completed",
+        variant: "default" as const,
+        icon: CheckCircle,
+        color: "text-green-600",
+        bgColor: "bg-green-100",
+        progress: 100,
+        description: "Timesheet fully approved and finalized"
+      }
+    case "rejected":
+      return {
+        label: "Rejected",
+        variant: "destructive" as const,
+        icon: XCircle,
+        color: "text-red-600",
+        bgColor: "bg-red-100",
+        progress: 0,
+        description: "Timesheet has been rejected"
+      }
+    case "pending approval":
+      return {
+        label: "Pending Approval",
+        variant: "default" as const,
+        icon: Clock,
+        color: "text-yellow-600",
+        bgColor: "bg-yellow-100",
+        progress: 30,
+        description: "Timesheet submitted for approval"
+      }
+    case "pending client approval":
+      return {
+        label: "Pending Client Approval",
+        variant: "default" as const,
+        icon: Clock,
+        color: "text-blue-600",
+        bgColor: "bg-blue-100",
+        progress: 40,
+        description: "Waiting for client approval"
+      }
+    default:
+      return {
+        label: status,
+        variant: "outline" as const,
+        icon: AlertCircle,
+        color: "text-gray-500",
+        bgColor: "bg-gray-100",
+        progress: 0,
+        description: "Unknown status"
+      }
     }
   }
 
   const config = getStatusConfig(status)
   const Icon = config.icon
 
-  if (size === 'sm') {
+  if (size === "sm") {
     return (
       <Badge variant={config.variant} className={className}>
         <Icon className="h-3 w-3 mr-1" />
@@ -124,7 +124,7 @@ export function TimesheetStatusIndicator({
     )
   }
 
-  if (size === 'lg' && showProgress) {
+  if (size === "lg" && showProgress) {
     return (
       <Card className={className}>
         <CardContent className="p-4">
@@ -166,12 +166,12 @@ interface TimesheetWorkflowIndicatorProps {
   className?: string
 }
 
-export function TimesheetWorkflowIndicator({ currentStatus, className = '' }: TimesheetWorkflowIndicatorProps) {
+export function TimesheetWorkflowIndicator({ currentStatus, className = "" }: TimesheetWorkflowIndicatorProps) {
   const steps = [
-    { key: 'draft', label: 'Draft', icon: FileText },
-    { key: 'pending_client_approval', label: 'Client Review', icon: Clock },
-    { key: 'pending_final_approval', label: 'Final Approval', icon: UserCheck },
-    { key: 'completed', label: 'Completed', icon: CheckCircle }
+    { key: "draft", label: "Draft", icon: FileText },
+    { key: "pending_client_approval", label: "Client Review", icon: Clock },
+    { key: "pending_final_approval", label: "Final Approval", icon: UserCheck },
+    { key: "completed", label: "Completed", icon: CheckCircle }
   ]
 
   const getCurrentStepIndex = () => {
@@ -195,9 +195,9 @@ export function TimesheetWorkflowIndicator({ currentStatus, className = '' }: Ti
             <div key={step.key} className="flex items-center gap-3">
               <div className={`
                 flex items-center justify-center w-8 h-8 rounded-full border-2
-                ${isActive ? 'border-blue-500 bg-blue-50' : ''}
-                ${isCompleted ? 'border-green-500 bg-green-50' : ''}
-                ${isPending ? 'border-gray-300 bg-gray-50' : ''}
+                ${isActive ? "border-blue-500 bg-blue-50" : ""}
+                ${isCompleted ? "border-green-500 bg-green-50" : ""}
+                ${isPending ? "border-gray-300 bg-gray-50" : ""}
               `}>
                 {isCompleted ? (
                   <CheckCircle className="h-4 w-4 text-green-600" />
@@ -210,9 +210,9 @@ export function TimesheetWorkflowIndicator({ currentStatus, className = '' }: Ti
               <div className="flex-1">
                 <div className={`
                   text-sm font-medium
-                  ${isActive ? 'text-blue-600' : ''}
-                  ${isCompleted ? 'text-green-600' : ''}
-                  ${isPending ? 'text-gray-400' : ''}
+                  ${isActive ? "text-blue-600" : ""}
+                  ${isCompleted ? "text-green-600" : ""}
+                  ${isPending ? "text-gray-400" : ""}
                 `}>
                   {step.label}
                 </div>

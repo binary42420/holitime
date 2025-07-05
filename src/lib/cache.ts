@@ -98,7 +98,7 @@ class EnhancedCache {
     maxSize: number
     oldestEntry: number | null
     newestEntry: number | null
-  } {
+    } {
     let oldest: number | null = null
     let newest: number | null = null
 
@@ -173,17 +173,17 @@ export const globalCache = new EnhancedCache({
 
 // Cache key generators
 export const cacheKeys = {
-  shifts: (filter?: string) => `shifts${filter ? `-${filter}` : ''}`,
+  shifts: (filter?: string) => `shifts${filter ? `-${filter}` : ""}`,
   shift: (id: string) => `shift-${id}`,
   shiftAssignments: (id: string) => `shift-assignments-${id}`,
-  todaysShifts: () => 'shifts-today',
+  todaysShifts: () => "shifts-today",
   shiftsByDate: (date: string, status: string, client: string, search: string) => 
     `shifts-by-date-${date}-${status}-${client}-${search}`,
-  timesheets: (filter?: string) => `timesheets${filter ? `-${filter}` : ''}`,
-  clients: () => 'clients',
-  jobs: (clientId?: string) => `jobs${clientId ? `-${clientId}` : ''}`,
-  recentJobs: () => 'jobs-recent',
-  announcements: () => 'announcements',
+  timesheets: (filter?: string) => `timesheets${filter ? `-${filter}` : ""}`,
+  clients: () => "clients",
+  jobs: (clientId?: string) => `jobs${clientId ? `-${clientId}` : ""}`,
+  recentJobs: () => "jobs-recent",
+  announcements: () => "announcements",
   conflicts: (employeeId: string, shiftId: string, date: string) => 
     `conflicts-${employeeId}-${shiftId}-${date}`,
   employeeSuggestions: (roleCode: string, date: string, startTime: string, endTime: string) =>
@@ -192,13 +192,13 @@ export const cacheKeys = {
 
 // Cache tags for invalidation
 export const cacheTags = {
-  shifts: 'shifts',
-  timesheets: 'timesheets',
-  clients: 'clients',
-  jobs: 'jobs',
-  announcements: 'announcements',
-  assignments: 'assignments',
-  conflicts: 'conflicts'
+  shifts: "shifts",
+  timesheets: "timesheets",
+  clients: "clients",
+  jobs: "jobs",
+  announcements: "announcements",
+  assignments: "assignments",
+  conflicts: "conflicts"
 }
 
 // Helper functions for common cache operations

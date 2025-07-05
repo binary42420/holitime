@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { query } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
     // Get assigned personnel with their time entries
-    const shiftId = await params.then(p => p.id);
+    const shiftId = await params.then(p => p.id)
 
 
 
@@ -48,7 +48,7 @@ export async function GET(
       WHERE ap.shift_id = $1
       GROUP BY ap.id, ap.employee_id, ap.role_on_shift, ap.role_code, ap.status, u.name, u.avatar
       ORDER BY u.name ASC
-    `, [shiftId]);
+    `, [shiftId])
 
     // Get the crew chief from the shifts table
     const crewChiefResult = await query(`
@@ -59,25 +59,25 @@ export async function GET(
       FROM shifts s
       LEFT JOIN users u ON s.crew_chief_id = u.id
       WHERE s.id = $1 AND s.crew_chief_id IS NOT NULL
-    `, [shiftId]);
+    `, [shiftId])
 
 
 
     const assignedPersonnel = result.rows.map(row => {
       // Determine status based on time entries
-      const timeEntries = row.time_entries || [];
-      let status = 'not_started';
+      const timeEntries = row.time_entries || []
+      let status = "not_started"
 
       // Check if any entry is currently active (clocked in)
-      const hasActiveEntry = timeEntries.some((entry: any) => entry.isActive);
+      const hasActiveEntry = timeEntries.some((entry: any) => entry.isActive)
       if (hasActiveEntry) {
-        status = 'Clocked In';
+        status = "Clocked In"
       } else if (timeEntries.length > 0) {
         // Check if shift has been ended
-        if (row.status === 'Shift Ended' || row.status === 'shift_ended') {
-          status = 'Shift Ended';
+        if (row.status === "Shift Ended" || row.status === "shift_ended") {
+          status = "Shift Ended"
         } else {
-          status = 'Clocked Out';
+          status = "Clocked Out"
         }
       }
 
@@ -96,15 +96,15 @@ export async function GET(
           clockOut: entry.clockOut,
           isActive: entry.isActive,
         })),
-      };
-    });
+      }
+    })
 
     // Add crew chief as a special assignment if one exists and not already in assigned personnel
     if (crewChiefResult.rows.length > 0) {
-      const crewChief = crewChiefResult.rows[0];
+      const crewChief = crewChiefResult.rows[0]
 
       // Check if crew chief is already in assigned personnel
-      const existingCrewChief = assignedPersonnel.find(ap => ap.employeeId === crewChief.crew_chief_id);
+      const existingCrewChief = assignedPersonnel.find(ap => ap.employeeId === crewChief.crew_chief_id)
 
       if (!existingCrewChief) {
         // Add crew chief to assigned_personnel table
@@ -114,16 +114,16 @@ export async function GET(
             VALUES ($1, $2, 'Crew Chief', 'CC', 'Clocked Out')
             ON CONFLICT (shift_id, employee_id) DO NOTHING
             RETURNING id
-          `, [shiftId, crewChief.crew_chief_id]);
+          `, [shiftId, crewChief.crew_chief_id])
 
           // If we successfully inserted or if it already existed, fetch the assignment
           const assignmentResult = await query(`
             SELECT id FROM assigned_personnel
             WHERE shift_id = $1 AND employee_id = $2
-          `, [shiftId, crewChief.crew_chief_id]);
+          `, [shiftId, crewChief.crew_chief_id])
 
           if (assignmentResult.rows.length > 0) {
-            const assignmentId = assignmentResult.rows[0].id;
+            const assignmentId = assignmentResult.rows[0].id
 
             // Get time entries for this assignment
             const timeEntriesResult = await query(`
@@ -136,7 +136,7 @@ export async function GET(
               FROM time_entries te
               WHERE te.assigned_personnel_id = $1
               ORDER BY te.entry_number ASC
-            `, [assignmentId]);
+            `, [assignmentId])
 
             const timeEntries = timeEntriesResult.rows.map(entry => ({
               id: entry.id,
@@ -144,13 +144,13 @@ export async function GET(
               clockIn: entry.clock_in,
               clockOut: entry.clock_out,
               isActive: entry.is_active,
-            }));
+            }))
 
             // Determine status based on time entries
-            let status = 'Clocked Out';
-            const hasActiveEntry = timeEntries.some(entry => entry.isActive);
+            let status = "Clocked Out"
+            const hasActiveEntry = timeEntries.some(entry => entry.isActive)
             if (hasActiveEntry) {
-              status = 'Clocked In';
+              status = "Clocked In"
             }
 
             // Add crew chief to the beginning of the list
@@ -159,30 +159,30 @@ export async function GET(
               employeeId: crewChief.crew_chief_id,
               employeeName: crewChief.crew_chief_name,
               employeeAvatar: crewChief.crew_chief_avatar,
-              roleOnShift: 'Crew Chief',
-              roleCode: 'CC',
+              roleOnShift: "Crew Chief",
+              roleCode: "CC",
               status,
               timeEntries
-            });
+            })
           }
         } catch (error) {
-          console.error('Error adding crew chief to assigned personnel:', error);
+          console.error("Error adding crew chief to assigned personnel:", error)
           // Continue without adding crew chief if there's an error
         }
       }
     }
 
-    console.log('Final assigned personnel response:', assignedPersonnel);
+    console.log("Final assigned personnel response:", assignedPersonnel)
 
     return NextResponse.json({
       success: true,
       assignedPersonnel,
-    });
+    })
   } catch (error) {
-    console.error('Error getting assigned personnel:', error);
+    console.error("Error getting assigned personnel:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

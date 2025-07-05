@@ -1,16 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
-import { notificationService } from '@/lib/notification-service'
+import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/db"
+import { notificationService } from "@/lib/notification-service"
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const token = searchParams.get('token')
-    const response = searchParams.get('response') as 'accept' | 'decline'
+    const token = searchParams.get("token")
+    const response = searchParams.get("response") as "accept" | "decline"
 
     if (!token || !response) {
       return NextResponse.json(
-        { error: 'Missing token or response' },
+        { error: "Missing token or response" },
         { status: 400 }
       )
     }
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     if (result.rows.length === 0) {
       return NextResponse.redirect(
-        new URL('/notifications/expired', request.url)
+        new URL("/notifications/expired", request.url)
       )
     }
 
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
     if (responseResult.rows.length > 0) {
       return NextResponse.redirect(
-        new URL('/notifications/already-responded', request.url)
+        new URL("/notifications/already-responded", request.url)
       )
     }
 
@@ -60,28 +60,28 @@ export async function GET(request: NextRequest) {
       assignment.notification_id,
       assignment.user_id,
       response,
-      `Response via email link`,
-      request.headers.get('x-forwarded-for') || 'unknown',
-      request.headers.get('user-agent') || 'unknown'
+      "Response via email link",
+      request.headers.get("x-forwarded-for") || "unknown",
+      request.headers.get("user-agent") || "unknown"
     )
 
     if (!success) {
       return NextResponse.json(
-        { error: 'Failed to record response' },
+        { error: "Failed to record response" },
         { status: 500 }
       )
     }
 
     // Redirect to confirmation page
-    const redirectUrl = new URL('/notifications/response-confirmed', request.url)
-    redirectUrl.searchParams.set('response', response)
-    redirectUrl.searchParams.set('shift_title', assignment.title)
+    const redirectUrl = new URL("/notifications/response-confirmed", request.url)
+    redirectUrl.searchParams.set("response", response)
+    redirectUrl.searchParams.set("shift_title", assignment.title)
     
     return NextResponse.redirect(redirectUrl)
   } catch (error) {
-    console.error('Error processing shift response:', error)
+    console.error("Error processing shift response:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     if (!token || !response) {
       return NextResponse.json(
-        { error: 'Missing token or response' },
+        { error: "Missing token or response" },
         { status: 400 }
       )
     }
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
 
     if (result.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Invalid or expired token' },
+        { error: "Invalid or expired token" },
         { status: 400 }
       )
     }
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
 
     if (responseResult.rows.length > 0) {
       return NextResponse.json(
-        { error: 'Already responded to this notification' },
+        { error: "Already responded to this notification" },
         { status: 400 }
       )
     }
@@ -147,25 +147,25 @@ export async function POST(request: NextRequest) {
       assignment.user_id,
       response,
       message,
-      request.headers.get('x-forwarded-for') || 'unknown',
-      request.headers.get('user-agent') || 'unknown'
+      request.headers.get("x-forwarded-for") || "unknown",
+      request.headers.get("user-agent") || "unknown"
     )
 
     if (!success) {
       return NextResponse.json(
-        { error: 'Failed to record response' },
+        { error: "Failed to record response" },
         { status: 500 }
       )
     }
 
     return NextResponse.json({
       success: true,
-      message: `Response recorded successfully`
+      message: "Response recorded successfully"
     })
   } catch (error) {
-    console.error('Error processing shift response:', error)
+    console.error("Error processing shift response:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from "@google/generative-ai"
 
 export interface ExtractedClient {
   name: string;
@@ -52,11 +52,11 @@ export interface SpreadsheetAnalysis {
  * Initialize Gemini AI client
  */
 function initializeGemini(): GoogleGenerativeAI {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  const apiKey = process.env.GOOGLE_AI_API_KEY
   if (!apiKey) {
-    throw new Error('GOOGLE_AI_API_KEY environment variable is required');
+    throw new Error("GOOGLE_AI_API_KEY environment variable is required")
   }
-  return new GoogleGenerativeAI(apiKey);
+  return new GoogleGenerativeAI(apiKey)
 }
 
 /**
@@ -67,12 +67,12 @@ export async function extractSpreadsheetData(
   fileName: string,
   mimeType: string
 ): Promise<SpreadsheetAnalysis> {
-  const genAI = initializeGemini();
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite-preview-06-17' });
+  const genAI = initializeGemini()
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite-preview-06-17" })
 
   try {
     // Convert buffer to base64 for Gemini
-    const base64Data = fileContent.toString('base64');
+    const base64Data = fileContent.toString("base64")
     
     const prompt = `
 You are an expert data extraction assistant. Analyze this spreadsheet file and extract client information and employee shift data.
@@ -161,39 +161,39 @@ Return the data in this exact JSON format:
     }
   }
 }
-`;
+`
 
     const result = await model.generateContent([
       {
         inlineData: {
-          mimeType: mimeType === 'application/vnd.google-apps.spreadsheet' 
-            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+          mimeType: mimeType === "application/vnd.google-apps.spreadsheet" 
+            ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             : mimeType,
           data: base64Data,
         },
       },
       { text: prompt },
-    ]);
+    ])
 
-    const response = await result.response;
-    const text = response.text();
+    const response = await result.response
+    const text = response.text()
     
     // Extract JSON from the response
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
-      throw new Error('No valid JSON found in AI response');
+      throw new Error("No valid JSON found in AI response")
     }
 
-    const extractedData = JSON.parse(jsonMatch[0]) as SpreadsheetAnalysis;
+    const extractedData = JSON.parse(jsonMatch[0]) as SpreadsheetAnalysis
     
     // Validate the extracted data structure
     if (!extractedData.sheets || !Array.isArray(extractedData.sheets)) {
-      throw new Error('Invalid data structure returned from AI');
+      throw new Error("Invalid data structure returned from AI")
     }
 
-    return extractedData;
+    return extractedData
   } catch (error) {
-    console.error('Error extracting spreadsheet data:', error);
-    throw new Error(`Failed to extract data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error("Error extracting spreadsheet data:", error)
+    throw new Error(`Failed to extract data: ${error instanceof Error ? error.message : "Unknown error"}`)
   }
 }

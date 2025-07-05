@@ -66,30 +66,30 @@ type Shift = {
 type Tab = {
   id: string;
   label: string;
-  roles: ('Employee' | 'Crew Chief' | 'Manager/Admin' | 'Client')[];
+  roles: ("Employee" | "Crew Chief" | "Manager/Admin" | "Client")[];
 };
 
 const TABS: Tab[] = [
-  { id: 'my_shifts', label: 'My Shifts', roles: ['Employee', 'Crew Chief', 'Manager/Admin'] },
-  { id: 'cc_shifts', label: 'My CC Shifts', roles: ['Crew Chief', 'Manager/Admin'] },
-  { id: 'all_shifts', label: 'All Shifts', roles: ['Manager/Admin'] },
-  { id: 'today', label: "Today's Shifts", roles: ['Client'] },
-  { id: 'all_client_shifts', label: 'All Shifts', roles: ['Client'] },
-];
+  { id: "my_shifts", label: "My Shifts", roles: ["Employee", "Crew Chief", "Manager/Admin"] },
+  { id: "cc_shifts", label: "My CC Shifts", roles: ["Crew Chief", "Manager/Admin"] },
+  { id: "all_shifts", label: "All Shifts", roles: ["Manager/Admin"] },
+  { id: "today", label: "Today's Shifts", roles: ["Client"] },
+  { id: "all_client_shifts", label: "All Shifts", roles: ["Client"] },
+]
 
 export default function ShiftsPage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
 
-  const [activeTab, setActiveTab] = useState<string>('')
+  const [activeTab, setActiveTab] = useState<string>("")
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [showFilters, setShowFilters] = useState(false)
 
   const { data, loading, error } = useApi<{ shifts: Shift[] }>(
-    user ? `/api/shifts?userId=${user.id}` : ''
-  );
+    user ? `/api/shifts?userId=${user.id}` : ""
+  )
   
   const shifts = data?.shifts || []
 
@@ -101,21 +101,21 @@ export default function ShiftsPage() {
   useEffect(() => {
     if (user && userTabs.length > 0 && !activeTab) {
       switch (user.role) {
-        case 'Employee':
-        case 'Crew Chief':
-          setActiveTab('my_shifts')
-          break
-        case 'Manager/Admin':
-          setActiveTab('all_shifts')
-          break
-        case 'Client':
-          setActiveTab('today')
-          break
-        default:
-          setActiveTab(userTabs[0].id)
+      case "Employee":
+      case "Crew Chief":
+        setActiveTab("my_shifts")
+        break
+      case "Manager/Admin":
+        setActiveTab("all_shifts")
+        break
+      case "Client":
+        setActiveTab("today")
+        break
+      default:
+        setActiveTab(userTabs[0].id)
       }
     }
-  }, [user, userTabs, activeTab])
+  }, [user, userTabs])
 
   const handleRowClick = (shiftId: string) => {
     router.push(`/shifts/${shiftId}`)
@@ -124,35 +124,35 @@ export default function ShiftsPage() {
   const filteredShifts = useMemo(() => {
     if (!user) return []
 
-    let filtered = shifts;
+    let filtered = shifts
 
     // Tab-based filtering
     switch (activeTab) {
-      case 'my_shifts':
-        filtered = shifts.filter(shift => 
-          shift.assignedPersonnel?.some(p => p.userId === user.id)
-        );
-        break;
-      case 'cc_shifts':
-        filtered = shifts.filter(shift => shift.crewChief?.id === user.id);
-        break;
-      case 'all_shifts':
-        // No additional filtering needed for admin
-        break;
-      case 'today':
-        const now = new Date();
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() -1);
-        const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() +1);
-        filtered = shifts.filter(shift => {
-          const shiftDate = new Date(shift.date);
-          return shiftDate >= startOfToday && shiftDate <= endOfToday && shift.client_company_id === user.clientCompanyId;
-        });
-        break;
-      case 'all_client_shifts':
-        filtered = shifts.filter(shift => shift.client_company_id === user.clientCompanyId);
-        break;
-      default:
-        break;
+    case "my_shifts":
+      filtered = shifts.filter(shift => 
+        shift.assignedPersonnel?.some(p => p.userId === user.id)
+      )
+      break
+    case "cc_shifts":
+      filtered = shifts.filter(shift => shift.crewChief?.id === user.id)
+      break
+    case "all_shifts":
+      // No additional filtering needed for admin
+      break
+    case "today":
+      const now = new Date()
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() -1)
+      const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() +1)
+      filtered = shifts.filter(shift => {
+        const shiftDate = new Date(shift.date)
+        return shiftDate >= startOfToday && shiftDate <= endOfToday && shift.client_company_id === user.clientCompanyId
+      })
+      break
+    case "all_client_shifts":
+      filtered = shifts.filter(shift => shift.client_company_id === user.clientCompanyId)
+      break
+    default:
+      break
     }
 
     // Search and status filters
@@ -163,28 +163,28 @@ export default function ShiftsPage() {
         shift.clientName?.toLowerCase().includes(searchLower) ||
         shift.location?.toLowerCase().includes(searchLower)
 
-      const matchesStatus = statusFilter === 'all' || shift.status === statusFilter
+      const matchesStatus = statusFilter === "all" || shift.status === statusFilter
 
       return matchesSearch && matchesStatus
-    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   }, [shifts, activeTab, user, searchTerm, statusFilter])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Completed':
-        return <Badge variant="default" className="bg-green-600"><CheckCircle className="mr-1 h-3 w-3" />Completed</Badge>
-      case 'In Progress':
-        return <Badge variant="destructive">In Progress</Badge>
-      case 'Upcoming':
-        return <Badge variant="secondary">Upcoming</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+    case "Completed":
+      return <Badge variant="default" className="bg-green-600"><CheckCircle className="mr-1 h-3 w-3" />Completed</Badge>
+    case "In Progress":
+      return <Badge variant="destructive">In Progress</Badge>
+    case "Upcoming":
+      return <Badge variant="secondary">Upcoming</Badge>
+    default:
+      return <Badge variant="outline">{status}</Badge>
     }
   }
 
   const getStaffingBadge = (assigned: number, requested: number) => {
-    const percentage = requested > 0 ? (assigned / requested) * 100 : 100;
+    const percentage = requested > 0 ? (assigned / requested) * 100 : 100
     if (percentage >= 100) {
       return <Badge variant="default" className="bg-green-600"><UserCheck className="mr-1 h-3 w-3" />Fully Staffed</Badge>
     } else if (percentage > 0) {
@@ -206,13 +206,13 @@ export default function ShiftsPage() {
               <TableHead>Crew Chief</TableHead>
               <TableHead>Staffing</TableHead>
               <TableHead>Status</TableHead>
-              {user?.role === 'Manager/Admin' && <TableHead className="text-right">Actions</TableHead>}
+              {user?.role === "Manager/Admin" && <TableHead className="text-right">Actions</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {shiftsToShow.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={user?.role === 'Manager/Admin' ? 7 : 6} className="h-24 text-center">
+                <TableCell colSpan={user?.role === "Manager/Admin" ? 7 : 6} className="h-24 text-center">
                   No shifts found for this view.
                 </TableCell>
               </TableRow>
@@ -225,7 +225,7 @@ export default function ShiftsPage() {
                 >
                   <TableCell>
                     <div className="font-medium">
-                      {format(new Date(shift.date), 'MMM d, yyyy')}
+                      {format(new Date(shift.date), "MMM d, yyyy")}
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {shift.startTime} - {shift.endTime}
@@ -267,7 +267,7 @@ export default function ShiftsPage() {
                   <TableCell>
                     {getStatusBadge(shift.status)}
                   </TableCell>
-                  {user?.role === 'Manager/Admin' && (
+                  {user?.role === "Manager/Admin" && (
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -281,8 +281,8 @@ export default function ShiftsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(generateShiftEditUrl(shift.id));
+                            e.stopPropagation()
+                            router.push(generateShiftEditUrl(shift.id))
                           }}>
                             Edit Shift
                           </DropdownMenuItem>
@@ -297,7 +297,7 @@ export default function ShiftsPage() {
         </Table>
       </CardContent>
     </Card>
-  );
+  )
 
   const SkeletonLoader = () => (
     <div className="space-y-4">
@@ -317,14 +317,14 @@ export default function ShiftsPage() {
         ))}
       </div>
     </div>
-  );
+  )
 
   if (loading || !user || !activeTab) {
-    return <SkeletonLoader />;
+    return <SkeletonLoader />
   }
 
   if (error) {
-    return <div className="text-destructive">Error loading shifts: {error.toString()}</div>;
+    return <div className="text-destructive">Error loading shifts: {error.toString()}</div>
   }
 
   return (
@@ -336,8 +336,8 @@ export default function ShiftsPage() {
             View and manage shifts based on your role.
           </p>
         </div>
-        {user?.role === 'Manager/Admin' && (
-          <Button onClick={() => router.push('/admin/shifts/new')}>
+        {user?.role === "Manager/Admin" && (
+          <Button onClick={() => router.push("/admin/shifts/new")}>
             <Plus className="mr-2 h-4 w-4" />
             Schedule Shift
           </Button>

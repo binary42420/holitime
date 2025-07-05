@@ -1,16 +1,16 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { useToast } from '@/hooks/use-toast';
-import { Trash2, AlertTriangle, Loader2, Database, Users, Clock, Briefcase, Building } from 'lucide-react';
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
+import { Trash2, AlertTriangle, Loader2, Database, Users, Clock, Briefcase, Building } from "lucide-react"
 
 interface DeletionImpact {
   timeEntries: number;
@@ -22,7 +22,7 @@ interface DeletionImpact {
 }
 
 interface CascadeDeleteDialogProps {
-  entityType: 'client' | 'job' | 'shift';
+  entityType: "client" | "job" | "shift";
   entityId: string;
   entityName: string;
   onSuccess?: () => void;
@@ -38,142 +38,142 @@ export function CascadeDeleteDialog({
   redirectTo,
   className
 }: CascadeDeleteDialogProps) {
-  const { data: session } = useSession();
-  const router = useRouter();
-  const { toast } = useToast();
+  const { data: session } = useSession()
+  const router = useRouter()
+  const { toast } = useToast()
   
-  const [isOpen, setIsOpen] = useState(false);
-  const [impact, setImpact] = useState<DeletionImpact | null>(null);
-  const [isLoadingImpact, setIsLoadingImpact] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [confirmationText, setConfirmationText] = useState('');
-  const [confirmed, setConfirmed] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
+  const [impact, setImpact] = useState<DeletionImpact | null>(null)
+  const [isLoadingImpact, setIsLoadingImpact] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [confirmationText, setConfirmationText] = useState("")
+  const [confirmed, setConfirmed] = useState(false)
 
   // Only show for admins/managers
-  if (session?.user?.role !== 'Manager/Admin') {
-    return null;
+  if (session?.user?.role !== "Manager/Admin") {
+    return null
   }
 
   const fetchImpact = async () => {
-    setIsLoadingImpact(true);
+    setIsLoadingImpact(true)
     try {
-      const response = await fetch(`/api/cascade-delete/${entityType}/${entityId}`);
+      const response = await fetch(`/api/cascade-delete/${entityType}/${entityId}`)
       if (response.ok) {
-        const data = await response.json();
-        setImpact(data.impact);
+        const data = await response.json()
+        setImpact(data.impact)
       } else {
-        throw new Error('Failed to fetch deletion impact');
+        throw new Error("Failed to fetch deletion impact")
       }
     } catch (error) {
-      console.error('Error fetching deletion impact:', error);
+      console.error("Error fetching deletion impact:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to load deletion impact',
-        variant: 'destructive',
-      });
+        title: "Error",
+        description: "Failed to load deletion impact",
+        variant: "destructive",
+      })
     } finally {
-      setIsLoadingImpact(false);
+      setIsLoadingImpact(false)
     }
-  };
+  }
 
   const handleDelete = async () => {
-    if (!confirmed || confirmationText !== 'DELETE') {
+    if (!confirmed || confirmationText !== "DELETE") {
       toast({
-        title: 'Error',
-        description: 'Please type "DELETE" to confirm',
-        variant: 'destructive',
-      });
-      return;
+        title: "Error",
+        description: "Please type \"DELETE\" to confirm",
+        variant: "destructive",
+      })
+      return
     }
 
-    setIsDeleting(true);
+    setIsDeleting(true)
     try {
       const response = await fetch(`/api/cascade-delete/${entityType}/${entityId}`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ confirmed: true, confirmationText }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (response.ok) {
         toast({
-          title: 'Success',
+          title: "Success",
           description: data.message,
-        });
+        })
         
-        setIsOpen(false);
+        setIsOpen(false)
         
         if (onSuccess) {
-          onSuccess();
+          onSuccess()
         }
         
         if (redirectTo) {
-          router.push(redirectTo);
+          router.push(redirectTo)
         }
       } else {
-        throw new Error(data.error || 'Failed to delete');
+        throw new Error(data.error || "Failed to delete")
       }
     } catch (error) {
-      console.error('Error deleting:', error);
+      console.error("Error deleting:", error)
       toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to delete',
-        variant: 'destructive',
-      });
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to delete",
+        variant: "destructive",
+      })
     } finally {
-      setIsDeleting(false);
+      setIsDeleting(false)
     }
-  };
+  }
 
   const getEntityTypeLabel = () => {
     switch (entityType) {
-      case 'client':
-        return 'Client Company';
-      case 'job':
-        return 'Job';
-      case 'shift':
-        return 'Shift';
-      default:
-        return 'Entity';
+    case "client":
+      return "Client Company"
+    case "job":
+      return "Job"
+    case "shift":
+      return "Shift"
+    default:
+      return "Entity"
     }
-  };
+  }
 
   const getWarningMessage = () => {
     switch (entityType) {
-      case 'client':
-        return `This will permanently delete ${entityName} and ALL associated jobs, shifts, worker assignments, and time records. This action cannot be undone.`;
-      case 'job':
-        return `This will permanently delete ${entityName} and ALL associated shifts, worker assignments, and time records. This action cannot be undone.`;
-      case 'shift':
-        return `This will permanently delete this shift and ALL associated worker assignments and time records. This action cannot be undone.`;
-      default:
-        return 'This action cannot be undone.';
+    case "client":
+      return `This will permanently delete ${entityName} and ALL associated jobs, shifts, worker assignments, and time records. This action cannot be undone.`
+    case "job":
+      return `This will permanently delete ${entityName} and ALL associated shifts, worker assignments, and time records. This action cannot be undone.`
+    case "shift":
+      return "This will permanently delete this shift and ALL associated worker assignments and time records. This action cannot be undone."
+    default:
+      return "This action cannot be undone."
     }
-  };
+  }
 
   const getImpactItems = () => {
-    if (!impact) return [];
+    if (!impact) return []
     
-    const items = [];
-    if (impact.jobs > 0) items.push({ label: 'Jobs', count: impact.jobs, icon: Briefcase });
-    if (impact.shifts > 0) items.push({ label: 'Shifts', count: impact.shifts, icon: Clock });
-    if (impact.assignedPersonnel > 0) items.push({ label: 'Worker Assignments', count: impact.assignedPersonnel, icon: Users });
-    if (impact.timeEntries > 0) items.push({ label: 'Time Entries', count: impact.timeEntries, icon: Database });
-    if (impact.crewChiefPermissions > 0) items.push({ label: 'Crew Chief Permissions', count: impact.crewChiefPermissions, icon: Users });
-    if (impact.users > 0) items.push({ label: 'User References', count: impact.users, icon: Users });
+    const items = []
+    if (impact.jobs > 0) items.push({ label: "Jobs", count: impact.jobs, icon: Briefcase })
+    if (impact.shifts > 0) items.push({ label: "Shifts", count: impact.shifts, icon: Clock })
+    if (impact.assignedPersonnel > 0) items.push({ label: "Worker Assignments", count: impact.assignedPersonnel, icon: Users })
+    if (impact.timeEntries > 0) items.push({ label: "Time Entries", count: impact.timeEntries, icon: Database })
+    if (impact.crewChiefPermissions > 0) items.push({ label: "Crew Chief Permissions", count: impact.crewChiefPermissions, icon: Users })
+    if (impact.users > 0) items.push({ label: "User References", count: impact.users, icon: Users })
     
-    return items;
-  };
+    return items
+  }
 
   const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
+    setIsOpen(open)
     if (open) {
-      fetchImpact();
-      setConfirmationText('');
-      setConfirmed(false);
+      fetchImpact()
+      setConfirmationText("")
+      setConfirmed(false)
     }
-  };
+  }
 
   return (
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
@@ -216,7 +216,7 @@ export function CascadeDeleteDialog({
               <CardContent>
                 <div className="grid grid-cols-2 gap-2">
                   {getImpactItems().map((item) => {
-                    const Icon = item.icon;
+                    const Icon = item.icon
                     return (
                       <div key={item.label} className="flex items-center justify-between p-2 border rounded">
                         <div className="flex items-center gap-2">
@@ -225,7 +225,7 @@ export function CascadeDeleteDialog({
                         </div>
                         <Badge variant="destructive">{item.count}</Badge>
                       </div>
-                    );
+                    )
                   })}
                 </div>
                 {getImpactItems().length === 0 && (
@@ -250,15 +250,15 @@ export function CascadeDeleteDialog({
                   id="confirmation"
                   value={confirmationText}
                   onChange={(e) => {
-                    setConfirmationText(e.target.value);
-                    setConfirmed(e.target.value === 'DELETE');
+                    setConfirmationText(e.target.value)
+                    setConfirmed(e.target.value === "DELETE")
                   }}
                   placeholder="DELETE"
                   className="mt-1"
                 />
               </div>
               
-              {entityType === 'client' && (
+              {entityType === "client" && (
                 <div className="p-3 bg-destructive/10 border border-destructive/20 rounded">
                   <p className="text-sm text-destructive font-medium">
                     ⚠️ Double Confirmation Required for Client Deletion
@@ -294,5 +294,5 @@ export function CascadeDeleteDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  );
+  )
 }

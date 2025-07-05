@@ -1,45 +1,45 @@
-'use client'
+"use client"
 
-import React, { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Textarea } from '@/components/ui/textarea'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
-import { Checkbox } from '@/components/ui/checkbox'
-import { AlertCircle, Edit, Save, X, Check } from 'lucide-react'
-import { CSVRow } from '@/app/api/import/csv/parse/route'
+import React, { useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Textarea } from "@/components/ui/textarea"
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
+import { Checkbox } from "@/components/ui/checkbox"
+import { AlertCircle, Edit, Save, X, Check } from "lucide-react"
+import { CSVRow } from "@/app/api/import/csv/parse/route"
 
 interface CSVDataPreviewProps {
   data: CSVRow[]
   onDataChange: (data: CSVRow[]) => void
 }
 
-const WORKER_TYPES = ['CC', 'SH', 'FO', 'RFO', 'RG', 'GL']
+const WORKER_TYPES = ["CC", "SH", "FO", "RFO", "RG", "GL"]
 
 const FIELD_LABELS: Record<string, string> = {
-  client_name: 'Client Name',
-  contact_name: 'Contact Name',
-  contact_phone: 'Contact Phone',
-  job_name: 'Job Name',
-  job_start_date: 'Job Start Date',
-  shift_date: 'Shift Date',
-  shift_start_time: 'Shift Start Time',
-  shift_end_time: 'Shift End Time',
-  employee_name: 'Employee Name',
-  employee_email: 'Employee Email',
-  employee_phone: 'Employee Phone',
-  worker_type: 'Worker Type',
-  clock_in_1: 'Clock In 1',
-  clock_out_1: 'Clock Out 1',
-  clock_in_2: 'Clock In 2',
-  clock_out_2: 'Clock Out 2',
-  clock_in_3: 'Clock In 3',
-  clock_out_3: 'Clock Out 3'
+  client_name: "Client Name",
+  contact_name: "Contact Name",
+  contact_phone: "Contact Phone",
+  job_name: "Job Name",
+  job_start_date: "Job Start Date",
+  shift_date: "Shift Date",
+  shift_start_time: "Shift Start Time",
+  shift_end_time: "Shift End Time",
+  employee_name: "Employee Name",
+  employee_email: "Employee Email",
+  employee_phone: "Employee Phone",
+  worker_type: "Worker Type",
+  clock_in_1: "Clock In 1",
+  clock_out_1: "Clock Out 1",
+  clock_in_2: "Clock In 2",
+  clock_out_2: "Clock Out 2",
+  clock_in_3: "Clock In 3",
+  clock_out_3: "Clock Out 3"
 }
 
 export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
@@ -119,39 +119,39 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
     const errors: string[] = []
 
     // Required field validation
-    if (!row.client_name?.trim()) errors.push('Client name is required')
-    if (!row.job_name?.trim()) errors.push('Job name is required')
-    if (!row.shift_date?.trim()) errors.push('Shift date is required')
-    if (!row.shift_start_time?.trim()) errors.push('Shift start time is required')
-    if (!row.shift_end_time?.trim()) errors.push('Shift end time is required')
-    if (!row.employee_name?.trim()) errors.push('Employee name is required')
-    if (!row.worker_type?.trim()) errors.push('Worker type is required')
+    if (!row.client_name?.trim()) errors.push("Client name is required")
+    if (!row.job_name?.trim()) errors.push("Job name is required")
+    if (!row.shift_date?.trim()) errors.push("Shift date is required")
+    if (!row.shift_start_time?.trim()) errors.push("Shift start time is required")
+    if (!row.shift_end_time?.trim()) errors.push("Shift end time is required")
+    if (!row.employee_name?.trim()) errors.push("Employee name is required")
+    if (!row.worker_type?.trim()) errors.push("Worker type is required")
 
     // Date validation
     if (row.job_start_date && !/^\d{4}-\d{2}-\d{2}$/.test(row.job_start_date)) {
-      errors.push('Job start date must be in YYYY-MM-DD format')
+      errors.push("Job start date must be in YYYY-MM-DD format")
     }
     if (row.shift_date && !/^\d{4}-\d{2}-\d{2}$/.test(row.shift_date)) {
-      errors.push('Shift date must be in YYYY-MM-DD format')
+      errors.push("Shift date must be in YYYY-MM-DD format")
     }
 
     // Time validation
     const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
     if (row.shift_start_time && !timeRegex.test(row.shift_start_time)) {
-      errors.push('Shift start time must be in HH:MM format (24-hour)')
+      errors.push("Shift start time must be in HH:MM format (24-hour)")
     }
     if (row.shift_end_time && !timeRegex.test(row.shift_end_time)) {
-      errors.push('Shift end time must be in HH:MM format (24-hour)')
+      errors.push("Shift end time must be in HH:MM format (24-hour)")
     }
 
     // Email validation
     if (row.employee_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.employee_email)) {
-      errors.push('Employee email format is invalid')
+      errors.push("Employee email format is invalid")
     }
 
     // Worker type validation
     if (row.worker_type && !WORKER_TYPES.includes(row.worker_type)) {
-      errors.push('Worker type must be one of: CC, SH, FO, RFO, RG, GL')
+      errors.push("Worker type must be one of: CC, SH, FO, RFO, RG, GL")
     }
 
     // Clock time validation
@@ -185,12 +185,12 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
 
   const renderEditableCell = (row: CSVRow, field: keyof CSVRow) => {
     if (editingRow === null || editingData === null) {
-      return <span className="text-sm">{String(row[field] || '-')}</span>
+      return <span className="text-sm">{String(row[field] || "-")}</span>
     }
 
-    const value = String(editingData[field] || '')
+    const value = String(editingData[field] || "")
 
-    if (field === 'worker_type') {
+    if (field === "worker_type") {
       return (
         <Select value={value} onValueChange={(val) => updateEditingField(field, val)}>
           <SelectTrigger className="h-8">
@@ -225,12 +225,12 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
 
     const value = row[field]
     const hasError = row._errors?.some(error => 
-      error.toLowerCase().includes(field.replace('_', ' '))
+      error.toLowerCase().includes(field.replace("_", " "))
     )
 
     return (
-      <span className={`text-sm ${hasError ? 'text-red-600' : ''}`}>
-        {String(value || '-')}
+      <span className={`text-sm ${hasError ? "text-red-600" : ""}`}>
+        {String(value || "-")}
       </span>
     )
   }
@@ -246,7 +246,7 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
               size="sm"
               onClick={() => setShowErrorsOnly(!showErrorsOnly)}
             >
-              {showErrorsOnly ? 'Show All' : 'Show Errors Only'}
+              {showErrorsOnly ? "Show All" : "Show Errors Only"}
             </Button>
             <Badge variant="outline">
               {filteredData.length} rows
@@ -272,69 +272,69 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
                   <TableHead className="w-24">Actions</TableHead>
                 </TableRow>
               </TableHeader>
-            <TableBody>
-              {filteredData.map((row, index) => {
-                const actualRowIndex = data.findIndex(r => r._rowNumber === row._rowNumber)
-                const isEditing = editingRow === actualRowIndex
-                const hasErrors = row._errors && row._errors.length > 0
+              <TableBody>
+                {filteredData.map((row, index) => {
+                  const actualRowIndex = data.findIndex(r => r._rowNumber === row._rowNumber)
+                  const isEditing = editingRow === actualRowIndex
+                  const hasErrors = row._errors && row._errors.length > 0
 
-                return (
-                  <TableRow key={row._rowNumber} className={hasErrors ? 'bg-red-50' : ''}>
-                    <TableCell className="font-mono text-xs">
-                      {row._rowNumber}
-                    </TableCell>
-                    <TableCell>{renderCell(row, 'client_name', index)}</TableCell>
-                    <TableCell>{renderCell(row, 'job_name', index)}</TableCell>
-                    <TableCell>{renderCell(row, 'shift_date', index)}</TableCell>
-                    <TableCell className="text-xs">
-                      {row.shift_start_time} - {row.shift_end_time}
-                    </TableCell>
-                    <TableCell>{renderCell(row, 'employee_name', index)}</TableCell>
-                    <TableCell>{renderCell(row, 'worker_type', index)}</TableCell>
-                    <TableCell className="text-xs">
-                      <div className="space-y-1">
-                        {row.clock_in_1 && (
-                          <div>{row.clock_in_1} - {row.clock_out_1 || 'Active'}</div>
-                        )}
-                        {row.clock_in_2 && (
-                          <div>{row.clock_in_2} - {row.clock_out_2 || 'Active'}</div>
-                        )}
-                        {row.clock_in_3 && (
-                          <div>{row.clock_in_3} - {row.clock_out_3 || 'Active'}</div>
-                        )}
-                        {!row.clock_in_1 && <span className="text-muted-foreground">No times</span>}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {hasErrors ? (
-                        <Badge variant="destructive" className="text-xs">
-                          {row._errors!.length} error{row._errors!.length > 1 ? 's' : ''}
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary" className="text-xs">Valid</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {isEditing ? (
-                        <div className="flex gap-1">
-                          <Button size="sm" variant="outline" onClick={saveEdit}>
-                            <Save className="h-3 w-3" />
-                          </Button>
-                          <Button size="sm" variant="outline" onClick={cancelEdit}>
-                            <X className="h-3 w-3" />
-                          </Button>
+                  return (
+                    <TableRow key={row._rowNumber} className={hasErrors ? "bg-red-50" : ""}>
+                      <TableCell className="font-mono text-xs">
+                        {row._rowNumber}
+                      </TableCell>
+                      <TableCell>{renderCell(row, "client_name", index)}</TableCell>
+                      <TableCell>{renderCell(row, "job_name", index)}</TableCell>
+                      <TableCell>{renderCell(row, "shift_date", index)}</TableCell>
+                      <TableCell className="text-xs">
+                        {row.shift_start_time} - {row.shift_end_time}
+                      </TableCell>
+                      <TableCell>{renderCell(row, "employee_name", index)}</TableCell>
+                      <TableCell>{renderCell(row, "worker_type", index)}</TableCell>
+                      <TableCell className="text-xs">
+                        <div className="space-y-1">
+                          {row.clock_in_1 && (
+                            <div>{row.clock_in_1} - {row.clock_out_1 || "Active"}</div>
+                          )}
+                          {row.clock_in_2 && (
+                            <div>{row.clock_in_2} - {row.clock_out_2 || "Active"}</div>
+                          )}
+                          {row.clock_in_3 && (
+                            <div>{row.clock_in_3} - {row.clock_out_3 || "Active"}</div>
+                          )}
+                          {!row.clock_in_1 && <span className="text-muted-foreground">No times</span>}
                         </div>
-                      ) : (
-                        <Button size="sm" variant="outline" onClick={() => startEdit(index)}>
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+                      </TableCell>
+                      <TableCell>
+                        {hasErrors ? (
+                          <Badge variant="destructive" className="text-xs">
+                            {row._errors!.length} error{row._errors!.length > 1 ? "s" : ""}
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="text-xs">Valid</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {isEditing ? (
+                          <div className="flex gap-1">
+                            <Button size="sm" variant="outline" onClick={saveEdit}>
+                              <Save className="h-3 w-3" />
+                            </Button>
+                            <Button size="sm" variant="outline" onClick={cancelEdit}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <Button size="sm" variant="outline" onClick={() => startEdit(index)}>
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
           </div>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
@@ -361,7 +361,7 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
                           <CardTitle className="text-base text-red-700">
-                            Row {row._rowNumber} - {row._errors!.length} Error{row._errors!.length > 1 ? 's' : ''}
+                            Row {row._rowNumber} - {row._errors!.length} Error{row._errors!.length > 1 ? "s" : ""}
                           </CardTitle>
                           <div className="flex gap-2">
                             {!isEditingThisRow ? (
@@ -430,11 +430,11 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
                           <h5 className="font-medium text-sm">Row Data:</h5>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                             {Object.entries(currentData || {})
-                              .filter(([key]) => !key.startsWith('_'))
+                              .filter(([key]) => !key.startsWith("_"))
                               .map(([key, value]) => (
                                 <div key={key} className="space-y-1">
                                   <label className="text-xs font-medium text-gray-600 capitalize">
-                                    {key.replace(/_/g, ' ')}
+                                    {key.replace(/_/g, " ")}
                                   </label>
                                   {isEditingThisRow ? (
                                     <Input
@@ -448,7 +448,7 @@ export function CSVDataPreview({ data, onDataChange }: CSVDataPreviewProps) {
                                         }
                                       }}
                                       className="text-sm"
-                                      placeholder={`Enter ${key.replace(/_/g, ' ')}`}
+                                      placeholder={`Enter ${key.replace(/_/g, " ")}`}
                                     />
                                   ) : (
                                     <div className="text-sm p-2 bg-gray-50 rounded border min-h-[36px] flex items-center">

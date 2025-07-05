@@ -24,18 +24,18 @@ export default function JobEditPage({ params }: JobEditPageProps) {
   const { toast } = useToast()
   
   // Only managers can edit jobs
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/jobs')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/jobs")
     return null
   }
 
   const { data: jobData, loading: jobLoading, error: jobError } = useJob(id)
-  const { data: clientsData, loading: clientsLoading } = useApi<{ clients: any[] }>('/api/clients')
+  const { data: clientsData, loading: clientsLoading } = useApi<{ clients: any[] }>("/api/clients")
   
   const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    clientId: ''
+    name: "",
+    description: "",
+    clientId: ""
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -43,9 +43,9 @@ export default function JobEditPage({ params }: JobEditPageProps) {
   React.useEffect(() => {
     if (jobData?.job) {
       setFormData({
-        name: jobData.job.name || '',
-        description: jobData.job.description || '',
-        clientId: jobData.job.clientId || ''
+        name: jobData.job.name || "",
+        description: jobData.job.description || "",
+        clientId: jobData.job.clientId || ""
       })
     }
   }, [jobData])
@@ -75,15 +75,15 @@ export default function JobEditPage({ params }: JobEditPageProps) {
 
     try {
       const response = await fetch(`/api/jobs/${id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update job')
+        throw new Error("Failed to update job")
       }
 
       const result = await response.json()
@@ -95,10 +95,10 @@ export default function JobEditPage({ params }: JobEditPageProps) {
         })
         router.push(`/jobs/${id}`)
       } else {
-        throw new Error(result.error || 'Failed to update job')
+        throw new Error(result.error || "Failed to update job")
       }
     } catch (error) {
-      console.error('Error updating job:', error)
+      console.error("Error updating job:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update job",
@@ -182,7 +182,7 @@ export default function JobEditPage({ params }: JobEditPageProps) {
 
             <div className="flex gap-4">
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Updating...' : 'Update Job'}
+                {isSubmitting ? "Updating..." : "Update Job"}
               </Button>
               <Button 
                 type="button" 

@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/db"
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,9 +25,9 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error getting debug shifts:', error)
+    console.error("Error getting debug shifts:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

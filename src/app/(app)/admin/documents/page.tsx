@@ -1,18 +1,18 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
-import { useUser } from '@/hooks/use-user'
-import { useApi } from '@/hooks/use-api'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { PDFViewer } from '@/components/ui/pdf-viewer'
-import { useToast } from '@/hooks/use-toast'
+import { useState } from "react"
+import { useUser } from "@/hooks/use-user"
+import { useApi } from "@/hooks/use-api"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { PDFViewer } from "@/components/ui/pdf-viewer"
+import { useToast } from "@/hooks/use-toast"
 import { 
   FileText, 
   Clock, 
@@ -23,9 +23,9 @@ import {
   AlertCircle,
   Users,
   Filter
-} from 'lucide-react'
-import type { Document, DocumentType } from '@/lib/types'
-import { format } from 'date-fns'
+} from "lucide-react"
+import type { Document, DocumentType } from "@/lib/types"
+import { format } from "date-fns"
 import {
   Dialog,
   DialogContent,
@@ -40,14 +40,22 @@ export default function AdminDocumentsPage() {
   const { user } = useUser()
   const { toast } = useToast()
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null)
-  const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | null>(null)
-  const [reviewNotes, setReviewNotes] = useState('')
+  const [reviewAction, setReviewAction] = useState<"approve" | "reject" | null>(null)
+  const [reviewNotes, setReviewNotes] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
-  const [statusFilter, setStatusFilter] = useState<string>('pending_review')
-  const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>("pending_review")
+  const [typeFilter, setTypeFilter] = useState<string>("all")
 
   // Only managers can access this page
-  if (user?.role !== 'Manager/Admin') {
+  const { data: documentsData, loading: documentsLoading, refetch: refetchDocuments } = useApi<{ documents: Document[] }>(
+    user?.role === "Manager/Admin" ? `/api/documents?status=${statusFilter}&documentType=${typeFilter}` : null
+  )
+
+  const { data: documentTypesData } = useApi<{ documentTypes: DocumentType[] }>(
+    user?.role === "Manager/Admin" ? "/api/document-types" : null
+  )
+
+  if (user?.role !== "Manager/Admin") {
     return (
       <div className="flex items-center justify-center py-8">
         <div className="text-center">
@@ -58,19 +66,11 @@ export default function AdminDocumentsPage() {
     )
   }
 
-  const { data: documentsData, loading: documentsLoading, refetch: refetchDocuments } = useApi<{ documents: Document[] }>(
-    `/api/documents?status=${statusFilter}&documentType=${typeFilter}`
-  )
-
-  const { data: documentTypesData } = useApi<{ documentTypes: DocumentType[] }>(
-    '/api/document-types'
-  )
-
   const documents = documentsData?.documents || []
   const documentTypes = documentTypesData?.documentTypes || []
 
-  const handleReview = async (documentId: string, action: 'approve' | 'reject') => {
-    if (action === 'reject' && !reviewNotes.trim()) {
+  const handleReview = async (documentId: string, action: "approve" | "reject") => {
+    if (action === "reject" && !reviewNotes.trim()) {
       toast({
         title: "Review Notes Required",
         description: "Please provide a reason for rejecting this document.",
@@ -82,8 +82,8 @@ export default function AdminDocumentsPage() {
     setIsProcessing(true)
     try {
       const response = await fetch(`/api/documents/${documentId}/review`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action,
           reviewNotes: reviewNotes.trim() || undefined
@@ -92,20 +92,20 @@ export default function AdminDocumentsPage() {
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Review failed')
+        throw new Error(error.error || "Review failed")
       }
 
       toast({
-        title: `Document ${action === 'approve' ? 'Approved' : 'Rejected'}`,
+        title: `Document ${action === "approve" ? "Approved" : "Rejected"}`,
         description: `The document has been ${action}d successfully.`,
       })
 
       setSelectedDocument(null)
       setReviewAction(null)
-      setReviewNotes('')
+      setReviewNotes("")
       refetchDocuments()
     } catch (error) {
-      console.error('Error reviewing document:', error)
+      console.error("Error reviewing document:", error)
       toast({
         title: "Review Failed",
         description: error instanceof Error ? error.message : "Failed to review document",
@@ -118,16 +118,16 @@ export default function AdminDocumentsPage() {
 
   const getStatusConfig = (status: string) => {
     switch (status) {
-      case 'approved':
-        return { color: 'bg-green-100 text-green-800', icon: CheckCircle, label: 'Approved' }
-      case 'pending_review':
-        return { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: 'Pending Review' }
-      case 'rejected':
-        return { color: 'bg-red-100 text-red-800', icon: XCircle, label: 'Rejected' }
-      case 'expired':
-        return { color: 'bg-gray-100 text-gray-800', icon: AlertCircle, label: 'Expired' }
-      default:
-        return { color: 'bg-gray-100 text-gray-800', icon: FileText, label: status }
+    case "approved":
+      return { color: "bg-green-100 text-green-800", icon: CheckCircle, label: "Approved" }
+    case "pending_review":
+      return { color: "bg-yellow-100 text-yellow-800", icon: Clock, label: "Pending Review" }
+    case "rejected":
+      return { color: "bg-red-100 text-red-800", icon: XCircle, label: "Rejected" }
+    case "expired":
+      return { color: "bg-gray-100 text-gray-800", icon: AlertCircle, label: "Expired" }
+    default:
+      return { color: "bg-gray-100 text-gray-800", icon: FileText, label: status }
     }
   }
 
@@ -161,12 +161,12 @@ export default function AdminDocumentsPage() {
               </div>
               <div>
                 <Label className="text-sm font-medium">Uploaded</Label>
-                <p className="text-sm">{format(new Date(selectedDocument.uploadedAt), 'MMM d, yyyy h:mm a')}</p>
+                <p className="text-sm">{format(new Date(selectedDocument.uploadedAt), "MMM d, yyyy h:mm a")}</p>
               </div>
               {selectedDocument.expirationDate && (
                 <div>
                   <Label className="text-sm font-medium">Expires</Label>
-                  <p className="text-sm">{format(new Date(selectedDocument.expirationDate), 'MMM d, yyyy')}</p>
+                  <p className="text-sm">{format(new Date(selectedDocument.expirationDate), "MMM d, yyyy")}</p>
                 </div>
               )}
               <div>
@@ -180,7 +180,7 @@ export default function AdminDocumentsPage() {
                   <DialogTrigger asChild>
                     <Button 
                       className="w-full bg-green-600 hover:bg-green-700"
-                      onClick={() => setReviewAction('approve')}
+                      onClick={() => setReviewAction("approve")}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approve Document
@@ -207,11 +207,11 @@ export default function AdminDocumentsPage() {
                     </div>
                     <DialogFooter>
                       <Button
-                        onClick={() => handleReview(selectedDocument.id, 'approve')}
+                        onClick={() => handleReview(selectedDocument.id, "approve")}
                         disabled={isProcessing}
                         className="bg-green-600 hover:bg-green-700"
                       >
-                        {isProcessing ? 'Approving...' : 'Approve Document'}
+                        {isProcessing ? "Approving..." : "Approve Document"}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -222,7 +222,7 @@ export default function AdminDocumentsPage() {
                     <Button 
                       variant="destructive" 
                       className="w-full"
-                      onClick={() => setReviewAction('reject')}
+                      onClick={() => setReviewAction("reject")}
                     >
                       <XCircle className="h-4 w-4 mr-2" />
                       Reject Document
@@ -251,10 +251,10 @@ export default function AdminDocumentsPage() {
                     <DialogFooter>
                       <Button
                         variant="destructive"
-                        onClick={() => handleReview(selectedDocument.id, 'reject')}
+                        onClick={() => handleReview(selectedDocument.id, "reject")}
                         disabled={!reviewNotes.trim() || isProcessing}
                       >
-                        {isProcessing ? 'Rejecting...' : 'Reject Document'}
+                        {isProcessing ? "Rejecting..." : "Reject Document"}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -304,7 +304,7 @@ export default function AdminDocumentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {documents.filter(d => d.status === 'pending_review').length}
+              {documents.filter(d => d.status === "pending_review").length}
             </div>
           </CardContent>
         </Card>
@@ -317,7 +317,7 @@ export default function AdminDocumentsPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               {documents.filter(d => 
-                d.status === 'approved' && 
+                d.status === "approved" && 
                 d.reviewedAt && 
                 new Date(d.reviewedAt).toDateString() === new Date().toDateString()
               ).length}
@@ -390,7 +390,7 @@ export default function AdminDocumentsPage() {
           <CardDescription>
             {documents.length === 0 
               ? "No documents match the current filters"
-              : `${documents.length} document${documents.length === 1 ? '' : 's'} found`
+              : `${documents.length} document${documents.length === 1 ? "" : "s"} found`
             }
           </CardDescription>
         </CardHeader>
@@ -450,9 +450,9 @@ export default function AdminDocumentsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          {format(new Date(document.uploadedAt), 'MMM d, yyyy')}
+                          {format(new Date(document.uploadedAt), "MMM d, yyyy")}
                           <div className="text-muted-foreground">
-                            {format(new Date(document.uploadedAt), 'h:mm a')}
+                            {format(new Date(document.uploadedAt), "h:mm a")}
                           </div>
                         </div>
                       </TableCell>

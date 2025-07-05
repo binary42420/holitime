@@ -39,23 +39,9 @@ const shiftSchema = z.object({
 
 type ShiftFormData = z.infer<typeof shiftSchema>
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
-
 function NewShiftPage() {
-  const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
-  const { data: jobsData } = useApi<{ jobs: any[] }>('/api/jobs')
-  const { data: usersData } = useApi<{ users: any[] }>('/api/users')
-
-  // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
-    return null
-  }
 
   const form = useForm<ShiftFormData>({
     resolver: zodResolver(shiftSchema),
@@ -65,27 +51,42 @@ function NewShiftPage() {
     },
   })
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [workerRequirements, setWorkerRequirements] = useState<any[]>([])
+
+  const { user } = useUser()
+  const { data: jobsData } = useApi<{ jobs: any[] }>("/api/jobs")
+  const { data: usersData } = useApi<{ users: any[] }>("/api/users")
+
+  React.useEffect(() => {
+    if (user && user.role !== "Manager/Admin") {
+      router.push("/dashboard")
+    }
+  }, [user, router])
+
+  if (!user || user.role !== "Manager/Admin") {
+    return null // Or a loading spinner, or a message
+  }
 
   const handleWorkerRequirementsChange = (requirements: any[], totalCount: number) => {
     setWorkerRequirements(requirements)
-    form.setValue('requestedWorkers', totalCount)
-    form.setValue('workerRequirements', requirements)
+    form.setValue("requestedWorkers", totalCount)
+    form.setValue("workerRequirements", requirements)
   }
 
   const onSubmit = async (data: ShiftFormData) => {
     setIsSubmitting(true)
     try {
-      const response = await fetch('/api/shifts', {
-        method: 'POST',
+      const response = await fetch("/api/shifts", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create shift')
+        throw new Error("Failed to create shift")
       }
 
       const result = await response.json()
@@ -109,13 +110,13 @@ function NewShiftPage() {
 
   const jobs = jobsData?.jobs || []
   const crewChiefs = usersData?.users?.filter(user => 
-    user.role === 'Crew Chief' || user.role === 'Manager/Admin'
+    user.role === "Crew Chief" || user.role === "Manager/Admin"
   ) || []
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/shifts')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/shifts")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Shifts
         </Button>
@@ -143,18 +144,18 @@ function NewShiftPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {jobs
-                      .filter(job => job.id && job.id.trim() !== '')
+                      .filter(job => job.id && job.id.trim() !== "")
                       .map((job) => (
-                      <SelectItem key={job.id} value={job.id}>
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="h-4 w-4" />
-                          <div>
-                            <div className="font-medium">{job.name}</div>
-                            <div className="text-sm text-muted-foreground">{job.clientName}</div>
+                        <SelectItem key={job.id} value={job.id}>
+                          <div className="flex items-center gap-2">
+                            <Briefcase className="h-4 w-4" />
+                            <div>
+                              <div className="font-medium">{job.name}</div>
+                              <div className="text-sm text-muted-foreground">{job.clientName}</div>
+                            </div>
                           </div>
-                        </div>
-                      </SelectItem>
-                    ))}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 {form.formState.errors.jobId && (
@@ -170,15 +171,15 @@ function NewShiftPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {crewChiefs
-                      .filter(chief => chief.id && chief.id.trim() !== '')
+                      .filter(chief => chief.id && chief.id.trim() !== "")
                       .map((chief) => (
-                      <SelectItem key={chief.id} value={chief.id}>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          {chief.name}
-                        </div>
-                      </SelectItem>
-                    ))}
+                        <SelectItem key={chief.id} value={chief.id}>
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            {chief.name}
+                          </div>
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -285,13 +286,13 @@ function NewShiftPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/admin/shifts')}
+            onClick={() => router.push("/admin/shifts")}
           >
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Scheduling...' : 'Schedule Shift'}
+            {isSubmitting ? "Scheduling..." : "Schedule Shift"}
           </Button>
         </div>
       </form>
@@ -299,4 +300,4 @@ function NewShiftPage() {
   )
 }
 
-export default withAuth(NewShiftPage, hasAdminAccess);
+export default withAuth(NewShiftPage, hasAdminAccess)

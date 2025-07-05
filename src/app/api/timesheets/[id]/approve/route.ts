@@ -1,23 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { query } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
-    const { id } = await params;
-    const body = await request.json();
-    const { signature, approvalType } = body;
+    const { id } = await params
+    const body = await request.json()
+    const { signature, approvalType } = body
 
     // Get the timesheet
     const timesheetResult = await query(`
@@ -26,37 +26,37 @@ export async function POST(
       JOIN shifts s ON t.shift_id = s.id
       JOIN jobs j ON s.job_id = j.id
       WHERE t.id = $1
-    `, [id]);
+    `, [id])
 
     if (timesheetResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Timesheet not found' },
+        { error: "Timesheet not found" },
         { status: 404 }
-      );
+      )
     }
 
-    const timesheet = timesheetResult.rows[0];
+    const timesheet = timesheetResult.rows[0]
 
-    if (approvalType === 'client') {
+    if (approvalType === "client") {
       // Client approval
-      if (timesheet.status !== 'pending_client_approval') {
+      if (timesheet.status !== "pending_client_approval") {
         return NextResponse.json(
-          { error: 'Timesheet is not pending client approval' },
+          { error: "Timesheet is not pending client approval" },
           { status: 400 }
-        );
+        )
       }
 
       // Check if user has permission (manager, crew chief, or client user)
       const hasPermission = 
-        user.role === 'Manager/Admin' ||
-        (user.role === 'Crew Chief' && timesheet.crew_chief_id === user.id) ||
-        user.role === 'Client';
+        user.role === "Manager/Admin" ||
+        (user.role === "Crew Chief" && timesheet.crew_chief_id === user.id) ||
+        user.role === "Client"
 
       if (!hasPermission) {
         return NextResponse.json(
-          { error: 'Insufficient permissions' },
+          { error: "Insufficient permissions" },
           { status: 403 }
-        );
+        )
       }
 
       // Update timesheet with client approval
@@ -68,14 +68,14 @@ export async function POST(
             client_signature = $2,
             updated_at = NOW()
         WHERE id = $3
-      `, [user.id, signature, id]);
+      `, [user.id, signature, id])
 
       // Create notifications for managers for final approval
       const managersResult = await query(`
         SELECT id, name
         FROM users
         WHERE role = 'Manager/Admin'
-      `);
+      `)
 
       for (const manager of managersResult.rows) {
         await query(`
@@ -90,34 +90,34 @@ export async function POST(
           VALUES ($1, $2, $3, $4, $5, $6)
         `, [
           manager.id,
-          'timesheet_ready_for_approval',
-          'Timesheet Ready for Final Approval',
-          `Timesheet has been approved by client and is ready for final approval.`,
+          "timesheet_ready_for_approval",
+          "Timesheet Ready for Final Approval",
+          "Timesheet has been approved by client and is ready for final approval.",
           id,
           timesheet.shift_id
-        ]);
+        ])
       }
 
       return NextResponse.json({
         success: true,
-        message: 'Timesheet approved by client',
-      });
+        message: "Timesheet approved by client",
+      })
 
-    } else if (approvalType === 'manager') {
+    } else if (approvalType === "manager") {
       // Manager approval
-      if (timesheet.status !== 'pending_final_approval') {
+      if (timesheet.status !== "pending_final_approval") {
         return NextResponse.json(
-          { error: 'Timesheet is not pending final approval' },
+          { error: "Timesheet is not pending final approval" },
           { status: 400 }
-        );
+        )
       }
 
       // Only managers can do final approval
-      if (user.role !== 'Manager/Admin') {
+      if (user.role !== "Manager/Admin") {
         return NextResponse.json(
-          { error: 'Only managers can provide final approval' },
+          { error: "Only managers can provide final approval" },
           { status: 403 }
-        );
+        )
       }
 
       // Update timesheet with manager approval
@@ -129,12 +129,12 @@ export async function POST(
             manager_signature = $2,
             updated_at = NOW()
         WHERE id = $3
-      `, [user.id, signature, id]);
+      `, [user.id, signature, id])
 
       // Generate PDF after final approval
       try {
         // Import the PDF generation logic directly instead of making HTTP call
-        const { generateTimesheetPDF } = await import('@/lib/pdf-generator');
+        const { generateTimesheetPDF } = await import("@/lib/pdf-generator")
 
         // Get timesheet data for PDF generation
         const pdfDataResult = await query(`
@@ -154,10 +154,10 @@ export async function POST(
           JOIN clients c ON j.client_id = c.id
           LEFT JOIN users cc ON s.crew_chief_id = cc.id
           WHERE t.id = $1
-        `, [id]);
+        `, [id])
 
         if (pdfDataResult.rows.length > 0) {
-          const timesheetData = pdfDataResult.rows[0];
+          const timesheetData = pdfDataResult.rows[0]
 
           // Get assigned personnel and time entries
           const personnelResult = await query(`
@@ -180,19 +180,19 @@ export async function POST(
             WHERE ap.shift_id = $1
             GROUP BY ap.id, ap.role_on_shift, ap.role_code, u.name
             ORDER BY u.name ASC
-          `, [timesheet.shift_id]);
+          `, [timesheet.shift_id])
 
           // Generate PDF
           const pdfData = {
             timesheet: timesheetData,
             assignedPersonnel: personnelResult.rows
-          };
+          }
 
-          const pdf = generateTimesheetPDF(pdfData);
-          const pdfBuffer = Buffer.from(pdf.output('arraybuffer'));
+          const pdf = generateTimesheetPDF(pdfData)
+          const pdfBuffer = Buffer.from(pdf.output("arraybuffer"))
 
           // Store PDF in database
-          const filename = `timesheet-${timesheetData.client_name.replace(/\s+/g, '-')}-${timesheetData.shift_date}.pdf`;
+          const filename = `timesheet-${timesheetData.client_name.replace(/\s+/g, "-")}-${timesheetData.shift_date}.pdf`
 
           await query(`
             UPDATE timesheets
@@ -201,12 +201,12 @@ export async function POST(
                 pdf_content_type = 'application/pdf',
                 pdf_generated_at = NOW()
             WHERE id = $3
-          `, [pdfBuffer, filename, id]);
+          `, [pdfBuffer, filename, id])
 
-          console.log(`PDF generated and stored for completed timesheet ${id}`);
+          console.log(`PDF generated and stored for completed timesheet ${id}`)
         }
       } catch (error) {
-        console.error(`Error generating PDF for timesheet ${id}:`, error);
+        console.error(`Error generating PDF for timesheet ${id}:`, error)
         // Don't fail the approval if PDF generation fails
       }
 
@@ -216,26 +216,26 @@ export async function POST(
         SET status = 'Completed',
             updated_at = NOW()
         WHERE id = $1
-      `, [timesheet.shift_id]);
+      `, [timesheet.shift_id])
 
       return NextResponse.json({
         success: true,
-        message: 'Timesheet approved by manager',
-      });
+        message: "Timesheet approved by manager",
+      })
 
     } else {
       return NextResponse.json(
-        { error: 'Invalid approval type' },
+        { error: "Invalid approval type" },
         { status: 400 }
-      );
+      )
     }
 
   } catch (error) {
-    console.error('Error approving timesheet:', error);
+    console.error("Error approving timesheet:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -244,45 +244,45 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
-    const { id } = await params;
-    const body = await request.json();
-    const { reason } = body;
+    const { id } = await params
+    const body = await request.json()
+    const { reason } = body
 
     // Only managers can reject timesheets
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Only managers can reject timesheets' },
+        { error: "Only managers can reject timesheets" },
         { status: 403 }
-      );
+      )
     }
 
     // Get the timesheet
     const timesheetResult = await query(`
       SELECT * FROM timesheets WHERE id = $1
-    `, [id]);
+    `, [id])
 
     if (timesheetResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Timesheet not found' },
+        { error: "Timesheet not found" },
         { status: 404 }
-      );
+      )
     }
 
-    const timesheet = timesheetResult.rows[0];
+    const timesheet = timesheetResult.rows[0]
 
-    if (!['pending_client_approval', 'pending_manager_approval'].includes(timesheet.status)) {
+    if (!["pending_client_approval", "pending_manager_approval"].includes(timesheet.status)) {
       return NextResponse.json(
-        { error: 'Timesheet cannot be rejected in current status' },
+        { error: "Timesheet cannot be rejected in current status" },
         { status: 400 }
-      );
+      )
     }
 
     // Update timesheet with rejection
@@ -292,7 +292,7 @@ export async function PUT(
           rejection_reason = $1,
           updated_at = NOW()
       WHERE id = $2
-    `, [reason, id]);
+    `, [reason, id])
 
     // Update shift status back to in progress
     await query(`
@@ -300,18 +300,18 @@ export async function PUT(
       SET status = 'In Progress',
           updated_at = NOW()
       WHERE id = $1
-    `, [timesheet.shift_id]);
+    `, [timesheet.shift_id])
 
     return NextResponse.json({
       success: true,
-      message: 'Timesheet rejected',
-    });
+      message: "Timesheet rejected",
+    })
 
   } catch (error) {
-    console.error('Error rejecting timesheet:', error);
+    console.error("Error rejecting timesheet:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

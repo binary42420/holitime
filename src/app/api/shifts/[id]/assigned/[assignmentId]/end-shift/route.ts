@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/db"
 
 export async function POST(
   request: NextRequest,
@@ -8,7 +8,7 @@ export async function POST(
   try {
     const { id: shiftId, assignmentId } = await params
 
-    console.log(`End shift request:`, { shiftId, assignmentId })
+    console.log("End shift request:", { shiftId, assignmentId })
 
 
 
@@ -39,13 +39,13 @@ export async function POST(
 
     return NextResponse.json({
       success: true,
-      message: 'Shift ended successfully'
+      message: "Shift ended successfully"
     })
 
   } catch (error) {
-    console.error('Error ending shift:', error)
+    console.error("Error ending shift:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

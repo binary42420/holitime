@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useRef, useCallback, useState } from 'react'
-import { useToast } from '@/hooks/use-toast'
+import { useEffect, useRef, useCallback, useState } from "react"
+import { useToast } from "@/hooks/use-toast"
 
 interface RealtimeEvent {
   type: string
@@ -53,7 +53,7 @@ class RealtimeManager {
       this.ws = new WebSocket(this.url)
 
       this.ws.onopen = () => {
-        console.log('WebSocket connected')
+        console.log("WebSocket connected")
         this.isConnecting = false
         this.reconnectAttempts = 0
         this.startHeartbeat()
@@ -65,12 +65,12 @@ class RealtimeManager {
           const message: RealtimeEvent = JSON.parse(event.data)
           this.handleMessage(message)
         } catch (error) {
-          console.error('Failed to parse WebSocket message:', error)
+          console.error("Failed to parse WebSocket message:", error)
         }
       }
 
       this.ws.onclose = (event) => {
-        console.log('WebSocket disconnected:', event.code, event.reason)
+        console.log("WebSocket disconnected:", event.code, event.reason)
         this.isConnecting = false
         this.stopHeartbeat()
         this.options.onDisconnect?.()
@@ -81,9 +81,9 @@ class RealtimeManager {
       }
 
       this.ws.onerror = (error) => {
-        console.error('WebSocket error:', error)
+        console.error("WebSocket error:", error)
         this.isConnecting = false
-        const wsError = new Error('WebSocket connection error')
+        const wsError = new Error("WebSocket connection error")
         this.options.onError?.(wsError)
       }
     } catch (error) {
@@ -98,7 +98,7 @@ class RealtimeManager {
     this.clearReconnectTimer()
     
     if (this.ws) {
-      this.ws.close(1000, 'Manual disconnect')
+      this.ws.close(1000, "Manual disconnect")
       this.ws = null
     }
   }
@@ -132,15 +132,15 @@ class RealtimeManager {
       }
       this.ws.send(JSON.stringify(message))
     } else {
-      console.warn('WebSocket not connected, cannot send message')
+      console.warn("WebSocket not connected, cannot send message")
     }
   }
 
-  getConnectionState(): 'connecting' | 'connected' | 'disconnected' | 'error' {
-    if (this.isConnecting) return 'connecting'
-    if (this.ws?.readyState === WebSocket.OPEN) return 'connected'
-    if (this.ws?.readyState === WebSocket.CLOSED) return 'disconnected'
-    return 'error'
+  getConnectionState(): "connecting" | "connected" | "disconnected" | "error" {
+    if (this.isConnecting) return "connecting"
+    if (this.ws?.readyState === WebSocket.OPEN) return "connected"
+    if (this.ws?.readyState === WebSocket.CLOSED) return "disconnected"
+    return "error"
   }
 
   private handleMessage(message: RealtimeEvent): void {
@@ -150,7 +150,7 @@ class RealtimeManager {
         try {
           callback(message.data)
         } catch (error) {
-          console.error('Error in realtime callback:', error)
+          console.error("Error in realtime callback:", error)
         }
       })
     }
@@ -162,7 +162,7 @@ class RealtimeManager {
     if (this.options.heartbeatInterval) {
       this.heartbeatTimer = setInterval(() => {
         if (this.ws?.readyState === WebSocket.OPEN) {
-          this.send('ping', { timestamp: Date.now() })
+          this.send("ping", { timestamp: Date.now() })
         }
       }, this.options.heartbeatInterval)
     }
@@ -206,9 +206,9 @@ let realtimeManager: RealtimeManager | null = null
 export function getRealtimeManager(): RealtimeManager {
   if (!realtimeManager) {
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 
-                  (typeof window !== 'undefined' ? 
-                    `ws${window.location.protocol === 'https:' ? 's' : ''}://${window.location.host}/api/ws` : 
-                    'ws://localhost:3000/api/ws')
+                  (typeof window !== "undefined" ? 
+                    `ws${window.location.protocol === "https:" ? "s" : ""}://${window.location.host}/api/ws` : 
+                    "ws://localhost:3000/api/ws")
     
     realtimeManager = new RealtimeManager(wsUrl, {
       reconnectInterval: 3000,
@@ -222,7 +222,7 @@ export function getRealtimeManager(): RealtimeManager {
 
 // React hook for realtime functionality
 export function useRealtime(options: RealtimeOptions = {}) {
-  const [connectionState, setConnectionState] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected')
+  const [connectionState, setConnectionState] = useState<"connecting" | "connected" | "disconnected" | "error">("disconnected")
   const { toast } = useToast()
   const managerRef = useRef<RealtimeManager | null>(null)
 
@@ -232,18 +232,18 @@ export function useRealtime(options: RealtimeOptions = {}) {
     const manager = managerRef.current
     
     const handleConnect = () => {
-      setConnectionState('connected')
+      setConnectionState("connected")
       options.onConnect?.()
     }
 
     const handleDisconnect = () => {
-      setConnectionState('disconnected')
+      setConnectionState("disconnected")
       options.onDisconnect?.()
     }
 
     const handleError = (error: Error) => {
-      setConnectionState('error')
-      console.error('Realtime connection error:', error)
+      setConnectionState("error")
+      console.error("Realtime connection error:", error)
       toast({
         title: "Connection Error",
         description: "Lost connection to server. Attempting to reconnect...",
@@ -253,7 +253,7 @@ export function useRealtime(options: RealtimeOptions = {}) {
     }
 
     const handleReconnect = (attempt: number) => {
-      setConnectionState('connecting')
+      setConnectionState("connecting")
       if (attempt <= 3) {
         toast({
           title: "Reconnecting",
@@ -273,7 +273,7 @@ export function useRealtime(options: RealtimeOptions = {}) {
     }
 
     // Connect if not already connected
-    if (manager.getConnectionState() === 'disconnected') {
+    if (manager.getConnectionState() === "disconnected") {
       manager.connect()
     }
 
@@ -293,12 +293,12 @@ export function useRealtime(options: RealtimeOptions = {}) {
 
   const disconnect = useCallback(() => {
     managerRef.current?.disconnect()
-    setConnectionState('disconnected')
+    setConnectionState("disconnected")
   }, [])
 
   const reconnect = useCallback(() => {
     managerRef.current?.connect()
-    setConnectionState('connecting')
+    setConnectionState("connecting")
   }, [])
 
   return {
@@ -307,8 +307,8 @@ export function useRealtime(options: RealtimeOptions = {}) {
     send,
     disconnect,
     reconnect,
-    isConnected: connectionState === 'connected',
-    isConnecting: connectionState === 'connecting'
+    isConnected: connectionState === "connected",
+    isConnecting: connectionState === "connecting"
   }
 }
 
@@ -320,7 +320,7 @@ export function useShiftUpdates(shiftId?: string) {
   useEffect(() => {
     if (!shiftId) return
 
-    const unsubscribe = subscribe('shift_updated', (data) => {
+    const unsubscribe = subscribe("shift_updated", (data) => {
       if (data.shiftId === shiftId) {
         setLastUpdate(data)
       }
@@ -340,7 +340,7 @@ export function useTimesheetUpdates() {
   const [lastUpdate, setLastUpdate] = useState<any>(null)
 
   useEffect(() => {
-    const unsubscribe = subscribe('timesheet_updated', (data) => {
+    const unsubscribe = subscribe("timesheet_updated", (data) => {
       setLastUpdate(data)
     })
 
@@ -358,11 +358,11 @@ export function useNotifications() {
   const { toast } = useToast()
 
   useEffect(() => {
-    const unsubscribe = subscribe('notification', (data) => {
+    const unsubscribe = subscribe("notification", (data) => {
       toast({
         title: data.title || "Notification",
         description: data.message,
-        variant: data.type === 'error' ? 'destructive' : 'default',
+        variant: data.type === "error" ? "destructive" : "default",
       })
     })
 

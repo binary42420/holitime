@@ -54,14 +54,14 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function AdminUsersPage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const { data: usersData, loading, error, refetch } = useApi<{ users: any[] }>('/api/users')
+  const { data: usersData, loading, error, refetch } = useApi<{ users: any[] }>("/api/users")
 
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
@@ -75,8 +75,8 @@ function AdminUsersPage() {
   const [isResetting, setIsResetting] = useState(false)
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -88,7 +88,7 @@ function AdminUsersPage() {
       u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.company_name?.toLowerCase().includes(searchTerm.toLowerCase())
     
-    const matchesRole = roleFilter === 'all' || u.role === roleFilter
+    const matchesRole = roleFilter === "all" || u.role === roleFilter
 
     return matchesSearch && matchesRole
   })
@@ -118,9 +118,9 @@ function AdminUsersPage() {
 
     try {
       const response = await fetch(`/api/users/${resetPasswordDialog.user.id}/reset-password`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           newPassword,
@@ -128,7 +128,7 @@ function AdminUsersPage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to reset password')
+        throw new Error("Failed to reset password")
       }
 
       toast({
@@ -152,8 +152,8 @@ function AdminUsersPage() {
   }
 
   const generateRandomPassword = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
-    let password = ''
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
+    let password = ""
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length))
     }
@@ -163,16 +163,16 @@ function AdminUsersPage() {
 
   const getRoleBadge = (role: string) => {
     switch (role) {
-      case 'Manager/Admin':
-        return <Badge variant="destructive"><ShieldCheck className="mr-1 h-3 w-3" />Admin</Badge>
-      case 'Crew Chief':
-        return <Badge variant="default"><Shield className="mr-1 h-3 w-3" />Crew Chief</Badge>
-      case 'Employee':
-        return <Badge variant="secondary"><Users className="mr-1 h-3 w-3" />Employee</Badge>
-      case 'Client':
-        return <Badge variant="outline"><UserCog className="mr-1 h-3 w-3" />Client</Badge>
-      default:
-        return <Badge variant="outline">{role}</Badge>
+    case "Manager/Admin":
+      return <Badge variant="destructive"><ShieldCheck className="mr-1 h-3 w-3" />Admin</Badge>
+    case "Crew Chief":
+      return <Badge variant="default"><Shield className="mr-1 h-3 w-3" />Crew Chief</Badge>
+    case "Employee":
+      return <Badge variant="secondary"><Users className="mr-1 h-3 w-3" />Employee</Badge>
+    case "Client":
+      return <Badge variant="outline"><UserCog className="mr-1 h-3 w-3" />Client</Badge>
+    default:
+      return <Badge variant="outline">{role}</Badge>
     }
   }
 
@@ -266,7 +266,7 @@ function AdminUsersPage() {
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={u.avatar} alt={u.name} />
-                          <AvatarFallback>{u.name?.charAt(0) || 'U'}</AvatarFallback>
+                          <AvatarFallback>{u.name?.charAt(0) || "U"}</AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="font-medium">{u.name}</div>
@@ -404,4 +404,4 @@ function AdminUsersPage() {
   )
 }
 
-export default withAuth(AdminUsersPage, hasAdminAccess);
+export default withAuth(AdminUsersPage, hasAdminAccess)

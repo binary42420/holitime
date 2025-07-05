@@ -37,47 +37,47 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function AdminMergePage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
   
-  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useApi<{ users: any[] }>('/api/users')
-  const { data: clientsData, loading: clientsLoading, refetch: refetchClients } = useApi<{ clients: any[] }>('/api/clients')
-  const { data: jobsData, loading: jobsLoading, refetch: refetchJobs } = useApi<{ jobs: any[] }>('/api/jobs')
+  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useApi<{ users: any[] }>("/api/users")
+  const { data: clientsData, loading: clientsLoading, refetch: refetchClients } = useApi<{ clients: any[] }>("/api/clients")
+  const { data: jobsData, loading: jobsLoading, refetch: refetchJobs } = useApi<{ jobs: any[] }>("/api/jobs")
 
   const [activeTab, setActiveTab] = useState("employees")
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedItems, setSelectedItems] = useState<any[]>([])
-  const [mergeDialog, setMergeDialog] = useState({ open: false, type: '', items: [] as any[] })
+  const [mergeDialog, setMergeDialog] = useState({ open: false, type: "", items: [] as any[] })
   const [mergeData, setMergeData] = useState<any>({})
   const [isMerging, setIsMerging] = useState(false)
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
-  const employees = usersData?.users?.filter(u => u.role === 'Employee' || u.role === 'Crew Chief') || []
+  const employees = usersData?.users?.filter(u => u.role === "Employee" || u.role === "Crew Chief") || []
   const clients = clientsData?.clients || []
   const jobs = jobsData?.jobs || []
 
   const getFilteredData = () => {
     let data = []
     switch (activeTab) {
-      case 'employees':
-        data = employees
-        break
-      case 'clients':
-        data = clients
-        break
-      case 'jobs':
-        data = jobs
-        break
+    case "employees":
+      data = employees
+      break
+    case "clients":
+      data = clients
+      break
+    case "jobs":
+      data = jobs
+      break
     }
     
     return data.filter(item => {
@@ -89,7 +89,7 @@ function AdminMergePage() {
         item.contactEmail,
         item.clientName,
         item.description
-      ].filter(Boolean).join(' ').toLowerCase()
+      ].filter(Boolean).join(" ").toLowerCase()
       
       return searchFields.includes(searchTerm.toLowerCase())
     })
@@ -129,10 +129,10 @@ function AdminMergePage() {
     setIsMerging(true)
     
     try {
-      const response = await fetch('/api/admin/merge', {
-        method: 'POST',
+      const response = await fetch("/api/admin/merge", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           type: activeTab,
@@ -143,7 +143,7 @@ function AdminMergePage() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to merge items')
+        throw new Error("Failed to merge items")
       }
 
       const result = await response.json()
@@ -154,12 +154,12 @@ function AdminMergePage() {
       })
 
       // Refresh data and reset state
-      if (activeTab === 'employees') refetchUsers()
-      if (activeTab === 'clients') refetchClients()
-      if (activeTab === 'jobs') refetchJobs()
+      if (activeTab === "employees") refetchUsers()
+      if (activeTab === "clients") refetchClients()
+      if (activeTab === "jobs") refetchJobs()
       
       setSelectedItems([])
-      setMergeDialog({ open: false, type: '', items: [] })
+      setMergeDialog({ open: false, type: "", items: [] })
       setMergeData({})
     } catch (error) {
       toast({
@@ -178,15 +178,15 @@ function AdminMergePage() {
     return (
       <Card 
         key={item.id} 
-        className={`cursor-pointer transition-all ${isSelected ? 'ring-2 ring-primary bg-primary/5' : 'hover:shadow-md'}`}
+        className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-primary bg-primary/5" : "hover:shadow-md"}`}
         onClick={() => handleItemSelect(item)}
       >
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            {activeTab === 'employees' && (
+            {activeTab === "employees" && (
               <Avatar className="h-10 w-10">
                 <AvatarImage src={item.avatar} alt={item.name} />
-                <AvatarFallback>{item.name?.charAt(0) || 'U'}</AvatarFallback>
+                <AvatarFallback>{item.name?.charAt(0) || "U"}</AvatarFallback>
               </Avatar>
             )}
             <div className="flex-1 min-w-0">
@@ -195,7 +195,7 @@ function AdminMergePage() {
                 {isSelected && <CheckCircle className="h-4 w-4 text-primary" />}
               </div>
               
-              {activeTab === 'employees' && (
+              {activeTab === "employees" && (
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Mail className="h-3 w-3" />
@@ -207,7 +207,7 @@ function AdminMergePage() {
                 </div>
               )}
               
-              {activeTab === 'clients' && (
+              {activeTab === "clients" && (
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <User className="h-3 w-3" />
@@ -223,7 +223,7 @@ function AdminMergePage() {
                 </div>
               )}
               
-              {activeTab === 'jobs' && (
+              {activeTab === "jobs" && (
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Building2 className="h-3 w-3" />
@@ -248,7 +248,7 @@ function AdminMergePage() {
     return (
       <Dialog open={mergeDialog.open} onOpenChange={(open) => {
         if (!open) {
-          setMergeDialog({ open: false, type: '', items: [] })
+          setMergeDialog({ open: false, type: "", items: [] })
           setMergeData({})
         }
       }}>
@@ -266,7 +266,7 @@ function AdminMergePage() {
               {selectedItems.map((item, index) => (
                 <div key={item.id} className="space-y-2">
                   <Label className="text-sm font-medium">
-                    {index === 0 ? 'Primary Record' : 'Secondary Record'}
+                    {index === 0 ? "Primary Record" : "Secondary Record"}
                     {index === 1 && <span className="text-destructive ml-1">(will be deleted)</span>}
                   </Label>
                   <Card className="p-3">
@@ -285,25 +285,25 @@ function AdminMergePage() {
                 <Label htmlFor="merge-name">Name</Label>
                 <Input
                   id="merge-name"
-                  value={mergeData.name || ''}
+                  value={mergeData.name || ""}
                   onChange={(e) => setMergeData({ ...mergeData, name: e.target.value })}
                 />
               </div>
 
-              {activeTab === 'employees' && (
+              {activeTab === "employees" && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="merge-email">Email</Label>
                     <Input
                       id="merge-email"
                       type="email"
-                      value={mergeData.email || ''}
+                      value={mergeData.email || ""}
                       onChange={(e) => setMergeData({ ...mergeData, email: e.target.value })}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="merge-role">Role</Label>
-                    <Select value={mergeData.role || ''} onValueChange={(value) => setMergeData({ ...mergeData, role: value })}>
+                    <Select value={mergeData.role || ""} onValueChange={(value) => setMergeData({ ...mergeData, role: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -317,13 +317,13 @@ function AdminMergePage() {
                 </>
               )}
 
-              {activeTab === 'clients' && (
+              {activeTab === "clients" && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="merge-contact-person">Contact Person</Label>
                     <Input
                       id="merge-contact-person"
-                      value={mergeData.contactPerson || ''}
+                      value={mergeData.contactPerson || ""}
                       onChange={(e) => setMergeData({ ...mergeData, contactPerson: e.target.value })}
                     />
                   </div>
@@ -332,7 +332,7 @@ function AdminMergePage() {
                     <Input
                       id="merge-contact-email"
                       type="email"
-                      value={mergeData.contactEmail || ''}
+                      value={mergeData.contactEmail || ""}
                       onChange={(e) => setMergeData({ ...mergeData, contactEmail: e.target.value })}
                     />
                   </div>
@@ -340,20 +340,20 @@ function AdminMergePage() {
                     <Label htmlFor="merge-contact-phone">Contact Phone</Label>
                     <Input
                       id="merge-contact-phone"
-                      value={mergeData.contactPhone || ''}
+                      value={mergeData.contactPhone || ""}
                       onChange={(e) => setMergeData({ ...mergeData, contactPhone: e.target.value })}
                     />
                   </div>
                 </>
               )}
 
-              {activeTab === 'jobs' && (
+              {activeTab === "jobs" && (
                 <>
                   <div className="space-y-2">
                     <Label htmlFor="merge-description">Description</Label>
                     <Textarea
                       id="merge-description"
-                      value={mergeData.description || ''}
+                      value={mergeData.description || ""}
                       onChange={(e) => setMergeData({ ...mergeData, description: e.target.value })}
                     />
                   </div>
@@ -377,7 +377,7 @@ function AdminMergePage() {
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setMergeDialog({ open: false, type: '', items: [] })}
+              onClick={() => setMergeDialog({ open: false, type: "", items: [] })}
             >
               Cancel
             </Button>
@@ -397,7 +397,7 @@ function AdminMergePage() {
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Admin
         </Button>
@@ -503,4 +503,4 @@ function AdminMergePage() {
   )
 }
 
-export default withAuth(AdminMergePage, hasAdminAccess);
+export default withAuth(AdminMergePage, hasAdminAccess)

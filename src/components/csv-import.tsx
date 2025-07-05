@@ -1,17 +1,17 @@
-'use client'
+"use client"
 
-import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Progress } from '@/components/ui/progress'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { useToast } from '@/hooks/use-toast'
-import { Upload, Download, FileText, AlertCircle, CheckCircle, Eye } from 'lucide-react'
-import { CSVRow } from '@/app/api/import/csv/parse/route'
-import { CSVDataPreview } from './csv-data-preview'
+import React, { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
+import { Upload, Download, FileText, AlertCircle, CheckCircle, Eye } from "lucide-react"
+import { CSVRow } from "@/app/api/import/csv/parse/route"
+import { CSVDataPreview } from "./csv-data-preview"
 
 interface ParsedCSVData {
   summary: {
@@ -51,7 +51,7 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
   const [parsedData, setParsedData] = useState<ParsedCSVData | null>(null)
   const [editedData, setEditedData] = useState<CSVRow[]>([])
   const [importSummary, setImportSummary] = useState<ImportSummary | null>(null)
-  const [currentStep, setCurrentStep] = useState<'upload' | 'preview' | 'complete'>('upload')
+  const [currentStep, setCurrentStep] = useState<"upload" | "preview" | "complete">("upload")
 
   // Handle external CSV data from Gemini
   React.useEffect(() => {
@@ -63,38 +63,38 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
   const processExternalCSV = async (csvData: string) => {
     try {
       // Create a File object from the CSV string
-      const blob = new Blob([csvData], { type: 'text/csv' })
-      const file = new File([blob], 'gemini-generated.csv', { type: 'text/csv' })
+      const blob = new Blob([csvData], { type: "text/csv" })
+      const file = new File([blob], "gemini-generated.csv", { type: "text/csv" })
 
       // Process it through the same parsing logic
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append("file", file)
 
-      const response = await fetch('/api/import/csv/parse', {
-        method: 'POST',
+      const response = await fetch("/api/import/csv/parse", {
+        method: "POST",
         body: formData
       })
 
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to parse CSV')
+        throw new Error(result.error || "Failed to parse CSV")
       }
 
       setParsedData(result)
       setEditedData(result.data)
-      setCurrentStep('preview')
+      setCurrentStep("preview")
 
       toast({
-        title: 'Gemini CSV Loaded',
+        title: "Gemini CSV Loaded",
         description: `Processed ${result.summary.totalRows} rows from Gemini AI`
       })
 
     } catch (error) {
       toast({
-        title: 'Failed to Load Gemini CSV',
-        description: error instanceof Error ? error.message : 'Failed to process generated CSV',
-        variant: 'destructive'
+        title: "Failed to Load Gemini CSV",
+        description: error instanceof Error ? error.message : "Failed to process generated CSV",
+        variant: "destructive"
       })
     }
   }
@@ -106,7 +106,7 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
       setParsedData(null)
       setEditedData([])
       setImportSummary(null)
-      setCurrentStep('upload')
+      setCurrentStep("upload")
     }
   }
 
@@ -116,33 +116,33 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
     setIsUploading(true)
     try {
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append("file", file)
 
-      const response = await fetch('/api/import/csv/parse', {
-        method: 'POST',
+      const response = await fetch("/api/import/csv/parse", {
+        method: "POST",
         body: formData
       })
 
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to parse CSV')
+        throw new Error(result.error || "Failed to parse CSV")
       }
 
       setParsedData(result)
       setEditedData(result.data)
-      setCurrentStep('preview')
+      setCurrentStep("preview")
 
       toast({
-        title: 'CSV Parsed Successfully',
+        title: "CSV Parsed Successfully",
         description: `Found ${result.summary.totalRows} rows (${result.summary.validRows} valid, ${result.summary.invalidRows} with errors)`
       })
 
     } catch (error) {
       toast({
-        title: 'Upload Failed',
-        description: error instanceof Error ? error.message : 'Failed to parse CSV file',
-        variant: 'destructive'
+        title: "Upload Failed",
+        description: error instanceof Error ? error.message : "Failed to parse CSV file",
+        variant: "destructive"
       })
     } finally {
       setIsUploading(false)
@@ -157,10 +157,10 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
       // Only import valid rows
       const validRows = editedData.filter(row => !row._errors || row._errors.length === 0)
 
-      const response = await fetch('/api/import/csv/import', {
-        method: 'POST',
+      const response = await fetch("/api/import/csv/import", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ data: validRows })
       })
@@ -168,22 +168,22 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to import data')
+        throw new Error(result.error || "Failed to import data")
       }
 
       setImportSummary(result.summary)
-      setCurrentStep('complete')
+      setCurrentStep("complete")
 
       toast({
-        title: 'Import Completed',
+        title: "Import Completed",
         description: `Successfully imported ${validRows.length} rows`
       })
 
     } catch (error) {
       toast({
-        title: 'Import Failed',
-        description: error instanceof Error ? error.message : 'Failed to import data',
-        variant: 'destructive'
+        title: "Import Failed",
+        description: error instanceof Error ? error.message : "Failed to import data",
+        variant: "destructive"
       })
     } finally {
       setIsImporting(false)
@@ -192,28 +192,28 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
 
   const downloadTemplate = async () => {
     try {
-      const response = await fetch('/api/import/csv/template')
-      if (!response.ok) throw new Error('Failed to download template')
+      const response = await fetch("/api/import/csv/template")
+      if (!response.ok) throw new Error("Failed to download template")
 
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
+      const a = document.createElement("a")
       a.href = url
-      a.download = 'holitime_import_template.csv'
+      a.download = "holitime_import_template.csv"
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
 
       toast({
-        title: 'Template Downloaded',
-        description: 'CSV template has been downloaded to your computer'
+        title: "Template Downloaded",
+        description: "CSV template has been downloaded to your computer"
       })
     } catch (error) {
       toast({
-        title: 'Download Failed',
-        description: 'Failed to download CSV template',
-        variant: 'destructive'
+        title: "Download Failed",
+        description: "Failed to download CSV template",
+        variant: "destructive"
       })
     }
   }
@@ -222,23 +222,23 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
     if (!parsedData?.errors.length) return
 
     const errorReport = parsedData.errors.map(error => ({
-      'Row Number': error.rowNumber,
-      'Errors': error.errors.join('; '),
-      'Client Name': error.data.client_name,
-      'Job Name': error.data.job_name,
-      'Employee Name': error.data.employee_name
+      "Row Number": error.rowNumber,
+      "Errors": error.errors.join("; "),
+      "Client Name": error.data.client_name,
+      "Job Name": error.data.job_name,
+      "Employee Name": error.data.employee_name
     }))
 
     const csv = [
-      Object.keys(errorReport[0]).join(','),
-      ...errorReport.map(row => Object.values(row).map(val => `"${val}"`).join(','))
-    ].join('\n')
+      Object.keys(errorReport[0]).join(","),
+      ...errorReport.map(row => Object.values(row).map(val => `"${val}"`).join(","))
+    ].join("\n")
 
-    const blob = new Blob([csv], { type: 'text/csv' })
+    const blob = new Blob([csv], { type: "text/csv" })
     const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
+    const a = document.createElement("a")
     a.href = url
-    a.download = 'import_errors.csv'
+    a.download = "import_errors.csv"
     document.body.appendChild(a)
     a.click()
     window.URL.revokeObjectURL(url)
@@ -250,7 +250,7 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
     setParsedData(null)
     setEditedData([])
     setImportSummary(null)
-    setCurrentStep('upload')
+    setCurrentStep("upload")
   }
 
   return (
@@ -270,7 +270,7 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
       </div>
 
       {/* Gemini Data Available Notice */}
-      {externalCSVData && currentStep === 'upload' && (
+      {externalCSVData && currentStep === "upload" && (
         <Alert>
           <CheckCircle className="h-4 w-4" />
           <AlertDescription>
@@ -281,22 +281,22 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
 
       {/* Progress Steps */}
       <div className="flex items-center space-x-4">
-        <div className={`flex items-center space-x-2 ${currentStep === 'upload' ? 'text-primary' : currentStep === 'preview' || currentStep === 'complete' ? 'text-green-600' : 'text-muted-foreground'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'upload' ? 'bg-primary text-primary-foreground' : currentStep === 'preview' || currentStep === 'complete' ? 'bg-green-600 text-white' : 'bg-muted'}`}>
+        <div className={`flex items-center space-x-2 ${currentStep === "upload" ? "text-primary" : currentStep === "preview" || currentStep === "complete" ? "text-green-600" : "text-muted-foreground"}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === "upload" ? "bg-primary text-primary-foreground" : currentStep === "preview" || currentStep === "complete" ? "bg-green-600 text-white" : "bg-muted"}`}>
             1
           </div>
           <span>Upload & Parse</span>
         </div>
         <div className="flex-1 h-px bg-muted" />
-        <div className={`flex items-center space-x-2 ${currentStep === 'preview' ? 'text-primary' : currentStep === 'complete' ? 'text-green-600' : 'text-muted-foreground'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'preview' ? 'bg-primary text-primary-foreground' : currentStep === 'complete' ? 'bg-green-600 text-white' : 'bg-muted'}`}>
+        <div className={`flex items-center space-x-2 ${currentStep === "preview" ? "text-primary" : currentStep === "complete" ? "text-green-600" : "text-muted-foreground"}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === "preview" ? "bg-primary text-primary-foreground" : currentStep === "complete" ? "bg-green-600 text-white" : "bg-muted"}`}>
             2
           </div>
           <span>Preview & Edit</span>
         </div>
         <div className="flex-1 h-px bg-muted" />
-        <div className={`flex items-center space-x-2 ${currentStep === 'complete' ? 'text-green-600' : 'text-muted-foreground'}`}>
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === 'complete' ? 'bg-green-600 text-white' : 'bg-muted'}`}>
+        <div className={`flex items-center space-x-2 ${currentStep === "complete" ? "text-green-600" : "text-muted-foreground"}`}>
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep === "complete" ? "bg-green-600 text-white" : "bg-muted"}`}>
             3
           </div>
           <span>Complete</span>
@@ -304,7 +304,7 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
       </div>
 
       {/* Step 1: Upload */}
-      {currentStep === 'upload' && (
+      {currentStep === "upload" && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -341,14 +341,14 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
               disabled={!file || isUploading}
               className="w-full"
             >
-              {isUploading ? 'Parsing...' : 'Parse CSV'}
+              {isUploading ? "Parsing..." : "Parse CSV"}
             </Button>
           </CardContent>
         </Card>
       )}
 
       {/* Step 2: Preview & Edit */}
-      {currentStep === 'preview' && parsedData && (
+      {currentStep === "preview" && parsedData && (
         <div className="space-y-4">
           {/* Summary */}
           <Card>
@@ -406,14 +406,14 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
               onClick={handleImport} 
               disabled={isImporting || editedData.filter(row => !row._errors || row._errors.length === 0).length === 0}
             >
-              {isImporting ? 'Importing...' : `Import ${editedData.filter(row => !row._errors || row._errors.length === 0).length} Valid Rows`}
+              {isImporting ? "Importing..." : `Import ${editedData.filter(row => !row._errors || row._errors.length === 0).length} Valid Rows`}
             </Button>
           </div>
         </div>
       )}
 
       {/* Step 3: Complete */}
-      {currentStep === 'complete' && importSummary && (
+      {currentStep === "complete" && importSummary && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

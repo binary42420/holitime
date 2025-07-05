@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from "react"
-import { Document, Page, pdfjs } from 'react-pdf'
+import { Document, Page, pdfjs } from "react-pdf"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,7 +32,7 @@ interface PDFViewerProps {
 
 interface FormField {
   id: string
-  type: 'text' | 'signature' | 'date' | 'checkbox'
+  type: "text" | "signature" | "date" | "checkbox"
   x: number
   y: number
   width: number
@@ -60,36 +60,36 @@ export default function PDFViewer({ documentUrl, documentName, canEdit = false, 
     if (canEdit) {
       setFormFields([
         {
-          id: 'employee_name',
-          type: 'text',
+          id: "employee_name",
+          type: "text",
           x: 100,
           y: 150,
           width: 200,
           height: 30,
-          value: '',
-          placeholder: 'Employee Name',
+          value: "",
+          placeholder: "Employee Name",
           required: true
         },
         {
-          id: 'date',
-          type: 'date',
+          id: "date",
+          type: "date",
           x: 350,
           y: 150,
           width: 150,
           height: 30,
-          value: '',
-          placeholder: 'Date',
+          value: "",
+          placeholder: "Date",
           required: true
         },
         {
-          id: 'signature',
-          type: 'signature',
+          id: "signature",
+          type: "signature",
           x: 100,
           y: 400,
           width: 200,
           height: 60,
-          value: '',
-          placeholder: 'Click to sign',
+          value: "",
+          placeholder: "Click to sign",
           required: true
         }
       ])
@@ -138,7 +138,7 @@ export default function PDFViewer({ documentUrl, documentName, canEdit = false, 
     if (requiredFields.length > 0) {
       toast({
         title: "Missing Required Fields",
-        description: `Please fill in all required fields: ${requiredFields.map(f => f.placeholder).join(', ')}`,
+        description: `Please fill in all required fields: ${requiredFields.map(f => f.placeholder).join(", ")}`,
         variant: "destructive",
       })
       return
@@ -167,7 +167,7 @@ export default function PDFViewer({ documentUrl, documentName, canEdit = false, 
   }
 
   const handleDownload = () => {
-    const link = document.createElement('a')
+    const link = document.createElement("a")
     link.href = documentUrl
     link.download = documentName
     document.body.appendChild(link)
@@ -213,7 +213,7 @@ export default function PDFViewer({ documentUrl, documentName, canEdit = false, 
                     onClick={() => setIsEditMode(!isEditMode)}
                   >
                     <PenTool className="mr-2 h-4 w-4" />
-                    {isEditMode ? 'Exit Edit' : 'Edit Form'}
+                    {isEditMode ? "Exit Edit" : "Edit Form"}
                   </Button>
                   {isEditMode && (
                     <Button size="sm" onClick={handleSaveForm}>
@@ -261,7 +261,7 @@ export default function PDFViewer({ documentUrl, documentName, canEdit = false, 
       {/* PDF Viewer */}
       <Card>
         <CardContent className="p-4">
-          <div className="relative border rounded-lg overflow-auto bg-gray-50" style={{ height: '600px' }}>
+          <div className="relative border rounded-lg overflow-auto bg-gray-50" style={{ height: "600px" }}>
             {loading && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-muted-foreground">Loading document...</div>
@@ -298,22 +298,22 @@ export default function PDFViewer({ documentUrl, documentName, canEdit = false, 
                         height: field.height * scale,
                       }}
                     >
-                      {field.type === 'text' || field.type === 'date' ? (
+                      {field.type === "text" || field.type === "date" ? (
                         <Input
-                          type={field.type === 'date' ? 'date' : 'text'}
+                          type={field.type === "date" ? "date" : "text"}
                           value={field.value}
                           onChange={(e) => handleFieldChange(field.id, e.target.value)}
                           placeholder={field.placeholder}
                           className="h-full border-0 text-xs"
                           required={field.required}
                         />
-                      ) : field.type === 'signature' ? (
+                      ) : field.type === "signature" ? (
                         <Button
                           variant="outline"
                           className="h-full w-full text-xs"
                           onClick={() => {
                             // In a real app, this would open a signature pad
-                            handleFieldChange(field.id, 'Signed')
+                            handleFieldChange(field.id, "Signed")
                           }}
                         >
                           {field.value || field.placeholder}

@@ -1,6 +1,6 @@
-import { query } from './db'
-import { emailService } from './email-service-enhanced'
-import { v4 as uuidv4 } from 'uuid'
+import { query } from "./db"
+import { emailService } from "./email-service-enhanced"
+import { v4 as uuidv4 } from "uuid"
 
 export interface Notification {
   id: number
@@ -14,23 +14,23 @@ export interface Notification {
   email_sent_at?: Date
   action_url?: string
   action_text?: string
-  priority: 'low' | 'normal' | 'high' | 'urgent'
+  priority: "low" | "normal" | "high" | "urgent"
   expires_at?: Date
   created_at: Date
   updated_at: Date
 }
 
 export type NotificationType = 
-  | 'shift_assignment'
-  | 'shift_reminder'
-  | 'shift_cancelled'
-  | 'shift_updated'
-  | 'document_reminder'
-  | 'document_approved'
-  | 'document_rejected'
-  | 'system_message'
-  | 'welcome'
-  | 'profile_update'
+  | "shift_assignment"
+  | "shift_reminder"
+  | "shift_cancelled"
+  | "shift_updated"
+  | "document_reminder"
+  | "document_approved"
+  | "document_rejected"
+  | "system_message"
+  | "welcome"
+  | "profile_update"
 
 export interface CreateNotificationRequest {
   user_id: string
@@ -40,7 +40,7 @@ export interface CreateNotificationRequest {
   data?: any
   action_url?: string
   action_text?: string
-  priority?: 'low' | 'normal' | 'high' | 'urgent'
+  priority?: "low" | "normal" | "high" | "urgent"
   expires_at?: Date
   send_email?: boolean
 }
@@ -48,7 +48,7 @@ export interface CreateNotificationRequest {
 export interface ShiftAssignmentData {
   shift_id: number
   assigned_by: string
-  assignment_type?: 'direct' | 'invitation' | 'replacement'
+  assignment_type?: "direct" | "invitation" | "replacement"
   response_deadline?: Date
   auto_accept_after?: Date
   requires_confirmation?: boolean
@@ -57,7 +57,7 @@ export interface ShiftAssignmentData {
 export interface NotificationResponse {
   notification_id: number
   user_id: string
-  response_type: 'accept' | 'decline' | 'maybe' | 'acknowledged'
+  response_type: "accept" | "decline" | "maybe" | "acknowledged"
   response_data?: any
   response_message?: string
   ip_address?: string
@@ -82,7 +82,7 @@ class NotificationService {
         JSON.stringify(request.data || {}),
         request.action_url,
         request.action_text,
-        request.priority || 'normal',
+        request.priority || "normal",
         request.expires_at
       ])
 
@@ -95,7 +95,7 @@ class NotificationService {
 
       return notification
     } catch (error) {
-      console.error('Error creating notification:', error)
+      console.error("Error creating notification:", error)
       return null
     }
   }
@@ -112,7 +112,7 @@ class NotificationService {
       // Create notification
       const notification = await this.createNotification({
         user_id: userId,
-        type: 'shift_assignment',
+        type: "shift_assignment",
         title: `New Shift Assignment - ${shiftDetails.jobName}`,
         message: `You have been assigned to work ${shiftDetails.role} at ${shiftDetails.clientName} on ${new Date(shiftDetails.date).toLocaleDateString()}.`,
         data: {
@@ -121,8 +121,8 @@ class NotificationService {
           confirmation_token: confirmationToken
         },
         action_url: `/notifications/shift-confirm/${confirmationToken}`,
-        action_text: 'Confirm Availability',
-        priority: 'high',
+        action_text: "Confirm Availability",
+        priority: "high",
         expires_at: shiftData.response_deadline,
         send_email: false // We'll send custom email below
       })
@@ -143,7 +143,7 @@ class NotificationService {
         notification.id,
         shiftData.shift_id,
         shiftData.assigned_by,
-        shiftData.assignment_type || 'direct',
+        shiftData.assignment_type || "direct",
         shiftData.response_deadline,
         shiftData.auto_accept_after,
         shiftData.requires_confirmation !== false,
@@ -151,7 +151,7 @@ class NotificationService {
       ])
 
       // Get user details for email
-      const userQuery = 'SELECT name, email FROM users WHERE id = $1'
+      const userQuery = "SELECT name, email FROM users WHERE id = $1"
       const userResult = await query(userQuery, [userId])
       
       if (userResult.rows.length > 0) {
@@ -167,14 +167,14 @@ class NotificationService {
 
         // Mark email as sent
         await query(
-          'UPDATE notifications SET is_email_sent = true, email_sent_at = CURRENT_TIMESTAMP WHERE id = $1',
+          "UPDATE notifications SET is_email_sent = true, email_sent_at = CURRENT_TIMESTAMP WHERE id = $1",
           [notification.id]
         )
       }
 
       return { notification, confirmationToken }
     } catch (error) {
-      console.error('Error creating shift assignment notification:', error)
+      console.error("Error creating shift assignment notification:", error)
       return { notification: null, confirmationToken: null }
     }
   }
@@ -182,7 +182,7 @@ class NotificationService {
   async respondToNotification(
     notificationId: number,
     userId: string,
-    responseType: 'accept' | 'decline' | 'maybe' | 'acknowledged',
+    responseType: "accept" | "decline" | "maybe" | "acknowledged",
     responseMessage?: string,
     ipAddress?: string,
     userAgent?: string
@@ -206,19 +206,19 @@ class NotificationService {
 
       // Mark notification as read
       await query(
-        'UPDATE notifications SET is_read = true WHERE id = $1',
+        "UPDATE notifications SET is_read = true WHERE id = $1",
         [notificationId]
       )
 
       // Handle shift assignment responses
       const notification = await this.getNotification(notificationId)
-      if (notification && notification.type === 'shift_assignment') {
+      if (notification && notification.type === "shift_assignment") {
         await this.handleShiftAssignmentResponse(notification, responseType, userId)
       }
 
       return true
     } catch (error) {
-      console.error('Error responding to notification:', error)
+      console.error("Error responding to notification:", error)
       return false
     }
   }
@@ -233,16 +233,16 @@ class NotificationService {
       if (!shiftId) return
 
       // Update shift assignment status based on response
-      let shiftStatus = 'pending'
-      if (responseType === 'accept') {
-        shiftStatus = 'confirmed'
-      } else if (responseType === 'decline') {
-        shiftStatus = 'declined'
+      let shiftStatus = "pending"
+      if (responseType === "accept") {
+        shiftStatus = "confirmed"
+      } else if (responseType === "decline") {
+        shiftStatus = "declined"
       }
 
       // Update shift assignment (assuming you have a shift_assignments table)
       await query(
-        'UPDATE shift_assignments SET status = $1 WHERE shift_id = $2 AND user_id = $3',
+        "UPDATE shift_assignments SET status = $1 WHERE shift_id = $2 AND user_id = $3",
         [shiftStatus, shiftId, userId]
       )
 
@@ -257,28 +257,28 @@ class NotificationService {
       for (const admin of adminResult.rows) {
         await this.createNotification({
           user_id: admin.id,
-          type: 'system_message',
-          title: `Shift Response Received`,
-          message: `${notification.data?.shift_details?.workerName || 'Worker'} has ${responseType}ed the shift assignment for ${notification.data?.shift_details?.jobName}.`,
+          type: "system_message",
+          title: "Shift Response Received",
+          message: `${notification.data?.shift_details?.workerName || "Worker"} has ${responseType}ed the shift assignment for ${notification.data?.shift_details?.jobName}.`,
           data: {
             original_notification_id: notification.id,
             shift_id: shiftId,
             response_type: responseType
           },
-          priority: responseType === 'decline' ? 'high' : 'normal'
+          priority: responseType === "decline" ? "high" : "normal"
         })
       }
     } catch (error) {
-      console.error('Error handling shift assignment response:', error)
+      console.error("Error handling shift assignment response:", error)
     }
   }
 
   async getNotification(id: number): Promise<Notification | null> {
     try {
-      const result = await query('SELECT * FROM notifications WHERE id = $1', [id])
+      const result = await query("SELECT * FROM notifications WHERE id = $1", [id])
       return result.rows.length > 0 ? result.rows[0] : null
     } catch (error) {
-      console.error('Error fetching notification:', error)
+      console.error("Error fetching notification:", error)
       return null
     }
   }
@@ -293,12 +293,12 @@ class NotificationService {
     } = {}
   ): Promise<{ notifications: Notification[], total: number }> {
     try {
-      let whereConditions = ['user_id = $1']
+      let whereConditions = ["user_id = $1"]
       let queryParams: any[] = [userId]
       let paramIndex = 2
 
       if (options.unread_only) {
-        whereConditions.push('is_read = false')
+        whereConditions.push("is_read = false")
       }
 
       if (options.type) {
@@ -308,9 +308,9 @@ class NotificationService {
       }
 
       // Add expiration check
-      whereConditions.push('(expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)')
+      whereConditions.push("(expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)")
 
-      const whereClause = whereConditions.join(' AND ')
+      const whereClause = whereConditions.join(" AND ")
 
       // Get total count
       const countQuery = `SELECT COUNT(*) as total FROM notifications WHERE ${whereClause}`
@@ -334,7 +334,7 @@ class NotificationService {
 
       return { notifications, total }
     } catch (error) {
-      console.error('Error fetching user notifications:', error)
+      console.error("Error fetching user notifications:", error)
       return { notifications: [], total: 0 }
     }
   }
@@ -342,12 +342,12 @@ class NotificationService {
   async markAsRead(notificationId: number, userId: string): Promise<boolean> {
     try {
       await query(
-        'UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2',
+        "UPDATE notifications SET is_read = true WHERE id = $1 AND user_id = $2",
         [notificationId, userId]
       )
       return true
     } catch (error) {
-      console.error('Error marking notification as read:', error)
+      console.error("Error marking notification as read:", error)
       return false
     }
   }
@@ -355,12 +355,12 @@ class NotificationService {
   async markAllAsRead(userId: string): Promise<boolean> {
     try {
       await query(
-        'UPDATE notifications SET is_read = true WHERE user_id = $1 AND is_read = false',
+        "UPDATE notifications SET is_read = true WHERE user_id = $1 AND is_read = false",
         [userId]
       )
       return true
     } catch (error) {
-      console.error('Error marking all notifications as read:', error)
+      console.error("Error marking all notifications as read:", error)
       return false
     }
   }
@@ -368,12 +368,12 @@ class NotificationService {
   async deleteNotification(notificationId: number, userId: string): Promise<boolean> {
     try {
       await query(
-        'DELETE FROM notifications WHERE id = $1 AND user_id = $2',
+        "DELETE FROM notifications WHERE id = $1 AND user_id = $2",
         [notificationId, userId]
       )
       return true
     } catch (error) {
-      console.error('Error deleting notification:', error)
+      console.error("Error deleting notification:", error)
       return false
     }
   }
@@ -381,7 +381,7 @@ class NotificationService {
   private async sendNotificationEmail(notification: Notification): Promise<void> {
     try {
       // Get user details
-      const userQuery = 'SELECT name, email FROM users WHERE id = $1'
+      const userQuery = "SELECT name, email FROM users WHERE id = $1"
       const userResult = await query(userQuery, [notification.user_id])
       
       if (userResult.rows.length === 0) return
@@ -389,7 +389,7 @@ class NotificationService {
       const user = userResult.rows[0]
 
       // Check if user has email notifications enabled
-      const prefsQuery = 'SELECT email_notifications FROM notification_preferences WHERE user_id = $1'
+      const prefsQuery = "SELECT email_notifications FROM notification_preferences WHERE user_id = $1"
       const prefsResult = await query(prefsQuery, [notification.user_id])
       
       if (prefsResult.rows.length > 0 && !prefsResult.rows[0].email_notifications) {
@@ -409,37 +409,37 @@ class NotificationService {
               <div style="text-align: center; margin: 20px 0;">
                 <a href="${process.env.NEXTAUTH_URL}${notification.action_url}" 
                    style="background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px;">
-                  ${notification.action_text || 'View Details'}
+                  ${notification.action_text || "View Details"}
                 </a>
               </div>
-            ` : ''}
+            ` : ""}
             <hr>
             <p><small>HoliTime Workforce Management System</small></p>
           </div>
         `,
-        textBody: `${notification.title}\n\nHello ${user.name},\n\n${notification.message}\n\n${notification.action_url ? `View details: ${process.env.NEXTAUTH_URL}${notification.action_url}\n\n` : ''}HoliTime Workforce Management System`
+        textBody: `${notification.title}\n\nHello ${user.name},\n\n${notification.message}\n\n${notification.action_url ? `View details: ${process.env.NEXTAUTH_URL}${notification.action_url}\n\n` : ""}HoliTime Workforce Management System`
       })
 
       if (success) {
         await query(
-          'UPDATE notifications SET is_email_sent = true, email_sent_at = CURRENT_TIMESTAMP WHERE id = $1',
+          "UPDATE notifications SET is_email_sent = true, email_sent_at = CURRENT_TIMESTAMP WHERE id = $1",
           [notification.id]
         )
       }
     } catch (error) {
-      console.error('Error sending notification email:', error)
+      console.error("Error sending notification email:", error)
     }
   }
 
   async getUnreadCount(userId: string): Promise<number> {
     try {
       const result = await query(
-        'SELECT COUNT(*) as count FROM notifications WHERE user_id = $1 AND is_read = false AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)',
+        "SELECT COUNT(*) as count FROM notifications WHERE user_id = $1 AND is_read = false AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)",
         [userId]
       )
       return parseInt(result.rows[0].count)
     } catch (error) {
-      console.error('Error getting unread count:', error)
+      console.error("Error getting unread count:", error)
       return 0
     }
   }

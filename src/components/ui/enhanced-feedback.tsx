@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -22,7 +22,7 @@ import {
 interface FeedbackProps {
   title?: string
   description?: string
-  status?: 'idle' | 'loading' | 'success' | 'error' | 'warning'
+  status?: "idle" | "loading" | "success" | "error" | "warning"
   progress?: number
   isOnline?: boolean
   showRefresh?: boolean
@@ -34,47 +34,47 @@ interface FeedbackProps {
 export function EnhancedFeedback({
   title,
   description,
-  status = 'idle',
+  status = "idle",
   progress,
   isOnline = true,
   showRefresh = false,
   onRefresh,
-  className = '',
+  className = "",
   children
 }: FeedbackProps) {
   const { connectionState } = useRealtime()
-  const isConnected = connectionState === 'connected'
+  const isConnected = connectionState === "connected"
 
   const statusConfig = {
     idle: {
       icon: Info,
-      color: 'text-gray-500',
-      bgColor: 'bg-gray-100',
-      borderColor: 'border-gray-200'
+      color: "text-gray-500",
+      bgColor: "bg-gray-100",
+      borderColor: "border-gray-200"
     },
     loading: {
       icon: LoadingSpinner,
-      color: 'text-blue-500',
-      bgColor: 'bg-blue-100',
-      borderColor: 'border-blue-200'
+      color: "text-blue-500",
+      bgColor: "bg-blue-100",
+      borderColor: "border-blue-200"
     },
     success: {
       icon: CheckCircle2,
-      color: 'text-green-500',
-      bgColor: 'bg-green-100',
-      borderColor: 'border-green-200'
+      color: "text-green-500",
+      bgColor: "bg-green-100",
+      borderColor: "border-green-200"
     },
     error: {
       icon: AlertTriangle,
-      color: 'text-red-500',
-      bgColor: 'bg-red-100',
-      borderColor: 'border-red-200'
+      color: "text-red-500",
+      bgColor: "bg-red-100",
+      borderColor: "border-red-200"
     },
     warning: {
       icon: AlertCircle,
-      color: 'text-yellow-500',
-      bgColor: 'bg-yellow-100',
-      borderColor: 'border-yellow-200'
+      color: "text-yellow-500",
+      bgColor: "bg-yellow-100",
+      borderColor: "border-yellow-200"
     }
   }
 
@@ -88,7 +88,7 @@ export function EnhancedFeedback({
         {isOnline ? (
           <Badge variant="outline" className="gap-1">
             <Wifi className="h-3 w-3" />
-            {isConnected ? 'Connected' : 'Connecting...'}
+            {isConnected ? "Connected" : "Connecting..."}
           </Badge>
         ) : (
           <Badge variant="destructive" className="gap-1">
@@ -119,10 +119,10 @@ export function EnhancedFeedback({
               variant="ghost" 
               size="icon"
               onClick={onRefresh}
-              disabled={status === 'loading'}
+              disabled={status === "loading"}
               className="mt-1"
             >
-              <RefreshCw className={`h-4 w-4 ${status === 'loading' ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${status === "loading" ? "animate-spin" : ""}`} />
             </Button>
           )}
         </div>
@@ -130,7 +130,7 @@ export function EnhancedFeedback({
 
       <CardContent>
         {/* Progress Indicator */}
-        {typeof progress === 'number' && (
+        {typeof progress === "number" && (
           <div className="space-y-2">
             <Progress value={progress} className="h-2" />
             <p className="text-sm text-muted-foreground text-right">
@@ -140,11 +140,11 @@ export function EnhancedFeedback({
         )}
 
         {/* Status Alert */}
-        {(status === 'error' || status === 'warning') && description && (
-          <Alert variant={status === 'error' ? 'destructive' : 'default'}>
+        {(status === "error" || status === "warning") && description && (
+          <Alert variant={status === "error" ? "destructive" : "default"}>
             <StatusIcon className="h-4 w-4" />
             <AlertTitle>
-              {status === 'error' ? 'Error' : 'Warning'}
+              {status === "error" ? "Error" : "Warning"}
             </AlertTitle>
             <AlertDescription>{description}</AlertDescription>
           </Alert>
@@ -152,7 +152,7 @@ export function EnhancedFeedback({
 
         {/* Main Content */}
         {children && (
-          <div className={`mt-4 ${status === 'loading' ? 'opacity-50' : ''}`}>
+          <div className={`mt-4 ${status === "loading" ? "opacity-50" : ""}`}>
             {children}
           </div>
         )}
@@ -282,37 +282,37 @@ interface StatusIndicatorProps {
 export function StatusIndicator({ 
   status, 
   showDot = true,
-  className = '' 
+  className = "" 
 }: StatusIndicatorProps) {
   const statusConfig = {
     active: {
-      color: 'text-green-700',
-      bgColor: 'bg-green-100',
-      dotColor: 'bg-green-500',
+      color: "text-green-700",
+      bgColor: "bg-green-100",
+      dotColor: "bg-green-500",
       icon: CheckCircle2
     },
     pending: {
-      color: 'text-yellow-700',
-      bgColor: 'bg-yellow-100',
-      dotColor: 'bg-yellow-500',
+      color: "text-yellow-700",
+      bgColor: "bg-yellow-100",
+      dotColor: "bg-yellow-500",
       icon: Clock
     },
     error: {
-      color: 'text-red-700',
-      bgColor: 'bg-red-100',
-      dotColor: 'bg-red-500',
+      color: "text-red-700",
+      bgColor: "bg-red-100",
+      dotColor: "bg-red-500",
       icon: AlertTriangle
     },
     warning: {
-      color: 'text-orange-700',
-      bgColor: 'bg-orange-100',
-      dotColor: 'bg-orange-500',
+      color: "text-orange-700",
+      bgColor: "bg-orange-100",
+      dotColor: "bg-orange-500",
       icon: AlertCircle
     },
     info: {
-      color: 'text-blue-700',
-      bgColor: 'bg-blue-100',
-      dotColor: 'bg-blue-500',
+      color: "text-blue-700",
+      bgColor: "bg-blue-100",
+      dotColor: "bg-blue-500",
       icon: Info
     }
   }
@@ -335,39 +335,39 @@ export function StatusIndicator({
 
 interface ConnectionStatusProps {
   isOnline?: boolean
-  connectionState?: 'connecting' | 'connected' | 'disconnected' | 'error'
+  connectionState?: "connecting" | "connected" | "disconnected" | "error"
   className?: string
 }
 
 export function ConnectionStatus({
   isOnline = true,
-  connectionState = 'connected',
-  className = ''
+  connectionState = "connected",
+  className = ""
 }: ConnectionStatusProps) {
   const statusConfig = {
     connecting: {
       icon: RefreshCw,
-      text: 'Connecting...',
-      color: 'text-yellow-700',
-      bgColor: 'bg-yellow-100'
+      text: "Connecting...",
+      color: "text-yellow-700",
+      bgColor: "bg-yellow-100"
     },
     connected: {
       icon: Wifi,
-      text: 'Connected',
-      color: 'text-green-700',
-      bgColor: 'bg-green-100'
+      text: "Connected",
+      color: "text-green-700",
+      bgColor: "bg-green-100"
     },
     disconnected: {
       icon: WifiOff,
-      text: 'Disconnected',
-      color: 'text-red-700',
-      bgColor: 'bg-red-100'
+      text: "Disconnected",
+      color: "text-red-700",
+      bgColor: "bg-red-100"
     },
     error: {
       icon: AlertTriangle,
-      text: 'Connection Error',
-      color: 'text-red-700',
-      bgColor: 'bg-red-100'
+      text: "Connection Error",
+      color: "text-red-700",
+      bgColor: "bg-red-100"
     }
   }
 
@@ -388,7 +388,7 @@ export function ConnectionStatus({
       variant="outline" 
       className={`gap-1 ${config.color} ${config.bgColor} border-0 ${className}`}
     >
-      <StatusIcon className={`h-3 w-3 ${connectionState === 'connecting' ? 'animate-spin' : ''}`} />
+      <StatusIcon className={`h-3 w-3 ${connectionState === "connecting" ? "animate-spin" : ""}`} />
       {config.text}
     </Badge>
   )

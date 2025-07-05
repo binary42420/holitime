@@ -1,13 +1,13 @@
-'use client'
+"use client"
 
-import React, { useState, useEffect } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
-import { Progress } from '@/components/ui/progress'
-import { useToast } from '@/hooks/use-toast'
+import React, { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Textarea } from "@/components/ui/textarea"
+import { Progress } from "@/components/ui/progress"
+import { useToast } from "@/hooks/use-toast"
 import { 
   Loader2, 
   FileSpreadsheet, 
@@ -21,7 +21,7 @@ import {
   Eye,
   RefreshCw,
   Zap
-} from 'lucide-react'
+} from "lucide-react"
 
 interface GoogleSheetsGeminiProcessorProps {
   selectedFile: any
@@ -33,7 +33,7 @@ interface ProcessingStep {
   id: string
   name: string
   description: string
-  status: 'pending' | 'processing' | 'completed' | 'error'
+  status: "pending" | "processing" | "completed" | "error"
   progress?: number
 }
 
@@ -58,38 +58,38 @@ export default function GoogleSheetsGeminiProcessor({
   const [currentStep, setCurrentStep] = useState(0)
   const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>([
     {
-      id: 'fetch',
-      name: 'Fetching Data',
-      description: 'Retrieving data from Google Sheets',
-      status: 'pending'
+      id: "fetch",
+      name: "Fetching Data",
+      description: "Retrieving data from Google Sheets",
+      status: "pending"
     },
     {
-      id: 'analyze',
-      name: 'Analyzing Structure',
-      description: 'Understanding sheet structure and content',
-      status: 'pending'
+      id: "analyze",
+      name: "Analyzing Structure",
+      description: "Understanding sheet structure and content",
+      status: "pending"
     },
     {
-      id: 'map',
-      name: 'Mapping Fields',
-      description: 'Mapping columns to Holitime format',
-      status: 'pending'
+      id: "map",
+      name: "Mapping Fields",
+      description: "Mapping columns to Holitime format",
+      status: "pending"
     },
     {
-      id: 'transform',
-      name: 'Transforming Data',
-      description: 'Converting and cleaning data',
-      status: 'pending'
+      id: "transform",
+      name: "Transforming Data",
+      description: "Converting and cleaning data",
+      status: "pending"
     },
     {
-      id: 'validate',
-      name: 'Validating Results',
-      description: 'Checking data quality and completeness',
-      status: 'pending'
+      id: "validate",
+      name: "Validating Results",
+      description: "Checking data quality and completeness",
+      status: "pending"
     }
   ])
 
-  const updateStepStatus = (stepId: string, status: ProcessingStep['status'], progress?: number) => {
+  const updateStepStatus = (stepId: string, status: ProcessingStep["status"], progress?: number) => {
     setProcessingSteps(prev => prev.map(step => 
       step.id === stepId ? { ...step, status, progress } : step
     ))
@@ -97,7 +97,7 @@ export default function GoogleSheetsGeminiProcessor({
 
   const processWithGemini = async () => {
     if (!selectedFile) {
-      setError('No file selected')
+      setError("No file selected")
       return
     }
 
@@ -107,11 +107,11 @@ export default function GoogleSheetsGeminiProcessor({
     setCurrentStep(0)
 
     // Reset all steps
-    setProcessingSteps(prev => prev.map(step => ({ ...step, status: 'pending' })))
+    setProcessingSteps(prev => prev.map(step => ({ ...step, status: "pending" })))
 
     try {
       // Step 1: Fetch data
-      updateStepStatus('fetch', 'processing', 0)
+      updateStepStatus("fetch", "processing", 0)
       setCurrentStep(0)
 
       let sheetsResponse: Response
@@ -119,16 +119,16 @@ export default function GoogleSheetsGeminiProcessor({
 
       try {
         if (accessToken) {
-          console.log('Using OAuth method for data extraction...')
+          console.log("Using OAuth method for data extraction...")
           sheetsResponse = await fetch(`/api/import/google-sheets/fetch-with-oauth/${selectedFile.id}`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json'
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({ accessToken })
           })
         } else {
-          console.log('Using API key method for data extraction...')
+          console.log("Using API key method for data extraction...")
           sheetsResponse = await fetch(`/api/import/google-sheets/fetch/${selectedFile.id}`)
         }
 
@@ -140,36 +140,36 @@ export default function GoogleSheetsGeminiProcessor({
           } catch {
             errorData = { error: errorText || `HTTP ${sheetsResponse.status}: ${sheetsResponse.statusText}` }
           }
-          throw new Error(errorData.error || 'Failed to fetch Google Sheets data')
+          throw new Error(errorData.error || "Failed to fetch Google Sheets data")
         }
 
         const sheetsResult = await sheetsResponse.json()
         sheetsData = sheetsResult.data || sheetsResult
 
         if (!sheetsData || !sheetsData.sheets || sheetsData.sheets.length === 0) {
-          throw new Error('No sheet data found in the Google Sheets document')
+          throw new Error("No sheet data found in the Google Sheets document")
         }
 
       } catch (fetchError) {
-        console.error('Error fetching sheets data:', fetchError)
-        throw new Error(`Failed to fetch Google Sheets data: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`)
+        console.error("Error fetching sheets data:", fetchError)
+        throw new Error(`Failed to fetch Google Sheets data: ${fetchError instanceof Error ? fetchError.message : "Unknown error"}`)
       }
 
-      updateStepStatus('fetch', 'completed', 100)
+      updateStepStatus("fetch", "completed", 100)
       setCurrentStep(1)
 
       // Step 2: Analyze structure
-      updateStepStatus('analyze', 'processing', 0)
+      updateStepStatus("analyze", "processing", 0)
       await new Promise(resolve => setTimeout(resolve, 500)) // Brief pause for UX
 
       // Step 3: Map fields
-      updateStepStatus('analyze', 'completed', 100)
-      updateStepStatus('map', 'processing', 0)
+      updateStepStatus("analyze", "completed", 100)
+      updateStepStatus("map", "processing", 0)
       setCurrentStep(2)
 
       // Step 4: Transform data
-      updateStepStatus('map', 'completed', 100)
-      updateStepStatus('transform', 'processing', 0)
+      updateStepStatus("map", "completed", 100)
+      updateStepStatus("transform", "processing", 0)
       setCurrentStep(3)
 
       // Enhanced Gemini processing with better prompts
@@ -177,11 +177,11 @@ export default function GoogleSheetsGeminiProcessor({
       let geminiResult: any
 
       try {
-        console.log('Starting Gemini processing...')
-        geminiResponse = await fetch('/api/import/google-sheets/gemini', {
-          method: 'POST',
+        console.log("Starting Gemini processing...")
+        geminiResponse = await fetch("/api/import/google-sheets/gemini", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
             googleSheetsId: selectedFile.id,
@@ -190,7 +190,7 @@ export default function GoogleSheetsGeminiProcessor({
             options: {
               temperature: 0.1, // Low temperature for consistent results
               maxTokens: 4000,
-              model: 'gemini-1.5-flash' // Use latest model
+              model: "gemini-1.5-flash" // Use latest model
             }
           })
         })
@@ -206,67 +206,67 @@ export default function GoogleSheetsGeminiProcessor({
 
           // Provide more specific error messages
           if (geminiResponse.status === 401) {
-            throw new Error('Gemini API authentication failed. Please check your API key configuration.')
+            throw new Error("Gemini API authentication failed. Please check your API key configuration.")
           } else if (geminiResponse.status === 403) {
-            throw new Error('Gemini API access forbidden. Please check your API key permissions.')
+            throw new Error("Gemini API access forbidden. Please check your API key permissions.")
           } else if (geminiResponse.status === 429) {
-            throw new Error('Gemini API rate limit exceeded. Please try again later.')
+            throw new Error("Gemini API rate limit exceeded. Please try again later.")
           } else {
-            throw new Error(errorData.error || 'Failed to process with Gemini AI')
+            throw new Error(errorData.error || "Failed to process with Gemini AI")
           }
         }
 
         geminiResult = await geminiResponse.json()
 
         if (!geminiResult.success) {
-          throw new Error(geminiResult.error || 'Gemini processing failed')
+          throw new Error(geminiResult.error || "Gemini processing failed")
         }
 
       } catch (geminiError) {
-        console.error('Error in Gemini processing:', geminiError)
-        throw new Error(`Gemini AI processing failed: ${geminiError instanceof Error ? geminiError.message : 'Unknown error'}`)
+        console.error("Error in Gemini processing:", geminiError)
+        throw new Error(`Gemini AI processing failed: ${geminiError instanceof Error ? geminiError.message : "Unknown error"}`)
       }
 
-      updateStepStatus('transform', 'completed', 100)
-      updateStepStatus('validate', 'processing', 0)
+      updateStepStatus("transform", "completed", 100)
+      updateStepStatus("validate", "processing", 0)
       setCurrentStep(4)
 
       const result = await geminiResponse.json()
       
       // Step 5: Validate results
       await new Promise(resolve => setTimeout(resolve, 500)) // Brief pause for UX
-      updateStepStatus('validate', 'completed', 100)
+      updateStepStatus("validate", "completed", 100)
 
       setGeminiResult(result)
       onCSVGenerated(result.csvData)
 
       toast({
-        title: 'Processing Complete',
-        description: `Successfully processed ${result.csvData.split('\n').length - 1} rows with ${(result.confidence * 100).toFixed(1)}% confidence`,
+        title: "Processing Complete",
+        description: `Successfully processed ${result.csvData.split("\n").length - 1} rows with ${(result.confidence * 100).toFixed(1)}% confidence`,
         duration: 5000
       })
 
     } catch (error) {
-      console.error('Google Sheets processing error:', error)
+      console.error("Google Sheets processing error:", error)
 
-      let errorMessage = 'Failed to process Google Sheets'
+      let errorMessage = "Failed to process Google Sheets"
 
       if (error instanceof Error) {
         errorMessage = error.message
-      } else if (typeof error === 'string') {
+      } else if (typeof error === "string") {
         errorMessage = error
-      } else if (error && typeof error === 'object' && 'message' in error) {
+      } else if (error && typeof error === "object" && "message" in error) {
         errorMessage = String(error.message)
       }
 
       // Add more context to common errors
-      if (errorMessage.includes('fetch')) {
+      if (errorMessage.includes("fetch")) {
         errorMessage = `Network error: ${errorMessage}. Please check your internet connection and try again.`
-      } else if (errorMessage.includes('API key')) {
+      } else if (errorMessage.includes("API key")) {
         errorMessage = `API configuration error: ${errorMessage}. Please contact support.`
-      } else if (errorMessage.includes('rate limit')) {
+      } else if (errorMessage.includes("rate limit")) {
         errorMessage = `${errorMessage} Please wait a few minutes before trying again.`
-      } else if (errorMessage.includes('authentication')) {
+      } else if (errorMessage.includes("authentication")) {
         errorMessage = `${errorMessage} Please check your Google account permissions.`
       }
 
@@ -275,13 +275,13 @@ export default function GoogleSheetsGeminiProcessor({
       // Mark current step as error
       const currentStepId = processingSteps[currentStep]?.id
       if (currentStepId) {
-        updateStepStatus(currentStepId, 'error')
+        updateStepStatus(currentStepId, "error")
       }
 
       toast({
-        title: 'Processing Failed',
+        title: "Processing Failed",
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
         duration: 10000 // Longer duration for error messages
       })
     } finally {
@@ -376,27 +376,27 @@ ${JSON.stringify(sheetsData, null, 2)}`
   const downloadCSV = () => {
     if (!geminiResult?.csvData) return
 
-    const blob = new Blob([geminiResult.csvData], { type: 'text/csv;charset=utf-8;' })
+    const blob = new Blob([geminiResult.csvData], { type: "text/csv;charset=utf-8;" })
     const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
+    const a = document.createElement("a")
     a.href = url
-    a.download = `${selectedFile?.name?.split('.')[0] || 'processed'}-holitime.csv`
+    a.download = `${selectedFile?.name?.split(".")[0] || "processed"}-holitime.csv`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     window.URL.revokeObjectURL(url)
   }
 
-  const getStepIcon = (status: ProcessingStep['status']) => {
+  const getStepIcon = (status: ProcessingStep["status"]) => {
     switch (status) {
-      case 'processing':
-        return <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
-      case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
-      case 'error':
-        return <AlertCircle className="h-5 w-5 text-red-500" />
-      default:
-        return <FileSpreadsheet className="h-5 w-5 text-gray-400" />
+    case "processing":
+      return <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+    case "completed":
+      return <CheckCircle className="h-5 w-5 text-green-500" />
+    case "error":
+      return <AlertCircle className="h-5 w-5 text-red-500" />
+    default:
+      return <FileSpreadsheet className="h-5 w-5 text-gray-400" />
     }
   }
 
@@ -423,7 +423,7 @@ ${JSON.stringify(sheetsData, null, 2)}`
             </p>
             <Button onClick={processWithGemini} disabled={!selectedFile || isProcessing}>
               <Sparkles className="mr-2 h-4 w-4" />
-              {isProcessing ? 'Processing...' : `Process ${selectedFile?.name || 'Sheet'}`}
+              {isProcessing ? "Processing..." : `Process ${selectedFile?.name || "Sheet"}`}
             </Button>
           </div>
         )}
@@ -439,11 +439,11 @@ ${JSON.stringify(sheetsData, null, 2)}`
                 <li key={step.id} className="flex items-start">
                   <div className="flex-shrink-0">{getStepIcon(step.status)}</div>
                   <div className="ml-4">
-                    <p className={`font-medium ${currentStep === index ? 'text-primary' : ''}`}>
+                    <p className={`font-medium ${currentStep === index ? "text-primary" : ""}`}>
                       {step.name}
                     </p>
                     <p className="text-sm text-muted-foreground">{step.description}</p>
-                    {step.status === 'processing' && step.progress !== undefined && (
+                    {step.status === "processing" && step.progress !== undefined && (
                       <Progress value={step.progress} className="mt-2 h-2" />
                     )}
                   </div>
@@ -491,7 +491,7 @@ ${JSON.stringify(sheetsData, null, 2)}`
                   <p className="text-3xl font-bold text-green-600">
                     {Object.keys(geminiResult.mappedFields).length}
                   </p>
-                   <p className="text-xs text-muted-foreground">Source columns mapped to target.</p>
+                  <p className="text-xs text-muted-foreground">Source columns mapped to target.</p>
                 </CardContent>
               </Card>
             </div>

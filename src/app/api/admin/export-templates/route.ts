@@ -1,21 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers can access export templates
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -53,9 +53,9 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error fetching export templates:', error)
+    console.error("Error fetching export templates:", error)
     return NextResponse.json(
-      { error: 'Failed to fetch export templates' },
+      { error: "Failed to fetch export templates" },
       { status: 500 }
     )
   }
@@ -66,15 +66,15 @@ export async function POST(request: NextRequest) {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers can create export templates
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     if (!name || !fieldMappings || !Array.isArray(fieldMappings)) {
       return NextResponse.json(
-        { error: 'Name and field mappings are required' },
+        { error: "Name and field mappings are required" },
         { status: 400 }
       )
     }
@@ -94,14 +94,14 @@ export async function POST(request: NextRequest) {
     for (const mapping of fieldMappings) {
       if (!mapping.fieldType || !mapping.fieldName || !mapping.columnLetter || !mapping.rowNumber) {
         return NextResponse.json(
-          { error: 'Each field mapping must have fieldType, fieldName, columnLetter, and rowNumber' },
+          { error: "Each field mapping must have fieldType, fieldName, columnLetter, and rowNumber" },
           { status: 400 }
         )
       }
     }
 
     // Start transaction
-    await query('BEGIN')
+    await query("BEGIN")
 
     try {
       // If this is set as default, unset other defaults
@@ -136,28 +136,28 @@ export async function POST(request: NextRequest) {
           mapping.rowNumber,
           mapping.isHeader || false,
           mapping.displayName || mapping.fieldName,
-          mapping.dataType || 'text',
+          mapping.dataType || "text",
           mapping.formatPattern || null
         ])
       }
 
-      await query('COMMIT')
+      await query("COMMIT")
 
       return NextResponse.json({
         success: true,
         templateId,
-        message: 'Export template created successfully'
+        message: "Export template created successfully"
       })
 
     } catch (error) {
-      await query('ROLLBACK')
+      await query("ROLLBACK")
       throw error
     }
 
   } catch (error) {
-    console.error('Error creating export template:', error)
+    console.error("Error creating export template:", error)
     return NextResponse.json(
-      { error: 'Failed to create export template' },
+      { error: "Failed to create export template" },
       { status: 500 }
     )
   }

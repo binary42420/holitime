@@ -1,12 +1,12 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
-import ExportTemplateEditor from '@/components/export-template-editor'
+import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
+import ExportTemplateEditor from "@/components/export-template-editor"
 
 export default function EditExportTemplatePage() {
   const params = useParams()
-  const [templateId, setTemplateId] = useState<string>('')
+  const [templateId, setTemplateId] = useState<string>("")
 
   // Unwrap params
   useEffect(() => {

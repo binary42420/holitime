@@ -1,16 +1,16 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
-import { Clock, User, MapPin, Calendar, Building, FileText, Download } from 'lucide-react'
-import { format } from 'date-fns'
-import SignatureCaptureModal from '@/components/signature-capture-modal'
-import TimesheetExportDialog from '@/components/timesheet-export-dialog'
-import { useToast } from '@/hooks/use-toast'
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { Clock, User, MapPin, Calendar, Building, FileText, Download } from "lucide-react"
+import { format } from "date-fns"
+import SignatureCaptureModal from "@/components/signature-capture-modal"
+import TimesheetExportDialog from "@/components/timesheet-export-dialog"
+import { useToast } from "@/hooks/use-toast"
 import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
 
 interface TimeEntry {
@@ -80,7 +80,7 @@ interface TimesheetReviewData {
 export default function TimesheetReviewPage() {
   const params = useParams()
   const router = useRouter()
-  const [timesheetId, setTimesheetId] = useState<string>('')
+  const [timesheetId, setTimesheetId] = useState<string>("")
 
   // Unwrap params
   useEffect(() => {
@@ -93,67 +93,67 @@ export default function TimesheetReviewPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showSignatureModal, setShowSignatureModal] = useState(false)
-  const [approvalType, setApprovalType] = useState<'client' | 'manager'>('client')
+  const [approvalType, setApprovalType] = useState<"client" | "manager">("client")
   const [submitting, setSubmitting] = useState(false)
   const { toast } = useToast()
 
-  useEffect(() => {
-    fetchTimesheetData()
-  }, [timesheetId])
-
-  const fetchTimesheetData = async () => {
+  const fetchTimesheetData = React.useCallback(async () => {
     try {
       setLoading(true)
       const response = await fetch(`/api/timesheets/${timesheetId}/review`)
       
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to fetch timesheet')
+        throw new Error(errorData.error || "Failed to fetch timesheet")
       }
       
       const timesheetData = await response.json()
       setData(timesheetData)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+      setError(err instanceof Error ? err.message : "An error occurred")
     } finally {
       setLoading(false)
     }
-  }
+  }, [timesheetId])
+
+  useEffect(() => {
+    fetchTimesheetData()
+  }, [timesheetId, fetchTimesheetData])
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'pending_client_approval':
-        return 'default'
-      case 'pending_final_approval':
-        return 'secondary'
-      case 'completed':
-        return 'default'
-      case 'rejected':
-        return 'destructive'
-      default:
-        return 'outline'
+    case "pending_client_approval":
+      return "default"
+    case "pending_final_approval":
+      return "secondary"
+    case "completed":
+      return "default"
+    case "rejected":
+      return "destructive"
+    default:
+      return "outline"
     }
   }
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'pending_client_approval':
-        return 'Pending Client Approval'
-      case 'pending_final_approval':
-        return 'Pending Final Approval'
-      case 'completed':
-        return 'Completed'
-      case 'rejected':
-        return 'Rejected'
-      default:
-        return status
+    case "pending_client_approval":
+      return "Pending Client Approval"
+    case "pending_final_approval":
+      return "Pending Final Approval"
+    case "completed":
+      return "Completed"
+    case "rejected":
+      return "Rejected"
+    default:
+      return status
     }
   }
 
   const formatTime = (timeString: string) => {
-    if (!timeString) return 'N/A'
+    if (!timeString) return "N/A"
     try {
-      return format(new Date(timeString), 'h:mm a')
+      return format(new Date(timeString), "h:mm a")
     } catch {
       return timeString
     }
@@ -161,19 +161,19 @@ export default function TimesheetReviewPage() {
 
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), 'MMMM d, yyyy')
+      return format(new Date(dateString), "MMMM d, yyyy")
     } catch {
       return dateString
     }
   }
 
   const handleApprove = () => {
-    setApprovalType('client')
+    setApprovalType("client")
     setShowSignatureModal(true)
   }
 
   const handleFinalApprove = () => {
-    setApprovalType('manager')
+    setApprovalType("manager")
     setShowSignatureModal(true)
   }
 
@@ -182,9 +182,9 @@ export default function TimesheetReviewPage() {
       setSubmitting(true)
 
       const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           signature: signatureData,
@@ -194,7 +194,7 @@ export default function TimesheetReviewPage() {
 
       if (!response.ok) {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to approve timesheet')
+        throw new Error(errorData.error || "Failed to approve timesheet")
       }
 
       const result = await response.json()
@@ -211,7 +211,7 @@ export default function TimesheetReviewPage() {
     } catch (err) {
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : 'Failed to approve timesheet',
+        description: err instanceof Error ? err.message : "Failed to approve timesheet",
         variant: "destructive",
       })
     } finally {
@@ -226,11 +226,11 @@ export default function TimesheetReviewPage() {
       // First generate the PDF if it doesn't exist
       if (!data?.timesheet.pdfFilePath) {
         const generateResponse = await fetch(`/api/timesheets/${timesheetId}/generate-pdf`, {
-          method: 'POST',
+          method: "POST",
         })
 
         if (!generateResponse.ok) {
-          throw new Error('Failed to generate PDF')
+          throw new Error("Failed to generate PDF")
         }
       }
 
@@ -238,14 +238,14 @@ export default function TimesheetReviewPage() {
       const response = await fetch(`/api/timesheets/${timesheetId}/pdf`)
 
       if (!response.ok) {
-        throw new Error('Failed to download PDF')
+        throw new Error("Failed to download PDF")
       }
 
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
+      const a = document.createElement("a")
       a.href = url
-      a.download = `timesheet-${data?.job.name.replace(/\s+/g, '-')}-${data?.shift.date}.pdf`
+      a.download = `timesheet-${data?.job.name.replace(/\s+/g, "-")}-${data?.shift.date}.pdf`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -259,7 +259,7 @@ export default function TimesheetReviewPage() {
     } catch (err) {
       toast({
         title: "Error",
-        description: err instanceof Error ? err.message : 'Failed to download PDF',
+        description: err instanceof Error ? err.message : "Failed to download PDF",
         variant: "destructive",
       })
     } finally {
@@ -325,7 +325,7 @@ export default function TimesheetReviewPage() {
             disabled={submitting}
           >
             <Download className="h-4 w-4 mr-2" />
-            {submitting ? 'Generating...' : 'Download PDF'}
+            {submitting ? "Generating..." : "Download PDF"}
           </Button>
         </div>
       </div>
@@ -353,7 +353,7 @@ export default function TimesheetReviewPage() {
             <label className="text-sm font-medium text-muted-foreground">Location</label>
             <p className="font-medium flex items-center gap-1">
               <MapPin className="h-4 w-4" />
-              {data.shift.location || 'Not specified'}
+              {data.shift.location || "Not specified"}
             </p>
           </div>
           <div>
@@ -381,7 +381,7 @@ export default function TimesheetReviewPage() {
           </div>
           <div>
             <label className="text-sm font-medium text-muted-foreground">Contact Person</label>
-            <p className="font-medium">{data.client.contactPerson || 'Not specified'}</p>
+            <p className="font-medium">{data.client.contactPerson || "Not specified"}</p>
           </div>
         </CardContent>
       </Card>
@@ -429,12 +429,12 @@ export default function TimesheetReviewPage() {
                     <td className="p-3">
                       {employee.timeEntries.length > 0 && employee.timeEntries[0].clockIn
                         ? formatTime(employee.timeEntries[0].clockIn)
-                        : 'N/A'}
+                        : "N/A"}
                     </td>
                     <td className="p-3">
                       {employee.timeEntries.length > 0 && employee.timeEntries[0].clockOut
                         ? formatTime(employee.timeEntries[0].clockOut)
-                        : 'N/A'}
+                        : "N/A"}
                     </td>
                     <td className="p-3 text-right font-medium">
                       {employee.totalHours} hrs
@@ -462,13 +462,13 @@ export default function TimesheetReviewPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex justify-end gap-4">
-              {data.permissions.canApprove && data.timesheet.status === 'pending_client_approval' && (
+              {data.permissions.canApprove && data.timesheet.status === "pending_client_approval" && (
                 <Button onClick={handleApprove} size="lg">
                   <FileText className="h-4 w-4 mr-2" />
                   Approve Timesheet
                 </Button>
               )}
-              {data.permissions.canFinalApprove && data.timesheet.status === 'pending_final_approval' && (
+              {data.permissions.canFinalApprove && data.timesheet.status === "pending_final_approval" && (
                 <Button onClick={handleFinalApprove} size="lg">
                   <FileText className="h-4 w-4 mr-2" />
                   Final Approval
@@ -484,11 +484,11 @@ export default function TimesheetReviewPage() {
         isOpen={showSignatureModal}
         onClose={() => setShowSignatureModal(false)}
         onSignatureSubmit={handleSignatureSubmit}
-        title={approvalType === 'client' ? 'Client Approval Signature' : 'Manager Final Approval Signature'}
+        title={approvalType === "client" ? "Client Approval Signature" : "Manager Final Approval Signature"}
         description={
-          approvalType === 'client'
-            ? 'Please sign below to approve this timesheet for your review'
-            : 'Please sign below to provide final approval for this timesheet'
+          approvalType === "client"
+            ? "Please sign below to approve this timesheet for your review"
+            : "Please sign below to provide final approval for this timesheet"
         }
         loading={submitting}
       />

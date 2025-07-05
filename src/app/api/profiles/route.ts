@@ -1,26 +1,26 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
-import { UserProfile, UserProfileFilters, CreateUserProfileRequest } from '@/types/profiles'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import { UserProfile, UserProfileFilters, CreateUserProfileRequest } from "@/types/profiles"
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('user_id')
+    const userId = searchParams.get("user_id")
 
     // If user_id is provided, get specific profile (admin only)
     if (userId) {
-      if (user.role !== 'Manager/Admin') {
+      if (user.role !== "Manager/Admin") {
         return NextResponse.json(
-          { error: 'Insufficient permissions' },
+          { error: "Insufficient permissions" },
           { status: 403 }
         )
       }
@@ -33,9 +33,9 @@ export async function GET(request: NextRequest) {
     const profile = await getUserProfile(user.id)
     return NextResponse.json({ profile })
   } catch (error) {
-    console.error('Error fetching user profile:', error)
+    console.error("Error fetching user profile:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     
     if (!profile) {
       return NextResponse.json(
-        { error: 'Failed to create profile' },
+        { error: "Failed to create profile" },
         { status: 500 }
       )
     }
@@ -66,12 +66,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       profile,
-      message: 'Profile created successfully'
+      message: "Profile created successfully"
     })
   } catch (error) {
-    console.error('Error creating user profile:', error)
+    console.error("Error creating user profile:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -82,18 +82,18 @@ export async function PUT(request: NextRequest) {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     const { searchParams } = new URL(request.url)
-    const targetUserId = searchParams.get('user_id') || user.id
+    const targetUserId = searchParams.get("user_id") || user.id
 
     // Check permissions
-    if (targetUserId !== user.id && user.role !== 'Manager/Admin') {
+    if (targetUserId !== user.id && user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -105,7 +105,7 @@ export async function PUT(request: NextRequest) {
     
     if (!profile) {
       return NextResponse.json(
-        { error: 'Failed to update profile' },
+        { error: "Failed to update profile" },
         { status: 500 }
       )
     }
@@ -113,12 +113,12 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({
       success: true,
       profile,
-      message: 'Profile updated successfully'
+      message: "Profile updated successfully"
     })
   } catch (error) {
-    console.error('Error updating user profile:', error)
+    console.error("Error updating user profile:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }
@@ -190,7 +190,7 @@ async function getUserProfile(userId: string): Promise<UserProfile | null> {
         marketing_emails: row.marketing_emails || false,
         quiet_hours_start: row.quiet_hours_start,
         quiet_hours_end: row.quiet_hours_end,
-        timezone: row.timezone || 'America/New_York'
+        timezone: row.timezone || "America/New_York"
       },
       privacy_settings: row.privacy_settings || {
         show_phone_to_coworkers: false,
@@ -206,7 +206,7 @@ async function getUserProfile(userId: string): Promise<UserProfile | null> {
 
     return profile
   } catch (error) {
-    console.error('Error fetching user profile:', error)
+    console.error("Error fetching user profile:", error)
     return null
   }
 }
@@ -240,7 +240,7 @@ async function createDefaultProfile(userId: string): Promise<UserProfile | null>
     // Return the created profile
     return await getUserProfile(userId)
   } catch (error) {
-    console.error('Error creating default profile:', error)
+    console.error("Error creating default profile:", error)
     return null
   }
 }
@@ -248,7 +248,7 @@ async function createDefaultProfile(userId: string): Promise<UserProfile | null>
 async function createOrUpdateProfile(userId: string, profileData: CreateUserProfileRequest): Promise<UserProfile | null> {
   try {
     // Check if profile exists
-    const existingResult = await query('SELECT id FROM user_profiles WHERE user_id = $1', [userId])
+    const existingResult = await query("SELECT id FROM user_profiles WHERE user_id = $1", [userId])
     const profileExists = existingResult.rows.length > 0
 
     if (profileExists) {
@@ -258,12 +258,12 @@ async function createOrUpdateProfile(userId: string, profileData: CreateUserProf
       let paramIndex = 1
 
       const fields = [
-        'phone', 'address', 'city', 'state', 'zip_code', 'date_of_birth',
-        'hire_date', 'emergency_contact_name', 'emergency_contact_phone',
-        'emergency_contact_relationship', 'profile_picture_url', 'bio',
-        'skills', 'languages', 'availability_notes', 'preferred_shift_types',
-        'transportation_method', 'has_own_tools', 'safety_certifications',
-        'work_authorization_status', 'tax_id_last_four', 'bank_account_last_four'
+        "phone", "address", "city", "state", "zip_code", "date_of_birth",
+        "hire_date", "emergency_contact_name", "emergency_contact_phone",
+        "emergency_contact_relationship", "profile_picture_url", "bio",
+        "skills", "languages", "availability_notes", "preferred_shift_types",
+        "transportation_method", "has_own_tools", "safety_certifications",
+        "work_authorization_status", "tax_id_last_four", "bank_account_last_four"
       ]
 
       for (const field of fields) {
@@ -281,12 +281,12 @@ async function createOrUpdateProfile(userId: string, profileData: CreateUserProf
       }
 
       if (updateFields.length > 0) {
-        updateFields.push('updated_at = CURRENT_TIMESTAMP')
+        updateFields.push("updated_at = CURRENT_TIMESTAMP")
         updateValues.push(userId)
 
         const updateQuery = `
           UPDATE user_profiles 
-          SET ${updateFields.join(', ')}
+          SET ${updateFields.join(", ")}
           WHERE user_id = $${paramIndex}
         `
 
@@ -374,7 +374,7 @@ async function createOrUpdateProfile(userId: string, profileData: CreateUserProf
     // Return updated profile
     return await getUserProfile(userId)
   } catch (error) {
-    console.error('Error creating/updating profile:', error)
+    console.error("Error creating/updating profile:", error)
     return null
   }
 }

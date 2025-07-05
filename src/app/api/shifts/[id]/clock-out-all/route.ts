@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
-import { withCrewChiefPermission } from '@/lib/utils/crew-chief-auth'
+import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/db"
+import { withCrewChiefPermission } from "@/lib/utils/crew-chief-auth"
 
 export async function POST(
   request: NextRequest,
@@ -28,7 +28,7 @@ export async function POST(
       if (activeWorkersResult.rows.length === 0) {
         return NextResponse.json({
           success: true,
-          message: 'No workers are currently clocked in',
+          message: "No workers are currently clocked in",
           clockedOutCount: 0
         })
       }
@@ -66,9 +66,9 @@ export async function POST(
       })
 
     } catch (error) {
-      console.error('Error clocking out all workers:', error)
+      console.error("Error clocking out all workers:", error)
       return NextResponse.json(
-        { error: 'Internal server error' },
+        { error: "Internal server error" },
         { status: 500 }
       )
     }

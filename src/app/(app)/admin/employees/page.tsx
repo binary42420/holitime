@@ -31,19 +31,19 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function AdminEmployeesPage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const { data: employeesData, loading, error } = useApi<{ users: any[] }>('/api/employees')
+  const { data: employeesData, loading, error } = useApi<{ users: any[] }>("/api/employees")
   const [searchTerm, setSearchTerm] = useState("")
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -58,7 +58,7 @@ function AdminEmployeesPage() {
     if (confirm(`Are you sure you want to delete ${employeeName}? This action cannot be undone.`)) {
       try {
         const response = await fetch(`/api/employees/${employeeId}`, {
-          method: 'DELETE',
+          method: "DELETE",
         })
         
         if (response.ok) {
@@ -68,7 +68,7 @@ function AdminEmployeesPage() {
           })
           window.location.reload()
         } else {
-          throw new Error('Failed to delete employee')
+          throw new Error("Failed to delete employee")
         }
       } catch (error) {
         toast({
@@ -82,16 +82,16 @@ function AdminEmployeesPage() {
 
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
-      case 'Manager/Admin':
-        return 'destructive'
-      case 'Crew Chief':
-        return 'default'
-      case 'Employee':
-        return 'secondary'
-      case 'Client':
-        return 'outline'
-      default:
-        return 'secondary'
+    case "Manager/Admin":
+      return "destructive"
+    case "Crew Chief":
+      return "default"
+    case "Employee":
+      return "secondary"
+    case "Client":
+      return "outline"
+    default:
+      return "secondary"
     }
   }
 
@@ -114,7 +114,7 @@ function AdminEmployeesPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Admin
         </Button>
@@ -122,7 +122,7 @@ function AdminEmployeesPage() {
           <h1 className="text-3xl font-bold font-headline">Employee Management</h1>
           <p className="text-muted-foreground">Manage workforce and employee records</p>
         </div>
-        <Button onClick={() => router.push('/admin/employees/new')}>
+        <Button onClick={() => router.push("/admin/employees/new")}>
           <Plus className="mr-2 h-4 w-4" />
           Add Employee
         </Button>
@@ -173,7 +173,7 @@ function AdminEmployeesPage() {
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={employee.avatar} />
                         <AvatarFallback>
-                          {employee.name.split(' ').map((n: string) => n[0]).join('')}
+                          {employee.name.split(" ").map((n: string) => n[0]).join("")}
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -237,4 +237,4 @@ function AdminEmployeesPage() {
   )
 }
 
-export default withAuth(AdminEmployeesPage, hasAdminAccess);
+export default withAuth(AdminEmployeesPage, hasAdminAccess)

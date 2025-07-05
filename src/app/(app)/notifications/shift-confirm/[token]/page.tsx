@@ -1,11 +1,11 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
 import { 
   CheckCircle, 
   XCircle, 
@@ -15,8 +15,8 @@ import {
   User,
   Building,
   AlertTriangle
-} from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
+} from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 interface ShiftDetails {
   notification_id: number
@@ -46,7 +46,7 @@ export default function ShiftConfirmPage() {
   const [shiftDetails, setShiftDetails] = useState<ShiftDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [responding, setResponding] = useState(false)
-  const [responseMessage, setResponseMessage] = useState('')
+  const [responseMessage, setResponseMessage] = useState("")
   const [hasResponded, setHasResponded] = useState(false)
 
   const token = params.token as string
@@ -62,35 +62,35 @@ export default function ShiftConfirmPage() {
       
       if (!response.ok) {
         if (response.status === 404) {
-          router.push('/notifications/expired')
+          router.push("/notifications/expired")
           return
         }
-        throw new Error('Failed to fetch shift details')
+        throw new Error("Failed to fetch shift details")
       }
       
       const data = await response.json()
       setShiftDetails(data.shift)
       setHasResponded(data.has_responded)
     } catch (error) {
-      console.error('Error fetching shift details:', error)
+      console.error("Error fetching shift details:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to load shift details',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load shift details",
+        variant: "destructive"
       })
     } finally {
       setLoading(false)
     }
   }
 
-  const respondToShift = async (response: 'accept' | 'decline') => {
+  const respondToShift = async (response: "accept" | "decline") => {
     try {
       setResponding(true)
       
-      const apiResponse = await fetch('/api/notifications/shift-response', {
-        method: 'POST',
+      const apiResponse = await fetch("/api/notifications/shift-response", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           token,
@@ -101,27 +101,27 @@ export default function ShiftConfirmPage() {
 
       if (!apiResponse.ok) {
         const errorData = await apiResponse.json()
-        throw new Error(errorData.error || 'Failed to submit response')
+        throw new Error(errorData.error || "Failed to submit response")
       }
 
       toast({
-        title: 'Success',
+        title: "Success",
         description: `Shift ${response}ed successfully`,
-        variant: response === 'accept' ? 'default' : 'destructive'
+        variant: response === "accept" ? "default" : "destructive"
       })
 
       setHasResponded(true)
       
       // Redirect after a short delay
       setTimeout(() => {
-        router.push('/notifications')
+        router.push("/notifications")
       }, 3000)
     } catch (error) {
-      console.error('Error responding to shift:', error)
+      console.error("Error responding to shift:", error)
       toast({
-        title: 'Error',
-        description: (error as Error).message || 'Failed to submit response',
-        variant: 'destructive'
+        title: "Error",
+        description: (error as Error).message || "Failed to submit response",
+        variant: "destructive"
       })
     } finally {
       setResponding(false)
@@ -167,7 +167,7 @@ export default function ShiftConfirmPage() {
             </p>
             <Button 
               className="mt-4" 
-              onClick={() => router.push('/notifications')}
+              onClick={() => router.push("/notifications")}
             >
               View All Notifications
             </Button>
@@ -224,11 +224,11 @@ export default function ShiftConfirmPage() {
                 <div>
                   <p className="text-sm font-medium">Date</p>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(shift.date).toLocaleDateString('en-US', {
-                      weekday: 'long',
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric'
+                    {new Date(shift.date).toLocaleDateString("en-US", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric"
                     })}
                   </p>
                 </div>
@@ -277,24 +277,24 @@ export default function ShiftConfirmPage() {
 
             <div className="flex gap-4">
               <Button
-                onClick={() => respondToShift('accept')}
+                onClick={() => respondToShift("accept")}
                 disabled={responding}
                 className="flex-1"
                 size="lg"
               >
                 <CheckCircle className="h-4 w-4 mr-2" />
-                {responding ? 'Submitting...' : 'Accept Shift'}
+                {responding ? "Submitting..." : "Accept Shift"}
               </Button>
 
               <Button
-                onClick={() => respondToShift('decline')}
+                onClick={() => respondToShift("decline")}
                 disabled={responding}
                 variant="destructive"
                 className="flex-1"
                 size="lg"
               >
                 <XCircle className="h-4 w-4 mr-2" />
-                {responding ? 'Submitting...' : 'Decline Shift'}
+                {responding ? "Submitting..." : "Decline Shift"}
               </Button>
             </div>
 

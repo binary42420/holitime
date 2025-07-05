@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/db"
 
 export async function POST(
   request: NextRequest,
@@ -12,16 +12,16 @@ export async function POST(
 
     console.log(`Clock ${action} request - FIXED:`, { shiftId, assignmentId, action })
 
-    if (!action || !['clock_in', 'clock_out'].includes(action)) {
+    if (!action || !["clock_in", "clock_out"].includes(action)) {
       return NextResponse.json(
-        { error: 'Invalid action. Must be clock_in or clock_out' },
+        { error: "Invalid action. Must be clock_in or clock_out" },
         { status: 400 }
       )
     }
 
 
 
-    if (action === 'clock_in') {
+    if (action === "clock_in") {
       // Check if there's already an active time entry
       const activeEntryCheck = await query(`
         SELECT id FROM time_entries 
@@ -32,7 +32,7 @@ export async function POST(
 
       if (activeEntryCheck.rows.length > 0) {
         return NextResponse.json(
-          { error: 'Worker is already clocked in' },
+          { error: "Worker is already clocked in" },
           { status: 400 }
         )
       }
@@ -70,7 +70,7 @@ export async function POST(
         }
       })
 
-    } else if (action === 'clock_out') {
+    } else if (action === "clock_out") {
       // Find the active time entry
       const activeEntryResult = await query(`
         SELECT id, entry_number, clock_in 
@@ -82,7 +82,7 @@ export async function POST(
 
       if (activeEntryResult.rows.length === 0) {
         return NextResponse.json(
-          { error: 'No active time entry found to clock out' },
+          { error: "No active time entry found to clock out" },
           { status: 400 }
         )
       }
@@ -117,9 +117,9 @@ export async function POST(
     }
 
   } catch (error) {
-    console.error('Error processing clock action:', error)
+    console.error("Error processing clock action:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

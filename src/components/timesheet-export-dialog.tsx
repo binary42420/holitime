@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -9,22 +9,22 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { useToast } from '@/hooks/use-toast'
-import { FileSpreadsheet, ExternalLink, Settings, Download } from 'lucide-react'
+} from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { useToast } from "@/hooks/use-toast"
+import { FileSpreadsheet, ExternalLink, Settings, Download } from "lucide-react"
 
 interface ExportTemplate {
   id: string
@@ -49,15 +49,15 @@ export default function TimesheetExportDialog({
 }: TimesheetExportDialogProps) {
   const [open, setOpen] = useState(false)
   const [templates, setTemplates] = useState<ExportTemplate[]>([])
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('')
-  const [spreadsheetId, setSpreadsheetId] = useState('')
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("")
+  const [spreadsheetId, setSpreadsheetId] = useState("")
   const [createNew, setCreateNew] = useState(true)
   const [loading, setLoading] = useState(false)
   const [loadingTemplates, setLoadingTemplates] = useState(false)
   const { toast } = useToast()
 
   // Check if timesheet can be exported
-  const canExport = ['completed', 'pending_client_approval', 'pending_final_approval'].includes(timesheetStatus)
+  const canExport = ["completed", "pending_client_approval", "pending_final_approval"].includes(timesheetStatus)
 
   useEffect(() => {
     if (open) {
@@ -68,7 +68,7 @@ export default function TimesheetExportDialog({
   const fetchTemplates = async () => {
     setLoadingTemplates(true)
     try {
-      const response = await fetch('/api/admin/export-templates')
+      const response = await fetch("/api/admin/export-templates")
       if (response.ok) {
         const data = await response.json()
         setTemplates(data.templates)
@@ -79,7 +79,7 @@ export default function TimesheetExportDialog({
           setSelectedTemplate(defaultTemplate.id)
         }
       } else {
-        throw new Error('Failed to fetch templates')
+        throw new Error("Failed to fetch templates")
       }
     } catch (error) {
       toast({
@@ -114,9 +114,9 @@ export default function TimesheetExportDialog({
     setLoading(true)
     try {
       const response = await fetch(`/api/timesheets/${timesheetId}/export-to-sheets`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           templateId: selectedTemplate,
@@ -134,7 +134,7 @@ export default function TimesheetExportDialog({
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => window.open(data.spreadsheetUrl, '_blank')}
+              onClick={() => window.open(data.spreadsheetUrl, "_blank")}
             >
               <ExternalLink className="h-4 w-4 mr-2" />
               Open Sheet
@@ -144,7 +144,7 @@ export default function TimesheetExportDialog({
         setOpen(false)
       } else {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Export failed')
+        throw new Error(errorData.error || "Export failed")
       }
     } catch (error) {
       toast({
@@ -299,7 +299,7 @@ export default function TimesheetExportDialog({
         <DialogFooter className="flex items-center justify-between">
           <Button 
             variant="outline" 
-            onClick={() => window.open('/admin/export-templates', '_blank')}
+            onClick={() => window.open("/admin/export-templates", "_blank")}
             className="flex items-center gap-2"
           >
             <Settings className="h-4 w-4" />

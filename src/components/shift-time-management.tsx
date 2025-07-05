@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -34,6 +34,8 @@ import {
   CheckCircle,
   AlertCircle,
   Users,
+  Plus,
+  Minus,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -56,6 +58,7 @@ import {
 } from "@/components/ui/select"
 import { AssignedWorker } from "@/types"
 import { Employee } from "@/types/employee"
+import { workerTypeColors, workerTypeLabels } from "@/lib/worker-helpers"
 
 interface ShiftTimeManagementProps {
   shiftId: string
@@ -75,6 +78,47 @@ export default function ShiftTimeManagement({
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([])
+  const [workerTypeCounts, setWorkerTypeCounts] = useState<{
+    [key: string]: number
+  }>({})
+
+  useEffect(() => {
+    const savedCounts = localStorage.getItem(`shift-${shiftId}-worker-counts`)
+    if (savedCounts) {
+      setWorkerTypeCounts(JSON.parse(savedCounts))
+    }
+  }, [shiftId])
+
+  useEffect(() => {
+    localStorage.setItem(
+      `shift-${shiftId}-worker-counts`,
+      JSON.stringify(workerTypeCounts)
+    )
+  }, [workerTypeCounts, shiftId])
+
+  useEffect(() => {
+    const counts: { [key: string]: number } = {}
+    assignedPersonnel.forEach(p => {
+      counts[p.roleCode] = (counts[p.roleCode] || 0) + 1
+    })
+
+    const newPersonnel = [...assignedPersonnel]
+    Object.entries(workerTypeCounts).forEach(([roleCode, count]) => {
+      const currentCount = counts[roleCode] || 0
+      if (count > currentCount) {
+        for (let i = 0; i < count - currentCount; i++) {
+          newPersonnel.push({
+            id: `new-${roleCode}-${Date.now()}-${i}`,
+            roleOnShift: workerTypeLabels[roleCode] || roleCode,
+            roleCode: roleCode,
+            status: "not_started",
+            timeEntries: [],
+          })
+        }
+      }
+    })
+    onUpdatePersonnel(newPersonnel)
+  }, [workerTypeCounts])
 
   useEffect(() => {
     async function fetchEmployees() {
@@ -101,11 +145,11 @@ export default function ShiftTimeManagement({
     const updatedPersonnel = assignedPersonnel.map(p =>
       p.id === assignmentId
         ? {
-            ...p,
-            employeeId: employee.id,
-            employeeName: `${employee.firstName} ${employee.lastName}`,
-            employeeAvatar: employee.avatar,
-          }
+          ...p,
+          employeeId: employee.id,
+          employeeName: `${employee.firstName} ${employee.lastName}`,
+          employeeAvatar: employee.avatar,
+        }
         : p
     )
     onUpdatePersonnel(updatedPersonnel)
@@ -113,49 +157,49 @@ export default function ShiftTimeManagement({
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "clocked_in":
-        return "bg-green-100 border-green-300"
-      case "clocked_out":
-        return "bg-yellow-100 border-yellow-300"
-      case "shift_ended":
-        return "bg-gray-100 border-gray-300"
-      default:
-        return "bg-white border-gray-200"
+    case "clocked_in":
+      return "bg-green-100 border-green-300"
+    case "clocked_out":
+      return "bg-yellow-100 border-yellow-300"
+    case "shift_ended":
+      return "bg-gray-100 border-gray-300"
+    default:
+      return "bg-white border-gray-200"
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "clocked_in":
-        return (
-          <Badge variant="default" className="bg-green-600">
-            <Play className="mr-1 h-3 w-3" />
+    case "clocked_in":
+      return (
+        <Badge variant="default" className="bg-green-600">
+          <Play className="mr-1 h-3 w-3" />
             Clocked In
-          </Badge>
-        )
-      case "clocked_out":
-        return (
-          <Badge variant="secondary">
-            <Square className="mr-1 h-3 w-3" />
+        </Badge>
+      )
+    case "clocked_out":
+      return (
+        <Badge variant="secondary">
+          <Square className="mr-1 h-3 w-3" />
             Clocked Out
-          </Badge>
-        )
-      case "shift_ended":
-        return (
-          <Badge variant="outline">
-            <CheckCircle className="mr-1 h-3 w-3" />
+        </Badge>
+      )
+    case "shift_ended":
+      return (
+        <Badge variant="outline">
+          <CheckCircle className="mr-1 h-3 w-3" />
             Shift Ended
-          </Badge>
-        )
-      case "no_show":
-        return (
-          <Badge variant="destructive" className="bg-orange-600">
-            <AlertCircle className="mr-1 h-3 w-3" />
+        </Badge>
+      )
+    case "no_show":
+      return (
+        <Badge variant="destructive" className="bg-orange-600">
+          <AlertCircle className="mr-1 h-3 w-3" />
             No Show
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline">Not Started</Badge>
+        </Badge>
+      )
+    default:
+      return <Badge variant="outline">Not Started</Badge>
     }
   }
 
@@ -561,6 +605,57 @@ export default function ShiftTimeManagement({
     )
   }
 
+  const renderWorkerConfigurator = () => (
+    <div className="p-4 border rounded-lg mb-6">
+      <h3 className="text-lg font-semibold mb-2">Configure Worker Types</h3>
+      <p className="text-sm text-gray-500 mb-4">
+        Set the number of each type of worker required for this shift.
+      </p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {Object.entries(workerTypeLabels).map(([code, label]) => (
+          <div
+            key={code}
+            className="flex flex-col items-center justify-center p-3 border rounded-md bg-gray-50"
+          >
+            <span className="font-medium text-sm text-center mb-2">
+              {label}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setWorkerTypeCounts(prev => ({
+                    ...prev,
+                    [code]: Math.max(0, (prev[code] || 0) - 1),
+                  }))
+                }
+                disabled={(workerTypeCounts[code] || 0) === 0}
+              >
+                <Minus className="h-4 w-4" />
+              </Button>
+              <span className="text-lg font-bold w-6 text-center">
+                {workerTypeCounts[code] || 0}
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() =>
+                  setWorkerTypeCounts(prev => ({
+                    ...prev,
+                    [code]: (prev[code] || 0) + 1,
+                  }))
+                }
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
   if (!canManage) {
     return (
       <Card>
@@ -693,10 +788,19 @@ export default function ShiftTimeManagement({
         </div>
       </CardHeader>
       <CardContent>
+        {renderWorkerConfigurator()}
         {/* Mobile View: Card-based layout */}
         <div className="space-y-4 md:hidden">
           {assignedPersonnel.map(worker => (
-            <Card key={worker.id} className="overflow-hidden">
+            <Card
+              key={worker.id}
+              className="overflow-hidden"
+              style={{
+                borderLeft: `5px solid ${
+                  workerTypeColors[worker.roleCode] || "#ccc"
+                }`,
+              }}
+            >
               <CardHeader className="flex flex-row items-center justify-between p-4 bg-muted/30">
                 {worker.employeeId ? (
                   <div className="flex items-center gap-3">
@@ -730,25 +834,25 @@ export default function ShiftTimeManagement({
                 {worker.status !== "shift_ended" &&
                   worker.status !== "no_show" &&
                   worker.employeeId && (
-                    <div className="grid grid-cols-2 gap-3">
-                      <Button
-                        onClick={() => handleClockIn(worker.id)}
-                        disabled={loading || worker.status === "clocked_in"}
-                        className="bg-green-600 hover:bg-green-700"
-                      >
-                        <Play className="h-4 w-4 mr-2" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      onClick={() => handleClockIn(worker.id)}
+                      disabled={loading || worker.status === "clocked_in"}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Play className="h-4 w-4 mr-2" />
                         Clock In
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleClockOut(worker.id)}
-                        disabled={loading || worker.status !== "clocked_in"}
-                      >
-                        <Square className="h-4 w-4 mr-2" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => handleClockOut(worker.id)}
+                      disabled={loading || worker.status !== "clocked_in"}
+                    >
+                      <Square className="h-4 w-4 mr-2" />
                         Clock Out
-                      </Button>
-                    </div>
-                  )}
+                    </Button>
+                  </div>
+                )}
                 {worker.employeeId && <div>{renderTimeInputs(worker)}</div>}
                 {worker.employeeId && <div>{renderActionButtons(worker)}</div>}
               </CardContent>
@@ -773,6 +877,11 @@ export default function ShiftTimeManagement({
                 <TableRow
                   key={worker.id}
                   className={getStatusColor(worker.status)}
+                  style={{
+                    borderLeft: `5px solid ${
+                      workerTypeColors[worker.roleCode] || "#ccc"
+                    }`,
+                  }}
                 >
                   <TableCell>{renderEmployeeCell(worker)}</TableCell>
                   <TableCell>
@@ -804,32 +913,32 @@ export default function ShiftTimeManagement({
                       {worker.status !== "shift_ended" &&
                         worker.status !== "no_show" &&
                         worker.employeeId && (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => handleClockIn(worker.id)}
-                              disabled={
-                                loading || worker.status === "clocked_in"
-                              }
-                              className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1"
-                            >
-                              <Play className="h-3 w-3 mr-1" />
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => handleClockIn(worker.id)}
+                            disabled={
+                              loading || worker.status === "clocked_in"
+                            }
+                            className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1"
+                          >
+                            <Play className="h-3 w-3 mr-1" />
                               Clock In
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleClockOut(worker.id)}
-                              disabled={
-                                loading || worker.status !== "clocked_in"
-                              }
-                              className="text-xs px-2 py-1"
-                            >
-                              <Square className="h-3 w-3 mr-1" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleClockOut(worker.id)}
+                            disabled={
+                              loading || worker.status !== "clocked_in"
+                            }
+                            className="text-xs px-2 py-1"
+                          >
+                            <Square className="h-3 w-3 mr-1" />
                               Clock Out
-                            </Button>
-                          </>
-                        )}
+                          </Button>
+                        </>
+                      )}
                       {worker.employeeId && renderActionButtons(worker)}
                     </div>
                   </TableCell>

@@ -1,17 +1,17 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { format } from 'date-fns'
+import { useState, useEffect } from "react"
+import { Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { format } from "date-fns"
 
 interface Notification {
   id: string
-  type: 'success' | 'error' | 'warning' | 'info'
+  type: "success" | "error" | "warning" | "info"
   title: string
   message: string
   timestamp: Date
@@ -21,64 +21,64 @@ interface Notification {
 
 const mockNotifications: Notification[] = [
   {
-    id: '1',
-    type: 'warning',
-    title: 'Shift Understaffed',
-    message: 'Downtown Core Project shift on Dec 28 needs 2 more workers',
+    id: "1",
+    type: "warning",
+    title: "Shift Understaffed",
+    message: "Downtown Core Project shift on Dec 28 needs 2 more workers",
     timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
     read: false,
-    actionUrl: '/shifts/3509dc7c-57a6-45b2-8a84-cd99e05e8059'
+    actionUrl: "/shifts/3509dc7c-57a6-45b2-8a84-cd99e05e8059"
   },
   {
-    id: '2',
-    type: 'info',
-    title: 'Timesheet Pending Approval',
-    message: 'City Park Festival timesheet is awaiting client approval',
+    id: "2",
+    type: "info",
+    title: "Timesheet Pending Approval",
+    message: "City Park Festival timesheet is awaiting client approval",
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
     read: false,
-    actionUrl: '/timesheets/ts2/approve'
+    actionUrl: "/timesheets/ts2/approve"
   },
   {
-    id: '3',
-    type: 'success',
-    title: 'New Employee Added',
-    message: 'Sarah Wilson has been successfully added to the team',
+    id: "3",
+    type: "success",
+    title: "New Employee Added",
+    message: "Sarah Wilson has been successfully added to the team",
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
     read: true
   },
   {
-    id: '4',
-    type: 'error',
-    title: 'Clock-in Issue',
-    message: 'Failed to clock in Alex Johnson - please check manually',
+    id: "4",
+    type: "error",
+    title: "Clock-in Issue",
+    message: "Failed to clock in Alex Johnson - please check manually",
     timestamp: new Date(Date.now() - 1000 * 60 * 60 * 6), // 6 hours ago
     read: true
   }
 ]
 
-const getNotificationIcon = (type: Notification['type']) => {
+const getNotificationIcon = (type: Notification["type"]) => {
   switch (type) {
-    case 'success':
-      return <CheckCircle className="h-4 w-4 text-green-600" />
-    case 'error':
-      return <AlertCircle className="h-4 w-4 text-red-600" />
-    case 'warning':
-      return <AlertTriangle className="h-4 w-4 text-yellow-600" />
-    case 'info':
-      return <Info className="h-4 w-4 text-blue-600" />
+  case "success":
+    return <CheckCircle className="h-4 w-4 text-green-600" />
+  case "error":
+    return <AlertCircle className="h-4 w-4 text-red-600" />
+  case "warning":
+    return <AlertTriangle className="h-4 w-4 text-yellow-600" />
+  case "info":
+    return <Info className="h-4 w-4 text-blue-600" />
   }
 }
 
-const getNotificationBadgeColor = (type: Notification['type']) => {
+const getNotificationBadgeColor = (type: Notification["type"]) => {
   switch (type) {
-    case 'success':
-      return 'bg-green-100 text-green-800'
-    case 'error':
-      return 'bg-red-100 text-red-800'
-    case 'warning':
-      return 'bg-yellow-100 text-yellow-800'
-    case 'info':
-      return 'bg-blue-100 text-blue-800'
+  case "success":
+    return "bg-green-100 text-green-800"
+  case "error":
+    return "bg-red-100 text-red-800"
+  case "warning":
+    return "bg-yellow-100 text-yellow-800"
+  case "info":
+    return "bg-blue-100 text-blue-800"
   }
 }
 
@@ -114,7 +114,7 @@ export default function NotificationCenter() {
               variant="destructive" 
               className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
             >
-              {unreadCount > 9 ? '9+' : unreadCount}
+              {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
           )}
         </Button>
@@ -137,7 +137,7 @@ export default function NotificationCenter() {
             </div>
             {unreadCount > 0 && (
               <CardDescription>
-                You have {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
+                You have {unreadCount} unread notification{unreadCount !== 1 ? "s" : ""}
               </CardDescription>
             )}
           </CardHeader>
@@ -153,7 +153,7 @@ export default function NotificationCenter() {
                     <div
                       key={notification.id}
                       className={`p-3 border-b last:border-b-0 hover:bg-muted/50 cursor-pointer ${
-                        !notification.read ? 'bg-muted/20' : ''
+                        !notification.read ? "bg-muted/20" : ""
                       }`}
                       onClick={() => {
                         markAsRead(notification.id)
@@ -186,7 +186,7 @@ export default function NotificationCenter() {
                               {notification.type}
                             </Badge>
                             <span className="text-xs text-muted-foreground">
-                              {format(notification.timestamp, 'MMM d, HH:mm')}
+                              {format(notification.timestamp, "MMM d, HH:mm")}
                             </span>
                           </div>
                         </div>

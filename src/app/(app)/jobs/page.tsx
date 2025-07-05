@@ -36,7 +36,7 @@ export default function JobsPage() {
   const [clientFilter, setClientFilter] = useState("all")
 
   const jobs = jobsData?.jobs || []
-  const canManage = user?.role === 'Manager/Admin' || user?.role === 'Crew Chief'
+  const canManage = user?.role === "Manager/Admin" || user?.role === "Crew Chief"
 
   // Filter jobs based on search and filters
   const filteredJobs = jobs.filter(job => {
@@ -70,14 +70,14 @@ export default function JobsPage() {
   const getLastActivityText = (job: any) => {
     const activityDate = new Date(job.lastActivity)
     
-    if (job.lastActivityType === 'shift') {
+    if (job.lastActivityType === "shift") {
       if (isToday(activityDate)) return "Today"
       if (isYesterday(activityDate)) return "Yesterday"
       if (isTomorrow(activityDate)) return "Tomorrow"
-      return format(activityDate, 'MMM d')
+      return format(activityDate, "MMM d")
     }
     
-    return `Created ${format(activityDate, 'MMM d')}`
+    return `Created ${format(activityDate, "MMM d")}`
   }
 
   if (loading) {
@@ -108,7 +108,7 @@ export default function JobsPage() {
             </p>
           </div>
           {canManage && (
-            <Button size="mobile" className="w-full md:w-auto" onClick={() => router.push('/admin/jobs/new')}>
+            <Button size="mobile" className="w-full md:w-auto" onClick={() => router.push("/admin/jobs/new")}>
               <Plus className="mr-2 h-4 w-4" />
               Create Job
             </Button>
@@ -185,7 +185,7 @@ export default function JobsPage() {
                 }
               </p>
               {canManage && (
-                <Button size="mobile" onClick={() => router.push('/admin/jobs/new')}>
+                <Button size="mobile" onClick={() => router.push("/admin/jobs/new")}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Job
                 </Button>
@@ -214,7 +214,7 @@ export default function JobsPage() {
                       </div>
                       <div className="text-right space-y-1">
                         <Badge
-                          variant={job.status === 'Active' ? 'default' : 'secondary'}
+                          variant={job.status === "Active" ? "default" : "secondary"}
                           className="text-xs"
                         >
                           {job.status}
@@ -250,98 +250,98 @@ export default function JobsPage() {
               <Card>
                 <CardContent className="pt-6">
                   <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Job Name</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Activity</TableHead>
-                  <TableHead>Shifts</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Last Activity</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredJobs.map((job) => (
-                  <TableRow
-                    key={job.id}
-                    onClick={() => router.push(`/jobs/${job.id}`)}
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Briefcase className="h-4 w-4 text-muted-foreground" />
-                        <div>
-                          <div className="font-medium">{job.name}</div>
-                          {job.description && (
-                            <div className="text-sm text-muted-foreground truncate max-w-[200px]">
-                              {job.description}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        {job.clientName || 'N/A'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {getActivityBadge(job)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{job.shiftCount}</span>
-                        {job.upcomingShifts > 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            {job.upcomingShifts} upcoming
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={job.status === 'Active' ? 'default' : 'secondary'}>
-                        {job.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">{getLastActivityText(job)}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            router.push(`/jobs/${job.id}`)
-                          }}
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Job Name</TableHead>
+                        <TableHead>Client</TableHead>
+                        <TableHead>Activity</TableHead>
+                        <TableHead>Shifts</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Last Activity</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredJobs.map((job) => (
+                        <TableRow
+                          key={job.id}
+                          onClick={() => router.push(`/jobs/${job.id}`)}
+                          className="cursor-pointer hover:bg-muted/50 transition-colors"
                         >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        {canManage && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              router.push(`/admin/jobs/${job.id}/edit`)
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Briefcase className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <div className="font-medium">{job.name}</div>
+                                {job.description && (
+                                  <div className="text-sm text-muted-foreground truncate max-w-[200px]">
+                                    {job.description}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                              {job.clientName || "N/A"}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {getActivityBadge(job)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">{job.shiftCount}</span>
+                              {job.upcomingShifts > 0 && (
+                                <Badge variant="outline" className="text-xs">
+                                  {job.upcomingShifts} upcoming
+                                </Badge>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={job.status === "Active" ? "default" : "secondary"}>
+                              {job.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Activity className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm">{getLastActivityText(job)}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  router.push(`/jobs/${job.id}`)
+                                }}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              {canManage && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    router.push(`/admin/jobs/${job.id}/edit`)
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
             </div>

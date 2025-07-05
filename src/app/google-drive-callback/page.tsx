@@ -1,24 +1,24 @@
-'use client'
+"use client"
 
-import { useEffect, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useEffect, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 
 function CallbackHandler() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    const code = searchParams.get('code')
-    const error = searchParams.get('error')
-    const state = searchParams.get('state')
+    const code = searchParams.get("code")
+    const error = searchParams.get("error")
+    const state = searchParams.get("state")
 
-    console.log('OAuth Callback: Received params', { code: !!code, error, state })
+    console.log("OAuth Callback: Received params", { code: !!code, error, state })
 
     if (error) {
-      console.error('OAuth Callback: Error received', error)
+      console.error("OAuth Callback: Error received", error)
       // Send error to parent window
       if (window.opener) {
         window.opener.postMessage({
-          type: 'GOOGLE_AUTH_ERROR',
+          type: "GOOGLE_AUTH_ERROR",
           error: error
         }, window.location.origin)
       }
@@ -27,11 +27,11 @@ function CallbackHandler() {
     }
 
     if (code) {
-      console.log('OAuth Callback: Success, sending code to parent')
+      console.log("OAuth Callback: Success, sending code to parent")
       // Send success with code to parent window
       if (window.opener) {
         window.opener.postMessage({
-          type: 'GOOGLE_AUTH_SUCCESS',
+          type: "GOOGLE_AUTH_SUCCESS",
           code: code,
           state: state
         }, window.location.origin)
@@ -41,11 +41,11 @@ function CallbackHandler() {
     }
 
     // If no code or error, something went wrong
-    console.error('OAuth Callback: No code or error received')
+    console.error("OAuth Callback: No code or error received")
     if (window.opener) {
       window.opener.postMessage({
-        type: 'GOOGLE_AUTH_ERROR',
-        error: 'No authorization code received'
+        type: "GOOGLE_AUTH_ERROR",
+        error: "No authorization code received"
       }, window.location.origin)
     }
     window.close()

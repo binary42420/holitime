@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { query } from "@/lib/db"
 
 export async function POST(
   request: NextRequest,
@@ -12,7 +12,7 @@ export async function POST(
 
     if (!employeeId) {
       return NextResponse.json(
-        { error: 'Employee ID is required' },
+        { error: "Employee ID is required" },
         { status: 400 }
       )
     }
@@ -26,7 +26,7 @@ export async function POST(
 
     if (currentShiftResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Shift not found' },
+        { error: "Shift not found" },
         { status: 404 }
       )
     }
@@ -70,9 +70,9 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error('Error checking time conflicts:', error)
+    console.error("Error checking time conflicts:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

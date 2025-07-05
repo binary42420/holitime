@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { notificationService } from '@/lib/notification-service'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { notificationService } from "@/lib/notification-service"
+import { query } from "@/lib/db"
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only admins and crew chiefs can assign shifts
-    if (user.role !== 'Manager/Admin' && user.role !== 'Crew Chief') {
+    if (user.role !== "Manager/Admin" && user.role !== "Crew Chief") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -27,24 +27,24 @@ export async function POST(request: NextRequest) {
       shift_details,
       response_deadline,
       auto_accept_after,
-      assignment_type = 'direct'
+      assignment_type = "direct"
     } = await request.json()
 
     // Validate required fields
     if (!user_id || !shift_id || !shift_details) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       )
     }
 
     // Get user details
-    const userQuery = 'SELECT name, email FROM users WHERE id = $1'
+    const userQuery = "SELECT name, email FROM users WHERE id = $1"
     const userResult = await query(userQuery, [user_id])
     
     if (userResult.rows.length === 0) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: "User not found" },
         { status: 404 }
       )
     }
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     if (!notification) {
       return NextResponse.json(
-        { error: 'Failed to create shift assignment notification' },
+        { error: "Failed to create shift assignment notification" },
         { status: 500 }
       )
     }
@@ -96,9 +96,9 @@ export async function POST(request: NextRequest) {
       message: `Shift assigned to ${targetUser.name}. Notification sent via email.`
     })
   } catch (error) {
-    console.error('Error creating shift assignment notification:', error)
+    console.error("Error creating shift assignment notification:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

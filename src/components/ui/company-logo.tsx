@@ -1,39 +1,39 @@
-'use client'
+"use client"
 
-import React from 'react'
-import Image from 'next/image'
-import { Building2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import React from "react"
+import Image from "next/image"
+import { Building2 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface CompanyLogoProps {
   companyName: string
   logoUrl?: string | null
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  size?: "xs" | "sm" | "md" | "lg" | "xl"
   className?: string
   showFallback?: boolean
   rounded?: boolean
 }
 
 const sizeClasses = {
-  xs: 'w-4 h-4',
-  sm: 'w-6 h-6',
-  md: 'w-8 h-8',
-  lg: 'w-12 h-12',
-  xl: 'w-16 h-16'
+  xs: "w-4 h-4",
+  sm: "w-6 h-6",
+  md: "w-8 h-8",
+  lg: "w-12 h-12",
+  xl: "w-16 h-16"
 }
 
 const iconSizeClasses = {
-  xs: 'w-3 h-3',
-  sm: 'w-4 h-4',
-  md: 'w-5 h-5',
-  lg: 'w-8 h-8',
-  xl: 'w-10 h-10'
+  xs: "w-3 h-3",
+  sm: "w-4 h-4",
+  md: "w-5 h-5",
+  lg: "w-8 h-8",
+  xl: "w-10 h-10"
 }
 
 export function CompanyLogo({
   companyName,
   logoUrl,
-  size = 'md',
+  size = "md",
   className,
   showFallback = true,
   rounded = true
@@ -58,16 +58,16 @@ export function CompanyLogo({
     return (
       <div
         className={cn(
-          'flex items-center justify-center bg-muted border',
+          "flex items-center justify-center bg-muted border",
           sizeClasses[size],
-          rounded && 'rounded',
+          rounded && "rounded",
           className
         )}
         title={`${companyName} logo`}
       >
         <Building2 
           className={cn(
-            'text-muted-foreground',
+            "text-muted-foreground",
             iconSizeClasses[size]
           )}
         />
@@ -78,9 +78,9 @@ export function CompanyLogo({
   return (
     <div
       className={cn(
-        'relative overflow-hidden bg-muted border',
+        "relative overflow-hidden bg-muted border",
         sizeClasses[size],
-        rounded && 'rounded',
+        rounded && "rounded",
         className
       )}
       title={`${companyName} logo`}
@@ -89,7 +89,7 @@ export function CompanyLogo({
         <div className="absolute inset-0 flex items-center justify-center">
           <Building2 
             className={cn(
-              'text-muted-foreground animate-pulse',
+              "text-muted-foreground animate-pulse",
               iconSizeClasses[size]
             )}
           />
@@ -102,7 +102,7 @@ export function CompanyLogo({
         className="object-contain"
         onError={handleImageError}
         onLoad={handleImageLoad}
-        sizes={`${sizeClasses[size].split(' ')[0].replace('w-', '')}px`}
+        sizes={`${sizeClasses[size].split(" ")[0].replace("w-", "")}px`}
       />
     </div>
   )
@@ -110,32 +110,32 @@ export function CompanyLogo({
 
 interface CompanyLogoWithNameProps extends CompanyLogoProps {
   nameClassName?: string
-  layout?: 'horizontal' | 'vertical'
-  gap?: 'xs' | 'sm' | 'md' | 'lg'
+  layout?: "horizontal" | "vertical"
+  gap?: "xs" | "sm" | "md" | "lg"
 }
 
 const gapClasses = {
-  xs: 'gap-1',
-  sm: 'gap-2',
-  md: 'gap-3',
-  lg: 'gap-4'
+  xs: "gap-1",
+  sm: "gap-2",
+  md: "gap-3",
+  lg: "gap-4"
 }
 
 export function CompanyLogoWithName({
   companyName,
   logoUrl,
-  size = 'md',
+  size = "md",
   className,
   nameClassName,
-  layout = 'horizontal',
-  gap = 'sm',
+  layout = "horizontal",
+  gap = "sm",
   ...logoProps
 }: CompanyLogoWithNameProps) {
   return (
     <div
       className={cn(
-        'flex items-center',
-        layout === 'vertical' ? 'flex-col' : 'flex-row',
+        "flex items-center",
+        layout === "vertical" ? "flex-col" : "flex-row",
         gapClasses[gap],
         className
       )}
@@ -146,7 +146,7 @@ export function CompanyLogoWithName({
         size={size}
         {...logoProps}
       />
-      <span className={cn('font-medium', nameClassName)}>
+      <span className={cn("font-medium", nameClassName)}>
         {companyName}
       </span>
     </div>

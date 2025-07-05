@@ -1,12 +1,12 @@
-'use client'
+"use client"
 
-import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { 
   FileText, 
   CheckCircle, 
@@ -20,10 +20,10 @@ import {
   Calendar,
   User,
   BarChart3
-} from 'lucide-react'
-import Link from 'next/link'
-import { DocumentAssignment, DocumentStatus } from '@/types/documents'
-import { useToast } from '@/hooks/use-toast'
+} from "lucide-react"
+import Link from "next/link"
+import { DocumentAssignment, DocumentStatus } from "@/types/documents"
+import { useToast } from "@/hooks/use-toast"
 
 interface DocumentProgress {
   total: number
@@ -45,7 +45,7 @@ export default function MyDocumentsPage() {
     compliance_rate: 0
   })
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('all')
+  const [activeTab, setActiveTab] = useState("all")
 
   useEffect(() => {
     fetchMyDocuments()
@@ -54,20 +54,20 @@ export default function MyDocumentsPage() {
   const fetchMyDocuments = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/documents/assignments')
-      if (!response.ok) throw new Error('Failed to fetch documents')
+      const response = await fetch("/api/documents/assignments")
+      if (!response.ok) throw new Error("Failed to fetch documents")
       
       const data = await response.json()
       setAssignments(data.assignments || [])
       
       // Calculate progress
       const total = data.assignments?.length || 0
-      const completed = data.assignments?.filter((a: DocumentAssignment) => a.status === 'approved').length || 0
+      const completed = data.assignments?.filter((a: DocumentAssignment) => a.status === "approved").length || 0
       const pending = data.assignments?.filter((a: DocumentAssignment) => 
-        ['not_started', 'in_progress', 'under_review'].includes(a.status)
+        ["not_started", "in_progress", "under_review"].includes(a.status)
       ).length || 0
       const overdue = data.assignments?.filter((a: DocumentAssignment) => 
-        a.due_date && new Date(a.due_date) < new Date() && a.status !== 'approved'
+        a.due_date && new Date(a.due_date) < new Date() && a.status !== "approved"
       ).length || 0
       
       setProgress({
@@ -78,11 +78,11 @@ export default function MyDocumentsPage() {
         compliance_rate: total > 0 ? Math.round((completed / total) * 100) : 0
       })
     } catch (error) {
-      console.error('Error fetching documents:', error)
+      console.error("Error fetching documents:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to load your documents',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load your documents",
+        variant: "destructive"
       })
     } finally {
       setLoading(false)
@@ -91,75 +91,75 @@ export default function MyDocumentsPage() {
 
   const getStatusIcon = (status: DocumentStatus) => {
     switch (status) {
-      case 'approved':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
-      case 'completed':
-      case 'under_review':
-        return <Clock className="h-5 w-5 text-blue-500" />
-      case 'in_progress':
-        return <Edit className="h-5 w-5 text-yellow-500" />
-      case 'rejected':
-        return <XCircle className="h-5 w-5 text-red-500" />
-      case 'expired':
-        return <AlertTriangle className="h-5 w-5 text-orange-500" />
-      default:
-        return <FileText className="h-5 w-5 text-gray-500" />
+    case "approved":
+      return <CheckCircle className="h-5 w-5 text-green-500" />
+    case "completed":
+    case "under_review":
+      return <Clock className="h-5 w-5 text-blue-500" />
+    case "in_progress":
+      return <Edit className="h-5 w-5 text-yellow-500" />
+    case "rejected":
+      return <XCircle className="h-5 w-5 text-red-500" />
+    case "expired":
+      return <AlertTriangle className="h-5 w-5 text-orange-500" />
+    default:
+      return <FileText className="h-5 w-5 text-gray-500" />
     }
   }
 
   const getStatusColor = (status: DocumentStatus) => {
     switch (status) {
-      case 'approved':
-        return 'bg-green-100 text-green-800'
-      case 'completed':
-      case 'under_review':
-        return 'bg-blue-100 text-blue-800'
-      case 'in_progress':
-        return 'bg-yellow-100 text-yellow-800'
-      case 'rejected':
-        return 'bg-red-100 text-red-800'
-      case 'expired':
-        return 'bg-orange-100 text-orange-800'
-      default:
-        return 'bg-gray-100 text-gray-800'
+    case "approved":
+      return "bg-green-100 text-green-800"
+    case "completed":
+    case "under_review":
+      return "bg-blue-100 text-blue-800"
+    case "in_progress":
+      return "bg-yellow-100 text-yellow-800"
+    case "rejected":
+      return "bg-red-100 text-red-800"
+    case "expired":
+      return "bg-orange-100 text-orange-800"
+    default:
+      return "bg-gray-100 text-gray-800"
     }
   }
 
   const getStatusMessage = (status: DocumentStatus) => {
     switch (status) {
-      case 'not_started':
-        return 'Ready to start'
-      case 'in_progress':
-        return 'Continue filling out'
-      case 'completed':
-        return 'Submitted for review'
-      case 'under_review':
-        return 'Being reviewed'
-      case 'approved':
-        return 'Approved and complete'
-      case 'rejected':
-        return 'Needs revision'
-      case 'expired':
-        return 'Document expired'
-      default:
-        return 'Unknown status'
+    case "not_started":
+      return "Ready to start"
+    case "in_progress":
+      return "Continue filling out"
+    case "completed":
+      return "Submitted for review"
+    case "under_review":
+      return "Being reviewed"
+    case "approved":
+      return "Approved and complete"
+    case "rejected":
+      return "Needs revision"
+    case "expired":
+      return "Document expired"
+    default:
+      return "Unknown status"
     }
   }
 
   const getFilteredAssignments = (filter: string) => {
     switch (filter) {
-      case 'pending':
-        return assignments.filter(a => ['not_started', 'in_progress', 'under_review'].includes(a.status))
-      case 'completed':
-        return assignments.filter(a => a.status === 'approved')
-      case 'overdue':
-        return assignments.filter(a => 
-          a.due_date && new Date(a.due_date) < new Date() && a.status !== 'approved'
-        )
-      case 'action_required':
-        return assignments.filter(a => ['not_started', 'rejected'].includes(a.status))
-      default:
-        return assignments
+    case "pending":
+      return assignments.filter(a => ["not_started", "in_progress", "under_review"].includes(a.status))
+    case "completed":
+      return assignments.filter(a => a.status === "approved")
+    case "overdue":
+      return assignments.filter(a => 
+        a.due_date && new Date(a.due_date) < new Date() && a.status !== "approved"
+      )
+    case "action_required":
+      return assignments.filter(a => ["not_started", "rejected"].includes(a.status))
+    default:
+      return assignments
     }
   }
 
@@ -252,16 +252,16 @@ export default function MyDocumentsPage() {
                 All ({assignments.length})
               </TabsTrigger>
               <TabsTrigger value="action_required">
-                Action Required ({getFilteredAssignments('action_required').length})
+                Action Required ({getFilteredAssignments("action_required").length})
               </TabsTrigger>
               <TabsTrigger value="pending">
-                Pending ({getFilteredAssignments('pending').length})
+                Pending ({getFilteredAssignments("pending").length})
               </TabsTrigger>
               <TabsTrigger value="completed">
-                Completed ({getFilteredAssignments('completed').length})
+                Completed ({getFilteredAssignments("completed").length})
               </TabsTrigger>
               <TabsTrigger value="overdue">
-                Overdue ({getFilteredAssignments('overdue').length})
+                Overdue ({getFilteredAssignments("overdue").length})
               </TabsTrigger>
             </TabsList>
 
@@ -300,7 +300,7 @@ export default function MyDocumentsPage() {
                                 {assignment.is_required && (
                                   <Badge variant="destructive" className="text-xs">Required</Badge>
                                 )}
-                                {assignment.priority !== 'normal' && (
+                                {assignment.priority !== "normal" && (
                                   <Badge variant="outline" className="text-xs capitalize">
                                     {assignment.priority} Priority
                                   </Badge>
@@ -312,7 +312,7 @@ export default function MyDocumentsPage() {
                           <div className="flex items-center space-x-3">
                             <div className="text-right">
                               <Badge className={getStatusColor(assignment.status)}>
-                                {assignment.status.replace('_', ' ')}
+                                {assignment.status.replace("_", " ")}
                               </Badge>
                               <p className="text-xs text-muted-foreground mt-1">
                                 {getStatusMessage(assignment.status)}
@@ -320,11 +320,11 @@ export default function MyDocumentsPage() {
                             </div>
                             
                             <div className="flex flex-col gap-2">
-                              {assignment.status === 'not_started' || assignment.status === 'in_progress' || assignment.status === 'rejected' ? (
+                              {assignment.status === "not_started" || assignment.status === "in_progress" || assignment.status === "rejected" ? (
                                 <Link href={`/documents/fill/${assignment.id}`}>
                                   <Button size="sm">
                                     <Edit className="h-4 w-4 mr-1" />
-                                    {assignment.status === 'not_started' ? 'Start' : 'Continue'}
+                                    {assignment.status === "not_started" ? "Start" : "Continue"}
                                   </Button>
                                 </Link>
                               ) : (
@@ -336,7 +336,7 @@ export default function MyDocumentsPage() {
                                 </Link>
                               )}
                               
-                              {assignment.status === 'approved' && assignment.submission?.file_path && (
+                              {assignment.status === "approved" && assignment.submission?.file_path && (
                                 <Button variant="outline" size="sm">
                                   <Download className="h-4 w-4 mr-1" />
                                   Download

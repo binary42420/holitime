@@ -1,5 +1,5 @@
-import { query } from '../db';
-import type { Client, ClientCompany } from '../types';
+import { query } from "../db"
+import type { Client, ClientCompany } from "../types"
 
 // Client Company functions (for the actual company entities)
 export async function getAllClientCompanies(): Promise<ClientCompany[]> {
@@ -8,7 +8,7 @@ export async function getAllClientCompanies(): Promise<ClientCompany[]> {
       SELECT id, company_name, company_address, contact_phone, contact_email, notes, logo_url, created_at, updated_at
       FROM clients
       ORDER BY company_name
-    `);
+    `)
 
     return result.rows.map(row => ({
       id: row.id,
@@ -20,10 +20,10 @@ export async function getAllClientCompanies(): Promise<ClientCompany[]> {
       logoUrl: row.logo_url,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-    }));
+    }))
   } catch (error) {
-    console.error('Error getting all client companies:', error);
-    return [];
+    console.error("Error getting all client companies:", error)
+    return []
   }
 }
 
@@ -33,13 +33,13 @@ export async function getClientCompanyById(id: string): Promise<ClientCompany | 
       SELECT id, company_name, company_address, contact_phone, contact_email, notes, logo_url, created_at, updated_at
       FROM clients
       WHERE id = $1
-    `, [id]);
+    `, [id])
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0]
     return {
       id: row.id,
       companyName: row.company_name,
@@ -50,14 +50,14 @@ export async function getClientCompanyById(id: string): Promise<ClientCompany | 
       logoUrl: row.logo_url,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-    };
+    }
   } catch (error) {
-    console.error('Error getting client company by ID:', error);
-    return null;
+    console.error("Error getting client company by ID:", error)
+    return null
   }
 }
 
-export async function createClientCompany(companyData: Omit<ClientCompany, 'id' | 'createdAt' | 'updatedAt'>): Promise<ClientCompany | null> {
+export async function createClientCompany(companyData: Omit<ClientCompany, "id" | "createdAt" | "updatedAt">): Promise<ClientCompany | null> {
   try {
     const result = await query(`
       INSERT INTO clients (company_name, company_address, contact_phone, contact_email, notes, logo_url, created_at, updated_at)
@@ -70,13 +70,13 @@ export async function createClientCompany(companyData: Omit<ClientCompany, 'id' 
       companyData.contactEmail || null,
       companyData.notes || null,
       companyData.logoUrl || null
-    ]);
+    ])
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0]
     return {
       id: row.id,
       companyName: row.company_name,
@@ -87,63 +87,63 @@ export async function createClientCompany(companyData: Omit<ClientCompany, 'id' 
       logoUrl: row.logo_url,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-    };
+    }
   } catch (error) {
-    console.error('Error creating client company:', error);
-    return null;
+    console.error("Error creating client company:", error)
+    return null
   }
 }
 
-export async function updateClientCompany(id: string, companyData: Partial<Omit<ClientCompany, 'id' | 'createdAt' | 'updatedAt'>>): Promise<ClientCompany | null> {
+export async function updateClientCompany(id: string, companyData: Partial<Omit<ClientCompany, "id" | "createdAt" | "updatedAt">>): Promise<ClientCompany | null> {
   try {
-    const fields = [];
-    const values = [];
-    let paramCount = 1;
+    const fields = []
+    const values = []
+    let paramCount = 1
 
     if (companyData.companyName !== undefined) {
-      fields.push(`company_name = $${paramCount++}`);
-      values.push(companyData.companyName);
+      fields.push(`company_name = $${paramCount++}`)
+      values.push(companyData.companyName)
     }
     if (companyData.companyAddress !== undefined) {
-      fields.push(`company_address = $${paramCount++}`);
-      values.push(companyData.companyAddress);
+      fields.push(`company_address = $${paramCount++}`)
+      values.push(companyData.companyAddress)
     }
     if (companyData.contactPhone !== undefined) {
-      fields.push(`contact_phone = $${paramCount++}`);
-      values.push(companyData.contactPhone);
+      fields.push(`contact_phone = $${paramCount++}`)
+      values.push(companyData.contactPhone)
     }
     if (companyData.contactEmail !== undefined) {
-      fields.push(`contact_email = $${paramCount++}`);
-      values.push(companyData.contactEmail);
+      fields.push(`contact_email = $${paramCount++}`)
+      values.push(companyData.contactEmail)
     }
     if (companyData.notes !== undefined) {
-      fields.push(`notes = $${paramCount++}`);
-      values.push(companyData.notes);
+      fields.push(`notes = $${paramCount++}`)
+      values.push(companyData.notes)
     }
     if (companyData.logoUrl !== undefined) {
-      fields.push(`logo_url = $${paramCount++}`);
-      values.push(companyData.logoUrl);
+      fields.push(`logo_url = $${paramCount++}`)
+      values.push(companyData.logoUrl)
     }
 
     if (fields.length === 0) {
-      return await getClientCompanyById(id);
+      return await getClientCompanyById(id)
     }
 
-    fields.push(`updated_at = NOW()`);
-    values.push(id);
+    fields.push("updated_at = NOW()")
+    values.push(id)
 
     const result = await query(`
       UPDATE clients
-      SET ${fields.join(', ')}
+      SET ${fields.join(", ")}
       WHERE id = $${paramCount}
       RETURNING id, company_name, company_address, contact_phone, contact_email, notes, logo_url, created_at, updated_at
-    `, values);
+    `, values)
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0]
     return {
       id: row.id,
       companyName: row.company_name,
@@ -154,10 +154,10 @@ export async function updateClientCompany(id: string, companyData: Partial<Omit<
       logoUrl: row.logo_url,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-    };
+    }
   } catch (error) {
-    console.error('Error updating client company:', error);
-    return null;
+    console.error("Error updating client company:", error)
+    return null
   }
 }
 
@@ -221,7 +221,7 @@ export async function getAllClients(): Promise<Client[]> {
       ) upcoming_shift ON u.client_company_id = upcoming_shift.client_id
       WHERE u.role = 'Client' AND u.client_company_id IS NOT NULL
       ORDER BY COALESCE(c.company_name, u.name)
-    `);
+    `)
 
     return result.rows.map(row => ({
       id: row.id, // User ID (contact person)
@@ -262,10 +262,10 @@ export async function getAllClients(): Promise<Client[]> {
         requestedWorkers: parseInt(row.upcoming_requested_workers) || 1,
         assignedCount: parseInt(row.upcoming_assigned_count) || 0,
       } : undefined,
-    }));
+    }))
   } catch (error) {
-    console.error('Error getting all clients:', error);
-    return [];
+    console.error("Error getting all clients:", error)
+    return []
   }
 }
 
@@ -278,13 +278,13 @@ export async function getClientById(id: string): Promise<Client | null> {
       FROM users u
       LEFT JOIN clients c ON u.client_company_id = c.id
       WHERE u.id = $1 AND u.role = 'Client'
-    `, [id]);
+    `, [id])
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0]
 
     // Get jobs for this client company
     const jobsResult = await query(`
@@ -293,14 +293,14 @@ export async function getClientById(id: string): Promise<Client | null> {
       FROM jobs
       WHERE client_id = $1
       ORDER BY start_date DESC
-    `, [row.client_company_id]);
+    `, [row.client_company_id])
 
     // Get authorized crew chiefs
     const crewChiefsResult = await query(`
       SELECT crew_chief_id FROM job_authorizations ja
       JOIN jobs j ON ja.job_id = j.id
       WHERE j.client_id = $1
-    `, [row.client_company_id]);
+    `, [row.client_company_id])
 
     // Note: Contact user IDs are no longer needed since client is now a user
 
@@ -312,7 +312,7 @@ export async function getClientById(id: string): Promise<Client | null> {
       WHERE j.client_id = $1 AND s.status = 'Completed'
       ORDER BY s.date DESC, s.start_time DESC
       LIMIT 1
-    `, [row.client_company_id]);
+    `, [row.client_company_id])
 
     // Get next upcoming shift
     const upcomingResult = await query(`
@@ -331,7 +331,7 @@ export async function getClientById(id: string): Promise<Client | null> {
       WHERE j.client_id = $1 AND s.status = 'Upcoming' AND s.date >= CURRENT_DATE
       ORDER BY s.date ASC, s.start_time ASC
       LIMIT 1
-    `, [row.client_company_id]);
+    `, [row.client_company_id])
 
     return {
       id: row.id, // User ID (contact person)
@@ -380,14 +380,14 @@ export async function getClientById(id: string): Promise<Client | null> {
         requestedWorkers: parseInt(upcomingResult.rows[0].requested_workers) || 1,
         assignedCount: parseInt(upcomingResult.rows[0].assigned_count) || 0,
       } : undefined,
-    };
+    }
   } catch (error) {
-    console.error('Error getting client by ID:', error);
-    return null;
+    console.error("Error getting client by ID:", error)
+    return null
   }
 }
 
-export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCrewChiefIds'>): Promise<Client | null> {
+export async function createClient(clientData: Omit<Client, "id" | "authorizedCrewChiefIds">): Promise<Client | null> {
   try {
     const result = await query(`
       INSERT INTO users (name, email, password_hash, role, company_name, company_address, contact_person, contact_email, contact_phone)
@@ -395,20 +395,20 @@ export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCr
       RETURNING id, name, company_name, company_address, contact_person, contact_email, contact_phone
     `, [
       clientData.name,
-      clientData.contactEmail || `${clientData.name.toLowerCase().replace(/\s+/g, '')}@example.com`,
-      'password123', // Default plain text password
+      clientData.contactEmail || `${clientData.name.toLowerCase().replace(/\s+/g, "")}@example.com`,
+      "password123", // Default plain text password
       clientData.companyName,
       clientData.companyAddress,
       clientData.contactPerson,
       clientData.contactEmail,
       clientData.contactPhone
-    ]);
+    ])
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    const row = result.rows[0];
+    const row = result.rows[0]
     return {
       id: row.id,
       name: row.name,
@@ -422,73 +422,73 @@ export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCr
       email: row.contact_email,
       phone: row.contact_phone,
       authorizedCrewChiefIds: [],
-    };
+    }
   } catch (error) {
-    console.error('Error creating client:', error);
-    return null;
+    console.error("Error creating client:", error)
+    return null
   }
 }
 
-export async function updateClient(id: string, clientData: Partial<Omit<Client, 'id' | 'authorizedCrewChiefIds'>>): Promise<Client | null> {
+export async function updateClient(id: string, clientData: Partial<Omit<Client, "id" | "authorizedCrewChiefIds">>): Promise<Client | null> {
   try {
-    const fields = [];
-    const values = [];
-    let paramCount = 1;
+    const fields = []
+    const values = []
+    let paramCount = 1
 
     if (clientData.name !== undefined) {
-      fields.push(`name = $${paramCount++}`);
-      values.push(clientData.name);
+      fields.push(`name = $${paramCount++}`)
+      values.push(clientData.name)
     }
     if (clientData.companyName !== undefined) {
-      fields.push(`company_name = $${paramCount++}`);
-      values.push(clientData.companyName);
+      fields.push(`company_name = $${paramCount++}`)
+      values.push(clientData.companyName)
     }
     if (clientData.companyAddress !== undefined) {
-      fields.push(`company_address = $${paramCount++}`);
-      values.push(clientData.companyAddress);
+      fields.push(`company_address = $${paramCount++}`)
+      values.push(clientData.companyAddress)
     }
     if (clientData.contactPerson !== undefined) {
-      fields.push(`contact_person = $${paramCount++}`);
-      values.push(clientData.contactPerson);
+      fields.push(`contact_person = $${paramCount++}`)
+      values.push(clientData.contactPerson)
     }
     if (clientData.contactEmail !== undefined) {
-      fields.push(`contact_email = $${paramCount++}`);
-      values.push(clientData.contactEmail);
+      fields.push(`contact_email = $${paramCount++}`)
+      values.push(clientData.contactEmail)
     }
     if (clientData.contactPhone !== undefined) {
-      fields.push(`contact_phone = $${paramCount++}`);
-      values.push(clientData.contactPhone);
+      fields.push(`contact_phone = $${paramCount++}`)
+      values.push(clientData.contactPhone)
     }
 
     if (fields.length === 0) {
-      return await getClientById(id);
+      return await getClientById(id)
     }
 
-    values.push(id);
+    values.push(id)
     const result = await query(`
       UPDATE users
-      SET ${fields.join(', ')}
+      SET ${fields.join(", ")}
       WHERE id = $${paramCount} AND role = 'Client'
       RETURNING id, name, company_name, company_address, contact_person, contact_email, contact_phone
-    `, values);
+    `, values)
 
     if (result.rows.length === 0) {
-      return null;
+      return null
     }
 
-    return await getClientById(id);
+    return await getClientById(id)
   } catch (error) {
-    console.error('Error updating client:', error);
-    return null;
+    console.error("Error updating client:", error)
+    return null
   }
 }
 
 export async function deleteClient(id: string): Promise<boolean> {
   try {
-    const result = await query('DELETE FROM users WHERE id = $1 AND role = \'Client\'', [id]);
-    return (result.rowCount ?? 0) > 0;
+    const result = await query("DELETE FROM users WHERE id = $1 AND role = 'Client'", [id])
+    return (result.rowCount ?? 0) > 0
   } catch (error) {
-    console.error('Error deleting client:', error);
-    return false;
+    console.error("Error deleting client:", error)
+    return false
   }
 }

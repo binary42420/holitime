@@ -1,4 +1,4 @@
- "use client"
+"use client"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -19,11 +19,11 @@ interface ClientDetailPageProps {
   params: Promise<{ id: string }>
 }
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function ClientDetailPage({ params }: ClientDetailPageProps) {
-  const [clientId, setClientId] = useState<string>('')
+  const [clientId, setClientId] = useState<string>("")
 
   // Unwrap params
   useEffect(() => {
@@ -31,75 +31,75 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
   }, [params])
   const { user } = useUser()
   const router = useRouter()
-  const canEdit = user?.role === 'Manager/Admin'
+  const canEdit = user?.role === "Manager/Admin"
   const { toast } = useToast()
 
   const { data: clientData, loading: clientLoading, error: clientError } = useApi<{ client: any }>(
     clientId ? `/api/clients/${clientId}` : null
-  );
+  )
   const { data: jobsData, loading: jobsLoading, error: jobsError } = useApi<{ jobs: any[] }>(
     clientId ? `/api/clients/${clientId}/jobs` : null
-  );
+  )
   const { data: shiftsData, loading: shiftsLoading, error: shiftsError } = useApi<{ shifts: any[] }>(
     clientId ? `/api/shifts?clientId=${clientId}` : null
-  );
+  )
 
   // Helper function to get timesheet link and text based on status
   const getTimesheetAction = (shift: any) => {
     if (!shift.timesheetId) {
       return {
-        text: 'No Timesheet',
+        text: "No Timesheet",
         href: `/shifts/${shift.id}`,
-        variant: 'outline' as const,
+        variant: "outline" as const,
         icon: FileText
       }
     }
 
     switch (shift.timesheetStatus) {
-      case 'Pending Finalization':
-        return {
-          text: 'Finalize',
-          href: `/shifts/${shift.id}`,
-          variant: 'default' as const,
-          icon: FileText
-        }
-      case 'Awaiting Client Approval':
-        return {
-          text: 'Client Approval',
-          href: `/timesheets/${shift.timesheetId}/approve`,
-          variant: 'default' as const,
-          icon: Clock
-        }
-      case 'Awaiting Manager Approval':
-        return {
-          text: 'Manager Approval',
-          href: `/timesheets/${shift.timesheetId}/manager-approval`,
-          variant: 'secondary' as const,
-          icon: UserCheck
-        }
-      case 'Approved':
-        return {
-          text: 'View PDF',
-          href: `/timesheets/${shift.timesheetId}`,
-          variant: 'outline' as const,
-          icon: Download
-        }
-      default:
-        return {
-          text: 'View Timesheet',
-          href: `/timesheets/${shift.timesheetId}`,
-          variant: 'outline' as const,
-          icon: FileText
-        }
+    case "Pending Finalization":
+      return {
+        text: "Finalize",
+        href: `/shifts/${shift.id}`,
+        variant: "default" as const,
+        icon: FileText
+      }
+    case "Awaiting Client Approval":
+      return {
+        text: "Client Approval",
+        href: `/timesheets/${shift.timesheetId}/approve`,
+        variant: "default" as const,
+        icon: Clock
+      }
+    case "Awaiting Manager Approval":
+      return {
+        text: "Manager Approval",
+        href: `/timesheets/${shift.timesheetId}/manager-approval`,
+        variant: "secondary" as const,
+        icon: UserCheck
+      }
+    case "Approved":
+      return {
+        text: "View PDF",
+        href: `/timesheets/${shift.timesheetId}`,
+        variant: "outline" as const,
+        icon: Download
+      }
+    default:
+      return {
+        text: "View Timesheet",
+        href: `/timesheets/${shift.timesheetId}`,
+        variant: "outline" as const,
+        icon: FileText
+      }
     }
   }
 
-  const client = clientData?.client;
-  const jobs = jobsData?.jobs || [];
-  const shifts = shiftsData?.shifts || [];
+  const client = clientData?.client
+  const jobs = jobsData?.jobs || []
+  const shifts = shiftsData?.shifts || []
 
   if (clientLoading || jobsLoading || shiftsLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>
   }
 
   if (clientError || !client) {
@@ -112,7 +112,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
               <p className="text-muted-foreground mb-4">
                 The client you're looking for doesn't exist or you don't have permission to view it.
               </p>
-              <Button onClick={() => router.push('/clients')}>
+              <Button onClick={() => router.push("/clients")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Clients
               </Button>
@@ -127,7 +127,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/clients')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/clients")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Clients
         </Button>
@@ -187,13 +187,13 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Active Jobs</span>
               <Badge variant="default">
-                {jobs.filter((job:any) => job.status === 'Active').length}
+                {jobs.filter((job:any) => job.status === "Active").length}
               </Badge>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Completed Jobs</span>
               <Badge variant="outline">
-                {jobs.filter((job:any) => job.status === 'Completed').length}
+                {jobs.filter((job:any) => job.status === "Completed").length}
               </Badge>
             </div>
           </CardContent>
@@ -243,7 +243,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
                     <div className="flex items-center gap-4 text-xs text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {job.startDate ? new Date(job.startDate).toLocaleDateString() : 'No start date'}
+                        {job.startDate ? new Date(job.startDate).toLocaleDateString() : "No start date"}
                       </span>
                       <span className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
@@ -252,7 +252,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={job.status === 'Active' ? 'default' : 'secondary'}>
+                    <Badge variant={job.status === "Active" ? "default" : "secondary"}>
                       {job.status}
                     </Badge>
                     <Button variant="outline" size="sm">View</Button>
@@ -297,12 +297,12 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
                   <div className="flex items-start justify-between">
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center justify-between">
-                        <h3 className="font-medium">{shift.jobName || 'No Job Assigned'}</h3>
+                        <h3 className="font-medium">{shift.jobName || "No Job Assigned"}</h3>
                         <Badge variant={
-                          shift.status === 'Completed' ? 'default' :
-                          shift.status === 'In Progress' ? 'destructive' :
-                          shift.status === 'Cancelled' ? 'outline' :
-                          'secondary'
+                          shift.status === "Completed" ? "default" :
+                            shift.status === "In Progress" ? "destructive" :
+                              shift.status === "Cancelled" ? "outline" :
+                                "secondary"
                         }>
                           {shift.status}
                         </Badge>
@@ -322,7 +322,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
 
                           {/* Timesheet Status */}
                           <TimesheetStatusIndicator
-                            status={shift.timesheetStatus || 'Pending Finalization'}
+                            status={shift.timesheetStatus || "Pending Finalization"}
                             size="sm"
                           />
                         </div>
@@ -330,8 +330,8 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
                         {/* Action Buttons */}
                         <div className="flex items-center gap-2">
                           {(() => {
-                            const timesheetAction = getTimesheetAction(shift);
-                            const Icon = timesheetAction.icon;
+                            const timesheetAction = getTimesheetAction(shift)
+                            const Icon = timesheetAction.icon
                             return (
                               <Button
                                 variant={timesheetAction.variant}
@@ -344,7 +344,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
                                   {timesheetAction.text}
                                 </Link>
                               </Button>
-                            );
+                            )
                           })()}
                           <Button
                             variant="outline"
@@ -392,4 +392,4 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
   )
 }
 
-export default withAuth(ClientDetailPage, hasAdminAccess);
+export default withAuth(ClientDetailPage, hasAdminAccess)

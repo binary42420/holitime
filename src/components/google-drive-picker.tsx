@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import React, { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
 
 interface DriveFile {
   id: string;
@@ -18,15 +18,15 @@ interface GoogleDrivePickerProps {
 }
 
 export default function GoogleDrivePicker({ accessToken, onFileSelect }: GoogleDrivePickerProps) {
-  const [files, setFiles] = useState<DriveFile[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [files, setFiles] = useState<DriveFile[]>([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken) return
 
-    setLoading(true);
-    setError(null);
+    setLoading(true)
+    setError(null)
 
     fetch("/api/import/google-drive/files", {
       headers: {
@@ -35,26 +35,26 @@ export default function GoogleDrivePicker({ accessToken, onFileSelect }: GoogleD
     })
       .then(async (res) => {
         if (!res.ok) {
-          const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-          throw new Error(errorData.error || `HTTP ${res.status}: Failed to fetch files`);
+          const errorData = await res.json().catch(() => ({ error: "Unknown error" }))
+          throw new Error(errorData.error || `HTTP ${res.status}: Failed to fetch files`)
         }
-        return res.json();
+        return res.json()
       })
       .then((data) => {
-        console.log('Google Drive Picker: Received files:', data.files?.length || 0);
-        setFiles(data.files || []);
+        console.log("Google Drive Picker: Received files:", data.files?.length || 0)
+        setFiles(data.files || [])
       })
       .catch((err) => {
-        console.error('Google Drive Picker: Error fetching files:', err);
-        setError(err.message || 'Failed to fetch Google Drive files');
+        console.error("Google Drive Picker: Error fetching files:", err)
+        setError(err.message || "Failed to fetch Google Drive files")
       })
       .finally(() => {
-        setLoading(false);
-      });
-  }, [accessToken]);
+        setLoading(false)
+      })
+  }, [accessToken])
 
-  if (loading) return <div>Loading files...</div>;
-  if (error) return <div className="text-red-600">Error: {error}</div>;
+  if (loading) return <div>Loading files...</div>
+  if (error) return <div className="text-red-600">Error: {error}</div>
 
   return (
     <div>
@@ -75,5 +75,5 @@ export default function GoogleDrivePicker({ accessToken, onFileSelect }: GoogleD
         ))}
       </ul>
     </div>
-  );
+  )
 }

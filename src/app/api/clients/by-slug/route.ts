@@ -1,28 +1,28 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const { searchParams } = new URL(request.url)
-    const companySlug = searchParams.get('company')
+    const companySlug = searchParams.get("company")
 
     if (!companySlug) {
       return NextResponse.json(
-        { error: 'Company parameter is required' },
+        { error: "Company parameter is required" },
         { status: 400 }
       )
     }
 
     // Convert URL-friendly slug back to searchable term
-    const companyName = decodeURIComponent(companySlug).replace(/-/g, ' ')
+    const companyName = decodeURIComponent(companySlug).replace(/-/g, " ")
 
-    console.log('Looking for client with company name:', companyName)
+    console.log("Looking for client with company name:", companyName)
 
     // Find the client by company name using multiple matching strategies
     const result = await query(`
@@ -41,13 +41,13 @@ export async function GET(request: NextRequest) {
           ELSE 3
         END
       LIMIT 1
-    `, [companyName, `%${companyName}%`, `%${companyName.replace(/\./g, '')}%`, `%${companyName.replace(/ /g, '-')}%`])
+    `, [companyName, `%${companyName}%`, `%${companyName.replace(/\./g, "")}%`, `%${companyName.replace(/ /g, "-")}%`])
 
-    console.log('Client query result:', result.rows)
+    console.log("Client query result:", result.rows)
 
     if (result.rows.length === 0) {
       return NextResponse.json(
-        { error: 'Client not found' },
+        { error: "Client not found" },
         { status: 404 }
       )
     }
@@ -74,9 +74,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ client: transformedClient })
   } catch (error) {
-    console.error('Error fetching client by slug:', error)
+    console.error("Error fetching client by slug:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

@@ -1,13 +1,13 @@
-'use client'
+"use client"
 
-import React, { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Label } from '@/components/ui/label'
-import { useToast } from '@/hooks/use-toast'
-import { Loader2, FileSpreadsheet, ExternalLink, AlertCircle, Info } from 'lucide-react'
+import React, { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Label } from "@/components/ui/label"
+import { useToast } from "@/hooks/use-toast"
+import { Loader2, FileSpreadsheet, ExternalLink, AlertCircle, Info } from "lucide-react"
 
 interface GoogleSheetsIdInputProps {
   onFileSelected: (file: any) => void
@@ -16,17 +16,17 @@ interface GoogleSheetsIdInputProps {
 
 export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: GoogleSheetsIdInputProps) {
   const { toast } = useToast()
-  const [sheetsId, setSheetsId] = useState('')
+  const [sheetsId, setSheetsId] = useState("")
   const [isValidating, setIsValidating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [debugResults, setDebugResults] = useState<any>(null)
 
   // Debug: Log when accessToken changes
   React.useEffect(() => {
-    console.log('GoogleSheetsIdInput: accessToken changed:', {
+    console.log("GoogleSheetsIdInput: accessToken changed:", {
       hasToken: !!accessToken,
       tokenLength: accessToken?.length || 0,
-      tokenPreview: accessToken ? accessToken.substring(0, 20) + '...' : 'none'
+      tokenPreview: accessToken ? accessToken.substring(0, 20) + "..." : "none"
     })
   }, [accessToken])
 
@@ -35,7 +35,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
     const trimmed = input.trim()
     
     // If it's already just an ID (no slashes), return it
-    if (!trimmed.includes('/')) {
+    if (!trimmed.includes("/")) {
       return trimmed
     }
     
@@ -52,7 +52,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
     const extractedId = extractSheetsId(sheetsId)
 
     if (!extractedId) {
-      setError('Please enter a valid Google Sheets ID or URL')
+      setError("Please enter a valid Google Sheets ID or URL")
       return
     }
 
@@ -60,22 +60,22 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
     setError(null)
 
     try {
-      console.log('Validating Google Sheets ID:', extractedId)
-      console.log('Access token available:', !!accessToken)
-      console.log('Access token length:', accessToken?.length || 0)
+      console.log("Validating Google Sheets ID:", extractedId)
+      console.log("Access token available:", !!accessToken)
+      console.log("Access token length:", accessToken?.length || 0)
 
       let result: any = null
       let sheetsData: any = null
 
       // If we have an access token, try OAuth method first (more reliable)
-      if (accessToken && typeof accessToken === 'string' && accessToken.length > 0) {
+      if (accessToken && typeof accessToken === "string" && accessToken.length > 0) {
         try {
-          console.log('Trying OAuth method first...')
-          console.log('OAuth token preview:', accessToken.substring(0, 20) + '...')
+          console.log("Trying OAuth method first...")
+          console.log("OAuth token preview:", accessToken.substring(0, 20) + "...")
           const response = await fetch(`/api/import/google-sheets/fetch-with-oauth/${extractedId}`, {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json'
+              "Content-Type": "application/json"
             },
             body: JSON.stringify({ accessToken })
           })
@@ -84,14 +84,14 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
             result = await response.json()
             if (result && result.success && result.data) {
               sheetsData = result.data
-              console.log('OAuth method successful')
+              console.log("OAuth method successful")
             }
           } else {
-            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-            console.log('OAuth method failed:', errorData.error)
+            const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+            console.log("OAuth method failed:", errorData.error)
           }
         } catch (error) {
-          console.log('OAuth method error:', error)
+          console.log("OAuth method error:", error)
         }
       }
 
@@ -99,72 +99,72 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
       // Skip API key method entirely if we have OAuth access
       if (!sheetsData && !accessToken) {
         try {
-          console.log('Trying API key method (no OAuth token available)...')
+          console.log("Trying API key method (no OAuth token available)...")
           const response = await fetch(`/api/import/google-sheets/fetch/${extractedId}`)
 
           if (response.ok) {
             result = await response.json()
             if (result.success && result.data) {
               sheetsData = result.data
-              console.log('API key method successful')
+              console.log("API key method successful")
             }
           } else {
             const errorData = await response.json()
-            console.log('API key method failed:', errorData.error)
+            console.log("API key method failed:", errorData.error)
             // Don't treat API key failure as critical if we have OAuth available
           }
         } catch (error) {
-          console.log('API key method error:', error)
+          console.log("API key method error:", error)
         }
       } else if (!sheetsData && accessToken) {
-        console.log('OAuth method failed, but skipping API key since OAuth should be sufficient')
+        console.log("OAuth method failed, but skipping API key since OAuth should be sufficient")
       }
 
-      if (!sheetsData || typeof sheetsData !== 'object') {
+      if (!sheetsData || typeof sheetsData !== "object") {
         if (accessToken) {
-          throw new Error('Failed to access Google Sheets using OAuth authentication. Please verify: 1) The sheet ID is correct, 2) You have permission to access the sheet, 3) The sheet exists and is not deleted.')
+          throw new Error("Failed to access Google Sheets using OAuth authentication. Please verify: 1) The sheet ID is correct, 2) You have permission to access the sheet, 3) The sheet exists and is not deleted.")
         } else {
-          throw new Error('No Google Drive authentication available. Please connect to Google Drive first to access Google Sheets, or ensure the sheet is publicly accessible.')
+          throw new Error("No Google Drive authentication available. Please connect to Google Drive first to access Google Sheets, or ensure the sheet is publicly accessible.")
         }
       }
 
       // Validate sheetsData structure
       if (!sheetsData.title && !sheetsData.properties?.title) {
-        console.warn('Sheets data missing title, using fallback')
+        console.warn("Sheets data missing title, using fallback")
       }
 
       // Create a file object similar to Google Drive picker
       const mockFile = {
         id: extractedId,
         name: sheetsData.title || sheetsData.properties?.title || `Google Sheets (${extractedId})`,
-        mimeType: 'application/vnd.google-apps.spreadsheet',
+        mimeType: "application/vnd.google-apps.spreadsheet",
         modifiedTime: new Date().toISOString(),
         webViewLink: `https://docs.google.com/spreadsheets/d/${extractedId}/edit`,
-        size: 'Unknown',
+        size: "Unknown",
         thumbnailLink: null
       }
 
-      console.log('Google Sheets validation successful:', mockFile)
+      console.log("Google Sheets validation successful:", mockFile)
 
       // Call the parent callback with the mock file
       onFileSelected(mockFile)
 
       toast({
-        title: 'Google Sheets Loaded',
+        title: "Google Sheets Loaded",
         description: `Successfully loaded "${sheetsData.title}" with ${sheetsData.sheets.length} sheets`
       })
 
       // Clear the input
-      setSheetsId('')
+      setSheetsId("")
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to validate Google Sheets'
+      const errorMessage = error instanceof Error ? error.message : "Failed to validate Google Sheets"
       setError(errorMessage)
       
       toast({
-        title: 'Validation Failed',
+        title: "Validation Failed",
         description: errorMessage,
-        variant: 'destructive'
+        variant: "destructive"
       })
     } finally {
       setIsValidating(false)
@@ -180,16 +180,16 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
     const extractedId = extractSheetsId(sheetsId)
 
     if (!extractedId) {
-      setError('Please enter a valid Google Sheets ID or URL')
+      setError("Please enter a valid Google Sheets ID or URL")
       return
     }
 
     try {
-      console.log('Starting Google Sheets debug for ID:', extractedId)
-      const response = await fetch('/api/debug/google-sheets-test', {
-        method: 'POST',
+      console.log("Starting Google Sheets debug for ID:", extractedId)
+      const response = await fetch("/api/debug/google-sheets-test", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ sheetsId: extractedId })
       })
@@ -197,21 +197,21 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
       const result = await response.json()
       setDebugResults(result)
 
-      console.log('=== GOOGLE SHEETS DEBUG RESULTS ===')
-      console.log('Summary:', result.summary)
-      console.log('Detailed Results:', result.debugResults)
-      console.log('Recommendations:', result.recommendations)
+      console.log("=== GOOGLE SHEETS DEBUG RESULTS ===")
+      console.log("Summary:", result.summary)
+      console.log("Detailed Results:", result.debugResults)
+      console.log("Recommendations:", result.recommendations)
 
       toast({
-        title: 'Debug Complete',
+        title: "Debug Complete",
         description: `${result.summary?.passedTests || 0}/${result.summary?.totalTests || 0} tests passed. Check console for details.`
       })
     } catch (error) {
-      console.error('Error debugging Google Sheets:', error)
+      console.error("Error debugging Google Sheets:", error)
       toast({
-        title: 'Debug Failed',
-        description: 'Failed to run debug tests. Check console for details.',
-        variant: 'destructive'
+        title: "Debug Failed",
+        description: "Failed to run debug tests. Check console for details.",
+        variant: "destructive"
       })
     }
   }
@@ -342,7 +342,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
             variant="link" 
             size="sm" 
             className="p-0 h-auto mt-2"
-            onClick={() => window.open('https://support.google.com/docs/answer/2494822', '_blank')}
+            onClick={() => window.open("https://support.google.com/docs/answer/2494822", "_blank")}
           >
             <ExternalLink className="mr-1 h-3 w-3" />
             Learn more about sharing Google Sheets

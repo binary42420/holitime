@@ -40,7 +40,7 @@ export default function ImportPage() {
   const [selectedFile, setSelectedFile] = useState<DriveFile | null>(null)
   const [extractedData, setExtractedData] = useState<any>(null)
   const [importResults, setImportResults] = useState<ImportResults | null>(null)
-  const [step, setStep] = useState<'auth' | 'select' | 'preview' | 'import' | 'complete'>('auth')
+  const [step, setStep] = useState<"auth" | "select" | "preview" | "import" | "complete">("auth")
   const { toast } = useToast()
 
   // Check authentication status on mount
@@ -50,27 +50,27 @@ export default function ImportPage() {
 
   const checkAuthStatus = async () => {
     try {
-      const response = await fetch('/api/import/google-drive/files')
+      const response = await fetch("/api/import/google-drive/files")
       if (response.ok) {
         setIsAuthenticated(true)
-        setStep('select')
+        setStep("select")
         loadFiles()
       }
     } catch (error) {
-      console.log('Not authenticated with Google Drive')
+      console.log("Not authenticated with Google Drive")
     }
   }
 
   const authenticateWithGoogle = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/import/google-drive/auth')
+      const response = await fetch("/api/import/google-drive/auth")
       const data = await response.json()
 
       if (data.success) {
         window.location.href = data.authUrl
       } else {
-        throw new Error('Failed to get auth URL')
+        throw new Error("Failed to get auth URL")
       }
     } catch (error) {
       toast({
@@ -86,7 +86,7 @@ export default function ImportPage() {
   const loadFiles = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/import/google-drive/files')
+      const response = await fetch("/api/import/google-drive/files")
       const data = await response.json()
 
       if (data.success) {
@@ -110,9 +110,9 @@ export default function ImportPage() {
       setIsLoading(true)
       setSelectedFile(file)
 
-      const response = await fetch('/api/import/google-drive/extract', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/import/google-drive/extract", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fileId: file.id }),
       })
 
@@ -120,7 +120,7 @@ export default function ImportPage() {
 
       if (data.success) {
         setExtractedData(data.data)
-        setStep('preview')
+        setStep("preview")
       } else {
         throw new Error(data.error)
       }
@@ -139,9 +139,9 @@ export default function ImportPage() {
     try {
       setIsLoading(true)
 
-      const response = await fetch('/api/import/google-drive/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/import/google-drive/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ extractedData }),
       })
 
@@ -149,7 +149,7 @@ export default function ImportPage() {
 
       if (data.success) {
         setImportResults(data.results)
-        setStep('complete')
+        setStep("complete")
         toast({
           title: "Success",
           description: "Data imported successfully!",
@@ -169,7 +169,7 @@ export default function ImportPage() {
   }
 
   const formatFileSize = (bytes?: string) => {
-    if (!bytes) return 'Unknown size'
+    if (!bytes) return "Unknown size"
     const size = parseInt(bytes)
     if (size < 1024) return `${size} B`
     if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`
@@ -177,7 +177,7 @@ export default function ImportPage() {
   }
 
   const getMimeTypeIcon = (mimeType: string) => {
-    if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) {
+    if (mimeType.includes("spreadsheet") || mimeType.includes("excel")) {
       return <FileSpreadsheet className="h-8 w-8 text-green-600" />
     }
     return <FileSpreadsheet className="h-8 w-8 text-blue-600" />
@@ -195,7 +195,7 @@ export default function ImportPage() {
       </div>
 
       {/* Step 1: Authentication */}
-      {step === 'auth' && (
+      {step === "auth" && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -223,7 +223,7 @@ export default function ImportPage() {
       )}
 
       {/* Step 2: File Selection */}
-      {step === 'select' && (
+      {step === "select" && (
         <Card>
           <CardHeader>
             <CardTitle>Select Spreadsheet File</CardTitle>
@@ -272,7 +272,7 @@ export default function ImportPage() {
       )}
 
       {/* Step 3: Data Preview */}
-      {step === 'preview' && extractedData && (
+      {step === "preview" && extractedData && (
         <div className="space-y-6">
           <Card>
             <CardHeader>
@@ -353,7 +353,7 @@ export default function ImportPage() {
               </div>
             </CardContent>
             <CardFooter className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep('select')}>
+              <Button variant="outline" onClick={() => setStep("select")}>
                 Back to Files
               </Button>
               <Button onClick={importData} disabled={isLoading}>
@@ -366,7 +366,7 @@ export default function ImportPage() {
       )}
 
       {/* Step 4: Import Complete */}
-      {step === 'complete' && importResults && (
+      {step === "complete" && importResults && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -423,7 +423,7 @@ export default function ImportPage() {
           </CardContent>
           <CardFooter>
             <Button onClick={() => {
-              setStep('select')
+              setStep("select")
               setExtractedData(null)
               setImportResults(null)
               setSelectedFile(null)

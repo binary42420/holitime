@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
-    if (!user || user.role !== 'Manager/Admin') {
+    if (!user || user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -15,13 +15,13 @@ export async function POST(request: NextRequest) {
     
     if (!sheetsId) {
       return NextResponse.json(
-        { error: 'Google Sheets ID is required' },
+        { error: "Google Sheets ID is required" },
         { status: 400 }
       )
     }
 
-    console.log('=== GOOGLE SHEETS DEBUG SESSION START ===')
-    console.log('Testing Google Sheets ID:', sheetsId)
+    console.log("=== GOOGLE SHEETS DEBUG SESSION START ===")
+    console.log("Testing Google Sheets ID:", sheetsId)
 
     const debugResults: any = {
       timestamp: new Date().toISOString(),
@@ -30,29 +30,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Test 1: Check if API key is configured
-    console.log('TEST 1: Checking API key configuration...')
+    console.log("TEST 1: Checking API key configuration...")
     const hasApiKey = !!process.env.GOOGLE_API_KEY
     debugResults.tests.push({
-      name: 'API Key Configuration',
+      name: "API Key Configuration",
       success: hasApiKey,
       hasApiKey,
       apiKeyLength: hasApiKey ? process.env.GOOGLE_API_KEY!.length : 0
     })
 
     if (!hasApiKey) {
-      console.log('No API key configured, skipping API key tests')
+      console.log("No API key configured, skipping API key tests")
     } else {
       // Test 2: Test with known public sheet
-      console.log('TEST 2: Testing API key with known public sheet...')
+      console.log("TEST 2: Testing API key with known public sheet...")
       try {
-        const testSheetId = '1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms'
+        const testSheetId = "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms"
         const testUrl = `https://sheets.googleapis.com/v4/spreadsheets/${testSheetId}?key=${process.env.GOOGLE_API_KEY}&fields=properties.title`
         
         const testResponse = await fetch(testUrl)
         const testData = testResponse.ok ? await testResponse.json() : await testResponse.text()
         
         debugResults.tests.push({
-          name: 'Known Public Sheet Test',
+          name: "Known Public Sheet Test",
           success: testResponse.ok,
           status: testResponse.status,
           statusText: testResponse.statusText,
@@ -60,18 +60,18 @@ export async function POST(request: NextRequest) {
           data: testData
         })
         
-        console.log('Known public sheet test result:', testResponse.status, testData)
+        console.log("Known public sheet test result:", testResponse.status, testData)
       } catch (error) {
         debugResults.tests.push({
-          name: 'Known Public Sheet Test',
+          name: "Known Public Sheet Test",
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : "Unknown error"
         })
-        console.error('Known public sheet test error:', error)
+        console.error("Known public sheet test error:", error)
       }
 
       // Test 3: Test the specific sheet metadata
-      console.log('TEST 3: Testing specific sheet metadata...')
+      console.log("TEST 3: Testing specific sheet metadata...")
       try {
         const metadataUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetsId}?key=${process.env.GOOGLE_API_KEY}&fields=properties`
         
@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
         const metadataData = metadataResponse.ok ? await metadataResponse.json() : await metadataResponse.text()
         
         debugResults.tests.push({
-          name: 'Specific Sheet Metadata',
+          name: "Specific Sheet Metadata",
           success: metadataResponse.ok,
           status: metadataResponse.status,
           statusText: metadataResponse.statusText,
@@ -87,18 +87,18 @@ export async function POST(request: NextRequest) {
           data: metadataData
         })
         
-        console.log('Specific sheet metadata result:', metadataResponse.status, metadataData)
+        console.log("Specific sheet metadata result:", metadataResponse.status, metadataData)
       } catch (error) {
         debugResults.tests.push({
-          name: 'Specific Sheet Metadata',
+          name: "Specific Sheet Metadata",
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : "Unknown error"
         })
-        console.error('Specific sheet metadata error:', error)
+        console.error("Specific sheet metadata error:", error)
       }
 
       // Test 4: Test sheet access with minimal fields
-      console.log('TEST 4: Testing sheet access with minimal fields...')
+      console.log("TEST 4: Testing sheet access with minimal fields...")
       try {
         const minimalUrl = `https://sheets.googleapis.com/v4/spreadsheets/${sheetsId}?key=${process.env.GOOGLE_API_KEY}&fields=properties.title`
         
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
         const minimalData = minimalResponse.ok ? await minimalResponse.json() : await minimalResponse.text()
         
         debugResults.tests.push({
-          name: 'Minimal Sheet Access',
+          name: "Minimal Sheet Access",
           success: minimalResponse.ok,
           status: minimalResponse.status,
           statusText: minimalResponse.statusText,
@@ -114,25 +114,25 @@ export async function POST(request: NextRequest) {
           data: minimalData
         })
         
-        console.log('Minimal sheet access result:', minimalResponse.status, minimalData)
+        console.log("Minimal sheet access result:", minimalResponse.status, minimalData)
       } catch (error) {
         debugResults.tests.push({
-          name: 'Minimal Sheet Access',
+          name: "Minimal Sheet Access",
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : "Unknown error"
         })
-        console.error('Minimal sheet access error:', error)
+        console.error("Minimal sheet access error:", error)
       }
     }
 
     // Test 5: Check if sheet URL is accessible via web
-    console.log('TEST 5: Testing sheet web accessibility...')
+    console.log("TEST 5: Testing sheet web accessibility...")
     try {
       const webUrl = `https://docs.google.com/spreadsheets/d/${sheetsId}/edit`
-      const webResponse = await fetch(webUrl, { method: 'HEAD' })
+      const webResponse = await fetch(webUrl, { method: "HEAD" })
       
       debugResults.tests.push({
-        name: 'Web Accessibility',
+        name: "Web Accessibility",
         success: webResponse.ok,
         status: webResponse.status,
         statusText: webResponse.statusText,
@@ -140,17 +140,17 @@ export async function POST(request: NextRequest) {
         headers: Object.fromEntries(webResponse.headers.entries())
       })
       
-      console.log('Web accessibility result:', webResponse.status)
+      console.log("Web accessibility result:", webResponse.status)
     } catch (error) {
       debugResults.tests.push({
-        name: 'Web Accessibility',
+        name: "Web Accessibility",
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : "Unknown error"
       })
-      console.error('Web accessibility error:', error)
+      console.error("Web accessibility error:", error)
     }
 
-    console.log('=== GOOGLE SHEETS DEBUG SESSION END ===')
+    console.log("=== GOOGLE SHEETS DEBUG SESSION END ===")
 
     return NextResponse.json({
       success: true,
@@ -164,9 +164,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in Google Sheets debug:', error)
+    console.error("Error in Google Sheets debug:", error)
     return NextResponse.json(
-      { error: 'Failed to debug Google Sheets' },
+      { error: "Failed to debug Google Sheets" },
       { status: 500 }
     )
   }
@@ -175,29 +175,29 @@ export async function POST(request: NextRequest) {
 function generateRecommendations(tests: any[]): string[] {
   const recommendations: string[] = []
   
-  const apiKeyTest = tests.find(t => t.name === 'API Key Configuration')
+  const apiKeyTest = tests.find(t => t.name === "API Key Configuration")
   if (!apiKeyTest?.success) {
-    recommendations.push('Configure GOOGLE_API_KEY environment variable')
+    recommendations.push("Configure GOOGLE_API_KEY environment variable")
   }
   
-  const knownSheetTest = tests.find(t => t.name === 'Known Public Sheet Test')
+  const knownSheetTest = tests.find(t => t.name === "Known Public Sheet Test")
   if (!knownSheetTest?.success) {
-    recommendations.push('Check Google Sheets API is enabled in Google Cloud Console')
-    recommendations.push('Verify API key has proper permissions for Google Sheets API')
+    recommendations.push("Check Google Sheets API is enabled in Google Cloud Console")
+    recommendations.push("Verify API key has proper permissions for Google Sheets API")
   }
   
-  const metadataTest = tests.find(t => t.name === 'Specific Sheet Metadata')
+  const metadataTest = tests.find(t => t.name === "Specific Sheet Metadata")
   if (!metadataTest?.success) {
     if (metadataTest?.status === 403) {
-      recommendations.push('Make sure the Google Sheets document is publicly accessible (anyone with link can view)')
+      recommendations.push("Make sure the Google Sheets document is publicly accessible (anyone with link can view)")
     } else if (metadataTest?.status === 404) {
-      recommendations.push('Check that the Google Sheets ID is correct')
+      recommendations.push("Check that the Google Sheets ID is correct")
     }
   }
   
-  const webTest = tests.find(t => t.name === 'Web Accessibility')
+  const webTest = tests.find(t => t.name === "Web Accessibility")
   if (!webTest?.success) {
-    recommendations.push('Verify the Google Sheets document exists and is accessible')
+    recommendations.push("Verify the Google Sheets document exists and is accessible")
   }
   
   return recommendations

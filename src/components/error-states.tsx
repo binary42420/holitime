@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { 
   AlertTriangle, 
   XCircle, 
@@ -12,7 +12,7 @@ import {
   WifiOff,
   Shield,
   Clock
-} from 'lucide-react'
+} from "lucide-react"
 
 interface ErrorStateProps {
   title?: string
@@ -21,7 +21,7 @@ interface ErrorStateProps {
     label: string
     onClick: () => void
   }
-  type?: 'error' | 'warning' | 'info'
+  type?: "error" | "warning" | "info"
   className?: string
 }
 
@@ -29,28 +29,28 @@ export function ErrorState({
   title = "Something went wrong", 
   description = "An unexpected error occurred. Please try again.",
   action,
-  type = 'error',
-  className = ''
+  type = "error",
+  className = ""
 }: ErrorStateProps) {
   const getIcon = () => {
     switch (type) {
-      case 'warning':
-        return AlertTriangle
-      case 'info':
-        return Clock
-      default:
-        return XCircle
+    case "warning":
+      return AlertTriangle
+    case "info":
+      return Clock
+    default:
+      return XCircle
     }
   }
 
   const getColors = () => {
     switch (type) {
-      case 'warning':
-        return 'text-yellow-600'
-      case 'info':
-        return 'text-blue-600'
-      default:
-        return 'text-red-600'
+    case "warning":
+      return "text-yellow-600"
+    case "info":
+      return "text-blue-600"
+    default:
+      return "text-red-600"
     }
   }
 
@@ -92,7 +92,7 @@ export function NotFoundState({
   description = "The item you're looking for doesn't exist or has been removed.",
   backUrl = "/",
   backLabel = "Go Back",
-  className = ''
+  className = ""
 }: NotFoundStateProps) {
   return (
     <div className={`container mx-auto py-6 ${className}`}>
@@ -126,7 +126,7 @@ interface PermissionDeniedStateProps {
 export function PermissionDeniedState({ 
   title = "Access Denied", 
   description = "You don't have permission to view this content.",
-  className = ''
+  className = ""
 }: PermissionDeniedStateProps) {
   return (
     <div className={`container mx-auto py-6 ${className}`}>
@@ -156,7 +156,7 @@ interface NetworkErrorStateProps {
   className?: string
 }
 
-export function NetworkErrorState({ onRetry, className = '' }: NetworkErrorStateProps) {
+export function NetworkErrorState({ onRetry, className = "" }: NetworkErrorStateProps) {
   return (
     <div className={`container mx-auto py-6 ${className}`}>
       <Card>
@@ -185,24 +185,24 @@ export function NetworkErrorState({ onRetry, className = '' }: NetworkErrorState
 interface InlineErrorProps {
   message: string
   onDismiss?: () => void
-  type?: 'error' | 'warning' | 'info'
+  type?: "error" | "warning" | "info"
   className?: string
 }
 
 export function InlineError({ 
   message, 
   onDismiss, 
-  type = 'error',
-  className = ''
+  type = "error",
+  className = ""
 }: InlineErrorProps) {
   const getVariant = () => {
     switch (type) {
-      case 'warning':
-        return 'default'
-      case 'info':
-        return 'default'
-      default:
-        return 'destructive'
+    case "warning":
+      return "default"
+    case "info":
+      return "default"
+    default:
+      return "destructive"
     }
   }
 
@@ -210,7 +210,7 @@ export function InlineError({
     <Alert variant={getVariant()} className={className}>
       <AlertTriangle className="h-4 w-4" />
       <AlertTitle>
-        {type === 'error' ? 'Error' : type === 'warning' ? 'Warning' : 'Information'}
+        {type === "error" ? "Error" : type === "warning" ? "Warning" : "Information"}
       </AlertTitle>
       <AlertDescription className="flex items-center justify-between">
         <span>{message}</span>
@@ -240,7 +240,7 @@ export function EmptyState({
   description, 
   action,
   icon: Icon = FileX,
-  className = ''
+  className = ""
 }: EmptyStateProps) {
   return (
     <div className={`flex flex-col items-center justify-center py-12 text-center ${className}`}>

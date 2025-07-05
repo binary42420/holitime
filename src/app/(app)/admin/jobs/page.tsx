@@ -3,7 +3,7 @@
 import React from "react"
 
 // Force dynamic rendering to avoid build-time URL issues
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
@@ -34,17 +34,17 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { format } from "date-fns"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function AdminJobsPage() {
   const { user } = useUser()
   const router = useRouter()
-  const { data: jobsData, loading, error } = useApi<{ jobs: any[] }>('/api/jobs')
+  const { data: jobsData, loading, error } = useApi<{ jobs: any[] }>("/api/jobs")
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -52,18 +52,18 @@ function AdminJobsPage() {
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      'Active': 'default',
-      'Completed': 'secondary',
-      'On Hold': 'outline',
-      'Cancelled': 'destructive'
+      "Active": "default",
+      "Completed": "secondary",
+      "On Hold": "outline",
+      "Cancelled": "destructive"
     }
-    return <Badge variant={variants[status] || 'outline'}>{status}</Badge>
+    return <Badge variant={variants[status] || "outline"}>{status}</Badge>
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Admin
         </Button>
@@ -72,10 +72,10 @@ function AdminJobsPage() {
           <p className="text-muted-foreground">Create and manage jobs and projects</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push('/admin/jobs/templates')}>
+          <Button variant="outline" onClick={() => router.push("/admin/jobs/templates")}>
             Job Templates
           </Button>
-          <Button onClick={() => router.push('/admin/jobs/new')}>
+          <Button onClick={() => router.push("/admin/jobs/new")}>
             <Plus className="mr-2 h-4 w-4" />
             Create Job
           </Button>
@@ -99,7 +99,7 @@ function AdminJobsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {jobs.filter(job => job.status === 'Active').length}
+              {jobs.filter(job => job.status === "Active").length}
             </div>
           </CardContent>
         </Card>
@@ -142,7 +142,7 @@ function AdminJobsPage() {
               <p className="text-muted-foreground mb-4">
                 Get started by creating your first job.
               </p>
-              <Button onClick={() => router.push('/admin/jobs/new')}>
+              <Button onClick={() => router.push("/admin/jobs/new")}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Job
               </Button>
@@ -178,7 +178,7 @@ function AdminJobsPage() {
                     <TableCell>{getStatusBadge(job.status)}</TableCell>
                     <TableCell>{job.shiftsCount || 0}</TableCell>
                     <TableCell>
-                      {job.createdAt ? format(new Date(job.createdAt), 'MMM d, yyyy') : 'N/A'}
+                      {job.createdAt ? format(new Date(job.createdAt), "MMM d, yyyy") : "N/A"}
                     </TableCell>
                     <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
@@ -220,4 +220,4 @@ function AdminJobsPage() {
   )
 }
 
-export default withAuth(AdminJobsPage, hasAdminAccess);
+export default withAuth(AdminJobsPage, hasAdminAccess)

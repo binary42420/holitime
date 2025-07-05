@@ -60,22 +60,10 @@ const availableCertifications = [
   "Equipment Operation"
 ]
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
-
 function NewEmployeePage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
-  const [selectedCertifications, setSelectedCertifications] = useState<string[]>([])
-
-  // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
-    return null
-  }
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
@@ -87,6 +75,21 @@ function NewEmployeePage() {
     },
   })
 
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+  const [selectedCertifications, setSelectedCertifications] = useState<string[]>([])
+
+  // Redirect if not admin
+  React.useEffect(() => {
+    if (user && user.role !== "Manager/Admin") {
+      router.push("/dashboard")
+    }
+  }, [user, router])
+
+  if (!user || user.role !== "Manager/Admin") {
+    return null // Or a loading spinner, or a message
+  }
+
   const onSubmit = async (data: EmployeeFormData) => {
     setIsSubmitting(true)
     try {
@@ -96,16 +99,16 @@ function NewEmployeePage() {
         certifications: selectedCertifications,
       }
 
-      const response = await fetch('/api/employees', {
-        method: 'POST',
+      const response = await fetch("/api/employees", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create employee')
+        throw new Error("Failed to create employee")
       }
 
       const result = await response.json()
@@ -115,7 +118,7 @@ function NewEmployeePage() {
         description: "The employee has been added successfully.",
       })
 
-      router.push('/admin/employees')
+      router.push("/admin/employees")
     } catch (error) {
       toast({
         title: "Error",
@@ -146,7 +149,7 @@ function NewEmployeePage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/employees')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin/employees")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Employees
         </Button>
@@ -363,13 +366,13 @@ function NewEmployeePage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/admin/employees')}
+            onClick={() => router.push("/admin/employees")}
           >
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Creating...' : 'Create Employee'}
+            {isSubmitting ? "Creating..." : "Create Employee"}
           </Button>
         </div>
       </form>
@@ -377,4 +380,4 @@ function NewEmployeePage() {
   )
 }
 
-export default withAuth(NewEmployeePage, hasAdminAccess);
+export default withAuth(NewEmployeePage, hasAdminAccess)

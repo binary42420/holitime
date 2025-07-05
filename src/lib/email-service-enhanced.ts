@@ -1,6 +1,6 @@
-import * as nodemailer from 'nodemailer'
-import { google } from 'googleapis'
-import { query } from './db'
+import * as nodemailer from "nodemailer"
+import { google } from "googleapis"
+import { query } from "./db"
 
 export interface EmailRecipient {
   email: string
@@ -37,7 +37,7 @@ export interface EmailQueueItem {
   subject: string
   html_body?: string
   text_body?: string
-  status: 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled'
+  status: "pending" | "sending" | "sent" | "failed" | "cancelled"
   attempts: number
   max_attempts: number
   scheduled_for: Date
@@ -50,9 +50,9 @@ class EnhancedEmailService {
 
   constructor() {
     // Only initialize during runtime, not build time
-    if (typeof window !== 'undefined' || process.env.NODE_ENV === 'production') {
+    if (typeof window !== "undefined" || process.env.NODE_ENV === "production") {
       this.initializeTransporter().catch(error => {
-        console.error('Email service initialization failed:', error)
+        console.error("Email service initialization failed:", error)
       })
     }
   }
@@ -61,25 +61,25 @@ class EnhancedEmailService {
     try {
       // Try Gmail API with Service Account first (most reliable)
       if (process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL && process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY) {
-        console.log('🔧 Initializing Gmail API with Service Account...')
+        console.log("🔧 Initializing Gmail API with Service Account...")
         await this.initializeGmailServiceAccount()
         return
       }
 
       // Try Gmail OAuth 2.0 method
       if (process.env.GMAIL_CLIENT_ID && process.env.GMAIL_REFRESH_TOKEN) {
-        console.log('🔧 Initializing Gmail OAuth 2.0...')
+        console.log("🔧 Initializing Gmail OAuth 2.0...")
         await this.initializeGmailOAuth()
         return
       }
 
       // Fallback to SMTP (App Password or regular SMTP)
-      if (typeof window !== 'undefined' || process.env.NODE_ENV === 'production') {
-        console.log('🔧 Initializing SMTP...')
+      if (typeof window !== "undefined" || process.env.NODE_ENV === "production") {
+        console.log("🔧 Initializing SMTP...")
       }
       this.initializeSMTP()
     } catch (error) {
-      console.error('Failed to initialize email transporter:', error)
+      console.error("Failed to initialize email transporter:", error)
       this.isConfigured = false
     }
   }
@@ -89,28 +89,28 @@ class EnhancedEmailService {
       const auth = new google.auth.JWT(
         process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
         undefined,
-        process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY!.replace(/\\n/g, '\n'),
-        ['https://www.googleapis.com/auth/gmail.send'],
+        process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+        ["https://www.googleapis.com/auth/gmail.send"],
         process.env.GMAIL_USER_EMAIL // Impersonate this user
       )
 
       const accessToken = await auth.getAccessToken()
 
       this.transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: "gmail",
         auth: {
-          type: 'OAuth2',
+          type: "OAuth2",
           user: process.env.GMAIL_USER_EMAIL,
           serviceClient: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-          privateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY!.replace(/\\n/g, '\n'),
-          accessToken: accessToken.token || '',
+          privateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+          accessToken: accessToken.token || "",
         },
       })
 
       this.isConfigured = true
-      console.log('✅ Gmail API with Service Account is ready')
+      console.log("✅ Gmail API with Service Account is ready")
     } catch (error) {
-      console.error('Gmail Service Account setup failed:', error)
+      console.error("Gmail Service Account setup failed:", error)
       throw error
     }
   }
@@ -120,7 +120,7 @@ class EnhancedEmailService {
       const oauth2Client = new google.auth.OAuth2(
         process.env.GMAIL_CLIENT_ID,
         process.env.GMAIL_CLIENT_SECRET,
-        'https://developers.google.com/oauthplayground'
+        "https://developers.google.com/oauthplayground"
       )
 
       oauth2Client.setCredentials({
@@ -130,30 +130,30 @@ class EnhancedEmailService {
       const accessToken = await oauth2Client.getAccessToken()
 
       this.transporter = nodemailer.createTransport({
-        service: 'gmail',
+        service: "gmail",
         auth: {
-          type: 'OAuth2',
+          type: "OAuth2",
           user: process.env.GMAIL_USER_EMAIL,
           clientId: process.env.GMAIL_CLIENT_ID,
           clientSecret: process.env.GMAIL_CLIENT_SECRET,
           refreshToken: process.env.GMAIL_REFRESH_TOKEN,
-          accessToken: accessToken.token || '',
+          accessToken: accessToken.token || "",
         },
       })
 
       this.isConfigured = true
-      console.log('✅ Gmail OAuth 2.0 is ready')
+      console.log("✅ Gmail OAuth 2.0 is ready")
     } catch (error) {
-      console.error('Gmail OAuth setup failed:', error)
+      console.error("Gmail OAuth setup failed:", error)
       throw error
     }
   }
 
   private initializeSMTP() {
     const smtpConfig = {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: process.env.SMTP_PORT === '465',
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: parseInt(process.env.SMTP_PORT || "587"),
+      secure: process.env.SMTP_PORT === "465",
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
@@ -165,8 +165,8 @@ class EnhancedEmailService {
 
     if (!smtpConfig.auth.user || !smtpConfig.auth.pass) {
       // Only warn in production, not during build
-      if (process.env.NODE_ENV === 'production' && typeof window !== 'undefined') {
-        console.warn('SMTP configuration incomplete. Email service will be disabled.')
+      if (process.env.NODE_ENV === "production" && typeof window !== "undefined") {
+        console.warn("SMTP configuration incomplete. Email service will be disabled.")
       }
       return
     }
@@ -177,19 +177,19 @@ class EnhancedEmailService {
     // Verify connection
     this.transporter.verify((error, success) => {
       if (error) {
-        console.error('SMTP connection failed:', error)
-        console.log('💡 Tip: For Gmail, use App Passwords instead of regular password')
-        console.log('💡 Or set up Gmail API with Service Account for better reliability')
+        console.error("SMTP connection failed:", error)
+        console.log("💡 Tip: For Gmail, use App Passwords instead of regular password")
+        console.log("💡 Or set up Gmail API with Service Account for better reliability")
         this.isConfigured = false
       } else {
-        console.log('✅ SMTP server is ready to send emails')
+        console.log("✅ SMTP server is ready to send emails")
       }
     })
   }
 
   async sendEmail(request: SendEmailRequest): Promise<boolean> {
     if (!this.isConfigured) {
-      console.warn('Email service not configured. Skipping email send.')
+      console.warn("Email service not configured. Skipping email send.")
       return false
     }
 
@@ -211,7 +211,7 @@ class EnhancedEmailService {
         request.to.map(async (recipient) => {
           const mailOptions = {
             from: {
-              name: 'HoliTime Workforce Management',
+              name: "HoliTime Workforce Management",
               address: process.env.SMTP_USER!
             },
             to: {
@@ -224,8 +224,8 @@ class EnhancedEmailService {
             html: htmlBody,
             text: textBody,
             headers: {
-              'X-Mailer': 'HoliTime Workforce Management System',
-              'X-Priority': this.getPriorityHeader(request.priority || 5)
+              "X-Mailer": "HoliTime Workforce Management System",
+              "X-Priority": this.getPriorityHeader(request.priority || 5)
             }
           }
 
@@ -234,15 +234,15 @@ class EnhancedEmailService {
       )
 
       // Check if all emails were sent successfully
-      const failures = results.filter(result => result.status === 'rejected')
+      const failures = results.filter(result => result.status === "rejected")
       if (failures.length > 0) {
-        console.error('Some emails failed to send:', failures)
+        console.error("Some emails failed to send:", failures)
         return false
       }
 
       return true
     } catch (error) {
-      console.error('Error sending email:', error)
+      console.error("Error sending email:", error)
       return false
     }
   }
@@ -292,7 +292,7 @@ class EnhancedEmailService {
 
       return queueIds[0] // Return first queue ID
     } catch (error) {
-      console.error('Error queueing email:', error)
+      console.error("Error queueing email:", error)
       return null
     }
   }
@@ -320,7 +320,7 @@ class EnhancedEmailService {
         await this.processSingleQueuedEmail(email)
       }
     } catch (error) {
-      console.error('Error processing email queue:', error)
+      console.error("Error processing email queue:", error)
     }
   }
 
@@ -328,13 +328,13 @@ class EnhancedEmailService {
     try {
       // Update status to sending
       await query(
-        'UPDATE email_queue SET status = $1, attempts = attempts + 1 WHERE id = $2',
-        ['sending', email.id]
+        "UPDATE email_queue SET status = $1, attempts = attempts + 1 WHERE id = $2",
+        ["sending", email.id]
       )
 
       const mailOptions = {
         from: {
-          name: 'HoliTime Workforce Management',
+          name: "HoliTime Workforce Management",
           address: process.env.SMTP_USER!
         },
         to: {
@@ -350,17 +350,17 @@ class EnhancedEmailService {
 
       // Mark as sent
       await query(
-        'UPDATE email_queue SET status = $1, sent_at = CURRENT_TIMESTAMP WHERE id = $2',
-        ['sent', email.id]
+        "UPDATE email_queue SET status = $1, sent_at = CURRENT_TIMESTAMP WHERE id = $2",
+        ["sent", email.id]
       )
 
     } catch (error) {
       console.error(`Error sending queued email ${email.id}:`, error)
 
       // Mark as failed if max attempts reached
-      const newStatus = email.attempts >= email.max_attempts ? 'failed' : 'pending'
+      const newStatus = email.attempts >= email.max_attempts ? "failed" : "pending"
       await query(
-        'UPDATE email_queue SET status = $1, error_message = $2 WHERE id = $3',
+        "UPDATE email_queue SET status = $1, error_message = $2 WHERE id = $3",
         [newStatus, (error as Error).message, email.id]
       )
     }
@@ -385,18 +385,18 @@ class EnhancedEmailService {
   }
 
   private getPriorityHeader(priority: number): string {
-    if (priority <= 2) return '1 (Highest)'
-    if (priority <= 4) return '2 (High)'
-    if (priority <= 6) return '3 (Normal)'
-    if (priority <= 8) return '4 (Low)'
-    return '5 (Lowest)'
+    if (priority <= 2) return "1 (Highest)"
+    if (priority <= 4) return "2 (High)"
+    if (priority <= 6) return "3 (Normal)"
+    if (priority <= 8) return "4 (Low)"
+    return "5 (Lowest)"
   }
 
   // Template management methods
   async getTemplate(name: string): Promise<EmailTemplate | null> {
     try {
       const result = await query(
-        'SELECT * FROM email_templates_enhanced WHERE name = $1 AND is_active = true',
+        "SELECT * FROM email_templates_enhanced WHERE name = $1 AND is_active = true",
         [name]
       )
 
@@ -415,12 +415,12 @@ class EnhancedEmailService {
         variables: row.variables
       }
     } catch (error) {
-      console.error('Error fetching email template:', error)
+      console.error("Error fetching email template:", error)
       return null
     }
   }
 
-  async createTemplate(template: Omit<EmailTemplate, 'id'>): Promise<EmailTemplate | null> {
+  async createTemplate(template: Omit<EmailTemplate, "id">): Promise<EmailTemplate | null> {
     try {
       const insertQuery = `
         INSERT INTO email_templates_enhanced (
@@ -449,20 +449,20 @@ class EnhancedEmailService {
         variables: row.variables
       }
     } catch (error) {
-      console.error('Error creating email template:', error)
+      console.error("Error creating email template:", error)
       return null
     }
   }
 
   // Convenience methods for common email types
   async sendShiftAssignmentEmail(workerEmail: string, workerName: string, shiftData: any, confirmationToken: string): Promise<boolean> {
-    const template = await this.getTemplate('shift_assignment')
+    const template = await this.getTemplate("shift_assignment")
     if (!template) {
-      console.error('Shift assignment email template not found')
+      console.error("Shift assignment email template not found")
       return false
     }
 
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
     const variables = {
       workerName,
       jobName: shiftData.jobName,
@@ -474,7 +474,7 @@ class EnhancedEmailService {
       acceptUrl: `${baseUrl}/api/notifications/shift-response?token=${confirmationToken}&response=accept`,
       declineUrl: `${baseUrl}/api/notifications/shift-response?token=${confirmationToken}&response=decline`,
       confirmUrl: `${baseUrl}/notifications/shift-confirm/${confirmationToken}`,
-      responseDeadline: shiftData.responseDeadline ? new Date(shiftData.responseDeadline).toLocaleDateString() : 'ASAP'
+      responseDeadline: shiftData.responseDeadline ? new Date(shiftData.responseDeadline).toLocaleDateString() : "ASAP"
     }
 
     return await this.sendEmail({
@@ -485,9 +485,9 @@ class EnhancedEmailService {
   }
 
   async sendShiftReminderEmail(workerEmail: string, workerName: string, shiftData: any): Promise<boolean> {
-    const template = await this.getTemplate('shift_reminder')
+    const template = await this.getTemplate("shift_reminder")
     if (!template) {
-      console.error('Shift reminder email template not found')
+      console.error("Shift reminder email template not found")
       return false
     }
 
@@ -514,7 +514,7 @@ export const emailService = new EnhancedEmailService()
 
 // Start email queue processor (runs every 30 seconds)
 // Note: This should be started separately in production
-if (typeof window === 'undefined' && process.env.NODE_ENV === 'production') {
+if (typeof window === "undefined" && process.env.NODE_ENV === "production") {
   setInterval(() => {
     emailService.processEmailQueue()
   }, 30000)

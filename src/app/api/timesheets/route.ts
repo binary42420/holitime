@@ -1,45 +1,45 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getCurrentUser } from '@/lib/middleware';
-import { query } from '@/lib/db';
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
-      );
+      )
     }
 
     // Only crew chiefs and managers can view timesheets
-    if (user.role !== 'Crew Chief' && user.role !== 'Manager/Admin') {
+    if (user.role !== "Crew Chief" && user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
-      );
+      )
     }
 
-    const { searchParams } = new URL(request.url);
-    const shiftId = searchParams.get('shiftId');
+    const { searchParams } = new URL(request.url)
+    const shiftId = searchParams.get("shiftId")
 
-    let whereClause = '';
-    let params: any[] = [];
+    let whereClause = ""
+    let params: any[] = []
 
     if (shiftId) {
       // Filter by specific shift ID
-      whereClause = 'WHERE t.shift_id = $1';
-      params = [shiftId];
+      whereClause = "WHERE t.shift_id = $1"
+      params = [shiftId]
 
       // Additional permission check for crew chiefs
-      if (user.role === 'Crew Chief') {
-        whereClause += ' AND s.crew_chief_id = $2';
-        params.push(user.id);
+      if (user.role === "Crew Chief") {
+        whereClause += " AND s.crew_chief_id = $2"
+        params.push(user.id)
       }
-    } else if (user.role === 'Crew Chief') {
+    } else if (user.role === "Crew Chief") {
       // Crew chiefs can only see timesheets for their shifts
-      whereClause = 'WHERE s.crew_chief_id = $1';
-      params = [user.id];
+      whereClause = "WHERE s.crew_chief_id = $1"
+      params = [user.id]
     }
 
     const result = await query(`
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       ${whereClause}
       ORDER BY s.date DESC, s.start_time DESC
-    `, params);
+    `, params)
 
     const timesheets = result.rows.map(row => ({
       id: row.id,
@@ -75,17 +75,17 @@ export async function GET(request: NextRequest) {
         clientName: row.client_name,
         crewChiefName: row.crew_chief_name,
       }
-    }));
+    }))
 
     return NextResponse.json({
       success: true,
       timesheets,
-    });
+    })
   } catch (error) {
-    console.error('Error getting timesheets:', error);
+    console.error("Error getting timesheets:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
-    );
+    )
   }
 }

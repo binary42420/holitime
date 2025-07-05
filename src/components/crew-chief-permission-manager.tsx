@@ -1,15 +1,15 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { Shield, Plus, Trash2, Users, Crown, Building, Briefcase, ShieldCheck } from 'lucide-react';
-import type { CrewChiefPermission, CrewChiefPermissionType, User } from '@/lib/types';
+import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { useToast } from "@/hooks/use-toast"
+import { Shield, Plus, Trash2, Users, Crown, Building, Briefcase, ShieldCheck } from "lucide-react"
+import type { CrewChiefPermission, CrewChiefPermissionType, User } from "@/lib/types"
 
 interface CrewChiefPermissionManagerProps {
   targetId: string;
@@ -29,160 +29,160 @@ export function CrewChiefPermissionManager({
   targetName, 
   className 
 }: CrewChiefPermissionManagerProps) {
-  const { data: session } = useSession();
-  const { toast } = useToast();
+  const { data: session } = useSession()
+  const { toast } = useToast()
   
-  const [permissions, setPermissions] = useState<PermissionWithUser[]>([]);
-  const [eligibleUsers, setEligibleUsers] = useState<User[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [isGranting, setIsGranting] = useState(false);
+  const [permissions, setPermissions] = useState<PermissionWithUser[]>([])
+  const [eligibleUsers, setEligibleUsers] = useState<User[]>([])
+  const [selectedUserId, setSelectedUserId] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+  const [isGranting, setIsGranting] = useState(false)
 
   // Only show for admins/managers
-  if (session?.user?.role !== 'Manager/Admin') {
-    return null;
+  if (session?.user?.role !== "Manager/Admin") {
+    return null
   }
 
   useEffect(() => {
-    fetchData();
-  }, [targetId, targetType]);
+    fetchData()
+  }, [targetId, targetType])
 
   const fetchData = async () => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
       // Fetch existing permissions for this target
       const permissionsRes = await fetch(
         `/api/crew-chief-permissions?permissionType=${targetType}&targetId=${targetId}`
-      );
+      )
       
       // Fetch eligible users (Employee and Crew Chief roles)
-      const usersRes = await fetch('/api/users');
+      const usersRes = await fetch("/api/users")
       
       if (permissionsRes.ok) {
-        const permissionsData = await permissionsRes.json();
-        setPermissions(permissionsData.permissions || []);
+        const permissionsData = await permissionsRes.json()
+        setPermissions(permissionsData.permissions || [])
       }
       
       if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        const users = usersData.users || [];
+        const usersData = await usersRes.json()
+        const users = usersData.users || []
         const eligible = users.filter((u: User) =>
-          ['Employee', 'Crew Chief'].includes(u.role)
-        );
-        setEligibleUsers(eligible);
+          ["Employee", "Crew Chief"].includes(u.role)
+        )
+        setEligibleUsers(eligible)
       }
     } catch (error) {
-      console.error('Error fetching permission data:', error);
+      console.error("Error fetching permission data:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to load permission data',
-        variant: 'destructive',
-      });
+        title: "Error",
+        description: "Failed to load permission data",
+        variant: "destructive",
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleGrantPermission = async () => {
     if (!selectedUserId) {
       toast({
-        title: 'Error',
-        description: 'Please select a user',
-        variant: 'destructive',
-      });
-      return;
+        title: "Error",
+        description: "Please select a user",
+        variant: "destructive",
+      })
+      return
     }
 
-    setIsGranting(true);
+    setIsGranting(true)
     try {
-      const response = await fetch('/api/crew-chief-permissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/crew-chief-permissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUserId,
           permissionType: targetType,
           targetId: targetId,
         }),
-      });
+      })
 
       if (response.ok) {
         toast({
-          title: 'Success',
-          description: 'Permission granted successfully',
-        });
-        setSelectedUserId('');
-        fetchData(); // Refresh data
+          title: "Success",
+          description: "Permission granted successfully",
+        })
+        setSelectedUserId("")
+        fetchData() // Refresh data
       } else {
-        throw new Error('Failed to grant permission');
+        throw new Error("Failed to grant permission")
       }
     } catch (error) {
-      console.error('Error granting permission:', error);
+      console.error("Error granting permission:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to grant permission',
-        variant: 'destructive',
-      });
+        title: "Error",
+        description: "Failed to grant permission",
+        variant: "destructive",
+      })
     } finally {
-      setIsGranting(false);
+      setIsGranting(false)
     }
-  };
+  }
 
   const handleRevokePermission = async (permission: PermissionWithUser) => {
     try {
       const response = await fetch(
         `/api/crew-chief-permissions?userId=${permission.userId}&permissionType=${permission.permissionType}&targetId=${permission.targetId}`,
-        { method: 'DELETE' }
-      );
+        { method: "DELETE" }
+      )
 
       if (response.ok) {
         toast({
-          title: 'Success',
-          description: 'Permission revoked successfully',
-        });
-        fetchData(); // Refresh data
+          title: "Success",
+          description: "Permission revoked successfully",
+        })
+        fetchData() // Refresh data
       } else {
-        throw new Error('Failed to revoke permission');
+        throw new Error("Failed to revoke permission")
       }
     } catch (error) {
-      console.error('Error revoking permission:', error);
+      console.error("Error revoking permission:", error)
       toast({
-        title: 'Error',
-        description: 'Failed to revoke permission',
-        variant: 'destructive',
-      });
+        title: "Error",
+        description: "Failed to revoke permission",
+        variant: "destructive",
+      })
     }
-  };
+  }
 
   const getTargetIcon = () => {
     switch (targetType) {
-      case 'client':
-        return <Building className="h-4 w-4" />;
-      case 'job':
-        return <Briefcase className="h-4 w-4" />;
-      case 'shift':
-        return <ShieldCheck className="h-4 w-4" />;
-      default:
-        return <Shield className="h-4 w-4" />;
+    case "client":
+      return <Building className="h-4 w-4" />
+    case "job":
+      return <Briefcase className="h-4 w-4" />
+    case "shift":
+      return <ShieldCheck className="h-4 w-4" />
+    default:
+      return <Shield className="h-4 w-4" />
     }
-  };
+  }
 
   const getTargetTypeLabel = () => {
     switch (targetType) {
-      case 'client':
-        return 'Client Company';
-      case 'job':
-        return 'Job';
-      case 'shift':
-        return 'Shift';
-      default:
-        return 'Target';
+    case "client":
+      return "Client Company"
+    case "job":
+      return "Job"
+    case "shift":
+      return "Shift"
+    default:
+      return "Target"
     }
-  };
+  }
 
   // Filter out users who already have permissions
   const availableUsers = eligibleUsers.filter(user => 
     !permissions.some(p => p.userId === user.id)
-  );
+  )
 
   if (isLoading) {
     return (
@@ -194,7 +194,7 @@ export function CrewChiefPermissionManager({
           </div>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
@@ -283,7 +283,7 @@ export function CrewChiefPermissionManager({
                 size="sm"
               >
                 <Plus className="h-4 w-4 mr-1" />
-                {isGranting ? 'Granting...' : 'Grant'}
+                {isGranting ? "Granting..." : "Grant"}
               </Button>
             </div>
           )}
@@ -295,5 +295,5 @@ export function CrewChiefPermissionManager({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

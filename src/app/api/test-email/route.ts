@@ -1,21 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { emailService } from '@/lib/email-service-enhanced'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { emailService } from "@/lib/email-service-enhanced"
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers can test email
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
@@ -25,15 +25,15 @@ export async function POST(request: NextRequest) {
 
     if (!testEmail) {
       return NextResponse.json(
-        { error: 'Test email address is required' },
+        { error: "Test email address is required" },
         { status: 400 }
       )
     }
 
     // Send test email
     const emailSent = await emailService.sendEmail({
-      to: [{ email: testEmail, name: 'Test User' }],
-      subject: 'Test Email - HoliTime Workforce Management',
+      to: [{ email: testEmail, name: "Test User" }],
+      subject: "Test Email - HoliTime Workforce Management",
       htmlBody: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="text-align: center; margin-bottom: 30px;">
@@ -98,7 +98,7 @@ This is a test message.
 
     if (!emailSent) {
       return NextResponse.json({
-        error: 'Failed to send test email. Please check SMTP configuration.',
+        error: "Failed to send test email. Please check SMTP configuration.",
       }, { status: 500 })
     }
 
@@ -107,9 +107,9 @@ This is a test message.
       message: `Test email sent successfully to ${testEmail}`,
     })
   } catch (error) {
-    console.error('Error sending test email:', error)
+    console.error("Error sending test email:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

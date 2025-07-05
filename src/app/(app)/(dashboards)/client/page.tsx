@@ -1,11 +1,11 @@
-'use client';
+"use client"
 
-import { useUser } from '@/hooks/use-user';
-import { useApi } from '@/hooks/use-api';
-import type { Job, Shift, ClientCompany } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useUser } from "@/hooks/use-user"
+import { useApi } from "@/hooks/use-api"
+import type { Job, Shift, ClientCompany } from "@/lib/types"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Calendar,
   Users,
@@ -15,47 +15,47 @@ import {
   ClipboardCheck,
   User,
   Building2
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+} from "lucide-react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 
 export default function ClientDashboard() {
-  const { user } = useUser();
-  const router = useRouter();
+  const { user } = useUser()
+  const router = useRouter()
 
   const { data: shiftsData, loading: shiftsLoading } = useApi<{ shifts: Shift[] }>(
-    `/api/shifts?clientId=${user?.clientCompanyId || ''}`
-  );
+    `/api/shifts?clientId=${user?.clientCompanyId || ""}`
+  )
 
   const { data: jobsData, loading: jobsLoading } = useApi<{ jobs: Job[] }>(
-    `/api/clients/${user?.clientCompanyId || ''}/jobs`
-  );
+    `/api/clients/${user?.clientCompanyId || ""}/jobs`
+  )
 
   if (shiftsLoading || jobsLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>
   }
 
-  const shifts: Shift[] = shiftsData?.shifts || [];
-  const jobs: Job[] = jobsData?.jobs || [];
-  const upcomingShifts = shifts.filter((shift: Shift) => shift.status === 'Upcoming');
-  const completedShifts = shifts.filter((shift: Shift) => shift.status === 'Completed');
+  const shifts: Shift[] = shiftsData?.shifts || []
+  const jobs: Job[] = jobsData?.jobs || []
+  const upcomingShifts = shifts.filter((shift: Shift) => shift.status === "Upcoming")
+  const completedShifts = shifts.filter((shift: Shift) => shift.status === "Completed")
 
   return (
     <div className="space-y-4 md:space-y-6">
       {/* Mobile-First Header */}
       <div className="space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold font-headline">
-          Welcome, {user?.name?.split(' ')[0]}! 🏢
+          Welcome, {user?.name?.split(" ")[0]}! 🏢
         </h1>
         <p className="text-sm md:text-base text-muted-foreground font-medium">
-          {user?.companyName || ''}
+          {user?.companyName || ""}
         </p>
         <p className="text-xs md:text-sm text-muted-foreground">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+          {new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
           })}
         </p>
       </div>
@@ -65,7 +65,7 @@ export default function ClientDashboard() {
         <Card className="card-mobile">
           <CardContent className="pt-4 text-center">
             <div className="text-2xl md:text-3xl font-bold text-blue-600">
-              {jobs.filter((job: Job) => job.status === 'Active').length}
+              {jobs.filter((job: Job) => job.status === "Active").length}
             </div>
             <p className="text-xs md:text-sm text-muted-foreground">Active Jobs</p>
           </CardContent>
@@ -111,7 +111,7 @@ export default function ClientDashboard() {
                       </div>
                     </div>
                     <Badge
-                      variant={job.status === 'Active' ? 'default' : 'secondary'}
+                      variant={job.status === "Active" ? "default" : "secondary"}
                       className="text-xs"
                     >
                       {job.status}
@@ -125,6 +125,13 @@ export default function ClientDashboard() {
                 </CardContent>
               </Card>
             ))}
+            {jobs.length > 5 && (
+              <Button size="mobile" variant="outline" className="w-full" asChild>
+                <Link href="/jobs">
+                  View All Jobs
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
       )}
@@ -225,5 +232,5 @@ export default function ClientDashboard() {
         </Card>
       )}
     </div>
-  );
+  )
 }

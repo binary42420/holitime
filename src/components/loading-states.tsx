@@ -1,6 +1,6 @@
 "use client"
 
-import React from 'react'
+import React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
@@ -236,15 +236,15 @@ export function ProgressIndicator({
           <div key={index} className="flex items-center gap-3">
             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
               index < currentStep 
-                ? 'bg-green-100 text-green-800' 
+                ? "bg-green-100 text-green-800" 
                 : index === currentStep 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-gray-100 text-gray-500'
+                  ? "bg-blue-100 text-blue-800" 
+                  : "bg-gray-100 text-gray-500"
             }`}>
-              {index < currentStep ? '✓' : index + 1}
+              {index < currentStep ? "✓" : index + 1}
             </div>
             <span className={`text-sm ${
-              index <= currentStep ? 'text-gray-900' : 'text-gray-500'
+              index <= currentStep ? "text-gray-900" : "text-gray-500"
             }`}>
               {step}
             </span>

@@ -1,6 +1,6 @@
-import { Pool, PoolClient, QueryResult } from 'pg';
+import { Pool, PoolClient, QueryResult } from "pg"
 
-let pool: Pool | null = null;
+let pool: Pool | null = null
 let poolStats = {
   totalQueries: 0,
   successfulQueries: 0,
@@ -9,13 +9,13 @@ let poolStats = {
   connectionErrors: 0,
   lastError: null as string | null,
   lastErrorTime: null as Date | null
-};
+}
 
 interface QueryOptions {
   timeout?: number;
   retries?: number;
   useReadReplica?: boolean;
-  priority?: 'low' | 'normal' | 'high';
+  priority?: "low" | "normal" | "high";
 }
 
 interface QueryMetrics {
@@ -28,25 +28,25 @@ interface QueryMetrics {
 
 export function getPool(): Pool {
   if (!pool) {
-    const connectionString = process.env.DATABASE_URL;
+    const connectionString = process.env.DATABASE_URL
     if (!connectionString) {
-      throw new Error('DATABASE_URL environment variable is not set');
+      throw new Error("DATABASE_URL environment variable is not set")
     }
 
     // SSL configuration for Aiven and other cloud databases
-    let sslConfig: any = false;
+    let sslConfig: any = false
 
-    if (connectionString.includes('sslmode=require')) {
+    if (connectionString.includes("sslmode=require")) {
       // For Aiven and other cloud providers that use self-signed certificates
-      if (connectionString.includes('aivencloud.com') || process.env.DATABASE_PROVIDER === 'aiven') {
+      if (connectionString.includes("aivencloud.com") || process.env.DATABASE_PROVIDER === "aiven") {
         sslConfig = {
           rejectUnauthorized: false, // Allow self-signed certificates for Aiven
-        };
+        }
       } else {
         sslConfig = {
-          rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0',
+          rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== "0",
           ca: process.env.DATABASE_CA_CERT, // Use proper CA certificate if available
-        };
+        }
       }
     }
 
@@ -54,7 +54,7 @@ export function getPool(): Pool {
     pool = new Pool({
       connectionString,
       ssl: sslConfig,
-      max: process.env.NODE_ENV === 'production' ? 8 : 5, // Reduced for better resource management
+      max: process.env.NODE_ENV === "production" ? 8 : 5, // Reduced for better resource management
       min: 0, // No minimum connections to allow pool to scale down
       idleTimeoutMillis: 15000, // 15 seconds idle timeout (reduced for faster cleanup)
       connectionTimeoutMillis: 8000, // 8 seconds connection timeout
@@ -65,26 +65,26 @@ export function getPool(): Pool {
       keepAliveInitialDelayMillis: 3000, // Reduced initial delay
       allowExitOnIdle: true, // Allow pool to exit when idle
       // Application identification
-      application_name: 'holitime-app'
-    });
+      application_name: "holitime-app"
+    })
 
     // Enhanced error handling with metrics
-    pool.on('error', (err: Error) => {
-      console.error('Unexpected error on idle user session', err);
-      poolStats.connectionErrors++;
-      poolStats.lastError = err.message;
-      poolStats.lastErrorTime = new Date();
-    });
+    pool.on("error", (err: Error) => {
+      console.error("Unexpected error on idle user session", err)
+      poolStats.connectionErrors++
+      poolStats.lastError = err.message
+      poolStats.lastErrorTime = new Date()
+    })
 
-    pool.on('connect', () => {
-      console.log('New user connected to database');
-    });
+    pool.on("connect", () => {
+      console.log("New user connected to database")
+    })
 
-    pool.on('remove', (_client: PoolClient) => {
-      console.log('User removed from pool');
-    });
+    pool.on("remove", (_client: PoolClient) => {
+      console.log("User removed from pool")
+    })
   }
-  return pool;
+  return pool
 }
 
 // Enhanced query function with metrics and caching
@@ -93,15 +93,15 @@ export async function query(
   params?: any[], 
   options: QueryOptions = {}
 ): Promise<QueryResult> {
-  if (!text || typeof text !== 'string') {
-    throw new Error('Query text must be a non-empty string');
+  if (!text || typeof text !== "string") {
+    throw new Error("Query text must be a non-empty string")
   }
 
   // Validate parameters to prevent injection
   if (params) {
     for (const param of params) {
-      if (param !== null && param !== undefined && typeof param === 'object' && !Array.isArray(param) && !(param instanceof Date)) {
-        throw new Error('Invalid parameter type - objects not allowed');
+      if (param !== null && param !== undefined && typeof param === "object" && !Array.isArray(param) && !(param instanceof Date)) {
+        throw new Error("Invalid parameter type - objects not allowed")
       }
     }
   }
@@ -109,111 +109,111 @@ export async function query(
   const metrics: QueryMetrics = {
     startTime: Date.now(),
     success: false
-  };
+  }
 
-  poolStats.totalQueries++;
+  poolStats.totalQueries++
 
-  const pool = getPool();
-  let client: PoolClient | null = null;
-  const maxRetries = options.retries || 2;
-  let lastError: Error | null = null;
+  const pool = getPool()
+  let client: PoolClient | null = null
+  const maxRetries = options.retries || 2
+  let lastError: Error | null = null
 
   // Retry logic for connection failures
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      client = await pool.connect();
-      break; // Success, exit retry loop
+      client = await pool.connect()
+      break // Success, exit retry loop
     } catch (error: any) {
-      lastError = error;
+      lastError = error
 
       // Check if this is a connection-related error that we should retry
-      const isRetryableError = error.code === '53300' || // too many connections
-                              error.code === 'ECONNREFUSED' ||
-                              error.code === 'ENOTFOUND' ||
-                              error.code === 'ETIMEDOUT' ||
-                              error.message?.includes('timeout') ||
-                              error.message?.includes('connection');
+      const isRetryableError = error.code === "53300" || // too many connections
+                              error.code === "ECONNREFUSED" ||
+                              error.code === "ENOTFOUND" ||
+                              error.code === "ETIMEDOUT" ||
+                              error.message?.includes("timeout") ||
+                              error.message?.includes("connection")
 
       if (!isRetryableError || attempt === maxRetries) {
-        throw error; // Not retryable or max retries reached
+        throw error // Not retryable or max retries reached
       }
 
       // Wait before retrying (exponential backoff)
-      const delay = Math.min(1000 * Math.pow(2, attempt), 5000);
-      console.warn(`Database connection attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      const delay = Math.min(1000 * Math.pow(2, attempt), 5000)
+      console.warn(`Database connection attempt ${attempt + 1} failed, retrying in ${delay}ms...`)
+      await new Promise(resolve => setTimeout(resolve, delay))
     }
   }
 
   if (!client) {
-    throw lastError || new Error('Failed to acquire database connection');
+    throw lastError || new Error("Failed to acquire database connection")
   }
 
   try {
     
     // Set statement timeout if specified
     if (options.timeout) {
-      await client.query(`SET statement_timeout = ${options.timeout}`);
+      await client.query(`SET statement_timeout = ${options.timeout}`)
     }
 
     // Set query priority if specified
-    if (options.priority === 'low') {
-      await client.query('SET statement_timeout = 120000'); // 2 minutes for low priority
-    } else if (options.priority === 'high') {
-      await client.query('SET statement_timeout = 30000'); // 30 seconds for high priority
+    if (options.priority === "low") {
+      await client.query("SET statement_timeout = 120000") // 2 minutes for low priority
+    } else if (options.priority === "high") {
+      await client.query("SET statement_timeout = 30000") // 30 seconds for high priority
     }
 
-    const result = await client.query(text, params);
+    const result = await client.query(text, params)
     
-    metrics.endTime = Date.now();
-    metrics.duration = metrics.endTime - metrics.startTime;
-    metrics.success = true;
+    metrics.endTime = Date.now()
+    metrics.duration = metrics.endTime - metrics.startTime
+    metrics.success = true
     
     // Update stats
-    poolStats.successfulQueries++;
-    updateAverageQueryTime(metrics.duration);
+    poolStats.successfulQueries++
+    updateAverageQueryTime(metrics.duration)
     
     // Log slow queries in production
-    if (process.env.NODE_ENV === 'production' && metrics.duration > 5000) {
-      console.warn('Slow query detected:', {
-        query: text.substring(0, 200) + '...',
+    if (process.env.NODE_ENV === "production" && metrics.duration > 5000) {
+      console.warn("Slow query detected:", {
+        query: text.substring(0, 200) + "...",
         duration: metrics.duration,
         params: params ? params.length : 0
-      });
+      })
     }
 
-    return result;
+    return result
   } catch (error) {
-    metrics.endTime = Date.now();
-    metrics.duration = metrics.endTime - metrics.startTime;
-    metrics.error = error instanceof Error ? error.message : 'Unknown error';
+    metrics.endTime = Date.now()
+    metrics.duration = metrics.endTime - metrics.startTime
+    metrics.error = error instanceof Error ? error.message : "Unknown error"
     
-    poolStats.failedQueries++;
-    poolStats.lastError = metrics.error;
-    poolStats.lastErrorTime = new Date();
+    poolStats.failedQueries++
+    poolStats.lastError = metrics.error
+    poolStats.lastErrorTime = new Date()
     
-    console.error('Database query error:', {
-      query: text.substring(0, 100) + '...',
+    console.error("Database query error:", {
+      query: text.substring(0, 100) + "...",
       error: metrics.error,
       duration: metrics.duration,
       params: params ? params.length : 0,
       poolStats: getPoolStats()
-    });
-    throw error;
+    })
+    throw error
   } finally {
     if (client) {
-      client.release();
+      client.release()
     }
   }
 }
 
 // Helper function to update average query time
 function updateAverageQueryTime(duration: number): void {
-  const totalQueries = poolStats.successfulQueries;
+  const totalQueries = poolStats.successfulQueries
   if (totalQueries === 1) {
-    poolStats.averageQueryTime = duration;
+    poolStats.averageQueryTime = duration
   } else {
-    poolStats.averageQueryTime = (poolStats.averageQueryTime * (totalQueries - 1) + duration) / totalQueries;
+    poolStats.averageQueryTime = (poolStats.averageQueryTime * (totalQueries - 1) + duration) / totalQueries
   }
 }
 
@@ -226,23 +226,23 @@ export async function cachedQuery(
   options: QueryOptions = {}
 ): Promise<QueryResult> {
   // Import cache here to avoid circular dependency
-  const { globalCache } = await import('./cache');
+  const { globalCache } = await import("./cache")
   
   if (cacheKey) {
-    const cached = globalCache.get<QueryResult>(cacheKey);
+    const cached = globalCache.get<QueryResult>(cacheKey)
     if (cached && !cached.isStale) {
-      return cached.data;
+      return cached.data
     }
   }
 
-  const result = await query(text, params, options);
+  const result = await query(text, params, options)
   
   if (cacheKey) {
-    const { globalCache } = await import('./cache');
-    globalCache.set(cacheKey, result, cacheTime, ['database']);
+    const { globalCache } = await import("./cache")
+    globalCache.set(cacheKey, result, cacheTime, ["database"])
   }
 
-  return result;
+  return result
 }
 
 // Batch query function for multiple operations
@@ -252,22 +252,22 @@ export async function batchQuery(
 ): Promise<QueryResult[]> {
   if (useTransaction) {
     return withTransaction(async (client) => {
-      const results: QueryResult[] = [];
+      const results: QueryResult[] = []
       for (const { text, params, options = {} } of queries) {
         // Set timeout if specified
         if (options.timeout) {
-          await client.query(`SET statement_timeout = ${options.timeout}`);
+          await client.query(`SET statement_timeout = ${options.timeout}`)
         }
-        const result = await client.query(text, params);
-        results.push(result);
+        const result = await client.query(text, params)
+        results.push(result)
       }
-      return results;
-    });
+      return results
+    })
   } else {
     const promises = queries.map(({ text, params, options }) => 
       query(text, params, options)
-    );
-    return Promise.all(promises);
+    )
+    return Promise.all(promises)
   }
 }
 
@@ -275,33 +275,33 @@ export async function batchQuery(
 export async function withTransaction<T>(
   callback: (client: PoolClient) => Promise<T>
 ): Promise<T> {
-  const pool = getPool();
-  const client = await pool.connect();
+  const pool = getPool()
+  const client = await pool.connect()
   
   try {
-    await client.query('BEGIN');
-    const result = await callback(client);
-    await client.query('COMMIT');
-    return result;
+    await client.query("BEGIN")
+    const result = await callback(client)
+    await client.query("COMMIT")
+    return result
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Transaction rolled back:', error);
-    throw error;
+    await client.query("ROLLBACK")
+    console.error("Transaction rolled back:", error)
+    throw error
   } finally {
-    client.release();
+    client.release()
   }
 }
 
 export async function getClient(): Promise<PoolClient> {
-  const pool = getPool();
-  return await pool.connect();
+  const pool = getPool()
+  return await pool.connect()
 }
 
 // Helper function to close the pool (useful for testing or graceful shutdown)
 export async function closePool(): Promise<void> {
   if (pool) {
-    await pool.end();
-    pool = null;
+    await pool.end()
+    pool = null
   }
 }
 
@@ -309,7 +309,7 @@ export async function closePool(): Promise<void> {
 // Enhanced pool statistics for monitoring
 export function getPoolStats() {
   if (!pool) {
-    return null;
+    return null
   }
 
   return {
@@ -323,7 +323,7 @@ export function getPoolStats() {
     successfulQueries: poolStats.successfulQueries,
     failedQueries: poolStats.failedQueries,
     successRate: poolStats.totalQueries > 0 ? 
-      (poolStats.successfulQueries / poolStats.totalQueries * 100).toFixed(2) + '%' : '0%',
+      (poolStats.successfulQueries / poolStats.totalQueries * 100).toFixed(2) + "%" : "0%",
     averageQueryTime: Math.round(poolStats.averageQueryTime),
     
     // Error tracking
@@ -335,25 +335,25 @@ export function getPoolStats() {
     isHealthy: poolStats.connectionErrors < 5 && 
                (poolStats.totalQueries === 0 || poolStats.successfulQueries / poolStats.totalQueries > 0.95),
     uptime: pool ? Date.now() - (poolStats.lastErrorTime?.getTime() || Date.now()) : 0
-  };
+  }
 }
 
 // Reset pool if it's in a bad state
 export async function resetPoolIfNeeded() {
   if (pool) {
-    const stats = getPoolStats();
+    const stats = getPoolStats()
 
     // Reset if too many connection errors or if pool is unhealthy
     if (stats && (stats.connectionErrors > 10 || (!stats.isHealthy && stats.totalQueries > 20))) {
-      console.warn('Resetting database pool due to poor health:', stats);
+      console.warn("Resetting database pool due to poor health:", stats)
 
       try {
-        await pool.end();
+        await pool.end()
       } catch (error) {
-        console.error('Error ending pool:', error);
+        console.error("Error ending pool:", error)
       }
 
-      pool = null;
+      pool = null
 
       // Reset stats
       poolStats = {
@@ -364,9 +364,9 @@ export async function resetPoolIfNeeded() {
         connectionErrors: 0,
         lastError: null,
         lastErrorTime: null
-      };
+      }
 
-      console.log('Database pool reset successfully');
+      console.log("Database pool reset successfully")
     }
   }
 }
@@ -382,40 +382,40 @@ export async function checkDatabaseHealth(): Promise<{
     error?: string;
   };
 }> {
-  const startTime = Date.now();
+  const startTime = Date.now()
   const details = {
     connectionTest: false,
     queryTest: false,
     poolStatus: getPoolStats(),
     responseTime: 0,
     error: undefined as string | undefined
-  };
+  }
 
   try {
     // Test basic connection
-    const pool = getPool();
-    const client = await pool.connect();
-    details.connectionTest = true;
+    const pool = getPool()
+    const client = await pool.connect()
+    details.connectionTest = true
     
     try {
       // Test query execution
-      const result = await client.query('SELECT 1 as health_check, NOW() as server_time');
-      details.queryTest = result.rows.length > 0 && result.rows[0].health_check === 1;
-      client.release();
+      const result = await client.query("SELECT 1 as health_check, NOW() as server_time")
+      details.queryTest = result.rows.length > 0 && result.rows[0].health_check === 1
+      client.release()
     } catch (queryError) {
-      client.release();
-      details.error = `Query test failed: ${queryError instanceof Error ? queryError.message : 'Unknown error'}`;
+      client.release()
+      details.error = `Query test failed: ${queryError instanceof Error ? queryError.message : "Unknown error"}`
     }
   } catch (connectionError) {
-    details.error = `Connection test failed: ${connectionError instanceof Error ? connectionError.message : 'Unknown error'}`;
+    details.error = `Connection test failed: ${connectionError instanceof Error ? connectionError.message : "Unknown error"}`
   }
 
-  details.responseTime = Date.now() - startTime;
+  details.responseTime = Date.now() - startTime
   
   return {
     healthy: details.connectionTest && details.queryTest,
     details
-  };
+  }
 }
 
 // Database performance monitoring
@@ -435,30 +435,30 @@ export async function getDatabaseMetrics(): Promise<{
   };
   recommendations: string[];
 }> {
-  const stats = getPoolStats();
-  const health = await checkDatabaseHealth();
+  const stats = getPoolStats()
+  const health = await checkDatabaseHealth()
   
-  const recommendations: string[] = [];
+  const recommendations: string[] = []
   
   if (stats) {
     // Performance recommendations
     if (stats.averageQueryTime > 1000) {
-      recommendations.push('Consider optimizing slow queries or adding database indexes');
+      recommendations.push("Consider optimizing slow queries or adding database indexes")
     }
     
     if (stats.waitingCount > 0) {
-      recommendations.push('Consider increasing database connection pool size');
+      recommendations.push("Consider increasing database connection pool size")
     }
     
     if (stats.connectionErrors > 3) {
-      recommendations.push('Investigate connection stability issues');
+      recommendations.push("Investigate connection stability issues")
     }
     
     const errorRate = stats.totalQueries > 0 ? 
-      (stats.failedQueries / stats.totalQueries) * 100 : 0;
+      (stats.failedQueries / stats.totalQueries) * 100 : 0
     
     if (errorRate > 5) {
-      recommendations.push('High error rate detected - review query patterns and error logs');
+      recommendations.push("High error rate detected - review query patterns and error logs")
     }
   }
 
@@ -477,7 +477,7 @@ export async function getDatabaseMetrics(): Promise<{
       lastErrorTime: stats?.lastErrorTime || undefined
     },
     recommendations
-  };
+  }
 }
 
 // Reset statistics (useful for testing or monitoring resets)
@@ -490,37 +490,37 @@ export function resetPoolStats(): void {
     connectionErrors: 0,
     lastError: null,
     lastErrorTime: null
-  };
+  }
 }
 
 // Graceful shutdown function for Cloud Run
 export async function gracefulShutdown(): Promise<void> {
-  console.log('Starting graceful database shutdown...');
+  console.log("Starting graceful database shutdown...")
   
   if (pool) {
     try {
       // Wait for active queries to complete (with timeout)
-      const shutdownTimeout = 30000; // 30 seconds
-      const startTime = Date.now();
+      const shutdownTimeout = 30000 // 30 seconds
+      const startTime = Date.now()
       
       while (pool.totalCount > pool.idleCount && Date.now() - startTime < shutdownTimeout) {
-        console.log(`Waiting for ${pool.totalCount - pool.idleCount} active connections to finish...`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        console.log(`Waiting for ${pool.totalCount - pool.idleCount} active connections to finish...`)
+        await new Promise(resolve => setTimeout(resolve, 1000))
       }
       
-      await pool.end();
-      pool = null;
-      console.log('Database pool closed successfully');
+      await pool.end()
+      pool = null
+      console.log("Database pool closed successfully")
     } catch (error) {
-      console.error('Error during database shutdown:', error);
+      console.error("Error during database shutdown:", error)
     }
   }
 }
 
 // Handle Cloud Run shutdown signals
-if (typeof process !== 'undefined') {
-  process.on('SIGTERM', gracefulShutdown);
-  process.on('SIGINT', gracefulShutdown);
+if (typeof process !== "undefined") {
+  process.on("SIGTERM", gracefulShutdown)
+  process.on("SIGINT", gracefulShutdown)
 }
 
 

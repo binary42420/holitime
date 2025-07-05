@@ -24,28 +24,28 @@ export default function PendingTimesheetsPage() {
   const { user } = useUser()
   const router = useRouter()
   
-  const { data: timesheetsData, loading, error } = useApi<{ timesheets: any[] }>('/api/timesheets/pending')
+  const { data: timesheetsData, loading, error } = useApi<{ timesheets: any[] }>("/api/timesheets/pending")
 
   const timesheets = timesheetsData?.timesheets || []
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending_client_approval':
-        return <Badge variant="destructive"><AlertCircle className="mr-1 h-3 w-3" />Pending Your Approval</Badge>
-      case 'pending_manager_approval':
-        return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />Pending Manager Approval</Badge>
-      case 'completed':
-        return <Badge variant="default"><CheckCircle className="mr-1 h-3 w-3" />Completed</Badge>
-      default:
-        return <Badge variant="outline">{status}</Badge>
+    case "pending_client_approval":
+      return <Badge variant="destructive"><AlertCircle className="mr-1 h-3 w-3" />Pending Your Approval</Badge>
+    case "pending_manager_approval":
+      return <Badge variant="secondary"><Clock className="mr-1 h-3 w-3" />Pending Manager Approval</Badge>
+    case "completed":
+      return <Badge variant="default"><CheckCircle className="mr-1 h-3 w-3" />Completed</Badge>
+    default:
+      return <Badge variant="outline">{status}</Badge>
     }
   }
 
   const getUserSpecificTimesheets = () => {
-    if (user?.role === 'Client') {
-      return timesheets.filter(t => t.status === 'pending_client_approval')
-    } else if (user?.role === 'Manager/Admin') {
-      return timesheets.filter(t => t.status === 'pending_manager_approval')
+    if (user?.role === "Client") {
+      return timesheets.filter(t => t.status === "pending_client_approval")
+    } else if (user?.role === "Manager/Admin") {
+      return timesheets.filter(t => t.status === "pending_manager_approval")
     }
     return timesheets
   }
@@ -73,12 +73,12 @@ export default function PendingTimesheetsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-headline">
-            {user?.role === 'Client' ? 'Timesheets Awaiting Your Approval' : 'Pending Timesheets'}
+            {user?.role === "Client" ? "Timesheets Awaiting Your Approval" : "Pending Timesheets"}
           </h1>
           <p className="text-muted-foreground">
-            {user?.role === 'Client' 
-              ? 'Review and approve timesheets for your projects'
-              : 'Manage timesheet approvals and reviews'
+            {user?.role === "Client" 
+              ? "Review and approve timesheets for your projects"
+              : "Manage timesheet approvals and reviews"
             }
           </p>
         </div>
@@ -88,10 +88,10 @@ export default function PendingTimesheetsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            {user?.role === 'Client' ? 'Awaiting Your Approval' : 'All Pending Timesheets'}
+            {user?.role === "Client" ? "Awaiting Your Approval" : "All Pending Timesheets"}
           </CardTitle>
           <CardDescription>
-            {filteredTimesheets.length} timesheet{filteredTimesheets.length !== 1 ? 's' : ''} requiring attention
+            {filteredTimesheets.length} timesheet{filteredTimesheets.length !== 1 ? "s" : ""} requiring attention
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -100,9 +100,9 @@ export default function PendingTimesheetsPage() {
               <FileText className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Pending Timesheets</h3>
               <p className="text-muted-foreground">
-                {user?.role === 'Client' 
-                  ? 'There are no timesheets waiting for your approval at this time.'
-                  : 'All timesheets are up to date.'
+                {user?.role === "Client" 
+                  ? "There are no timesheets waiting for your approval at this time."
+                  : "All timesheets are up to date."
                 }
               </p>
             </div>
@@ -126,7 +126,7 @@ export default function PendingTimesheetsPage() {
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        {format(new Date(timesheet.shiftDate), 'MMM d, yyyy')}
+                        {format(new Date(timesheet.shiftDate), "MMM d, yyyy")}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -150,9 +150,9 @@ export default function PendingTimesheetsPage() {
                     <TableCell>{getStatusBadge(timesheet.status)}</TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        <div>{format(new Date(timesheet.submittedAt), 'MMM d, yyyy')}</div>
+                        <div>{format(new Date(timesheet.submittedAt), "MMM d, yyyy")}</div>
                         <div className="text-muted-foreground">
-                          {format(new Date(timesheet.submittedAt), 'h:mm a')}
+                          {format(new Date(timesheet.submittedAt), "h:mm a")}
                         </div>
                       </div>
                     </TableCell>

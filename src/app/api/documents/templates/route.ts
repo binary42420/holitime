@@ -1,34 +1,34 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/middleware'
-import { query } from '@/lib/db'
-import { globalCache } from '@/lib/cache'
-import { DocumentTemplate, DocumentTemplateFilters, CreateDocumentTemplateRequest } from '@/types/documents'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import { globalCache } from "@/lib/cache"
+import { DocumentTemplate, DocumentTemplateFilters, CreateDocumentTemplateRequest } from "@/types/documents"
+import { writeFile, mkdir } from "fs/promises"
+import path from "path"
 
 export async function GET(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     const { searchParams } = new URL(request.url)
     const filters: DocumentTemplateFilters = {
-      document_type: searchParams.get('document_type')?.split(',') as any,
-      category_id: searchParams.get('category_id')?.split(',').map(Number),
-      applicable_roles: searchParams.get('applicable_roles')?.split(','),
-      is_active: searchParams.get('is_active') === 'true',
-      is_required: searchParams.get('is_required') === 'true',
-      auto_assign_new_users: searchParams.get('auto_assign_new_users') === 'true',
-      search: searchParams.get('search') || undefined,
-      page: parseInt(searchParams.get('page') || '1'),
-      limit: parseInt(searchParams.get('limit') || '50'),
-      sort_by: searchParams.get('sort_by') || 'name',
-      sort_order: (searchParams.get('sort_order') as 'asc' | 'desc') || 'asc'
+      document_type: searchParams.get("document_type")?.split(",") as any,
+      category_id: searchParams.get("category_id")?.split(",").map(Number),
+      applicable_roles: searchParams.get("applicable_roles")?.split(","),
+      is_active: searchParams.get("is_active") === "true",
+      is_required: searchParams.get("is_required") === "true",
+      auto_assign_new_users: searchParams.get("auto_assign_new_users") === "true",
+      search: searchParams.get("search") || undefined,
+      page: parseInt(searchParams.get("page") || "1"),
+      limit: parseInt(searchParams.get("limit") || "50"),
+      sort_by: searchParams.get("sort_by") || "name",
+      sort_order: (searchParams.get("sort_order") as "asc" | "desc") || "asc"
     }
 
     // Build cache key
@@ -39,60 +39,68 @@ export async function GET(request: NextRequest) {
     if (cached) {
       return NextResponse.json(cached.data)
     }
+  } catch (error) {
+    console.error("Error fetching document templates:", error)
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    )
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser(request)
     if (!user) {
       return NextResponse.json(
-        { error: 'Authentication required' },
+        { error: "Authentication required" },
         { status: 401 }
       )
     }
 
     // Only managers and admins can create templates
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== "Manager/Admin") {
       return NextResponse.json(
-        { error: 'Insufficient permissions' },
+        { error: "Insufficient permissions" },
         { status: 403 }
       )
     }
 
     const formData = await request.formData()
-    const file = formData.get('file') as File
+    const file = formData.get("file") as File
     const templateData: CreateDocumentTemplateRequest = {
-      name: formData.get('name') as string,
-      description: formData.get('description') as string || undefined,
-      document_type: formData.get('document_type') as any,
-      applicable_roles: JSON.parse(formData.get('applicable_roles') as string),
-      is_required: formData.get('is_required') === 'true',
-      expiration_days: formData.get('expiration_days') ? parseInt(formData.get('expiration_days') as string) : undefined,
-      auto_assign_new_users: formData.get('auto_assign_new_users') === 'true',
-      conditional_logic: formData.get('conditional_logic') ? JSON.parse(formData.get('conditional_logic') as string) : undefined,
-      category_id: formData.get('category_id') ? parseInt(formData.get('category_id') as string) : undefined
+      name: formData.get("name") as string,
+      description: formData.get("description") as string || undefined,
+      document_type: formData.get("document_type") as any,
+      applicable_roles: JSON.parse(formData.get("applicable_roles") as string),
+      is_required: formData.get("is_required") === "true",
+      expiration_days: formData.get("expiration_days") ? parseInt(formData.get("expiration_days") as string) : undefined,
+      auto_assign_new_users: formData.get("auto_assign_new_users") === "true",
+      conditional_logic: formData.get("conditional_logic") ? JSON.parse(formData.get("conditional_logic") as string) : undefined,
+      category_id: formData.get("category_id") ? parseInt(formData.get("category_id") as string) : undefined
     }
 
     // Validate required fields
     if (!templateData.name || !templateData.document_type || !templateData.applicable_roles?.length) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       )
     }
 
     // Handle file upload
-    let filePath = ''
+    let filePath = ""
     let fileSize = 0
-    let mimeType = 'application/pdf'
+    let mimeType = "application/pdf"
 
     if (file) {
       // Create uploads directory if it doesn't exist
-      const uploadsDir = path.join(process.cwd(), 'uploads', 'document-templates')
+      const uploadsDir = path.join(process.cwd(), "uploads", "document-templates")
       await mkdir(uploadsDir, { recursive: true })
 
       // Generate unique filename
       const timestamp = Date.now()
-      const sanitizedName = templateData.name.replace(/[^a-zA-Z0-9]/g, '_')
+      const sanitizedName = templateData.name.replace(/[^a-zA-Z0-9]/g, "_")
       const filename = `${sanitizedName}_${timestamp}.pdf`
       filePath = path.join(uploadsDir, filename)
 
@@ -102,7 +110,7 @@ export async function POST(request: NextRequest) {
       await writeFile(filePath, buffer)
 
       fileSize = buffer.length
-      mimeType = file.type || 'application/pdf'
+      mimeType = file.type || "application/pdf"
       filePath = `/uploads/document-templates/${filename}` // Store relative path
     }
 
@@ -149,7 +157,7 @@ export async function POST(request: NextRequest) {
         const assignmentValues = usersResult.rows.map((userRow, index) => {
           const baseIndex = index * 4
           return `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4})`
-        }).join(', ')
+        }).join(", ")
 
         const assignmentParams = usersResult.rows.flatMap(userRow => [
           userRow.id,
@@ -171,12 +179,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       template,
-      message: 'Document template created successfully'
+      message: "Document template created successfully"
     })
   } catch (error) {
-    console.error('Error creating document template:', error)
+    console.error("Error creating document template:", error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     )
   }

@@ -1,11 +1,11 @@
-'use client'
+"use client"
 
-import React from 'react'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Clock, User } from 'lucide-react'
-import { getTimeEntryDisplay, calculateTotalRoundedHours } from '@/lib/time-utils'
+import React from "react"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Clock, User } from "lucide-react"
+import { getTimeEntryDisplay, calculateTotalRoundedHours } from "@/lib/time-utils"
 
 interface TimeEntry {
   id: string
@@ -47,7 +47,7 @@ export const MobileTimesheetCard: React.FC<MobileTimesheetCardProps> = ({
         <Avatar className="h-12 w-12">
           <AvatarImage src={worker.employeeAvatar} alt={worker.employeeName} />
           <AvatarFallback className="bg-primary/10 text-primary font-medium">
-            {worker.employeeName.split(' ').map(n => n[0]).join('')}
+            {worker.employeeName.split(" ").map(n => n[0]).join("")}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">

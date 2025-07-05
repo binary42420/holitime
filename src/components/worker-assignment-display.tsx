@@ -52,45 +52,45 @@ interface WorkerAssignmentDisplayProps {
 }
 
 type WorkerSlot =
-  | { type: 'assigned'; worker: AssignedWorker }
-  | { type: 'empty'; roleCode: RoleCode }
+  | { type: "assigned"; worker: AssignedWorker }
+  | { type: "empty"; roleCode: RoleCode }
 
 const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string; bgColor: string; borderColor: string }> = {
-  'CC': { 
-    name: 'Crew Chief', 
-    color: 'text-purple-700', 
-    bgColor: 'bg-purple-50', 
-    borderColor: 'border-purple-200' 
+  "CC": { 
+    name: "Crew Chief", 
+    color: "text-purple-700", 
+    bgColor: "bg-purple-50", 
+    borderColor: "border-purple-200" 
   },
-  'SH': { 
-    name: 'Stage Hand', 
-    color: 'text-blue-700', 
-    bgColor: 'bg-blue-50', 
-    borderColor: 'border-blue-200' 
+  "SH": { 
+    name: "Stage Hand", 
+    color: "text-blue-700", 
+    bgColor: "bg-blue-50", 
+    borderColor: "border-blue-200" 
   },
-  'FO': { 
-    name: 'Fork Operator', 
-    color: 'text-green-700', 
-    bgColor: 'bg-green-50', 
-    borderColor: 'border-green-200' 
+  "FO": { 
+    name: "Fork Operator", 
+    color: "text-green-700", 
+    bgColor: "bg-green-50", 
+    borderColor: "border-green-200" 
   },
-  'RFO': { 
-    name: 'Reach Fork Operator', 
-    color: 'text-yellow-700', 
-    bgColor: 'bg-yellow-50', 
-    borderColor: 'border-yellow-200' 
+  "RFO": { 
+    name: "Reach Fork Operator", 
+    color: "text-yellow-700", 
+    bgColor: "bg-yellow-50", 
+    borderColor: "border-yellow-200" 
   },
-  'RG': { 
-    name: 'Rigger', 
-    color: 'text-red-700', 
-    bgColor: 'bg-red-50', 
-    borderColor: 'border-red-200' 
+  "RG": { 
+    name: "Rigger", 
+    color: "text-red-700", 
+    bgColor: "bg-red-50", 
+    borderColor: "border-red-200" 
   },
-  'GL': { 
-    name: 'General Labor', 
-    color: 'text-gray-700', 
-    bgColor: 'bg-gray-50', 
-    borderColor: 'border-gray-200' 
+  "GL": { 
+    name: "General Labor", 
+    color: "text-gray-700", 
+    bgColor: "bg-gray-50", 
+    borderColor: "border-gray-200" 
   },
 } as const
 
@@ -103,7 +103,7 @@ export default function WorkerAssignmentDisplay({
   const { toast } = useToast()
   const [workerRequirements, setWorkerRequirements] = useState<WorkerRequirement[]>([])
   const [isUpdating, setIsUpdating] = useState(false)
-  const [customEmployeeName, setCustomEmployeeName] = useState('')
+  const [customEmployeeName, setCustomEmployeeName] = useState("")
   const [isCreatingPendingEmployee, setIsCreatingPendingEmployee] = useState(false)
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({})
 
@@ -113,9 +113,9 @@ export default function WorkerAssignmentDisplay({
   )
 
   // Fetch available employees for assignment
-  const { data: usersData } = useApi<{ users: any[] }>('/api/users')
+  const { data: usersData } = useApi<{ users: any[] }>("/api/users")
   const availableEmployees = usersData?.users?.filter(user =>
-    user.role === 'Employee' || user.role === 'Crew Chief' || user.role === 'Manager/Admin'
+    user.role === "Employee" || user.role === "Crew Chief" || user.role === "Manager/Admin"
   ) || []
 
   useEffect(() => {
@@ -124,12 +124,12 @@ export default function WorkerAssignmentDisplay({
     } else if (requirementsData && requirementsData.workerRequirements?.length === 0) {
       // Initialize with default requirements if none exist
       const defaultRequirements: WorkerRequirement[] = [
-        { roleCode: 'CC', requiredCount: 1 },
-        { roleCode: 'SH', requiredCount: 0 },
-        { roleCode: 'FO', requiredCount: 0 },
-        { roleCode: 'RFO', requiredCount: 0 },
-        { roleCode: 'RG', requiredCount: 0 },
-        { roleCode: 'GL', requiredCount: 0 },
+        { roleCode: "CC", requiredCount: 1 },
+        { roleCode: "SH", requiredCount: 0 },
+        { roleCode: "FO", requiredCount: 0 },
+        { roleCode: "RFO", requiredCount: 0 },
+        { roleCode: "RG", requiredCount: 0 },
+        { roleCode: "GL", requiredCount: 0 },
       ]
       setWorkerRequirements(defaultRequirements)
     }
@@ -141,7 +141,7 @@ export default function WorkerAssignmentDisplay({
 
     try {
       // Create a complete requirements array with all role types
-      const allRoleTypes: RoleCode[] = ['CC', 'SH', 'FO', 'RFO', 'RG', 'GL']
+      const allRoleTypes: RoleCode[] = ["CC", "SH", "FO", "RFO", "RG", "GL"]
       const updatedRequirements: WorkerRequirement[] = allRoleTypes.map(role => {
         if (role === roleCode) {
           return { roleCode: role, requiredCount: newCount }
@@ -150,18 +150,18 @@ export default function WorkerAssignmentDisplay({
         return existing || { roleCode: role, requiredCount: 0 }
       })
 
-      console.log('Sending worker requirements:', updatedRequirements)
+      console.log("Sending worker requirements:", updatedRequirements)
 
       const response = await fetch(`/api/shifts/${shiftId}/worker-requirements`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workerRequirements: updatedRequirements })
       })
 
       if (!response.ok) {
         const errorData = await response.json()
-        console.error('API Error:', errorData)
-        throw new Error(errorData.error || 'Failed to update worker requirements')
+        console.error("API Error:", errorData)
+        throw new Error(errorData.error || "Failed to update worker requirements")
       }
 
       setWorkerRequirements(updatedRequirements)
@@ -170,7 +170,7 @@ export default function WorkerAssignmentDisplay({
         description: `${ROLE_DEFINITIONS[roleCode].name} requirement set to ${newCount}`,
       })
     } catch (error) {
-      console.error('Error updating worker requirement:', error)
+      console.error("Error updating worker requirement:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to update worker requirements",
@@ -184,8 +184,8 @@ export default function WorkerAssignmentDisplay({
   const checkTimeConflicts = async (employeeId: string) => {
     try {
       const response = await fetch(`/api/shifts/${shiftId}/check-conflicts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ employeeId })
       })
 
@@ -196,7 +196,7 @@ export default function WorkerAssignmentDisplay({
       const data = await response.json()
       return data
     } catch (error) {
-      console.error('Error checking conflicts:', error)
+      console.error("Error checking conflicts:", error)
       return { hasConflicts: false, conflicts: [] }
     }
   }
@@ -207,7 +207,7 @@ export default function WorkerAssignmentDisplay({
       if (!employee) return
 
       // TEMPORARILY DISABLE CONFLICT CHECKING
-      console.log('Conflict checking temporarily disabled for testing')
+      console.log("Conflict checking temporarily disabled for testing")
       // const conflictCheck = await checkTimeConflicts(employeeId)
       // if (conflictCheck.hasConflicts && conflictCheck.conflicts.length > 0) {
       //   const conflict = conflictCheck.conflicts[0]
@@ -219,10 +219,10 @@ export default function WorkerAssignmentDisplay({
       //   return
       // }
 
-      console.log('FRONTEND: Using new assign-worker API endpoint')
+      console.log("FRONTEND: Using new assign-worker API endpoint")
       const response = await fetch(`/api/shifts/${shiftId}/assign-worker`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           employeeId,
           roleCode,
@@ -232,7 +232,7 @@ export default function WorkerAssignmentDisplay({
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to assign worker')
+        throw new Error(error.error || "Failed to assign worker")
       }
 
       toast({
@@ -241,7 +241,7 @@ export default function WorkerAssignmentDisplay({
       })
       onUpdate()
     } catch (error) {
-      console.error('Error assigning worker:', error)
+      console.error("Error assigning worker:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to assign worker",
@@ -253,12 +253,12 @@ export default function WorkerAssignmentDisplay({
   const unassignWorker = async (assignmentId: string, workerName: string) => {
     try {
       const response = await fetch(`/api/shifts/${shiftId}/assigned/${assignmentId}`, {
-        method: 'DELETE'
+        method: "DELETE"
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to unassign worker')
+        throw new Error(error.error || "Failed to unassign worker")
       }
 
       toast({
@@ -267,7 +267,7 @@ export default function WorkerAssignmentDisplay({
       })
       onUpdate()
     } catch (error) {
-      console.error('Error unassigning worker:', error)
+      console.error("Error unassigning worker:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to unassign worker",
@@ -281,15 +281,15 @@ export default function WorkerAssignmentDisplay({
 
     setIsCreatingPendingEmployee(true)
     try {
-      const response = await fetch('/api/employees/create-pending', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/employees/create-pending", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim() })
       })
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.error || 'Failed to create pending employee')
+        throw new Error(error.error || "Failed to create pending employee")
       }
 
       const result = await response.json()
@@ -303,11 +303,11 @@ export default function WorkerAssignmentDisplay({
       // Now assign the pending employee to the shift
       await assignWorker(newEmployee.id, roleCode)
 
-      setCustomEmployeeName('')
+      setCustomEmployeeName("")
       setOpenDropdowns({})
 
     } catch (error) {
-      console.error('Error creating pending employee:', error)
+      console.error("Error creating pending employee:", error)
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to create pending employee",
@@ -324,7 +324,7 @@ export default function WorkerAssignmentDisplay({
     // Check if it's within 30 minutes of shift start
     const now = new Date()
     const today = new Date().toDateString()
-    const shiftStart = new Date(`${today} ${shift?.startTime || '00:00'}`)
+    const shiftStart = new Date(`${today} ${shift?.startTime || "00:00"}`)
     const timeDiff = (now.getTime() - shiftStart.getTime()) / (1000 * 60) // minutes
 
     if (timeDiff < 30) {
@@ -342,12 +342,12 @@ export default function WorkerAssignmentDisplay({
 
     try {
       const response = await fetch(`/api/shifts/${shiftId}/assignments/${assignmentId}/no-show`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
       })
 
       if (!response.ok) {
-        throw new Error('Failed to mark worker as no-show')
+        throw new Error("Failed to mark worker as no-show")
       }
 
       toast({
@@ -380,13 +380,13 @@ export default function WorkerAssignmentDisplay({
 
     // Add assigned workers
     assignedWorkers.forEach(worker => {
-      slots.push({ type: 'assigned', worker })
+      slots.push({ type: "assigned", worker })
     })
 
     // Add empty slots for remaining requirements
     const emptySlots = Math.max(0, requiredCount - assignedWorkers.length)
     for (let i = 0; i < emptySlots; i++) {
-      slots.push({ type: 'empty', roleCode })
+      slots.push({ type: "empty", roleCode })
     }
 
     return slots
@@ -487,13 +487,13 @@ export default function WorkerAssignmentDisplay({
                         key={`${roleCode}-${index}`} 
                         className={`p-3 rounded-lg border ${roleDef.bgColor} ${roleDef.borderColor}`}
                       >
-                        {slot.type === 'assigned' ? (
+                        {slot.type === "assigned" ? (
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={slot.worker.employeeAvatar} />
                                 <AvatarFallback>
-                                  {slot.worker.employeeName.split(' ').map((n: string) => n[0]).join('')}
+                                  {slot.worker.employeeName.split(" ").map((n: string) => n[0]).join("")}
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex-1">
@@ -560,7 +560,7 @@ export default function WorkerAssignmentDisplay({
                                           size="sm"
                                         >
                                           <UserCheck className="h-3 w-3 mr-2" />
-                                          {isCreatingPendingEmployee ? 'Creating...' : `Add "${customEmployeeName.trim()}"`}
+                                          {isCreatingPendingEmployee ? "Creating..." : `Add "${customEmployeeName.trim()}"`}
                                         </Button>
                                         <p className="text-xs text-muted-foreground mt-2 text-center">
                                           Will create pending employee requiring manager approval
@@ -580,7 +580,7 @@ export default function WorkerAssignmentDisplay({
                                           onSelect={() => {
                                             assignWorker(employee.id, roleCode)
                                             setOpenDropdowns(prev => ({ ...prev, [`${roleCode}-${index}`]: false }))
-                                            setCustomEmployeeName('')
+                                            setCustomEmployeeName("")
                                           }}
                                         >
                                           <div className="flex items-center justify-between w-full">
@@ -588,17 +588,17 @@ export default function WorkerAssignmentDisplay({
                                               <Avatar className="h-6 w-6">
                                                 <AvatarImage src={employee.avatar} />
                                                 <AvatarFallback className="text-xs">
-                                                  {employee.name.split(' ').map(n => n[0]).join('')}
+                                                  {employee.name.split(" ").map(n => n[0]).join("")}
                                                 </AvatarFallback>
                                               </Avatar>
                                               <span>{employee.name}</span>
-                                              {employee.status === 'pending_activation' && (
+                                              {employee.status === "pending_activation" && (
                                                 <Badge variant="outline" className="text-xs text-orange-600 border-orange-200">
                                                   Pending
                                                 </Badge>
                                               )}
                                             </div>
-                                            {employee.role === 'Manager/Admin' && (
+                                            {employee.role === "Manager/Admin" && (
                                               <Badge variant="secondary" className="text-xs">Manager</Badge>
                                             )}
                                           </div>

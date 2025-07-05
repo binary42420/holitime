@@ -21,16 +21,16 @@ import {
   RefreshCw
 } from "lucide-react"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { withAuth } from "@/lib/with-auth"
+import { hasAdminAccess } from "@/lib/auth"
 
 function AdminSettingsPage() {
   const { user } = useUser()
   const router = useRouter()
 
   // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
     return null
   }
 
@@ -106,7 +106,7 @@ function AdminSettingsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
+        <Button variant="ghost" size="sm" onClick={() => router.push("/admin")}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Admin
         </Button>
@@ -213,4 +213,4 @@ function AdminSettingsPage() {
   )
 }
 
-export default withAuth(AdminSettingsPage, hasAdminAccess);
+export default withAuth(AdminSettingsPage, hasAdminAccess)
