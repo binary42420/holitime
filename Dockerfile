@@ -12,20 +12,19 @@ FROM node:20-slim
   
        # Copy package files
      COPY package.json package-lock.json* ./
-
+ 
      # Install dependencies
      RUN npm ci --legacy-peer-deps --no-audit --no-fund
-
-     # Copy CA certificate into the container
-     COPY certs/ca.pem /app/certs/ca.pem
 
      # Copy source code
      COPY . .
 
+     # Create certs directory and copy certificate if it exists
+     RUN mkdir -p /app/certs
+
      # Set environment variables
      ENV NODE_ENV=production
      ENV NEXT_TELEMETRY_DISABLED=1
-     ENV DATABASE_CA_CERT=/app/certs/ca.pem
 
      # Build the application
      RUN npm run build

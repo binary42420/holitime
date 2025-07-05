@@ -27,7 +27,7 @@ steps:
       - '--memory'
       - '2Gi'
       - '--cpu'
-      - '2'
+      - "2"
       - '--max-instances'
       - '2'
       - '--set-env-vars'

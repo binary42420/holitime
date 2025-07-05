@@ -19,6 +19,9 @@ build/
 .env*
 !.env.production
 
+# Include certificates (needed for database SSL)
+!certs/
+
 # Version control (CRITICAL - huge space saver)
 .git/
 .gitignore

@@ -20,7 +20,7 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const router = useRouter()
   const searchParams = useSearchParams()
-  const urlError = searchParams.get('error')
+  const urlError = searchParams?.get('error')
 
   useEffect(() => {
     if (urlError) {
