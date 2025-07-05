@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/middleware";
-import { query } from "@/lib/db";
-import bcrypt from "bcryptjs";
+import { NextRequest, NextResponse } from "next/server"
+import { getCurrentUser } from "@/lib/middleware"
+import { query } from "@/lib/db"
+import bcrypt from "bcryptjs"
 
 export async function POST(
   request: NextRequest,

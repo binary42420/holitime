@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -20,22 +20,22 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const router = useRouter()
   const searchParams = useSearchParams()
-  const urlError = searchParams?.get('error')
+  const urlError = searchParams?.get("error")
 
   useEffect(() => {
     if (urlError) {
       switch (urlError) {
-        case 'AccessDenied':
-          setError('Access Denied. You do not have permission to access this page.');
-          break;
-        case 'Verification':
-          setError('Email verification failed. Please try again or contact support.');
-          break;
-        default:
-          setError('An unexpected error occurred. Please try again.');
+      case "AccessDenied":
+        setError("Access Denied. You do not have permission to access this page.")
+        break
+      case "Verification":
+        setError("Email verification failed. Please try again or contact support.")
+        break
+      default:
+        setError("An unexpected error occurred. Please try again.")
       }
     }
-  }, [urlError]);
+  }, [urlError])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

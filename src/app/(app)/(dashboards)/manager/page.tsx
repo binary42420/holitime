@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
@@ -19,10 +19,10 @@ export default function ManagerDashboard() {
   const { data: shiftsData, loading: shiftsLoading, error: shiftsError, refetch: refetchShifts } = useApi<{ shifts: any[] }>("/api/shifts?filter=all")
 
   useEffect(() => {
-    refetchClients();
-    refetchJobs();
-    refetchShifts();
-  }, [refetchClients, refetchJobs, refetchShifts]);
+    refetchClients()
+    refetchJobs()
+    refetchShifts()
+  }, [refetchClients, refetchJobs, refetchShifts])
 
   if (clientsLoading || jobsLoading || shiftsLoading) {
     return <div className="p-6 text-center">Loading dashboard data...</div>

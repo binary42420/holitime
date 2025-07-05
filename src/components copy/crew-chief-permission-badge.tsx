@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { Badge } from "@/app/(app)/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/app/(app)/components/ui/tooltip"

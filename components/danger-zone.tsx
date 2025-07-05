@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { useSession } from "next-auth/react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"

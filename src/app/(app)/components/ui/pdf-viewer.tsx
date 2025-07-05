@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import React, { useState, useCallback } from "react"
 import { Button } from "@/app/(app)/components/ui/button"
@@ -191,15 +191,15 @@ export function PDFViewer({ fileUrl, filename, className }: PDFViewerProps) {
           ) : (
             <div className="text-center">
               <Image
-              src={fileUrl}
-              alt={filename}
-              width={800} // You might need to adjust these based on expected image sizes
-              height={600} // You might need to adjust these based on expected image sizes
-              className="max-w-full h-auto rounded-lg mx-auto"
-              style={{ transform: `scale(${scale})` }}
-              onLoad={handleLoad}
-              onError={handleError}
-            />
+                src={fileUrl}
+                alt={filename}
+                width={800} // You might need to adjust these based on expected image sizes
+                height={600} // You might need to adjust these based on expected image sizes
+                className="max-w-full h-auto rounded-lg mx-auto"
+                style={{ transform: `scale(${scale})` }}
+                onLoad={handleLoad}
+                onError={handleError}
+              />
             </div>
           )}
         </div>

@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { useEffect, useState } from "react"
 import { useUser } from "@/hooks/use-user"
@@ -113,7 +113,7 @@ export default function EmployeeDashboard() {
       {/* Mobile-First Header */}
       <div className="space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold font-headline">
-          Welcome, {user?.name?.split(' ')[0]}! 👋
+          Welcome, {user?.name?.split(" ")[0]}! 👋
         </h1>
         <p className="text-sm md:text-base text-muted-foreground">
           {new Date().toLocaleDateString("en-US", {

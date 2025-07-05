@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { Badge } from "@/app/(app)/components/ui/badge"
 import { Progress } from "@/app/(app)/components/ui/progress"

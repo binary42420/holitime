@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import React, { useState, useRef, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/app/(app)/components/ui/dialog"

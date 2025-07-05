@@ -1,10 +1,10 @@
-'use client';
+"use client"
 
-import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/app/(app)/components/ui/dialog';
-import { Button } from '@/app/(app)/components/ui/button';
-import { Separator } from '@/app/(app)/components/ui/separator';
-import { RotateCcw, Check, X } from 'lucide-react';
+import { useState, useRef, useEffect } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/app/(app)/components/ui/dialog"
+import { Button } from "@/app/(app)/components/ui/button"
+import { Separator } from "@/app/(app)/components/ui/separator"
+import { RotateCcw, Check, X } from "lucide-react"
 
 interface SignatureCaptureModalProps {
   isOpen: boolean
@@ -19,8 +19,8 @@ export default function SignatureCaptureModal({
   isOpen,
   onClose,
   onSignatureSubmit,
-  title = 'Digital Signature',
-  description = 'Please sign below to approve this timesheet',
+  title = "Digital Signature",
+  description = "Please sign below to approve this timesheet",
   loading = false
 }: SignatureCaptureModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -31,17 +31,17 @@ export default function SignatureCaptureModal({
   useEffect(() => {
     if (isOpen && canvasRef.current) {
       const canvas = canvasRef.current
-      const ctx = canvas.getContext('2d')
+      const ctx = canvas.getContext("2d")
       if (ctx) {
         // Set canvas size
         canvas.width = canvas.offsetWidth
         canvas.height = canvas.offsetHeight
         
         // Set drawing styles
-        ctx.strokeStyle = '#000000'
+        ctx.strokeStyle = "#000000"
         ctx.lineWidth = 2
-        ctx.lineCap = 'round'
-        ctx.lineJoin = 'round'
+        ctx.lineCap = "round"
+        ctx.lineJoin = "round"
         
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -56,7 +56,7 @@ export default function SignatureCaptureModal({
 
     const rect = canvas.getBoundingClientRect()
     
-    if ('touches' in e) {
+    if ("touches" in e) {
       // Touch event
       const touch = e.touches[0] || e.changedTouches[0]
       return {
@@ -85,7 +85,7 @@ export default function SignatureCaptureModal({
     if (!isDrawing || !lastPoint || !canvasRef.current) return
 
     const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (!ctx) return
 
     const currentPos = getEventPos(e)
@@ -107,7 +107,7 @@ export default function SignatureCaptureModal({
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext("2d")
     if (ctx) {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       setHasSignature(false)
@@ -118,7 +118,7 @@ export default function SignatureCaptureModal({
     if (!hasSignature || !canvasRef.current) return
 
     // Convert canvas to base64 data URL
-    const signatureData = canvasRef.current.toDataURL('image/png')
+    const signatureData = canvasRef.current.toDataURL("image/png")
     onSignatureSubmit(signatureData)
   }
 
@@ -141,7 +141,7 @@ export default function SignatureCaptureModal({
             <canvas
               ref={canvasRef}
               className='w-full h-48 cursor-crosshair touch-none'
-              style={{ touchAction: 'none' }}
+              style={{ touchAction: "none" }}
               onMouseDown={startDrawing}
               onMouseMove={draw}
               onMouseUp={stopDrawing}
@@ -184,7 +184,7 @@ export default function SignatureCaptureModal({
                 disabled={!hasSignature || loading}
               >
                 <Check className='h-4 w-4 mr-2' />
-                {loading ? 'Submitting...' : 'Submit Signature'}
+                {loading ? "Submitting..." : "Submit Signature"}
               </Button>
             </div>
           </div>

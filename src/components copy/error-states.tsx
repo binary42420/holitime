@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
 import { Button } from "@/app/(app)/components/ui/button"

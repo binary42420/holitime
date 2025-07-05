@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import { useApi } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"

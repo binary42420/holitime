@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import React, { useState, useCallback, useRef } from "react"
 import { Button } from "@/app/(app)/components/ui/button"

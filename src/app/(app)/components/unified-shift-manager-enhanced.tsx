@@ -1,11 +1,11 @@
-'use client';
+"use client"
 
-import React, { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card";
-import { Button } from "@/app/(app)/components/ui/button";
-import { Badge } from "@/app/(app)/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/(app)/components/ui/avatar";
-import { Separator } from "@/app/(app)/components/ui/separator";
+import React, { useState, useEffect, useCallback } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
+import { Button } from "@/app/(app)/components/ui/button"
+import { Badge } from "@/app/(app)/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/(app)/components/ui/avatar"
+import { Separator } from "@/app/(app)/components/ui/separator"
 import { 
   Clock, 
   Play, 
@@ -24,10 +24,10 @@ import {
   WifiOff,
   AlertTriangle,
   Shield
-} from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { format, differenceInMinutes } from "date-fns";
-import { useErrorHandler } from "@/lib/error-handler";
+} from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
+import { format, differenceInMinutes } from "date-fns"
+import { useErrorHandler } from "@/lib/error-handler"
 
 interface MutationState<T = any> {
   mutate: (variables: T) => Promise<any>
@@ -94,13 +94,13 @@ const useMutation = <T,>(
     ...state
   }
 }
-import { format, differenceInMinutes } from "date-fns";
+import { format, differenceInMinutes } from "date-fns"
 import { 
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/app/(app)/components/ui/tooltip";
+} from "@/app/(app)/components/ui/tooltip"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,11 +111,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/app/(app)/components/ui/alert-dialog";
-import { Progress } from "@/app/(app)/components/ui/progress";
-import { LoadingSpinner, InlineLoading } from "@/app/(app)/components/loading-states";
-import { useErrorHandler, type ErrorContext } from "@/lib/error-handler";
-import { ErrorBoundary } from "@/app/(app)/components/error-boundary";
+} from "@/app/(app)/components/ui/alert-dialog"
+import { Progress } from "@/app/(app)/components/ui/progress"
+import { LoadingSpinner, InlineLoading } from "@/app/(app)/components/loading-states"
+import { useErrorHandler, type ErrorContext } from "@/lib/error-handler"
+import { ErrorBoundary } from "@/app/(app)/components/error-boundary"
 import { 
   FeedbackButton, 
   StatusIndicator, 
@@ -123,7 +123,7 @@ import {
   OptimisticUpdate,
   AnimatedBadge,
   InstantFeedback
-} from "@/app/(app)/components/ui/enhanced-feedback";
+} from "@/app/(app)/components/ui/enhanced-feedback"
 
 interface TimeEntry {
   id: string;
