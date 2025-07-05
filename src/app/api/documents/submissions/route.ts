@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/middleware'
 import { query } from '@/lib/db'
-import { cache, invalidateCache } from '@/lib/cache'
+import { globalCache } from '@/lib/cache'
 import { DocumentSubmission, SubmitDocumentRequest } from '@/types/documents'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
@@ -242,7 +242,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Invalidate cache
-    invalidateCache.all()
+    globalCache.invalidateByTag('document_submissions');
+    globalCache.invalidateByTag('document_assignments');
 
     return NextResponse.json({
       success: true,
@@ -343,7 +344,8 @@ export async function PUT(request: NextRequest) {
     }
 
     // Invalidate cache
-    invalidateCache.all()
+    globalCache.invalidateByTag('document_submissions');
+    globalCache.invalidateByTag('document_assignments');
 
     return NextResponse.json({
       success: true,

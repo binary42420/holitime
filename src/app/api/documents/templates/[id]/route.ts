@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/middleware'
 import { query } from '@/lib/db'
-import { cache, invalidateCache } from '@/lib/cache'
+import { globalCache } from '@/lib/cache'
 import { DocumentTemplate, UpdateDocumentTemplateRequest } from '@/types/documents'
 import { writeFile, mkdir, unlink } from 'fs/promises'
 import path from 'path'
@@ -23,9 +23,9 @@ export async function GET(
     const cacheKey = `document_template:${id}`
     
     // Try to get from cache
-    const cached = cache.get<DocumentTemplate>(cacheKey)
+    const cached = globalCache.get<DocumentTemplate>(cacheKey)
     if (cached) {
-      return NextResponse.json({ template: cached })
+      return NextResponse.json({ template: cached.data })
     }
 
     const templateQuery = `
@@ -82,8 +82,7 @@ export async function GET(
       updated_at: row.updated_at
     }
 
-    // Cache the result
-    cache.set(cacheKey, template, 10 * 60 * 1000) // 10 minutes
+    globalCache.set(cacheKey, template, 10 * 60 * 1000) // 10 minutes
 
     return NextResponse.json({ template })
   } catch (error) {
@@ -196,67 +195,67 @@ export async function PUT(
     let paramIndex = 1
 
     if (updateData.name !== undefined) {
-      updateFields.push(`name = $${paramIndex}`)
+      updateFields.push(`name = ${paramIndex}`)
       updateValues.push(updateData.name)
       paramIndex++
     }
 
     if (updateData.description !== undefined) {
-      updateFields.push(`description = $${paramIndex}`)
+      updateFields.push(`description = ${paramIndex}`)
       updateValues.push(updateData.description)
       paramIndex++
     }
 
     if (updateData.document_type !== undefined) {
-      updateFields.push(`document_type = $${paramIndex}`)
+      updateFields.push(`document_type = ${paramIndex}`)
       updateValues.push(updateData.document_type)
       paramIndex++
     }
 
     if (updateData.applicable_roles !== undefined) {
-      updateFields.push(`applicable_roles = $${paramIndex}`)
+      updateFields.push(`applicable_roles = ${paramIndex}`)
       updateValues.push(updateData.applicable_roles)
       paramIndex++
     }
 
     if (updateData.is_required !== undefined) {
-      updateFields.push(`is_required = $${paramIndex}`)
+      updateFields.push(`is_required = ${paramIndex}`)
       updateValues.push(updateData.is_required)
       paramIndex++
     }
 
     if (updateData.expiration_days !== undefined) {
-      updateFields.push(`expiration_days = $${paramIndex}`)
+      updateFields.push(`expiration_days = ${paramIndex}`)
       updateValues.push(updateData.expiration_days)
       paramIndex++
     }
 
     if (updateData.auto_assign_new_users !== undefined) {
-      updateFields.push(`auto_assign_new_users = $${paramIndex}`)
+      updateFields.push(`auto_assign_new_users = ${paramIndex}`)
       updateValues.push(updateData.auto_assign_new_users)
       paramIndex++
     }
 
     if (updateData.conditional_logic !== undefined) {
-      updateFields.push(`conditional_logic = $${paramIndex}`)
+      updateFields.push(`conditional_logic = ${paramIndex}`)
       updateValues.push(updateData.conditional_logic)
       paramIndex++
     }
 
     if (updateData.category_id !== undefined) {
-      updateFields.push(`category_id = $${paramIndex}`)
+      updateFields.push(`category_id = ${paramIndex}`)
       updateValues.push(updateData.category_id)
       paramIndex++
     }
 
     if (updateData.is_active !== undefined) {
-      updateFields.push(`is_active = $${paramIndex}`)
+      updateFields.push(`is_active = ${paramIndex}`)
       updateValues.push(updateData.is_active)
       paramIndex++
     }
 
     if (newFile) {
-      updateFields.push(`file_path = $${paramIndex}`, `file_size = $${paramIndex + 1}`, `mime_type = $${paramIndex + 2}`)
+      updateFields.push(`file_path = ${paramIndex}`, `file_size = ${paramIndex + 1}`, `mime_type = ${paramIndex + 2}`)
       updateValues.push(filePath, fileSize, mimeType)
       paramIndex += 3
     }
@@ -274,7 +273,7 @@ export async function PUT(
     const updateQuery = `
       UPDATE document_templates 
       SET ${updateFields.join(', ')}
-      WHERE id = $${paramIndex}
+      WHERE id = ${paramIndex}
       RETURNING *
     `
 
@@ -282,7 +281,7 @@ export async function PUT(
     const updatedTemplate = result.rows[0]
 
     // Invalidate cache
-    invalidateCache.all()
+    globalCache.invalidateByTag('document_templates')
 
     return NextResponse.json({
       success: true,
@@ -360,7 +359,7 @@ export async function DELETE(
     }
 
     // Invalidate cache
-    invalidateCache.all()
+    globalCache.invalidateByTag('document_templates')
 
     return NextResponse.json({
       success: true,

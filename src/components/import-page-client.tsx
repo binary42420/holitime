@@ -16,7 +16,7 @@ import GoogleDrivePicker from "./google-drive-picker";
 import CSVImport from "./csv-import";
 import GoogleSheetsGeminiProcessor from "./google-sheets-gemini-processor";
 import GoogleSheetsIdInput from "./google-sheets-id-input";
-import ErrorBoundary from "./error-boundary";
+import { ErrorBoundary } from './error-boundary'
 
 interface DriveFile {
   id: string;

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/middleware'
 import { query } from '@/lib/db'
-import { cache, cacheKeys, invalidateCache } from '@/lib/cache'
+import { globalCache } from '@/lib/cache'
 import { DocumentTemplate, DocumentTemplateFilters, CreateDocumentTemplateRequest } from '@/types/documents'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
@@ -35,135 +35,10 @@ export async function GET(request: NextRequest) {
     const cacheKey = `document_templates:${JSON.stringify(filters)}`
     
     // Try to get from cache
-    const cached = cache.get<{ templates: DocumentTemplate[], total: number }>(cacheKey)
+    const cached = globalCache.get<{ templates: DocumentTemplate[], total: number }>(cacheKey)
     if (cached) {
-      return NextResponse.json(cached)
+      return NextResponse.json(cached.data)
     }
-
-    // Build query
-    let whereConditions: string[] = []
-    let queryParams: any[] = []
-    let paramIndex = 1
-
-    if (filters.document_type?.length) {
-      whereConditions.push(`dt.document_type = ANY($${paramIndex})`)
-      queryParams.push(filters.document_type)
-      paramIndex++
-    }
-
-    if (filters.category_id?.length) {
-      whereConditions.push(`dt.category_id = ANY($${paramIndex})`)
-      queryParams.push(filters.category_id)
-      paramIndex++
-    }
-
-    if (filters.applicable_roles?.length) {
-      whereConditions.push(`dt.applicable_roles && $${paramIndex}`)
-      queryParams.push(filters.applicable_roles)
-      paramIndex++
-    }
-
-    if (filters.is_active !== undefined) {
-      whereConditions.push(`dt.is_active = $${paramIndex}`)
-      queryParams.push(filters.is_active)
-      paramIndex++
-    }
-
-    if (filters.is_required !== undefined) {
-      whereConditions.push(`dt.is_required = $${paramIndex}`)
-      queryParams.push(filters.is_required)
-      paramIndex++
-    }
-
-    if (filters.auto_assign_new_users !== undefined) {
-      whereConditions.push(`dt.auto_assign_new_users = $${paramIndex}`)
-      queryParams.push(filters.auto_assign_new_users)
-      paramIndex++
-    }
-
-    if (filters.search) {
-      whereConditions.push(`(dt.name ILIKE $${paramIndex} OR dt.description ILIKE $${paramIndex})`)
-      queryParams.push(`%${filters.search}%`)
-      paramIndex++
-    }
-
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : ''
-
-    // Get total count
-    const countQuery = `
-      SELECT COUNT(*) as total
-      FROM document_templates dt
-      LEFT JOIN document_categories dc ON dt.category_id = dc.id
-      ${whereClause}
-    `
-    const countResult = await query(countQuery, queryParams)
-    const total = parseInt(countResult.rows[0].total)
-
-    // Get templates with pagination
-    const offset = (filters.page! - 1) * filters.limit!
-    const templatesQuery = `
-      SELECT 
-        dt.*,
-        dc.name as category_name,
-        dc.color as category_color,
-        dc.icon as category_icon,
-        u.name as created_by_name
-      FROM document_templates dt
-      LEFT JOIN document_categories dc ON dt.category_id = dc.id
-      LEFT JOIN users u ON dt.created_by = u.id
-      ${whereClause}
-      ORDER BY dt.${filters.sort_by} ${filters.sort_order}
-      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
-    `
-    queryParams.push(filters.limit, offset)
-
-    const templatesResult = await query(templatesQuery, queryParams)
-    
-    const templates: DocumentTemplate[] = templatesResult.rows.map(row => ({
-      id: row.id,
-      name: row.name,
-      description: row.description,
-      document_type: row.document_type,
-      file_path: row.file_path,
-      file_size: row.file_size,
-      mime_type: row.mime_type,
-      version: row.version,
-      is_active: row.is_active,
-      is_required: row.is_required,
-      applicable_roles: row.applicable_roles,
-      expiration_days: row.expiration_days,
-      auto_assign_new_users: row.auto_assign_new_users,
-      conditional_logic: row.conditional_logic,
-      category_id: row.category_id,
-      category: row.category_name ? {
-        id: row.category_id,
-        name: row.category_name,
-        color: row.category_color,
-        icon: row.category_icon,
-        description: '',
-        sort_order: 0,
-        is_active: true,
-        created_at: ''
-      } : undefined,
-      created_by: row.created_by,
-      created_at: row.created_at,
-      updated_at: row.updated_at
-    }))
-
-    const result = { templates, total }
-    
-    // Cache the result
-    cache.set(cacheKey, result, 5 * 60 * 1000) // 5 minutes
-
-    return NextResponse.json(result)
-  } catch (error) {
-    console.error('Error fetching document templates:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
 
 export async function POST(request: NextRequest) {
   try {

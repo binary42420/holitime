@@ -4,19 +4,36 @@ import React, { useState, useEffect } from "react"
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { 
-  Clock, 
-  Play, 
-  Square, 
-  CheckCircle, 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
+  Clock,
+  Play,
+  Square,
+  CheckCircle,
   AlertCircle,
   Users,
-  ChevronDown
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -30,70 +47,113 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-
-interface TimeEntry {
-  id: string
-  entryNumber: number
-  clockIn?: string
-  clockOut?: string
-  isActive: boolean
-}
-
-interface AssignedWorker {
-  id: string
-  employeeId: string
-  employeeName: string
-  employeeAvatar: string
-  roleOnShift: string
-  roleCode: string
-  status: 'not_started' | 'clocked_in' | 'clocked_out' | 'shift_ended' | 'no_show'
-  timeEntries: TimeEntry[]
-}
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { AssignedWorker } from "@/types"
+import { Employee } from "@/types/employee"
 
 interface ShiftTimeManagementProps {
   shiftId: string
   assignedPersonnel: AssignedWorker[]
   canManage: boolean
   onUpdate: () => void
+  onUpdatePersonnel: (personnel: AssignedWorker[]) => void
 }
 
-export default function ShiftTimeManagement({ 
-  shiftId, 
-  assignedPersonnel, 
-  canManage, 
-  onUpdate 
+export default function ShiftTimeManagement({
+  shiftId,
+  assignedPersonnel,
+  canManage,
+  onUpdate,
+  onUpdatePersonnel,
 }: ShiftTimeManagementProps) {
   const { toast } = useToast()
-  const [workers, setWorkers] = useState<AssignedWorker[]>(assignedPersonnel)
   const [loading, setLoading] = useState(false)
+  const [availableEmployees, setAvailableEmployees] = useState<Employee[]>([])
 
   useEffect(() => {
-    setWorkers(assignedPersonnel)
-  }, [assignedPersonnel])
+    async function fetchEmployees() {
+      try {
+        const res = await fetch("/api/employees")
+        if (res.ok) {
+          const data = await res.json()
+          setAvailableEmployees(data.employees)
+        }
+      } catch (error) {
+        console.error("Failed to fetch employees", error)
+      }
+    }
+    fetchEmployees()
+  }, [])
+
+  const handleAssignEmployee = (
+    assignmentId: string,
+    employeeId: string
+  ) => {
+    const employee = availableEmployees.find(e => e.id === employeeId)
+    if (!employee) return
+
+    const updatedPersonnel = assignedPersonnel.map(p =>
+      p.id === assignmentId
+        ? {
+            ...p,
+            employeeId: employee.id,
+            employeeName: `${employee.firstName} ${employee.lastName}`,
+            employeeAvatar: employee.avatar,
+          }
+        : p
+    )
+    onUpdatePersonnel(updatedPersonnel)
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'clocked_in':
-        return 'bg-green-100 border-green-300'
-      case 'clocked_out':
-        return 'bg-yellow-100 border-yellow-300'
-      case 'shift_ended':
-        return 'bg-gray-100 border-gray-300'
+      case "clocked_in":
+        return "bg-green-100 border-green-300"
+      case "clocked_out":
+        return "bg-yellow-100 border-yellow-300"
+      case "shift_ended":
+        return "bg-gray-100 border-gray-300"
       default:
-        return 'bg-white border-gray-200'
+        return "bg-white border-gray-200"
     }
   }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'clocked_in':
-        return <Badge variant="default" className="bg-green-600"><Play className="mr-1 h-3 w-3" />Clocked In</Badge>
-      case 'clocked_out':
-        return <Badge variant="secondary"><Square className="mr-1 h-3 w-3" />Clocked Out</Badge>
-      case 'shift_ended':
-        return <Badge variant="outline"><CheckCircle className="mr-1 h-3 w-3" />Shift Ended</Badge>
-      case 'no_show':
-        return <Badge variant="destructive" className="bg-orange-600"><AlertCircle className="mr-1 h-3 w-3" />No Show</Badge>
+      case "clocked_in":
+        return (
+          <Badge variant="default" className="bg-green-600">
+            <Play className="mr-1 h-3 w-3" />
+            Clocked In
+          </Badge>
+        )
+      case "clocked_out":
+        return (
+          <Badge variant="secondary">
+            <Square className="mr-1 h-3 w-3" />
+            Clocked Out
+          </Badge>
+        )
+      case "shift_ended":
+        return (
+          <Badge variant="outline">
+            <CheckCircle className="mr-1 h-3 w-3" />
+            Shift Ended
+          </Badge>
+        )
+      case "no_show":
+        return (
+          <Badge variant="destructive" className="bg-orange-600">
+            <AlertCircle className="mr-1 h-3 w-3" />
+            No Show
+          </Badge>
+        )
       default:
         return <Badge variant="outline">Not Started</Badge>
     }
@@ -101,22 +161,24 @@ export default function ShiftTimeManagement({
 
   const handleClockIn = async (workerId: string) => {
     setLoading(true)
-    const worker = workers.find(w => w.id === workerId);
+    const worker = assignedPersonnel.find(w => w.id === workerId)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/clock-in`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workerId }),
       })
 
       if (response.ok) {
         toast({
           title: "Clocked In",
-          description: `${worker?.employeeName} has been clocked in at ${format(new Date(), "p")}.`,
+          description: `${
+            worker?.employeeName
+          } has been clocked in at ${format(new Date(), "p")}.`,
         })
         onUpdate()
       } else {
-        throw new Error('Failed to clock in')
+        throw new Error("Failed to clock in")
       }
     } catch (error) {
       toast({
@@ -131,22 +193,24 @@ export default function ShiftTimeManagement({
 
   const handleClockOut = async (workerId: string) => {
     setLoading(true)
-    const worker = workers.find(w => w.id === workerId);
+    const worker = assignedPersonnel.find(w => w.id === workerId)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/clock-out`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workerId }),
       })
 
       if (response.ok) {
         toast({
           title: "Clocked Out",
-          description: `${worker?.employeeName} has been clocked out at ${format(new Date(), "p")}.`,
+          description: `${
+            worker?.employeeName
+          } has been clocked out at ${format(new Date(), "p")}.`,
         })
         onUpdate()
       } else {
-        throw new Error('Failed to clock out')
+        throw new Error("Failed to clock out")
       }
     } catch (error) {
       toast({
@@ -163,8 +227,8 @@ export default function ShiftTimeManagement({
     setLoading(true)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/end-shift`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workerId }),
       })
 
@@ -175,7 +239,7 @@ export default function ShiftTimeManagement({
         })
         onUpdate()
       } else {
-        throw new Error('Failed to end shift')
+        throw new Error("Failed to end shift")
       }
     } catch (error) {
       toast({
@@ -188,12 +252,19 @@ export default function ShiftTimeManagement({
     }
   }
 
-  const handleNoShow = async (workerId: string, employeeName: string) => {
+  const handleNoShow = async (workerId: string, employeeName?: string) => {
+    if (!employeeName) {
+      toast({
+        title: "Cannot mark unassigned worker as No Show",
+        variant: "destructive",
+      })
+      return
+    }
     setLoading(true)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/no-show`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workerId }),
       })
 
@@ -205,12 +276,13 @@ export default function ShiftTimeManagement({
         onUpdate()
       } else {
         const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to mark as no show')
+        throw new Error(errorData.error || "Failed to mark as no show")
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to mark as no show.",
+        description:
+          error instanceof Error ? error.message : "Failed to mark as no show.",
         variant: "destructive",
       })
     } finally {
@@ -222,7 +294,7 @@ export default function ShiftTimeManagement({
     setLoading(true)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/end-all-shifts`, {
-        method: 'POST',
+        method: "POST",
       })
 
       if (response.ok) {
@@ -232,7 +304,7 @@ export default function ShiftTimeManagement({
         })
         onUpdate()
       } else {
-        throw new Error('Failed to end all shifts')
+        throw new Error("Failed to end all shifts")
       }
     } catch (error) {
       toast({
@@ -246,14 +318,15 @@ export default function ShiftTimeManagement({
   }
 
   const handleClockOutAll = async () => {
-    const clockedInWorkers = workers.filter(worker =>
-      worker.status === 'clocked_in'
+    const clockedInWorkers = assignedPersonnel.filter(
+      worker => worker.status === "clocked_in"
     )
 
     if (clockedInWorkers.length === 0) {
       toast({
         title: "No Workers to Clock Out",
-        description: "All workers are already clocked out or haven't clocked in yet.",
+        description:
+          "All workers are already clocked out or haven't clocked in yet.",
       })
       return
     }
@@ -261,8 +334,8 @@ export default function ShiftTimeManagement({
     setLoading(true)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/clock-out-all`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
       })
 
       if (response.ok) {
@@ -272,7 +345,7 @@ export default function ShiftTimeManagement({
         })
         onUpdate()
       } else {
-        throw new Error('Failed to clock out workers')
+        throw new Error("Failed to clock out workers")
       }
     } catch (error) {
       toast({
@@ -289,7 +362,7 @@ export default function ShiftTimeManagement({
     setLoading(true)
     try {
       const response = await fetch(`/api/shifts/${shiftId}/finalize`, {
-        method: 'POST',
+        method: "POST",
       })
 
       if (response.ok) {
@@ -299,7 +372,7 @@ export default function ShiftTimeManagement({
         })
         onUpdate()
       } else {
-        throw new Error('Failed to finalize shift')
+        throw new Error("Failed to finalize shift")
       }
     } catch (error) {
       toast({
@@ -312,11 +385,16 @@ export default function ShiftTimeManagement({
     }
   }
 
-  const updateTimeEntry = async (workerId: string, entryNumber: number, field: 'clockIn' | 'clockOut', value: string) => {
+  const updateTimeEntry = async (
+    workerId: string,
+    entryNumber: number,
+    field: "clockIn" | "clockOut",
+    value: string
+  ) => {
     try {
       const response = await fetch(`/api/shifts/${shiftId}/update-time`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workerId, entryNumber, field, value }),
       })
 
@@ -334,36 +412,50 @@ export default function ShiftTimeManagement({
 
   const renderTimeInputs = (worker: AssignedWorker) => (
     <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-2">
-      {[1, 2, 3].map((entryNum) => {
+      {[1, 2, 3].map(entryNum => {
         const entry = worker.timeEntries.find(e => e.entryNumber === entryNum)
         return (
           <React.Fragment key={entryNum}>
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Clock In {entryNum}</label>
+              <label className="text-xs text-muted-foreground">
+                Clock In {entryNum}
+              </label>
               <Input
                 type="time"
-                value={entry?.clockIn ? format(new Date(entry.clockIn), "HH:mm") : ''}
-                onChange={(e) => {
+                value={
+                  entry?.clockIn ? format(new Date(entry.clockIn), "HH:mm") : ""
+                }
+                onChange={e => {
                   const today = format(new Date(), "yyyy-MM-dd")
-                  const datetimeValue = e.target.value ? `${today}T${e.target.value}` : ''
-                  updateTimeEntry(worker.id, entryNum, 'clockIn', datetimeValue)
+                  const datetimeValue = e.target.value
+                    ? `${today}T${e.target.value}`
+                    : ""
+                  updateTimeEntry(worker.id, entryNum, "clockIn", datetimeValue)
                 }}
                 className="w-full text-sm"
-                disabled={worker.status === 'shift_ended'}
+                disabled={worker.status === "shift_ended"}
               />
             </div>
             <div className="space-y-1">
-              <label className="text-xs text-muted-foreground">Clock Out {entryNum}</label>
+              <label className="text-xs text-muted-foreground">
+                Clock Out {entryNum}
+              </label>
               <Input
                 type="time"
-                value={entry?.clockOut ? format(new Date(entry.clockOut), "HH:mm") : ''}
-                onChange={(e) => {
+                value={
+                  entry?.clockOut
+                    ? format(new Date(entry.clockOut), "HH:mm")
+                    : ""
+                }
+                onChange={e => {
                   const today = format(new Date(), "yyyy-MM-dd")
-                  const datetimeValue = e.target.value ? `${today}T${e.target.value}` : ''
-                  updateTimeEntry(worker.id, entryNum, 'clockOut', datetimeValue)
+                  const datetimeValue = e.target.value
+                    ? `${today}T${e.target.value}`
+                    : ""
+                  updateTimeEntry(worker.id, entryNum, "clockOut", datetimeValue)
                 }}
                 className="w-full text-sm"
-                disabled={worker.status === 'shift_ended'}
+                disabled={worker.status === "shift_ended"}
               />
             </div>
           </React.Fragment>
@@ -374,14 +466,18 @@ export default function ShiftTimeManagement({
 
   const renderActionButtons = (worker: AssignedWorker) => (
     <div className="flex flex-col gap-2 mt-4">
-      {worker.status === 'not_started' && (
+      {worker.status === "not_started" && (
         <Button
           size="sm"
           variant="outline"
-          disabled={loading}
+          disabled={loading || !worker.employeeId}
           className="border-orange-500 text-orange-600 hover:bg-orange-50"
           onClick={() => {
-            if (window.confirm(`Mark ${worker.employeeName} as no show? This action cannot be undone.`)) {
+            if (
+              window.confirm(
+                `Mark ${worker.employeeName} as no show? This action cannot be undone.`
+              )
+            ) {
               handleNoShow(worker.id, worker.employeeName)
             }
           }}
@@ -390,8 +486,8 @@ export default function ShiftTimeManagement({
           Mark as No Show
         </Button>
       )}
-      
-      {(worker.status === 'clocked_out' || worker.status === 'clocked_in') && (
+
+      {(worker.status === "clocked_out" || worker.status === "clocked_in") && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button size="sm" variant="destructive" disabled={loading}>
@@ -401,9 +497,12 @@ export default function ShiftTimeManagement({
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>End Shift for {worker.employeeName}</AlertDialogTitle>
+              <AlertDialogTitle>
+                End Shift for {worker.employeeName}
+              </AlertDialogTitle>
               <AlertDialogDescription>
-                This will end the shift for this employee and record their final clock out time. This action cannot be undone.
+                This will end the shift for this employee and record their final
+                clock out time. This action cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -418,6 +517,50 @@ export default function ShiftTimeManagement({
     </div>
   )
 
+  const renderEmployeeCell = (worker: AssignedWorker) => {
+    if (worker.employeeId) {
+      return (
+        <div className="flex items-center gap-3">
+          <Avatar className="h-8 w-8">
+            <AvatarImage src={worker.employeeAvatar} />
+            <AvatarFallback>
+              {worker.employeeName?.split(" ").map(n => n[0]).join("")}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <div className="font-medium">{worker.employeeName}</div>
+            <div className="text-sm text-muted-foreground">
+              {worker.roleCode}
+            </div>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <Select
+        onValueChange={employeeId => handleAssignEmployee(worker.id, employeeId)}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Assign Employee" />
+        </SelectTrigger>
+        <SelectContent>
+          {availableEmployees.map(employee => (
+            <SelectItem
+              key={employee.id}
+              value={employee.id}
+              disabled={assignedPersonnel.some(
+                p => p.employeeId === employee.id
+              )}
+            >
+              {employee.firstName} {employee.lastName}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    )
+  }
+
   if (!canManage) {
     return (
       <Card>
@@ -426,22 +569,29 @@ export default function ShiftTimeManagement({
             <Users className="h-5 w-5" />
             Assigned Personnel
           </CardTitle>
-          <CardDescription>View assigned workers for this shift</CardDescription>
+          <CardDescription>
+            View assigned workers for this shift
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {workers.map((worker) => (
-              <div key={worker.id} className="flex items-center justify-between p-3 border rounded-lg">
+            {assignedPersonnel.map(worker => (
+              <div
+                key={worker.id}
+                className="flex items-center justify-between p-3 border rounded-lg"
+              >
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={worker.employeeAvatar} />
                     <AvatarFallback>
-                      {worker.employeeName.split(' ').map(n => n[0]).join('')}
+                      {worker.employeeName?.split(" ").map(n => n[0]).join("")}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <div className="font-medium">{worker.employeeName}</div>
-                    <div className="text-sm text-muted-foreground">{worker.roleOnShift}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {worker.roleOnShift}
+                    </div>
                   </div>
                 </div>
                 {getStatusBadge(worker.status)}
@@ -462,7 +612,9 @@ export default function ShiftTimeManagement({
               <Clock className="h-5 w-5" />
               Time Management
             </CardTitle>
-            <CardDescription>Manage clock in/out times for assigned workers</CardDescription>
+            <CardDescription>
+              Manage clock in/out times for assigned workers
+            </CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
             <AlertDialog>
@@ -476,7 +628,9 @@ export default function ShiftTimeManagement({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Clock Out All Workers</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will clock out all currently clocked-in employees without ending their shifts. Workers can still clock back in if needed.
+                    This will clock out all currently clocked-in employees
+                    without ending their shifts. Workers can still clock back in
+                    if needed.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -499,7 +653,8 @@ export default function ShiftTimeManagement({
                 <AlertDialogHeader>
                   <AlertDialogTitle>End All Shifts</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will clock out all currently clocked-in employees and end their shifts. This action cannot be undone.
+                    This will clock out all currently clocked-in employees and
+                    end their shifts. This action cannot be undone.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -510,7 +665,7 @@ export default function ShiftTimeManagement({
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button size="sm" disabled={loading}>
@@ -521,7 +676,9 @@ export default function ShiftTimeManagement({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Finalize Shift</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will finalize the shift and send it for client approval. Make sure all time entries are correct before proceeding.
+                    This will finalize the shift and send it for client
+                    approval. Make sure all time entries are correct before
+                    proceeding.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -538,50 +695,62 @@ export default function ShiftTimeManagement({
       <CardContent>
         {/* Mobile View: Card-based layout */}
         <div className="space-y-4 md:hidden">
-          {workers.map((worker) => (
+          {assignedPersonnel.map(worker => (
             <Card key={worker.id} className="overflow-hidden">
               <CardHeader className="flex flex-row items-center justify-between p-4 bg-muted/30">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={worker.employeeAvatar} />
-                    <AvatarFallback>
-                      {worker.employeeName.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <div className="font-bold">{worker.employeeName}</div>
-                    <div className="text-sm text-muted-foreground">{worker.roleOnShift}</div>
+                {worker.employeeId ? (
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={worker.employeeAvatar} />
+                      <AvatarFallback>
+                        {worker.employeeName
+                          ?.split(" ")
+                          .map(n => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <div className="font-bold">{worker.employeeName}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {worker.roleOnShift}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="font-bold">{worker.roleOnShift}</div>
+                )}
                 {getStatusBadge(worker.status)}
               </CardHeader>
               <CardContent className="p-4 space-y-4">
-                {worker.status !== 'shift_ended' && worker.status !== 'no_show' && (
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      onClick={() => handleClockIn(worker.id)}
-                      disabled={loading || worker.status === 'clocked_in'}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <Play className="h-4 w-4 mr-2" />
-                      Clock In
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleClockOut(worker.id)}
-                      disabled={loading || worker.status !== 'clocked_in'}
-                    >
-                      <Square className="h-4 w-4 mr-2" />
-                      Clock Out
-                    </Button>
+                {!worker.employeeId && (
+                  <div className="p-4 border-dashed border-2 border-gray-300 rounded-lg text-center">
+                    {renderEmployeeCell(worker)}
                   </div>
                 )}
-                <div>
-                  {renderTimeInputs(worker)}
-                </div>
-                <div>
-                  {renderActionButtons(worker)}
-                </div>
+                {worker.status !== "shift_ended" &&
+                  worker.status !== "no_show" &&
+                  worker.employeeId && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        onClick={() => handleClockIn(worker.id)}
+                        disabled={loading || worker.status === "clocked_in"}
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Play className="h-4 w-4 mr-2" />
+                        Clock In
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => handleClockOut(worker.id)}
+                        disabled={loading || worker.status !== "clocked_in"}
+                      >
+                        <Square className="h-4 w-4 mr-2" />
+                        Clock Out
+                      </Button>
+                    </div>
+                  )}
+                {worker.employeeId && <div>{renderTimeInputs(worker)}</div>}
+                {worker.employeeId && <div>{renderActionButtons(worker)}</div>}
               </CardContent>
             </Card>
           ))}
@@ -600,66 +769,68 @@ export default function ShiftTimeManagement({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {workers.map((worker) => (
-                <TableRow key={worker.id} className={getStatusColor(worker.status)}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={worker.employeeAvatar} />
-                        <AvatarFallback>
-                          {worker.employeeName.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{worker.employeeName}</div>
-                        <div className="text-sm text-muted-foreground">{worker.roleCode}</div>
-                      </div>
-                    </div>
-                  </TableCell>
+              {assignedPersonnel.map(worker => (
+                <TableRow
+                  key={worker.id}
+                  className={getStatusColor(worker.status)}
+                >
+                  <TableCell>{renderEmployeeCell(worker)}</TableCell>
                   <TableCell>
                     <Badge variant="secondary">{worker.roleOnShift}</Badge>
                   </TableCell>
-                  
-                  <TableCell colSpan={6}>
-                    <Accordion type="single" collapsible className="w-full">
-                      <AccordionItem value="item-1">
-                        <AccordionTrigger className="text-sm">
-                          Manage Time
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          {renderTimeInputs(worker)}
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
+
+                  <TableCell>
+                    {worker.employeeId ? (
+                      <Accordion type="single" collapsible className="w-full">
+                        <AccordionItem value="item-1">
+                          <AccordionTrigger className="text-sm">
+                            Manage Time
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            {renderTimeInputs(worker)}
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    ) : (
+                      <div className="text-xs text-muted-foreground">
+                        Assign employee to manage time
+                      </div>
+                    )}
                   </TableCell>
-                  
+
                   <TableCell>{getStatusBadge(worker.status)}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1">
-                      {worker.status !== 'shift_ended' && worker.status !== 'no_show' && (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => handleClockIn(worker.id)}
-                            disabled={loading || worker.status === 'clocked_in'}
-                            className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1"
-                          >
-                            <Play className="h-3 w-3 mr-1" />
-                            Clock In
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleClockOut(worker.id)}
-                            disabled={loading || worker.status !== 'clocked_in'}
-                            className="text-xs px-2 py-1"
-                          >
-                            <Square className="h-3 w-3 mr-1" />
-                            Clock Out
-                          </Button>
-                        </>
-                      )}
-                      {renderActionButtons(worker)}
+                      {worker.status !== "shift_ended" &&
+                        worker.status !== "no_show" &&
+                        worker.employeeId && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => handleClockIn(worker.id)}
+                              disabled={
+                                loading || worker.status === "clocked_in"
+                              }
+                              className="bg-green-600 hover:bg-green-700 text-xs px-2 py-1"
+                            >
+                              <Play className="h-3 w-3 mr-1" />
+                              Clock In
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleClockOut(worker.id)}
+                              disabled={
+                                loading || worker.status !== "clocked_in"
+                              }
+                              className="text-xs px-2 py-1"
+                            >
+                              <Square className="h-3 w-3 mr-1" />
+                              Clock Out
+                            </Button>
+                          </>
+                        )}
+                      {worker.employeeId && renderActionButtons(worker)}
                     </div>
                   </TableCell>
                 </TableRow>

@@ -4,15 +4,15 @@ import React, { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
-  ZoomIn, 
-  ZoomOut, 
-  Download, 
-  Print, 
-  ChevronLeft, 
+  AlertCircle,
+  ChevronLeft,
   ChevronRight,
+  Download,
   FileText,
-  AlertCircle
-} from 'lucide-react'
+  Printer,
+  ZoomIn,
+  ZoomOut,
+} from "lucide-react"
 import { useToast } from '@/hooks/use-toast'
 
 interface PDFViewerProps {
@@ -145,9 +145,9 @@ export function PDFViewer({ fileUrl, filename, className }: PDFViewerProps) {
                 </Button>
               </>
             )}
-            <Button variant="outline" size="sm" onClick={handlePrint}>
-              <Print className="h-4 w-4" />
-            </Button>
+            <Button variant="outline" size="icon" onClick={handlePrint}>
+            <Printer className="h-4 w-4" />
+          </Button>
             <Button variant="outline" size="sm" onClick={handleDownload}>
               <Download className="h-4 w-4" />
             </Button>

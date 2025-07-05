@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/middleware'
 import { query } from '@/lib/db'
-import { cache, invalidateCache } from '@/lib/cache'
+import { globalCache } from '@/lib/cache'
 import { DocumentAssignment, DocumentAssignmentFilters, CreateDocumentAssignmentRequest, BulkAssignDocumentsRequest } from '@/types/documents'
 import { emailService } from '@/lib/email-service'
 
@@ -43,9 +43,9 @@ export async function GET(request: NextRequest) {
     const cacheKey = `document_assignments:${JSON.stringify(filters)}`
     
     // Try to get from cache
-    const cached = cache.get<{ assignments: DocumentAssignment[], total: number }>(cacheKey)
+    const cached = globalCache.get<{ assignments: DocumentAssignment[], total: number }>(cacheKey)
     if (cached) {
-      return NextResponse.json(cached)
+      return NextResponse.json(cached.data)
     }
 
     // Build query
@@ -238,8 +238,7 @@ export async function GET(request: NextRequest) {
 
     const result = { assignments, total }
     
-    // Cache the result
-    cache.set(cacheKey, result, 2 * 60 * 1000) // 2 minutes
+    globalCache.set(cacheKey, result, 2 * 60 * 1000) // 2 minutes
 
     return NextResponse.json(result)
   } catch (error) {
@@ -357,7 +356,7 @@ async function handleSingleAssignment(assignmentData: CreateDocumentAssignmentRe
   }
 
   // Invalidate cache
-  invalidateCache.all()
+  globalCache.invalidateByTag('document_assignments')
 
   return NextResponse.json({
     success: true,
@@ -414,7 +413,7 @@ async function handleBulkAssignment(bulkData: BulkAssignDocumentsRequest, user: 
   }
 
   // Invalidate cache
-  invalidateCache.all()
+  globalCache.invalidateByTag('document_assignments')
 
   return NextResponse.json({
     success: true,
