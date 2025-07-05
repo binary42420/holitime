@@ -1,4 +1,4 @@
-"use client"
+use client"
 
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -36,6 +36,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { useApi } from "@/hooks/use-api"
 import type { User as UserType, Shift } from "@/lib/types"
+import Link from "next/link"
 
 interface UserProfilePageProps {
   params: Promise<{ id: string }>
