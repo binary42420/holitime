@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -84,13 +84,7 @@ export default function ExportTemplateEditor({ templateId, mode }: ExportTemplat
   const { toast } = useToast()
   const router = useRouter()
 
-  useEffect(() => {
-    if (mode === "edit" && templateId) {
-      fetchTemplate()
-    }
-  }, [mode, templateId])
-
-  const fetchTemplate = async () => {
+  const fetchTemplate = React.useCallback(async () => {
     if (!templateId) return
     
     setLoading(true)
@@ -116,7 +110,13 @@ export default function ExportTemplateEditor({ templateId, mode }: ExportTemplat
     } finally {
       setLoading(false)
     }
-  }
+  }, [templateId, toast])
+
+  useEffect(() => {
+    if (mode === "edit" && templateId) {
+      fetchTemplate()
+    }
+  }, [mode, templateId, fetchTemplate])
 
   const addFieldMapping = () => {
     const newMapping: FieldMapping = {

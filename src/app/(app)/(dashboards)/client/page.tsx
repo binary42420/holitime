@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"

@@ -1,29 +1,20 @@
-"use client"
+'use client';
 
-import React from "react"
-import { usePathname } from "next/navigation"
-import {
-  Hand,
-  PanelLeft,
-} from "lucide-react"
+import React from "react";
+import { usePathname } from "next/navigation";
+import { Hand,PanelLeft} from "lucide-react";
 
-import {
-  Sidebar,
-  SidebarProvider,
-  SidebarTrigger,
-  SidebarHeader,
-  SidebarContent,
-  SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
-} from "@/components/ui/sidebar"
-import { UserNav } from "@/components/user-nav"
-import { useUser } from "@/hooks/use-user"
-import { AuthGuard } from "@/components/auth-guard"
-import { MobileBottomNav, MobilePageWrapper, useMobileNav } from "@/components/mobile-bottom-nav"
-import Link from "next/link"
-import { navItems } from "@/lib/nav-items"
-import { Breadcrumbs } from "@/components/breadcrumbs"
+import {Sidebar, SidebarProvider, SidebarTrigger, SidebarHeader, 
+  SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton,}
+  from "@/components/ui/sidebar";
+
+import { UserNav } from "@/components/user-nav";
+import { useUser } from "@/hooks/use-user";
+import { AuthGuard } from "@/components/auth-guard";
+import { MobileBottomNav, MobilePageWrapper, useMobileNav } from "@/components/mobile-bottom-nav";
+import Link from "next/link";
+import { navItems } from "@/lib/nav-items";
+import { Breadcrumbs } from "@/components/breadcrumbs";
 
 function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -87,4 +78,4 @@ function AppShell({ children }: { children: React.ReactNode }) {
   )
 }
 
-export default AppShell
+export default AppShell;

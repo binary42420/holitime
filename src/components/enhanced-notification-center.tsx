@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import React, { useState, useEffect, useCallback } from "react"
 import { Bell, X, CheckCircle, AlertCircle, Info, AlertTriangle, Wifi, WifiOff } from "lucide-react"

@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import React, { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -49,7 +49,7 @@ const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string; bgColor:
   "RG": { 
     name: "Rigger", 
     color: "text-red-700", 
-    bgColor: "bg-red-100",
+    bgColor: "bg-red-50",
     description: "Specialized rigging and lifting operations"
   },
   "GL": { 
@@ -79,7 +79,7 @@ export default function WorkerTypeSelector({ value = [], onChange, className }: 
     } else if (value.length > 0) {
       setRequirements(value)
     }
-  }, [value, onChange])
+  }, [value, onChange, requirements.length])
 
   const updateRequirement = (roleCode: RoleCode, newCount: number) => {
     const updatedRequirements = requirements.map(req => 

@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import React, { useRef, useImperativeHandle, forwardRef, useState, useEffect } from "react"
-import SignatureCanvas from "react-signature-canvas"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { RefreshCw, Download } from "lucide-react"
+import React, { useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react'
+import SignatureCanvas from 'react-signature-canvas'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
+import { RefreshCw, Download } from 'lucide-react'
 
 interface SignaturePadProps {
   penColor?: string;
@@ -27,8 +27,8 @@ export interface SignaturePadRef {
 
 const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref) => {
   const {
-    penColor = "black",
-    backgroundColor = "transparent",
+    penColor = 'black',
+    backgroundColor = 'transparent',
     width,
     height = 200,
     showControls = true,
@@ -47,7 +47,7 @@ const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref)
     },
     getTrimmedCanvas: () => {
       if (!sigCanvas.current) {
-        throw new Error("Signature canvas not available")
+        throw new Error('Signature canvas not available')
       }
       return sigCanvas.current.getTrimmedCanvas()
     },
@@ -60,7 +60,7 @@ const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref)
     },
     toDataURL: (type?: string, encoderOptions?: number) => {
       if (!sigCanvas.current) {
-        throw new Error("Signature canvas not available")
+        throw new Error('Signature canvas not available')
       }
       return sigCanvas.current.toDataURL(type, encoderOptions)
     }
@@ -77,25 +77,25 @@ const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref)
 
   const handleDownload = () => {
     if (sigCanvas.current && !sigCanvas.current.isEmpty()) {
-      const dataURL = sigCanvas.current.getTrimmedCanvas().toDataURL("image/png")
-      const link = document.createElement("a")
-      link.download = "signature.png"
+      const dataURL = sigCanvas.current.getTrimmedCanvas().toDataURL('image/png')
+      const link = document.createElement('a')
+      link.download = 'signature.png'
       link.href = dataURL
       link.click()
     }
   }
 
   return (
-    <div className="space-y-4">
+    <div className='space-y-4'>
       {label && (
-        <Label className="text-sm font-medium">
+        <Label className='text-sm font-medium'>
           {label}
-          {required && <span className="text-destructive ml-1">*</span>}
+          {required && <span className='text-destructive ml-1'>*</span>}
         </Label>
       )}
 
       <div
-        className="relative border-2 border-dashed border-muted-foreground/25 rounded-lg bg-background hover:border-muted-foreground/50 transition-colors"
+        className='relative border-2 border-dashed border-muted-foreground/25 rounded-lg bg-background hover:border-muted-foreground/50 transition-colors'
         style={{ height: height }}
       >
         <SignatureCanvas
@@ -104,7 +104,7 @@ const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref)
           backgroundColor={backgroundColor}
           onBegin={handleBegin}
           canvasProps={{
-            className: "w-full h-full rounded-lg",
+            className: 'w-full h-full rounded-lg',
             width: width,
             height: height,
             ...canvasProps
@@ -112,8 +112,8 @@ const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref)
         />
 
         {!hasSignature && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <p className="text-muted-foreground text-sm">
+          <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
+            <p className='text-muted-foreground text-sm'>
               Sign here with your mouse or finger
             </p>
           </div>
@@ -123,33 +123,33 @@ const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref)
       {showControls && (
         <>
           <Separator />
-          <div className="flex justify-between items-center">
-            <div className="flex gap-2">
+          <div className='flex justify-between items-center'>
+            <div className='flex gap-2'>
               <Button
-                type="button"
-                variant="outline"
-                size="sm"
+                type='button'
+                variant='outline'
+                size='sm'
                 onClick={handleClear}
                 disabled={!hasSignature}
               >
-                <RefreshCw className="h-4 w-4 mr-2" />
+                <RefreshCw className='h-4 w-4 mr-2' />
                 Clear
               </Button>
 
               <Button
-                type="button"
-                variant="outline"
-                size="sm"
+                type='button'
+                variant='outline'
+                size='sm'
                 onClick={handleDownload}
                 disabled={!hasSignature}
               >
-                <Download className="h-4 w-4 mr-2" />
+                <Download className='h-4 w-4 mr-2' />
                 Download
               </Button>
             </div>
 
-            <p className="text-xs text-muted-foreground">
-              {hasSignature ? "Signature captured" : "No signature"}
+            <p className='text-xs text-muted-foreground'>
+              {hasSignature ? 'Signature captured' : 'No signature'}
             </p>
           </div>
         </>
@@ -158,6 +158,6 @@ const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>((props, ref)
   )
 })
 
-SignaturePad.displayName = "SignaturePad"
+SignaturePad.displayName = 'SignaturePad'
 
 export default SignaturePad

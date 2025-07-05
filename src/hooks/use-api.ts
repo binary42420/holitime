@@ -1,4 +1,4 @@
-"use client"
+use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { enhancedFetch, handleError, useErrorHandler, type ErrorContext } from "@/lib/error-handler"
@@ -116,7 +116,7 @@ export function useApi<T>(
     abortControllerRef.current = new AbortController()
 
     try {
-      setState(prev => ({ 
+      setState(prev => ({
         ...prev, 
         loading: prev.data ? false : true, // Don't show loading if we have cached data
         error: null 
@@ -201,7 +201,7 @@ export function useApi<T>(
         }
       }
     }
-  }, [url, enabled, context, onSuccess, onError, staleTime])
+  }, [url, enabled, context, onSuccess, onError, staleTime, getCachedData, withRetry])
 
   // Effect for initial fetch and dependency changes
   useEffect(() => {
@@ -215,7 +215,7 @@ export function useApi<T>(
         abortControllerRef.current.abort()
       }
     }
-  }, [url, enabled, ...dependencies])
+  }, [url, enabled, fetchData, ...dependencies])
 
   // Cleanup on unmount
   useEffect(() => {
@@ -318,8 +318,7 @@ export function useShiftsByDate(dateFilter: string = "today", statusFilter: stri
 }
 
 export function useShift(id: string) {
-  const { data, ...rest } = useApi<{ shift: any }>(`/api/shifts/${id}`, [id])
-  return { data: data?.shift, ...rest }
+  return useApi<{ shift: any }>(`/api/shifts/${id}`, [id])
 }
 
 export function useAnnouncements() {

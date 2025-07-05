@@ -77,7 +77,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     login,
     logout,
     refreshUser,
-  }), [currentUser, isLoading])
+  }), [currentUser, isLoading, logout])
 
   return React.createElement(UserContext.Provider, { value }, children)
 }

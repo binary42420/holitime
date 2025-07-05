@@ -20,10 +20,11 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog"
-import { Users, UserCheck, Settings, Save, X, Edit, Plus, UserPlus, Eye, EyeOff } from "lucide-react"
+import { Users, UserCheck, Settings, Save, X, Edit, Plus, UserPlus, Eye, EyeOff, Shield } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useApi } from "@/hooks/use-api"
 import type { User, UserRole } from "@/lib/types"
+import Image from "next/image"
 
 interface EmployeeManagementProps {}
 
@@ -419,10 +420,11 @@ function EmployeesPage({}: EmployeeManagementProps) {
                         <div className="flex items-center gap-2">
                           <span className="text-sm">{getEligibilityDisplay(user)}</span>
                           {user.oshaCompliant && (
-                            <img
+                            <Image
                               src="/images/osha-compliant.svg"
                               alt="OSHA Compliant"
-                              className="w-4 h-4"
+                              width={16}
+                              height={16}
                               title="OSHA Compliant"
                             />
                           )}
@@ -507,7 +509,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
               Create New User
             </DialogTitle>
             <DialogDescription>
-              Add a new user to the system. Fill in the required information and set appropriate permissions.
+              Add a new user to the system and send them an invitation email.
             </DialogDescription>
           </DialogHeader>
 
@@ -727,5 +729,3 @@ function EmployeesPage({}: EmployeeManagementProps) {
     </div>
   )
 }
-
-export default EmployeesPage

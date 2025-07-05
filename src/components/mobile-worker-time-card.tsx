@@ -1,4 +1,4 @@
-"use client"
+use client"
 
 import React, { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -366,5 +366,3 @@ export const MobileWorkerTimeCard: React.FC<MobileWorkerTimeCardProps> = ({
     </Card>
   )
 }
-
-export default MobileWorkerTimeCard

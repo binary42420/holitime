@@ -20,7 +20,7 @@ export function useCrewChiefPermissions(shiftId: string | null): UseCrewChiefPer
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchPermissions = async () => {
+  const fetchPermissions = React.useCallback(async () => {
     if (!shiftId || !session?.user) {
       setPermissionCheck(null)
       setIsLoading(false)
@@ -61,11 +61,11 @@ export function useCrewChiefPermissions(shiftId: string | null): UseCrewChiefPer
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [shiftId, session?.user?.id, session?.user?.role])
 
   useEffect(() => {
     fetchPermissions()
-  }, [shiftId, session?.user?.id, session?.user?.role])
+  }, [fetchPermissions])
 
   return {
     hasPermission: permissionCheck?.hasPermission ?? false,
@@ -87,7 +87,7 @@ export function useUserCrewChiefPermissions(userId?: string) {
 
   const targetUserId = userId || session?.user?.id
 
-  const fetchUserPermissions = async () => {
+  const fetchUserPermissions = React.useCallback(async () => {
     if (!targetUserId) return
 
     setIsLoading(true)
@@ -109,11 +109,11 @@ export function useUserCrewChiefPermissions(userId?: string) {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [targetUserId])
 
   useEffect(() => {
     fetchUserPermissions()
-  }, [targetUserId])
+  }, [fetchUserPermissions])
 
   return {
     permissions,

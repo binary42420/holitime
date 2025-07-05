@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { useEffect, useRef, useCallback, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
@@ -281,7 +281,7 @@ export function useRealtime(options: RealtimeOptions = {}) {
       // Don't disconnect on unmount as other components might be using it
       // manager.disconnect()
     }
-  }, [])
+  }, [options.onConnect, options.onDisconnect, options.onError, options.onReconnect, toast])
 
   const subscribe = useCallback((eventType: string, callback: (data: any) => void) => {
     return managerRef.current?.subscribe(eventType, callback) || (() => {})

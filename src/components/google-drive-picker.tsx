@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -63,7 +63,7 @@ export default function GoogleDrivePicker({ accessToken, onFileSelect }: GoogleD
         {files.map((file) => (
           <li key={file.id} className="flex items-center space-x-4 p-2 border rounded hover:bg-gray-100 cursor-pointer" onClick={() => onFileSelect(file)}>
             {file.thumbnailLink ? (
-              <img src={file.thumbnailLink} alt={file.name} className="w-8 h-8 object-cover rounded" />
+              <Image src={file.thumbnailLink} alt={file.name} width={32} height={32} className="object-cover rounded" />
             ) : (
               <div className="w-8 h-8 bg-gray-300 rounded flex items-center justify-center text-sm font-bold text-gray-600">S</div>
             )}

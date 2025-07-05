@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import ExportTemplateEditor from "@/components/export-template-editor"
 

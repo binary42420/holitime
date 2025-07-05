@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import React, { useState, useCallback, useRef } from "react"
 import { Button } from "@/components/ui/button"
@@ -264,9 +264,11 @@ export function DocumentUpload({ documentTypes, onUploadSuccess, disabled }: Doc
               
               {selectedFile.type.startsWith("image/") && (
                 <div className="mt-3">
-                  <img
+                  <Image
                     src={URL.createObjectURL(selectedFile)}
                     alt="Preview"
+                    width={200}
+                    height={100}
                     className="max-w-full h-32 object-contain rounded border"
                   />
                 </div>

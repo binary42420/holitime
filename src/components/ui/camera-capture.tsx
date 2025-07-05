@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import React, { useRef, useState, useCallback } from "react"
 import { Button } from "@/components/ui/button"
@@ -171,9 +171,11 @@ export function CameraCapture({ onCapture, onCancel, disabled }: CameraCapturePr
         {capturedImage && (
           <div className="space-y-4">
             <div className="relative">
-              <img
+              <Image
                 src={capturedImage}
                 alt="Captured document"
+                width={videoRef.current?.videoWidth || 600}
+                height={videoRef.current?.videoHeight || 400}
                 className="w-full h-auto rounded-lg"
               />
             </div>

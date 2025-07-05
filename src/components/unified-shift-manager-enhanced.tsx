@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import React, { useState, useEffect, useCallback } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
+import React, { useState, useEffect, useCallback } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import { 
   Clock, 
   Play, 
@@ -24,10 +24,10 @@ import {
   WifiOff,
   AlertTriangle,
   Shield
-} from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { format, differenceInMinutes } from "date-fns"
-import { useErrorHandler } from "@/lib/error-handler"
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { format, differenceInMinutes } from "date-fns";
+import { useErrorHandler } from "@/lib/error-handler";
 
 interface MutationState<T = any> {
   mutate: (variables: T) => Promise<any>
@@ -94,13 +94,13 @@ const useMutation = <T,>(
     ...state
   }
 }
-import { format, differenceInMinutes } from "date-fns"
+import { format, differenceInMinutes } from "date-fns";
 import { 
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -111,11 +111,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Progress } from "@/components/ui/progress"
-import { LoadingSpinner, InlineLoading } from "@/components/loading-states"
-import { useErrorHandler, type ErrorContext } from "@/lib/error-handler"
-import { ErrorBoundary } from "@/components/error-boundary"
+} from "@/components/ui/alert-dialog";
+import { Progress } from "@/components/ui/progress";
+import { LoadingSpinner, InlineLoading } from "@/components/loading-states";
+import { useErrorHandler, type ErrorContext } from "@/lib/error-handler";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { 
   FeedbackButton, 
   StatusIndicator, 
@@ -123,7 +123,7 @@ import {
   OptimisticUpdate,
   AnimatedBadge,
   InstantFeedback
-} from "@/components/ui/enhanced-feedback"
+} from "@/components/ui/enhanced-feedback";
 
 interface TimeEntry {
   id: string;
@@ -217,7 +217,7 @@ const calculateTotalHours = (timeEntries: TimeEntry[] = []) => {
   return `${hours}h ${minutes}m`
 }
 
-export default function UnifiedShiftManagerEnhanced({ 
+export default function UnifiedShiftManagerEnhanced({
   shiftId, 
   assignedPersonnel, 
   onUpdate,
@@ -424,6 +424,7 @@ export default function UnifiedShiftManagerEnhanced({
         description: "Worker not found",
         variant: "destructive",
       })
+      return
     }
 
     // Show instant feedback while action is processing
@@ -492,7 +493,7 @@ export default function UnifiedShiftManagerEnhanced({
     if (incompleteWorkers.length > 0) {
       toast({
         title: "Cannot Finalize",
-        description: `${incompleteWorkers.length} workers haven't completed their shifts yet`,
+        description: `${incompleteWorkers.length} workers haven\'t completed their shifts yet`,
         variant: "destructive",
       })
       return
@@ -646,7 +647,7 @@ export default function UnifiedShiftManagerEnhanced({
                                   Clock In
                                 </FeedbackButton>
                               </TooltipTrigger>
-                              <TooltipContent>Start this worker's shift</TooltipContent>
+                              <TooltipContent>Start this worker\'s shift</TooltipContent>
                             </Tooltip>
                           )}
 
@@ -685,7 +686,7 @@ export default function UnifiedShiftManagerEnhanced({
                                     End Shift
                                   </FeedbackButton>
                                 </TooltipTrigger>
-                                <TooltipContent>End this worker's shift</TooltipContent>
+                                <TooltipContent>End this worker\'s shift</TooltipContent>
                               </Tooltip>
                             </>
                           )}
@@ -724,7 +725,7 @@ export default function UnifiedShiftManagerEnhanced({
                                     End Shift
                                   </FeedbackButton>
                                 </TooltipTrigger>
-                                <TooltipContent>End this worker's shift</TooltipContent>
+                                <TooltipContent>End this worker\'s shift</TooltipContent>
                               </Tooltip>
                             </>
                           )}
@@ -771,7 +772,7 @@ export default function UnifiedShiftManagerEnhanced({
                   <AlertDialogHeader>
                     <AlertDialogTitle>End All Active Shifts?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will end shifts for all workers who haven't completed their shifts yet. 
+                      This will end shifts for all workers who haven\'t completed their shifts yet. 
                       This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
