@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useRef, useState, useCallback } from "react"
+import Image from "next/image"
 import { Button } from "@/app/(app)/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
 import { Camera, X, RotateCcw, Download } from "lucide-react"

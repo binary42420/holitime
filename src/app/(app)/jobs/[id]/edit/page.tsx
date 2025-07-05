@@ -23,12 +23,6 @@ export default function JobEditPage({ params }: JobEditPageProps) {
   const router = useRouter()
   const { toast } = useToast()
   
-  // Only managers can edit jobs
-  if (user?.role !== "Manager/Admin") {
-    router.push("/jobs")
-    return null
-  }
-
   const { data: jobData, loading: jobLoading, error: jobError } = useJob(id)
   const { data: clientsData, loading: clientsLoading } = useApi<{ clients: any[] }>("/api/clients")
   
@@ -49,6 +43,12 @@ export default function JobEditPage({ params }: JobEditPageProps) {
       })
     }
   }, [jobData])
+
+  // Only managers can edit jobs
+  if (user?.role !== "Manager/Admin") {
+    router.push("/jobs")
+    return null
+  }
 
   if (jobLoading || clientsLoading) {
     return (

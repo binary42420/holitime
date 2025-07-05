@@ -63,7 +63,7 @@ export default function TimesheetExportDialog({
     if (open) {
       fetchTemplates()
     }
-  }, [open])
+  }, [open, fetchTemplates])
 
   const fetchTemplates = async () => {
     setLoadingTemplates(true)

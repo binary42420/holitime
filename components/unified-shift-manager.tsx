@@ -739,7 +739,7 @@ export default function UnifiedShiftManager({
                                 Clock In
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>Start this worker's shift</TooltipContent>
+                            <TooltipContent>Start this worker&apos;s shift</TooltipContent>
                           </Tooltip>
                         )}
 
@@ -780,7 +780,7 @@ export default function UnifiedShiftManager({
                                   End Shift
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>End this worker's shift</TooltipContent>
+                              <TooltipContent>End this worker&apos;s shift</TooltipContent>
                             </Tooltip>
                           </>
                         )}
@@ -821,7 +821,7 @@ export default function UnifiedShiftManager({
                                   End Shift
                                 </Button>
                               </TooltipTrigger>
-                              <TooltipContent>End this worker's shift</TooltipContent>
+                              <TooltipContent>End this worker&apos;s shift</TooltipContent>
                             </Tooltip>
                           </>
                         )}
@@ -865,7 +865,7 @@ export default function UnifiedShiftManager({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will end the shift for all workers who haven't completed their shift yet. This action cannot be undone.
+                      This will end the shift for all workers who haven&apos;t completed their shift yet. This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

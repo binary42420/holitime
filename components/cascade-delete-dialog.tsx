@@ -80,7 +80,7 @@ export function CascadeDeleteDialog({
     if (!confirmed || confirmationText !== "DELETE") {
       toast({
         title: "Error",
-        description: "Please type \"DELETE\" to confirm",
+        description: "Please type &quot;DELETE&quot; to confirm",
         variant: "destructive",
       })
       return
@@ -245,7 +245,7 @@ export function CascadeDeleteDialog({
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="confirmation">Type "DELETE" to confirm</Label>
+                <Label htmlFor="confirmation">Type &quot;DELETE&quot; to confirm</Label>
                 <Input
                   id="confirmation"
                   value={confirmationText}

@@ -164,7 +164,7 @@ function NewEmployeePage() {
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
             <CardDescription>
-              Enter the employee's basic personal details
+              Enter the employee&apos;s basic personal details
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -269,7 +269,7 @@ function NewEmployeePage() {
           <CardHeader>
             <CardTitle>Skills & Certifications</CardTitle>
             <CardDescription>
-              Select the employee's skills and certifications
+              Select the employee&apos;s skills and certifications
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">

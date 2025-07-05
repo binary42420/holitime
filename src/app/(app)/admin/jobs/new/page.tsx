@@ -41,18 +41,18 @@ function NewJobPage() {
   
   const { data: clientsData } = useApi<{ clients: any[] }>("/api/clients")
 
-  // Redirect if not admin
-  if (user?.role !== "Manager/Admin") {
-    router.push("/dashboard")
-    return null
-  }
-
   const form = useForm<JobFormData>({
     resolver: zodResolver(jobSchema),
     defaultValues: {
       status: "Active",
     },
   })
+
+  // Redirect if not admin
+  if (user?.role !== "Manager/Admin") {
+    router.push("/dashboard")
+    return null
+  }
 
   const onSubmit = async (data: JobFormData) => {
     setIsSubmitting(true)

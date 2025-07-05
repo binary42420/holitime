@@ -342,7 +342,7 @@ export default function ComprehensiveTimesheetManager({
 
       toast({
         title: "Shift Ended",
-        description: `${workerName}'s shift has been ended`,
+        description: `${workerName}&apos;s shift has been ended`,
       })
       onUpdate()
     } catch (error) {
@@ -400,7 +400,7 @@ export default function ComprehensiveTimesheetManager({
     if (activeWorkers.length > 0) {
       toast({
         title: "Cannot Finalize",
-        description: `${activeWorkers.length} workers have not ended their shifts yet`,
+        description: `${activeWorkers.length} workers haven&apos;t completed their shifts yet`,
         variant: "destructive",
       })
       return
@@ -831,8 +831,8 @@ export default function ComprehensiveTimesheetManager({
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>End Shift</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Are you sure you want to end {worker.employeeName}'s shift?
-                                      This will clock them out if they're currently clocked in and mark their status as 'Shift Ended'.
+                                      Are you sure you want to end {worker.employeeName}&apos;s shift?
+                                      This will clock them out if they&apos;re currently clocked in and mark their status as &apos;Shift Ended&apos;.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
@@ -876,7 +876,7 @@ export default function ComprehensiveTimesheetManager({
                         Are you sure you want to end shifts for all active workers? This will:
                         <ul className="list-disc list-inside mt-2 space-y-1">
                           <li>Clock out all currently clocked-in workers</li>
-                          <li>Mark all worker statuses as 'Shift Ended'</li>
+                          <li>Mark all worker statuses as &apos;Shift Ended&apos;</li>
                         </ul>
                         <div className="mt-3 p-3 bg-muted rounded">
                           <strong>Affected workers:</strong>

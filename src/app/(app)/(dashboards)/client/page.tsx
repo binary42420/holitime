@@ -221,7 +221,7 @@ export default function ClientDashboard() {
             <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="font-medium text-lg mb-2">Welcome to HoliTime</h3>
             <p className="text-muted-foreground mb-4">
-              Your shifts and jobs will appear here once they're scheduled.
+              Your shifts and jobs will appear here once they&apos;re scheduled.
             </p>
             <Button size="mobile" variant="outline" asChild>
               <Link href="/profile">

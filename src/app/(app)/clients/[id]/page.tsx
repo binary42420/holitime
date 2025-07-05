@@ -110,7 +110,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
             <div className="text-center">
               <h2 className="text-lg font-semibold mb-2">Client Not Found</h2>
               <p className="text-muted-foreground mb-4">
-                The client you're looking for doesn't exist or you don't have permission to view it.
+                The client you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
               </p>
               <Button onClick={() => router.push("/clients")}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
@@ -265,7 +265,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
               <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Jobs Yet</h3>
               <p className="text-muted-foreground mb-4">
-                This client doesn't have any jobs assigned yet.
+                This client doesn&apos;t have any jobs assigned yet.
               </p>
               {canEdit && (
                 <Button onClick={() => router.push(`/admin/jobs/new?clientId=${client.id}`)}>
@@ -365,7 +365,7 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
               <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Recent Shifts</h3>
               <p className="text-muted-foreground mb-4">
-                This client doesn't have any recent shifts.
+                This client doesn&apos;t have any recent shifts.
               </p>
             </div>
           )}

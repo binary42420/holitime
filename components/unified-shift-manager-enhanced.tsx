@@ -280,7 +280,7 @@ export default function UnifiedShiftManagerEnhanced({
         const worker = assignedPersonnel.find(w => w.id === variables.assignmentId)
         toast({
           title: "Shift Ended",
-          description: `${worker?.employeeName}'s shift has been ended`,
+          description: `${worker?.employeeName}&apos;s shift has been ended`,
         })
         onUpdate()
         setLastUpdateTime(new Date())
@@ -647,7 +647,7 @@ export default function UnifiedShiftManagerEnhanced({
                                   Clock In
                                 </FeedbackButton>
                               </TooltipTrigger>
-                              <TooltipContent>Start this worker\'s shift</TooltipContent>
+                              <TooltipContent>Start this worker&apos;s shift</TooltipContent>
                             </Tooltip>
                           )}
 
@@ -686,7 +686,7 @@ export default function UnifiedShiftManagerEnhanced({
                                     End Shift
                                   </FeedbackButton>
                                 </TooltipTrigger>
-                                <TooltipContent>End this worker\'s shift</TooltipContent>
+                                <TooltipContent>End this worker&apos;s shift</TooltipContent>
                               </Tooltip>
                             </>
                           )}
@@ -725,7 +725,7 @@ export default function UnifiedShiftManagerEnhanced({
                                     End Shift
                                   </FeedbackButton>
                                 </TooltipTrigger>
-                                <TooltipContent>End this worker\'s shift</TooltipContent>
+                                <TooltipContent>End this worker&apos;s shift</TooltipContent>
                               </Tooltip>
                             </>
                           )}
@@ -772,7 +772,7 @@ export default function UnifiedShiftManagerEnhanced({
                   <AlertDialogHeader>
                     <AlertDialogTitle>End All Active Shifts?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      This will end shifts for all workers who haven\'t completed their shifts yet. 
+                      This will end shifts for all workers who haven&apos;t completed their shifts yet. 
                       This action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>

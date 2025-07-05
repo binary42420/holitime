@@ -283,7 +283,7 @@ export default function ManagerApprovalPage() {
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
               <h3 className="text-lg font-semibold">Timesheet Not Pending Final Approval</h3>
               <p className="text-muted-foreground">
-                This timesheet is currently in "{timesheet.status}" status and does not require final approval.
+                This timesheet is currently in &quot;{timesheet.status}&quot; status and does not require final approval.
               </p>
               <Button onClick={() => router.push("/timesheets")}>View All Timesheets</Button>
             </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useCallback } from "react"
+import Image from "next/image"
 import { Button } from "@/app/(app)/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
 import { 

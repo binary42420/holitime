@@ -38,15 +38,6 @@ export function CrewChiefPermissionManager({
   const [isLoading, setIsLoading] = useState(true)
   const [isGranting, setIsGranting] = useState(false)
 
-  // Only show for admins/managers
-  if (session?.user?.role !== "Manager/Admin") {
-    return null
-  }
-
-  useEffect(() => {
-    fetchData()
-  }, [targetId, targetType])
-
   const fetchData = async () => {
     setIsLoading(true)
     try {
@@ -81,6 +72,17 @@ export function CrewChiefPermissionManager({
     } finally {
       setIsLoading(false)
     }
+  }
+
+  useEffect(() => {
+    if (session?.user?.role === "Manager/Admin") {
+      fetchData()
+    }
+  }, [targetId, targetType, session?.user?.role])
+
+  // Only show for admins/managers
+  if (session?.user?.role !== "Manager/Admin") {
+    return null
   }
 
   const handleGrantPermission = async () => {

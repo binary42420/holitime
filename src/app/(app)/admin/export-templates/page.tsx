@@ -54,14 +54,20 @@ export default function ExportTemplatesPage() {
 
   useEffect(() => {
     fetchTemplates()
-  }, [])
+  }, [fetchTemplates])
 
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/export-templates")
       if (response.ok) {
         const data = await response.json()
         setTemplates(data.templates)
+        
+        // Auto-select default template
+        const defaultTemplate = data.templates.find((t: ExportTemplate) => t.isDefault)
+        if (defaultTemplate) {
+          setSelectedTemplate(defaultTemplate.id)
+        }
       } else {
         throw new Error("Failed to fetch templates")
       }
@@ -74,7 +80,7 @@ export default function ExportTemplatesPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
 
   const handleDelete = async (templateId: string, templateName: string) => {
     setDeleteLoading(templateId)

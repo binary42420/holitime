@@ -281,7 +281,7 @@ export default function EmployeeDashboard() {
             <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="font-medium text-lg mb-2">No Shifts Assigned</h3>
             <p className="text-muted-foreground mb-4">
-              You don't have any shifts assigned yet. Check back later or contact your supervisor.
+              You don&apos;t have any shifts assigned yet. Check back later or contact your supervisor.
             </p>
             <Button size="mobile" variant="outline" asChild>
               <Link href="/profile">

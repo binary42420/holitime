@@ -174,7 +174,7 @@ export const MobileWorkerTimeCard: React.FC<MobileWorkerTimeCardProps> = ({
                       <AlertTriangle className="h-5 w-5 mr-2" />
                       <div className="text-center">
                         <div>No Show</div>
-                        <div className="text-xs opacity-70">Didn't Come</div>
+                        <div className="text-xs opacity-70">Didn&apos;t Come</div>
                       </div>
                     </Button>
                   </AlertDialogTrigger>
@@ -184,7 +184,7 @@ export const MobileWorkerTimeCard: React.FC<MobileWorkerTimeCardProps> = ({
                         Mark as No Show?
                       </AlertDialogTitle>
                       <AlertDialogDescription className="text-center">
-                        <strong>{worker.employeeName}</strong> didn't show up for work today.
+                        <strong>{worker.employeeName}</strong> didn&apos;t show up for work today.
                         <br /><br />
                         <span className="text-red-600 font-medium">
                           This cannot be undone.

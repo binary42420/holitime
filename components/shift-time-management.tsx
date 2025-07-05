@@ -118,7 +118,7 @@ export default function ShiftTimeManagement({
       }
     })
     onUpdatePersonnel(newPersonnel)
-  }, [workerTypeCounts])
+  }, [workerTypeCounts, assignedPersonnel, onUpdatePersonnel])
 
   useEffect(() => {
     async function fetchEmployees() {

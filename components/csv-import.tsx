@@ -58,7 +58,7 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
     if (externalCSVData && !parsedData) {
       processExternalCSV(externalCSVData)
     }
-  }, [externalCSVData, parsedData])
+  }, [externalCSVData, parsedData, processExternalCSV])
 
   const processExternalCSV = async (csvData: string) => {
     try {

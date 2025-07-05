@@ -34,7 +34,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
     // Remove whitespace
     const trimmed = input.trim()
     
-    // If it's already just an ID (no slashes), return it
+    // If it&apos;s already just an ID (no slashes), return it
     if (!trimmed.includes("/")) {
       return trimmed
     }
@@ -95,7 +95,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
         }
       }
 
-      // Only try API key method if OAuth failed AND we don't have an access token
+      // Only try API key method if OAuth failed AND we don&apos;t have an access token
       // Skip API key method entirely if we have OAuth access
       if (!sheetsData && !accessToken) {
         try {
@@ -111,7 +111,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
           } else {
             const errorData = await response.json()
             console.log("API key method failed:", errorData.error)
-            // Don't treat API key failure as critical if we have OAuth available
+            // Don&apos;t treat API key failure as critical if we have OAuth available
           }
         } catch (error) {
           console.log("API key method error:", error)
@@ -151,7 +151,7 @@ export default function GoogleSheetsIdInput({ onFileSelected, accessToken }: Goo
 
       toast({
         title: "Google Sheets Loaded",
-        description: `Successfully loaded "${sheetsData.title}" with ${sheetsData.sheets.length} sheets`
+        description: `Successfully loaded &quot;${sheetsData.title}&quot; with ${sheetsData.sheets.length} sheets`
       })
 
       // Clear the input
