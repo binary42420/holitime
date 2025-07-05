@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import type { User } from "@/lib/types"
 import React, { createContext, useContext, useState, useEffect, useMemo } from "react"
@@ -30,7 +30,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         name: session.user.name!,
         role: session.user.role as any,
         avatar: session.user.image || `https://i.pravatar.cc/32?u=${session.user.email}`,
-        clientId: session.user.clientId as string || null,
+        clientCompanyId: session.user.clientCompanyId as string || null,
       })
     } else if (status === "unauthenticated") {
       setCurrentUser(null)

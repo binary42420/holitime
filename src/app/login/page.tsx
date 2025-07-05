@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { signIn, getSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,8 +19,8 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
-  const searchParams = new URLSearchParams(router.asPath.split('?')[1]);
-  const urlError = searchParams.get('error');
+  const searchParams = useSearchParams()
+  const urlError = searchParams.get('error')
 
   useEffect(() => {
     if (urlError) {

@@ -64,31 +64,59 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
     async signIn({ user, account, profile }) {
+      console.log("=== SIGNIN CALLBACK DEBUG ===")
+      console.log("Provider:", account?.provider)
+      console.log("User email:", user.email)
+      console.log("User name:", user.name)
+      
       try {
         if (account?.provider === "google") {
+          console.log("Processing Google OAuth sign-in...")
+          
           // Check if user exists in our database
+          console.log("Checking if user exists in database...")
           const existingUser = await getUserByEmail(user.email!)
+          console.log("Existing user found:", !!existingUser)
 
           if (!existingUser) {
+            console.log("Creating new user for Google OAuth...")
             // Create new user for Google OAuth
-            const newUser = await createUser({
-              email: user.email!,
-              password: "oauth_user", // Placeholder password for OAuth users
-              name: user.name!,
-              role: "Employee", // Default role, can be changed by admin
-            })
+            try {
+              const newUser = await createUser({
+                email: user.email!,
+                password: "oauth_user", // Placeholder password for OAuth users
+                name: user.name!,
+                role: "Employee", // Default role, can be changed by admin
+              })
 
-            if (!newUser) {
-              console.error("Failed to create user for Google OAuth")
-              return false
+              if (!newUser) {
+                console.error("❌ Failed to create user for Google OAuth - allowing sign-in anyway")
+                // Allow sign-in even if user creation fails - they can be created manually later
+                return true
+              }
+              console.log("✅ Successfully created new user:", newUser.email)
+            } catch (createError) {
+              console.error("❌ Error creating user:", createError)
+              // Allow sign-in even if user creation fails
+              console.log("⚠️ Allowing sign-in despite user creation failure")
+              return true
             }
+          } else {
+            console.log("✅ User already exists, proceeding with sign-in")
           }
         }
 
+        console.log("✅ Sign-in callback returning true")
         return true
       } catch (error) {
-        console.error("Sign-in error:", error)
-        return true // Allow sign-in even if database operations fail
+        console.error("❌ Sign-in error:", error)
+        console.error("Error details:", {
+          message: error instanceof Error ? error.message : "Unknown error",
+          stack: error instanceof Error ? error.stack : undefined
+        })
+        // Allow sign-in even if there are database issues
+        console.log("⚠️ Allowing sign-in despite callback error")
+        return true
       }
     },
 
