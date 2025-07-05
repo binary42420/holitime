@@ -1,109 +1,54 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getPool } from '@/lib/db'
+import { NextRequest, NextResponse } from 'next/server';
+import { query } from '@/lib/db';
+import { withCrewChiefPermission } from '@/lib/utils/crew-chief-auth';
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
-    const { id: shiftId } = await params
-    const body = await request.json()
-    const { employeeId, roleCode, roleOnShift } = body
+  const { id: shiftId } = await params;
 
-    console.log('NEW Assignment request:', { shiftId, employeeId, roleCode, roleOnShift })
+  return withCrewChiefPermission(shiftId, async (session, permissionCheck) => {
+    try {
+      const body = await request.json();
+      const { assignmentId, employeeId } = body;
 
-    if (!employeeId || !roleCode || !roleOnShift) {
-      console.error('Missing required fields:', { employeeId, roleCode, roleOnShift })
-      return NextResponse.json(
-        { error: 'Employee ID, role code, and role on shift are required' },
-        { status: 400 }
-      )
-    }
-
-    const pool = getPool()
-
-    // Find the user record (employees are stored in users table)
-    const userQuery = await pool.query(
-      'SELECT id, name, role FROM users WHERE id = $1 AND role IN ($2, $3, $4)',
-      [employeeId, 'Employee', 'Crew Chief', 'Manager/Admin']
-    )
-
-    console.log('NEW User query result:', userQuery.rows)
-
-    if (userQuery.rows.length === 0) {
-      console.error('Employee user not found for user ID:', employeeId)
-      return NextResponse.json(
-        { error: 'Employee user not found' },
-        { status: 404 }
-      )
-    }
-
-    const user = userQuery.rows[0]
-    const actualEmployeeId = user.id
-
-    // Check if the employee is already assigned to this shift
-    const existingAssignment = await pool.query(
-      'SELECT id FROM assigned_personnel WHERE shift_id = $1 AND employee_id = $2',
-      [shiftId, actualEmployeeId]
-    )
-
-    console.log('NEW Existing assignment check:', existingAssignment.rows)
-
-    if (existingAssignment.rows.length > 0) {
-      console.error('Employee already assigned:', { shiftId, actualEmployeeId })
-      return NextResponse.json(
-        { error: 'Employee is already assigned to this shift' },
-        { status: 400 }
-      )
-    }
-
-    // Check if the shift exists
-    const shiftCheck = await pool.query(
-      'SELECT id FROM shifts WHERE id = $1',
-      [shiftId]
-    )
-
-    if (shiftCheck.rows.length === 0) {
-      return NextResponse.json(
-        { error: 'Shift not found' },
-        { status: 404 }
-      )
-    }
-
-    // NO CONFLICT CHECKING - JUST ASSIGN THE WORKER
-    console.log('NEW API: No conflict checking - proceeding with assignment')
-
-    // Insert the assignment
-    const result = await pool.query(
-      `INSERT INTO assigned_personnel
-       (shift_id, employee_id, role_on_shift, role_code, status, is_placeholder)
-       VALUES ($1, $2, $3, $4, 'Clocked Out', false)
-       RETURNING id`,
-      [shiftId, actualEmployeeId, roleOnShift, roleCode]
-    )
-
-    const assignmentId = result.rows[0].id
-
-    console.log('NEW Assignment successful:', { assignmentId, shiftId, actualEmployeeId })
-
-    return NextResponse.json({
-      success: true,
-      assignment: {
-        id: assignmentId,
-        shiftId,
-        employeeId: actualEmployeeId,
-        userId: employeeId,
-        roleOnShift,
-        roleCode,
-        status: 'Clocked Out'
+      if (!assignmentId || !employeeId) {
+        return NextResponse.json(
+          { error: 'Assignment ID and Employee ID are required' },
+          { status: 400 }
+        );
       }
-    })
 
-  } catch (error) {
-    console.error('NEW Error assigning worker to shift:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
+      // Check if the assignment exists and belongs to the shift
+      const assignmentResult = await query(
+        'SELECT id FROM assigned_personnel WHERE id = $1 AND shift_id = $2',
+        [assignmentId, shiftId]
+      );
+
+      if (assignmentResult.rows.length === 0) {
+        return NextResponse.json(
+          { error: 'Assignment not found for this shift' },
+          { status: 404 }
+        );
+      }
+
+      // Update the assigned_personnel record with the new employee_id
+      await query(
+        'UPDATE assigned_personnel SET employee_id = $1, status = \'Clocked Out\' WHERE id = $2',
+        [employeeId, assignmentId]
+      );
+
+      return NextResponse.json({
+        success: true,
+        message: 'Worker assigned to shift successfully',
+      });
+    } catch (error) {
+      console.error('Error assigning worker to shift:', error);
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
+  });
 }

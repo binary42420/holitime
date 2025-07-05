@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+ import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/middleware'
 import { query } from '@/lib/db'
 import { CSVRow } from '../parse/route'
@@ -157,7 +157,7 @@ async function createAssignment(shiftId: string, employeeId: string, workerType:
   return { id: result.rows[0].id, created: true }
 }
 
-async function createTimeEntries(assignmentId: string, clockTimes: Array<{clockIn: string, clockOut: string}>) {
+async function createTimeEntries(assignmentId: string, clockTimes: Array<{clockIn: string, clockOut: string}>, shiftDate: string) {
   let created = 0
   
   for (let i = 0; i < clockTimes.length; i++) {
@@ -172,9 +172,9 @@ async function createTimeEntries(assignmentId: string, clockTimes: Array<{clockI
 
     if (existingEntry.rows.length > 0) continue
 
-    // Create time entry - convert HH:MM to timestamp
-    const clockInTimestamp = clockIn ? `1970-01-01 ${clockIn}:00` : null
-    const clockOutTimestamp = clockOut ? `1970-01-01 ${clockOut}:00` : null
+    // Create time entry - convert HH:MM to timestamp using shiftDate
+    const clockInTimestamp = clockIn ? `${shiftDate}T${clockIn}:00` : null
+    const clockOutTimestamp = clockOut ? `${shiftDate}T${clockOut}:00` : null
 
     await query(
       'INSERT INTO time_entries (assigned_personnel_id, entry_number, clock_in, clock_out, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())',
@@ -293,7 +293,7 @@ export async function POST(request: NextRequest) {
           { clockIn: row.clock_in_3, clockOut: row.clock_out_3 }
         ].filter(entry => entry.clockIn)
 
-        const timeEntriesCreated = await createTimeEntries(assignmentResult.id, clockTimes)
+        const timeEntriesCreated = await createTimeEntries(assignmentResult.id, clockTimes, row.shift_date)
         summary.timeEntries.created += timeEntriesCreated
 
       } catch (error) {

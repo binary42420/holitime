@@ -68,9 +68,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Image
                 src="/images/handson-labor-logo.svg"
                 alt="Hands On Labor"
-                width={120}
-                height={40}
-                className="h-8 w-auto"
+                width={132}
+                height={44}
+                className="h-9 w-auto"
                 priority
               />
             </Link>

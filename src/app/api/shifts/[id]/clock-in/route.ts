@@ -8,10 +8,14 @@ export async function POST(
 ) {
   const { id: shiftId } = await params;
 
+  console.log(`Clock-in API called for shiftId: ${shiftId}`);
+
   return withCrewChiefPermission(shiftId, async (session, permissionCheck) => {
     try {
       const body = await request.json();
       const { workerId } = body;
+
+      console.log(`Clock-in request for workerId: ${workerId}`);
 
       if (!workerId) {
         return NextResponse.json(
@@ -27,6 +31,7 @@ export async function POST(
       `, [workerId, shiftId]);
 
     if (assignedPersonnelResult.rows.length === 0) {
+      console.log(`Worker not found on shift: workerId=${workerId}, shiftId=${shiftId}`);
       return NextResponse.json(
         { error: 'Worker not found on this shift' },
         { status: 404 }
@@ -60,6 +65,7 @@ export async function POST(
     `, [workerId]);
 
     if (activeEntryResult.rows.length > 0) {
+      console.log(`Employee already clocked in: workerId=${workerId}`);
       return NextResponse.json(
         { error: 'Employee is already clocked in' },
         { status: 400 }
