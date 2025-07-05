@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { ClientPortalLanding } from "@/components/client-portal-landing"
+import { ClientPortalLanding } from "@/app/(app)/components/client-portal-landing"
 
 export default function Home() {
   const { data: session, status } = useSession()

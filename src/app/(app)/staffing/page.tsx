@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Loader2, Upload, FileSpreadsheet, Download, CheckCircle, AlertCircle, Cloud } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/app/(app)/components/ui/button"
 import {
   Card,
   CardContent,
@@ -11,10 +11,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+} from "@/app/(app)/components/ui/card"
+import { Badge } from "@/app/(app)/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription } from "@/app/(app)/components/ui/alert"
 
 interface DriveFile {
   id: string;

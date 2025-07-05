@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react"
 import { useUser } from "@/hooks/use-user"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
+import { Button } from "@/app/(app)/components/ui/button"
+import { Badge } from "@/app/(app)/components/ui/badge"
 import {
   Calendar,
   Clock,

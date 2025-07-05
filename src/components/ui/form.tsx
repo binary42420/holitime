@@ -1,4 +1,4 @@
-'use client';
+"use client"
 
 import * as React from "react"
 import * as LabelPrimitive from "@radix-ui/react-label"
@@ -32,8 +32,8 @@ const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 >({
-    ...props
-  }: ControllerProps<TFieldValues, TName>) => {
+  ...props
+}: ControllerProps<TFieldValues, TName>) => {
   return (
     <FormFieldContext.Provider value={{ name: props.name }}>
       <Controller {...props} />

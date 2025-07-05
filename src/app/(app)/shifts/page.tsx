@@ -6,16 +6,16 @@ import Link from "next/link"
 import { format, isToday, isTomorrow, isYesterday } from "date-fns"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { CompanyLogoWithName } from "@/components/ui/company-logo"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/(app)/components/ui/table"
+import { Button } from "@/app/(app)/components/ui/button"
+import { Input } from "@/app/(app)/components/ui/input"
+import { Badge } from "@/app/(app)/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/(app)/components/ui/avatar"
+import { CompanyLogoWithName } from "@/app/(app)/components/ui/company-logo"
+import { Skeleton } from "@/app/(app)/components/ui/skeleton"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/(app)/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/(app)/components/ui/tabs"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +23,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/app/(app)/components/ui/dropdown-menu"
 import {
   Calendar as CalendarIcon,
   Plus,

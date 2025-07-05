@@ -2,14 +2,14 @@
 
 import React, { useState, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
+import { Button } from "@/app/(app)/components/ui/button"
+import { Badge } from "@/app/(app)/components/ui/badge"
+import { Separator } from "@/app/(app)/components/ui/separator"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/(app)/components/ui/table"
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/(app)/components/ui/avatar"
+import { Textarea } from "@/app/(app)/components/ui/textarea"
+import { Label } from "@/app/(app)/components/ui/label"
 import { 
   CheckCircle, 
   XCircle, 

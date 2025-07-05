@@ -2,12 +2,12 @@
 
 import React from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
+import { Button } from "@/app/(app)/components/ui/button"
+import { Badge } from "@/app/(app)/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/(app)/components/ui/table"
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/(app)/components/ui/avatar"
+import { Label } from "@/app/(app)/components/ui/label"
 import { 
   CheckCircle, 
   XCircle, 
@@ -24,7 +24,7 @@ import {
 import { useApi } from "@/hooks/use-api"
 import { format, isValid, parseISO } from "date-fns"
 import { formatTo12Hour, getTimeEntryDisplay, calculateTotalRoundedHours } from "@/lib/time-utils"
-import { MobileTimeEntryDisplay } from "@/components/mobile-timesheet-card"
+import { MobileTimeEntryDisplay } from "@/app/(app)/components/mobile-timesheet-card"
 
 interface TimesheetData {
   id: string

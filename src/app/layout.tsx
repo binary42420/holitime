@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/app/(app)/components/ui/toaster"
 import { UserProvider } from "@/hooks/use-user"
-import NextAuthSessionProvider from "@/components/providers/session-provider"
+import NextAuthSessionProvider from "@/app/(app)/components/providers/session-provider"
 import "./globals.css"
 
 export const metadata: Metadata = {

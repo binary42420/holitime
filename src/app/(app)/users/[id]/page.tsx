@@ -1,12 +1,12 @@
-use client"
+'use client';
 
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Button } from "@/app/(app)/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
+import { Badge } from "@/app/(app)/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/(app)/components/ui/avatar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/(app)/components/ui/tabs"
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -14,8 +14,8 @@ import {
   DropdownMenuLabel, 
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+} from "@/app/(app)/components/ui/dropdown-menu"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/(app)/components/ui/select"
 import { 
   ArrowLeft,
   MoreHorizontal,
@@ -57,12 +57,12 @@ function UserProfilePage({ params }: UserProfilePageProps) {
 
   // Fetch user details
   const { data: userData, loading: userLoading, error: userError } = useApi<{ user: UserType }>(
-    userId ? `/api/users/${userId}` : null
+    userId ? `/api/users/${userId}` : ""
   )
 
   // Fetch user's shift history
   const { data: shiftsData, loading: shiftsLoading } = useApi<{ shifts: Shift[] }>(
-    userId ? `/api/users/${userId}/shifts` : null
+    userId ? `/api/users/${userId}/shifts` : ""
   )
 
   const user = userData?.user

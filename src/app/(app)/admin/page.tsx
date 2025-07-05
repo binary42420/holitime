@@ -3,9 +3,9 @@
 import React from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
+import { Button } from "@/app/(app)/components/ui/button"
+import { Badge } from "@/app/(app)/components/ui/badge"
 import {
   Building2,
   Users,
@@ -23,7 +23,7 @@ import {
 
 import { withAuth } from "@/lib/with-auth"
 import { hasAdminAccess } from "@/lib/auth"
-import QuickStats from "@/components/quick-stats"
+import QuickStats from "@/app/(app)/components/quick-stats"
 
 function AdminPage() {
   const { user } = useUser()

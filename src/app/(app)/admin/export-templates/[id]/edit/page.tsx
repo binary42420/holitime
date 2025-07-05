@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
-import ExportTemplateEditor from "@/components/export-template-editor"
+import ExportTemplateEditor from "@/app/(app)/components/export-template-editor"
 
 export default function EditExportTemplatePage() {
   const params = useParams()

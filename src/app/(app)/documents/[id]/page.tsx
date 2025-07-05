@@ -5,10 +5,10 @@ import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
+import { Button } from "@/app/(app)/components/ui/button"
+import { Badge } from "@/app/(app)/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/(app)/components/ui/tabs"
 import { 
   ArrowLeft, 
   FileText, 
@@ -24,7 +24,7 @@ import {
   Eye
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import PDFViewer from "@/components/pdf-viewer"
+import PDFViewer from "@/app/(app)/components/pdf-viewer"
 
 interface DocumentDetailPageProps {
   params: Promise<{ id: string }>

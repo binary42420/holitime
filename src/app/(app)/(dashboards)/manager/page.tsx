@@ -2,9 +2,9 @@
 
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
+import { Badge } from "@/app/(app)/components/ui/badge"
+import { Button } from "@/app/(app)/components/ui/button"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
