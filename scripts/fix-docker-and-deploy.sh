@@ -59,7 +59,7 @@ gcloud run deploy ${SERVICE_NAME} \
   --set-env-vars "SMTP_HOST=smtp.gmail.com" \
   --set-env-vars "SMTP_PORT=587" \
   --set-env-vars "SMTP_USER=ryley92@gmail.com" \
-  --set-env-vars "SMTP_PASS=HdfatbOY123!!!!" \
+  --set-env-vars "SMTP_PASS=bhxfntiblfatdlepdfatbOY123!!!!" \
   --set-env-vars "JWT_SECRET=holitime-jwt-secret-key-for-production-2024"
 
 echo "✅ Deployment completed!"

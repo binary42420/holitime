@@ -25,7 +25,7 @@ gcloud run services update ${SERVICE_NAME} \
   --update-env-vars "SMTP_HOST=smtp.gmail.com" \
   --update-env-vars "SMTP_PORT=587" \
   --update-env-vars "SMTP_USER=ryley92@gmail.com" \
-  --update-env-vars "SMTP_PASS=HdfatbOY123!!!!"
+  --update-env-vars "SMTP_PASS=bhxfntiblfatdlepdfatbOY123!!!!"
 
 echo "✅ Environment variables updated successfully!"
 

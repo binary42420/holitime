@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { signIn, getSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,23 @@ export default function LoginPage() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const searchParams = new URLSearchParams(router.asPath.split('?')[1]);
+  const urlError = searchParams.get('error');
+
+  useEffect(() => {
+    if (urlError) {
+      switch (urlError) {
+        case 'AccessDenied':
+          setError('Access Denied. You do not have permission to access this page.');
+          break;
+        case 'Verification':
+          setError('Email verification failed. Please try again or contact support.');
+          break;
+        default:
+          setError('An unexpected error occurred. Please try again.');
+      }
+    }
+  }, [urlError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
