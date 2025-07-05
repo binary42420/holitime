@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getCurrentUser } from "@/lib/middleware"
-import { query } from "@/lib/db"
-import bcrypt from "bcryptjs"
+import { NextRequest, NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/middleware";
+import { query } from "@/lib/db";
+import bcrypt from "bcryptjs";
 
 export async function POST(
   request: NextRequest,
@@ -86,14 +86,13 @@ export async function POST(
     `, [email.trim(), hashedPassword, user.id, notes || null, employeeId])
 
     // Update user profile information
-    await query(`
-      UPDATE users SET 
+    await query(
+      `UPDATE users SET 
         phone = $1,
         location = $2,
         certifications = $3,
         updated_at = NOW()
-      WHERE id = $4
-    `, [phone || null, location || null, certificationsArray, employeeId])
+      WHERE id = $4 ` , [phone || null, location || null, certificationsArray, employeeId])
 
     // Log the approval
     console.log(`Employee approved: ${employee.name} (${employeeId}) by ${user.name} (${user.id})`)

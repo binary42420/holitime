@@ -82,8 +82,7 @@ gcloud run deploy ${SERVICE_NAME} \
   --set-env-vars "SMTP_HOST=smtp.gmail.com" \
   --set-env-vars "SMTP_PORT=587" \
   --set-env-vars "SMTP_USER=ryley92@gmail.com" \
-  --set-env-vars "SMTP_PASS=HdfatbOY123!!!" \
-  --set-env-vars "DISABLE_API_ROUTES=false" \
+  --set-env-vars "SMTP_PASS=bhxfntiblfatdlep" \
   --quiet
 
 # Get the service URL
