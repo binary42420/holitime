@@ -45,12 +45,12 @@ ENV_VARS["GEMINI_API_KEY"]="AIzaSyDAUHnUgtT1SXmZt6J1Rs6JqirVMSHQNtc"
 
 
 # Cloud Run specific settings
-MEMORY="4Gi"
-CPU="4"
+MEMORY="2Gi"
+CPU="1"
 MIN_INSTANCES="0"
-MAX_INSTANCES="2"
+MAX_INSTANCES="1"
 TIMEOUT="300" # seconds
-CONCURRENCY="80"
+CONCURRENCY="100"
 
 # Colors for output
 RED='\033[0;31m'

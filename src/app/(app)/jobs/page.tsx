@@ -209,7 +209,7 @@ export default function JobsPage() {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Activity className="h-3 w-3" />
-                          {getActivityText(job.lastActivity)}
+                          {getLastActivityText(job.lastActivity)}
                         </div>
                       </div>
                       <div className="text-right space-y-1">

@@ -7,6 +7,7 @@ function CallbackHandler() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
+    if (!searchParams) return;
     const code = searchParams.get("code")
     const error = searchParams.get("error")
     const state = searchParams.get("state")

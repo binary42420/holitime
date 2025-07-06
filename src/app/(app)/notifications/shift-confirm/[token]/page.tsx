@@ -40,7 +40,7 @@ interface ShiftDetails {
 }
 
 export default function ShiftConfirmPage() {
-  const params = useParams()
+  const params = useParams<{ token: string }>()
   const router = useRouter()
   const { toast } = useToast()
   const [shiftDetails, setShiftDetails] = useState<ShiftDetails | null>(null)
@@ -49,7 +49,12 @@ export default function ShiftConfirmPage() {
   const [responseMessage, setResponseMessage] = useState("")
   const [hasResponded, setHasResponded] = useState(false)
 
-  const token = params.token as string
+  if (!params?.token) {
+    router.push("/notifications")
+    return null
+  }
+
+  const token = params.token
 
   useEffect(() => {
     fetchShiftDetails()

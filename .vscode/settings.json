@@ -9,5 +9,6 @@
     "augment.conflictingCodingAssistantCheck": false,
     "augment.nextEdit.enableBackgroundSuggestions": false,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "notebook.defaultFormatter": "esbenp.prettier-vscode"
+    "notebook.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.unusualLineTerminators": "auto"
 }

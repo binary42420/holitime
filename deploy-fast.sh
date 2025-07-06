@@ -45,7 +45,7 @@ fi
 
 # Use Cloud Build for faster building with simple Dockerfile
 echo -e "${YELLOW}🏗️  Building with Cloud Build (using simple Dockerfile)...${NC}"
-cp Dockerfile.simple Dockerfile
+# cp Dockerfile.simple Dockerfile
 gcloud builds submit \
   --tag ${IMAGE_NAME} \
   --timeout=600s \

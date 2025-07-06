@@ -1,6 +1,7 @@
-"use client"
 
-import React, { useState, useEffect } from "react"
+"use client";
+
+import React, { useState, useEffect, Suspense } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/(app)/components/ui/table"
 import { Button } from "@/app/(app)/components/ui/button"
@@ -28,7 +29,7 @@ import Image from "next/image"
 
 interface EmployeeManagementProps {}
 
-function EmployeesPage({}: EmployeeManagementProps) {
+function EmployeesPageInternal({}: EmployeeManagementProps) {
   const { toast } = useToast()
   const [editingUser, setEditingUser] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -106,6 +107,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
       performance: 0,
       crewChiefEligible: false,
       forkOperatorEligible: false,
+      oshaCompliant: false,
       certifications: [],
       companyName: "",
       companyAddress: "",
@@ -727,5 +729,13 @@ function EmployeesPage({}: EmployeeManagementProps) {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function EmployeesPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EmployeesPageInternal />
+    </Suspense>
   )
 }

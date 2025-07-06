@@ -3,6 +3,9 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  experimental: {
+    optimizeCss: true,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -15,6 +18,10 @@ const nextConfig: NextConfig = {
         // Apply headers to all routes
         source: '/(.*)',
         headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self' https://accounts.google.com https://ssl.gstatic.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-eval' https://accounts.google.com https://ssl.gstatic.com;",
+          },
           {
             key: 'Cross-Origin-Opener-Policy',
             value: 'same-origin-allow-popups',

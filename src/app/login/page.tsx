@@ -1,5 +1,7 @@
+
 "use client"
 
+import { Suspense } from 'react'
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn, getSession } from "next-auth/react"
@@ -12,7 +14,7 @@ import { Separator } from "@/app/(app)/components/ui/separator"
 import { Hand, Loader2 } from "lucide-react"
 import Link from "next/link"
 
-export default function LoginPage() {
+function LoginPageInternal() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -201,5 +203,13 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginPageInternal />
+    </Suspense>
   )
 }
