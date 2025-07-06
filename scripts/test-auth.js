@@ -5,14 +5,14 @@ const path = require('path');
 config({ path: path.join(__dirname, '..', '.env.local') });
 
 // Allow self-signed certificates for Aiven
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
 
 async function testAuth() {
   try {
     console.log('Testing authentication system...');
     
     // Test login endpoint
-    const loginResponse = await fetch('http://localhost:3001/api/auth/login', {
+    const loginResponse = await fetch('http://localhost:3000/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -31,7 +31,7 @@ async function testAuth() {
       const cookies = loginResponse.headers.get('set-cookie');
       
       // Test protected endpoint
-      const shiftsResponse = await fetch('http://localhost:3001/api/shifts', {
+      const shiftsResponse = await fetch('http://localhost:3000/api/shifts', {
         headers: {
           'Cookie': cookies || ''
         }

@@ -9,7 +9,6 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
       - DATABASE_PROVIDER=aiven
-      - DATABASE_SSL=true
       - NODE_TLS_REJECT_UNAUTHORIZED=0
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL}

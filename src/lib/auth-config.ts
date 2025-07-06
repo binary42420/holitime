@@ -54,7 +54,7 @@ export const authOptions: NextAuthOptions = {
               'email',
               'profile'
             ].join(' '),
-            access_type: 'offline',
+            access_type: 'online',
             prompt: 'consent'
           }
         }
@@ -66,8 +66,10 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       try {
         if (account?.provider === 'google') {
+          console.log('Google signIn user email:', user.email);
           // Check if user exists in our database
           const existingUser = await getUserByEmail(user.email!);
+          console.log('Existing user found:', existingUser);
 
           if (!existingUser) {
             // Create new user for Google OAuth
@@ -124,22 +126,23 @@ export const authOptions: NextAuthOptions = {
         // Return session even if there's an error to prevent auth failure
         return session;
       }
-    }
-  },
+    },
 
-  pages: {
-    signIn: '/login',
-    error: '/login',
+    async redirect({ url, baseUrl }) {
+      // Redirect to dashboard after successful login
+      if (url === baseUrl || url === `${baseUrl}/`) {
+        return `${baseUrl}/dashboard`;
+      }
+      return url;
+    },
   },
-
-  debug: process.env.NODE_ENV === 'development',
 
   session: {
     strategy: 'jwt',
     maxAge: 7 * 24 * 60 * 60, // 7 days
   },
 
-  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-for-development',
+  secret: process.env.NEXTAUTH_SECRET || 'your-super-secure-secret-key-here-minimum-32-characters',
 
   // Add CORS configuration for production
   cookies: {

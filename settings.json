@@ -25,7 +25,6 @@
     // --- Python Language Server (Pylance) Analysis Settings ---
     "python.analysis.addHoverSummaries": true, // Show hover summaries for symbols
     "python.analysis.autoImportCompletions": true, // Enable auto-import completions
-    "python.analysis.cacheLSPData": true, // Cache language server data for faster startup
     "python.analysis.diagnosticMode": "workspace", // Apply diagnostics to the entire workspace
     "python.analysis.displayEnglishDiagnostics": true, // Display diagnostics in English
     "python.analysis.enableTroubleshootMissingImports": true, // Offer troubleshooting for missing imports
@@ -38,7 +37,6 @@
     "python.analysis.logLevel": "Warning", // Changed from "Trace" to "Warning" for less verbose logging
     "python.analysis.nodeExecutable": "auto", // Automatically detect Node.js executable
     "python.analysis.supportAllPythonDocuments": true, // Enable analysis for all Python documents
-    "python.analysis.typeCheckingMode": "strict", // Enable strict type checking
     "python.analysis.userFileIndexingLimit": -1, // No limit on user file indexing (-1 means unlimited)
     "python.analysis.usePullDiagnostics": false, // Use push diagnostics instead of pull (can affect performance)
 
@@ -95,7 +93,7 @@
     "augment.chat.userGuidelines": "help with getting timecard / shift scheduling / employee management web app fully functional and all requested features implemented correctly. this needs to be done today", // Augment chat guidelines
     "augment.nextEdit.highlightSuggestionsInTheEditor": true, // Augment next edit suggestions
     "augment.advanced": { }, // Augment advanced settings (empty object is valid)
-    "projectManager.git.baseFolders": [ "c:\\users\\holli" ], // Project Manager Git base folders
+    "projectManager.git.baseFolders": [ "c:\\users\\ryley\\Music\\holitime\\holitime" ], // Project Manager Git base folders
     "cloudcode.project": "handsonlabor", // Cloud Code project setting
     "containers.commands.build": "${containerCommand} build --pull --rm -f \"${dockerfile}\" -t ${tag} \"${context}\"" // Docker/Containers build command
 }

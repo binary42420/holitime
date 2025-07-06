@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { query } from './db';
 import type { User } from './types';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'your-jwt-secret-key-here-minimum-32-characters';
 const JWT_EXPIRES_IN = '7d';
 
 export interface AuthUser extends User {

@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { toast } from "@/hooks/use-toast"
 
@@ -42,7 +42,7 @@ export class ValidationError extends Error implements AppError {
 export class AuthenticationError extends Error implements AppError {
   code = 'AUTH_ERROR'
   statusCode = 401
-  retryable = false
+  retryable = true
   
   constructor(message: string, public context?: ErrorContext) {
     super(message)
@@ -133,7 +133,7 @@ export interface RetryConfig {
 }
 
 export const DEFAULT_RETRY_CONFIG: RetryConfig = {
-  maxAttempts: 2,
+  maxAttempts: 5,
   baseDelay: 500,
   maxDelay: 2000,
   backoffFactor: 1.5,

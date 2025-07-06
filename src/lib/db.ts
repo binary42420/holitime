@@ -26,7 +26,31 @@ interface QueryMetrics {
   error?: string;
 }
 
+let lastSslConfig: any = null;
+let lastEnvVarsHash: string | null = null;
+
+function hashEnvVars(): string {
+  return [
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED,
+    process.env.DATABASE_PROVIDER,
+    process.env.DATABASE_CA_CERT,
+    process.env.NODE_ENV,
+    process.env.DATABASE_URL
+  ].join('|');
+}
+
 export function getPool(): Pool {
+  const currentEnvHash = hashEnvVars();
+
+  if (pool && lastEnvVarsHash !== currentEnvHash) {
+    console.log('Environment variables changed, resetting database pool');
+    pool.end().catch(err => console.error('Error ending pool:', err));
+    pool = null;
+    lastSslConfig = null;
+  }
+
+  lastEnvVarsHash = currentEnvHash;
+
   if (!pool) {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
@@ -36,19 +60,19 @@ export function getPool(): Pool {
     // SSL configuration for Aiven and other cloud databases
     let sslConfig: any = false;
 
-    if (connectionString.includes('sslmode=require')) {
-      // For Aiven and other cloud providers that use self-signed certificates
-      if (connectionString.includes('aivencloud.com') || process.env.DATABASE_PROVIDER === 'aiven') {
-        sslConfig = {
-          rejectUnauthorized: false, // Allow self-signed certificates for Aiven
-        };
-      } else {
-        sslConfig = {
-          rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0',
-          ca: process.env.DATABASE_CA_CERT, // Use proper CA certificate if available
-        };
-      }
+    // Aggressive SSL config: disable rejectUnauthorized in development or for Aiven provider
+    if (process.env.NODE_ENV !== 'production' || process.env.DATABASE_PROVIDER === 'aiven') {
+      sslConfig = {
+        rejectUnauthorized: false,
+      };
+    } else if (connectionString.includes('sslmode=require')) {
+      sslConfig = {
+        rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0',
+        ca: process.env.DATABASE_CA_CERT, // Use proper CA certificate if available
+      };
     }
+
+    console.log('Database SSL config:', sslConfig);
 
     // Enhanced pool configuration for Cloud Run with better error handling
     pool = new Pool({
@@ -66,6 +90,8 @@ export function getPool(): Pool {
       allowExitOnIdle: process.env.NODE_ENV !== 'production', // Allow exit in development
       // Application identification
       application_name: 'holitime-app',
+      // Explicitly set rejectUnauthorized false for Aiven to fix self-signed cert error
+      ...(connectionString.includes('aivencloud.com') || process.env.DATABASE_PROVIDER === 'aiven' ? { ssl: { rejectUnauthorized: false } } : {}),
     });
 
     // Enhanced error handling with metrics
