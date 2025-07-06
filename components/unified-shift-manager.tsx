@@ -689,8 +689,8 @@ export default function UnifiedShiftManager({
                 const timeEntry3 = worker.timeEntries.find(e => e.entryNumber === 3)
 
                 return (
-                  <div key={worker.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-4">
+                  <div key={worker.id} className="flex flex-col sm:flex-row items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-4 w-full">
                       <Avatar className="h-12 w-12">
                         <AvatarImage src={worker.employeeAvatar} alt={worker.employeeName} />
                         <AvatarFallback>
@@ -698,8 +698,8 @@ export default function UnifiedShiftManager({
                         </AvatarFallback>
                       </Avatar>
                       
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                      <div className="space-y-1 w-full">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
                           <h3 className="font-semibold">{worker.employeeName}</h3>
                           <Badge 
                             variant="outline" 
@@ -727,7 +727,7 @@ export default function UnifiedShiftManager({
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 sm:mt-0 w-full sm:w-auto">
                       <TooltipProvider>
                         {worker.status === "not_started" && (
                           <Tooltip>
@@ -736,6 +736,7 @@ export default function UnifiedShiftManager({
                                 size="sm"
                                 onClick={() => handleClockAction(worker.id, "clock_in")}
                                 disabled={actionState.isProcessing || !isOnline}
+                                className="w-full"
                               >
                                 {actionState.lastAction === `clock_in_${worker.id}` ? (
                                   <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
@@ -758,6 +759,7 @@ export default function UnifiedShiftManager({
                                   size="sm"
                                   onClick={() => handleClockAction(worker.id, "clock_out")}
                                   disabled={actionState.isProcessing || !isOnline}
+                                  className="w-full"
                                 >
                                   {actionState.lastAction === `clock_out_${worker.id}` ? (
                                     <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
@@ -777,6 +779,7 @@ export default function UnifiedShiftManager({
                                   size="sm"
                                   onClick={() => handleEndShift(worker.id, worker.employeeName)}
                                   disabled={actionState.isProcessing || !isOnline}
+                                  className="w-full"
                                 >
                                   {actionState.lastAction === `end_shift_${worker.id}` ? (
                                     <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
@@ -799,6 +802,7 @@ export default function UnifiedShiftManager({
                                   size="sm"
                                   onClick={() => handleClockAction(worker.id, "clock_in")}
                                   disabled={actionState.isProcessing || !isOnline}
+                                  className="w-full"
                                 >
                                   {actionState.lastAction === `clock_in_${worker.id}` ? (
                                     <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
@@ -818,6 +822,7 @@ export default function UnifiedShiftManager({
                                   size="sm"
                                   onClick={() => handleEndShift(worker.id, worker.employeeName)}
                                   disabled={actionState.isProcessing || !isOnline}
+                                  className="w-full"
                                 >
                                   {actionState.lastAction === `end_shift_${worker.id}` ? (
                                     <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
@@ -833,7 +838,7 @@ export default function UnifiedShiftManager({
                         )}
 
                         {(worker.status === "Shift Ended" || worker.status === "shift_ended") && (
-                          <Badge variant="secondary">
+                          <Badge variant="secondary" className="w-full justify-center">
                             <CheckCircle2 className="h-3 w-3 mr-1" />
                             Completed
                           </Badge>

@@ -41,7 +41,7 @@ export default function ClientDashboard() {
   const completedShifts = shifts.filter((shift: Shift) => shift.status === "Completed")
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-4 md:space-y-6 mobile-friendly">
       {/* Mobile-First Header */}
       <div className="space-y-2">
         <h1 className="text-2xl md:text-3xl font-bold font-headline">
@@ -61,7 +61,7 @@ export default function ClientDashboard() {
       </div>
 
       {/* Quick Stats - Mobile First */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+      <div className="grid grid-mobile-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
         <Card className="card-mobile">
           <CardContent className="pt-4 text-center">
             <div className="text-2xl md:text-3xl font-bold text-blue-600">
@@ -186,7 +186,7 @@ export default function ClientDashboard() {
           <Settings className="h-5 w-5 text-gray-600" />
           Quick Actions
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-mobile-2 gap-3">
           <Button size="mobile-lg" className="w-full" asChild>
             <Link href="/shifts">
               <Calendar className="mr-2 h-5 w-5" />

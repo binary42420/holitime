@@ -553,7 +553,7 @@ export default function ComprehensiveTimesheetManager({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {(Object.entries(ROLE_DEFINITIONS) as [RoleCode, typeof ROLE_DEFINITIONS[RoleCode]][]).map(([roleCode, roleDef]) => {
               const currentCount = getRequiredCount(roleCode)
               
@@ -641,7 +641,7 @@ export default function ComprehensiveTimesheetManager({
                     </span>
                   </div>
                   
-                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     {slots.map((slot, index) => (
                       <div 
                         key={`${roleCode}-${index}`} 
@@ -729,7 +729,104 @@ export default function ComprehensiveTimesheetManager({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
+            {/* Mobile: Card Layout */}
+            <div className="md:hidden space-y-4">
+              {assignedPersonnel.map((worker) => {
+                const roleDef = ROLE_DEFINITIONS[worker.roleCode as RoleCode]
+                const clockAction = getClockButtonAction(worker)
+
+                return (
+                  <Card key={worker.id} className={`card-mobile border-l-4 ${roleDef?.borderColor || 'border-gray-200'}`}>
+                    <CardContent className="pt-4">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={worker.employeeAvatar} />
+                            <AvatarFallback>
+                              {worker.employeeName.split(" ").map(n => n[0]).join("")}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{worker.employeeName}</div>
+                            <div className={`text-sm ${roleDef?.color || 'text-gray-700'}`}>{worker.roleOnShift}</div>
+                          </div>
+                        </div>
+                        <Badge
+                          variant={(worker.status === "Shift Ended" || worker.status === "shift_ended") ? "secondary" :
+                            worker.status === "Clocked In" ? "default" : "outline"}
+                          className={
+                            worker.status === "Clocked In" ? "bg-green-100 text-green-800" :
+                              (worker.status === "Shift Ended" || worker.status === "shift_ended") ? "bg-gray-100 text-gray-800" :
+                                "bg-yellow-100 text-yellow-800"
+                          }
+                        >
+                          {worker.status === "shift_ended" ? "Shift Ended" : worker.status}
+                        </Badge>
+                      </div>
+                      <div className="space-y-2">
+                        {[1, 2, 3].map((entryNum) => {
+                          const entry = worker.timeEntries.find(e => e.entryNumber === entryNum)
+                          if (!entry) return null
+                          return (
+                            <div key={entryNum} className="flex justify-between items-center text-sm">
+                              <span className="text-muted-foreground">Time Entry {entryNum}:</span>
+                              <span className="font-medium">{formatTime(entry?.clockIn)} - {formatTime(entry?.clockOut)}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      <div className="flex items-center gap-2 mt-4">
+                        {clockAction && (
+                          <Button
+                            size="sm"
+                            variant={clockAction === "clock_in" ? "default" : "outline"}
+                            onClick={() => handleClockAction(worker.id, clockAction)}
+                            disabled={isProcessing}
+                            className="flex-1"
+                          >
+                            <Clock className="h-3 w-3 mr-1" />
+                            {getClockButtonText(worker)}
+                          </Button>
+                        )}
+                        {worker.status !== "Shift Ended" && worker.status !== "shift_ended" && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                disabled={isProcessing}
+                                className="flex-1"
+                              >
+                                End Shift
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>End Shift</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Are you sure you want to end {worker.employeeName}&apos;s shift?
+                                  This will clock them out if they&apos;re currently clocked in and mark their status as &apos;Shift Ended&apos;.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction
+                                  onClick={() => endWorkerShift(worker.id, worker.employeeName)}
+                                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                >
+                                  End Shift
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -838,7 +935,7 @@ export default function ComprehensiveTimesheetManager({
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction
-                                      onClick={() => endWorkerShift(worker.id, worker.employeeName)}
+                                      onClick={() => endWorkerShift(worker.id, worker.name)}
                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     >
                                       End Shift

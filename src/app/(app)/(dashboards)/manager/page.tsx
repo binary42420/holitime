@@ -37,13 +37,13 @@ export default function ManagerDashboard() {
   const shifts = shiftsData?.shifts || []
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-4 md:space-y-6 mobile-friendly">
       <header className="space-y-2">
         <h1 className="text-2xl md:text-4xl font-bold">Welcome, {user?.name}!</h1>
         <p className="text-sm md:text-base text-muted-foreground">Manager Dashboard Overview</p>
       </header>
 
-      <section className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
+      <section className="grid grid-mobile-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
         <Card className="card-mobile">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm md:text-base font-medium">Clients</CardTitle>

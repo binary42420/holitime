@@ -120,7 +120,7 @@ export default function WorkerAssignmentManager({ shiftId, shift, onUpdate }: Wo
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {(Object.entries(ROLE_DEFINITIONS) as [RoleCode, typeof ROLE_DEFINITIONS[RoleCode]][]).map(([roleCode, roleDef]) => {
             const requirement = workerRequirements.find(req => req.roleCode === roleCode) || {
               roleCode,

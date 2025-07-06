@@ -64,7 +64,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
               <UserNav />
             </header>
 
-            <main className="flex-1 overflow-auto">
+            <main className="flex-1">
               <MobilePageWrapper hasBottomNav={shouldShowBottomNav}>
                 <div className="p-4 sm:p-6">{children}</div>
               </MobilePageWrapper>

@@ -173,7 +173,7 @@ export default function BulkShiftOperations({
 
   return (
     <>
-      <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg">
+      <div className="flex flex-col sm:flex-row items-center gap-4 p-3 bg-muted/50 rounded-lg">
         <div className="flex items-center gap-2">
           <Checkbox
             checked={allSelected}
@@ -189,7 +189,7 @@ export default function BulkShiftOperations({
 
         <div className="flex items-center gap-2">
           <Select value={bulkAction} onValueChange={setBulkAction}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue placeholder="Bulk actions" />
             </SelectTrigger>
             <SelectContent>
