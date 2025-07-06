@@ -37,7 +37,10 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       "safe-area-inset-bottom", // For devices with home indicator
       className
     )}>
-      <div className={`grid grid-cols-${navItems.length} gap-1 px-2 py-1`}>
+      <div 
+        className={`grid gap-1 px-2 py-1`}
+        style={{ gridTemplateColumns: `repeat(${navItems.length}, 1fr)` }}
+      >
         {navItems.map((item) => {
           const Icon = item.icon
           const active = isActive(item.href)

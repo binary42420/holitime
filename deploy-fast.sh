@@ -71,7 +71,6 @@ gcloud run deploy ${SERVICE_NAME} \
   --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@holidb-hol619.d.aivencloud.com:12297/defaultdb?sslmode=require" \
   --set-env-vars "DATABASE_PROVIDER=aiven" \
   --set-env-vars "DATABASE_SSL=true" \
-  --set-env-vars "NODE_TLS_REJECT_UNAUTHORIZED=0" \
   --set-env-vars "NEXTAUTH_SECRET=holitime-super-secure-secret-key-for-production-2024" \
   --set-env-vars "NEXTAUTH_URL=https://holitime-369017734615.us-central1.run.app" \
   --set-env-vars "GOOGLE_CLIENT_ID=369017734615-d69l9fi2bphahlk815ji447ri2m3qjjp.apps.googleusercontent.com" \
@@ -82,8 +81,7 @@ gcloud run deploy ${SERVICE_NAME} \
   --set-env-vars "SMTP_HOST=smtp.gmail.com" \
   --set-env-vars "SMTP_PORT=587" \
   --set-env-vars "SMTP_USER=ryley92@gmail.com" \
-  --set-env-vars "SMTP_PASS=bhxfntiblfatdlep" \
-  --quiet
+  --set-env-vars "SMTP_PASS=bhxfntiblfatdlep"
 
 # Get the service URL
 SERVICE_URL=$(gcloud run services describe ${SERVICE_NAME} --platform managed --region ${REGION} --format 'value(status.url)' 2>/dev/null)

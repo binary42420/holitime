@@ -1,13 +1,5 @@
 {
-    "IDX.aI.enableInlineCompletion": true,
-    "IDX.aI.enableCodebaseIndexing": true,
-    "fixAugment.showWelcomeOnUpdate": false,
-    "augment.nextEdit.enableAutoApply": false,
-    "augment.nextEdit.highlightSuggestionsInTheEditor": false,
-    "augment.nextEdit.showDiffInHover": false,
     "search.useIgnoreFiles": true,
-    "augment.conflictingCodingAssistantCheck": false,
-    "augment.nextEdit.enableBackgroundSuggestions": false,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
     "notebook.defaultFormatter": "esbenp.prettier-vscode",
     "editor.unusualLineTerminators": "auto"
