@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import React, { useState, useEffect, useCallback } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
@@ -25,7 +25,7 @@ import {
   AlertTriangle,
   Shield,
   UserX
-} from "lucide-react"
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast"
 import { useApi, useMutation } from "@/hooks/use-api"
 import { format, differenceInMinutes } from "date-fns"
@@ -52,6 +52,8 @@ import { Progress } from "@/app/(app)/components/ui/progress"
 import { LoadingSpinner, InlineLoading } from "@/app/(app)/components/loading-states"
 import { useErrorHandler, type ErrorContext } from "@/lib/error-handler"
 import { ErrorBoundary } from "@/app/(app)/components/error-boundary"
+import { ConnectionStatus, StatusIndicator } from "@/app/(app)/components/ui/enhanced-feedback";
+
 
 interface TimeEntry {
   id: string;
@@ -614,10 +616,14 @@ export default function UnifiedShiftManager({
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
-                <StatusIndicator 
-                  status={actionState.isProcessing ? "loading" : "idle"}
-                  message={actionState.isProcessing ? "Processing..." : `Last updated: ${format(lastUpdateTime, "HH:mm:ss")}`}
-                />
+                <div className="flex items-center gap-2">
+                  <StatusIndicator 
+                    status={actionState.isProcessing ? "loading" : "idle"}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {actionState.isProcessing ? "Processing..." : `Last updated: ${format(lastUpdateTime, "HH:mm:ss")}`}
+                  </span>
+                </div>
                 <Button
                   variant="outline"
                   size="sm"
@@ -707,7 +713,7 @@ export default function UnifiedShiftManager({
                           <Badge 
                             className={statusConfig.color}
                           >
-                            <StatusIcon className="h-3 w-3 mr-1" />
+                            {React.createElement(statusConfig.icon, { className: "h-3 w-3 mr-1" })}
                             {statusConfig.label}
                           </Badge>
                           

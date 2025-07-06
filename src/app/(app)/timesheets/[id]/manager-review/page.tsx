@@ -7,25 +7,11 @@ import { Button } from "@/app/(app)/components/ui/button"
 import { Badge } from "@/app/(app)/components/ui/badge"
 import { Separator } from "@/app/(app)/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/app/(app)/components/ui/table"
-import { Avatar, AvatarFallback, AvatarImage } from "@/app/(app)/components/ui/avatar"
-import { Textarea } from "@/app/(app)/components/ui/textarea"
-import { Label } from "@/app/(app)/components/ui/label"
-import { 
-  CheckCircle, 
-  XCircle, 
-  FileText, 
-  Clock, 
-  User, 
-  Building2, 
-  Calendar,
-  Signature,
-  Download,
-  Shield,
-  Eye
-} from "lucide-react"
+import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, FileSignature, MapPin, User, Shield } from "lucide-react"
+import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
+import SignatureCaptureModal from "@/app/(app)/components/signature-capture-modal"
 import { useToast } from "@/hooks/use-toast"
-import { useApi } from "@/hooks/use-api"
-import { format } from "date-fns"
+import { useSession } from "next-auth/react"
 
 interface TimesheetData {
   id: string

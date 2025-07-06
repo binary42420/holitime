@@ -1,9 +1,10 @@
 {
   "extends": ["next/core-web-vitals"],
   "rules": {
-    "indent": ["error", 2],
+    "indent": ["error", 4],
     "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "double"],
-    "semi": ["error", "never"]
+    "quotes": ["off", "single"],
+    "semi": ["off", "never"],
+    "react/no-unescaped-entities": "off"
   }
 }

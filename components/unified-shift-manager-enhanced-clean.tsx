@@ -1,10 +1,10 @@
 "use client"
 import React, { useState, useEffect, useCallback } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/app/(app)/components/ui/card"
+import { Button } from "@/app/(app)/components/ui/button"
+import { Badge } from "@/app/(app)/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/app/(app)/components/ui/avatar"
+import { Separator } from "@/app/(app)/components/ui/separator"
 import {
   Clock,
   Play,
@@ -29,13 +29,13 @@ import { useToast } from "@/hooks/use-toast"
 import { useApi, useMutation } from "@/hooks/use-api"
 import { format, differenceInMinutes } from "date-fns"
 import { useCrewChiefPermissions } from "@/hooks/useCrewChiefPermissions"
-import { CrewChiefPermissionBadge, PermissionGuard } from "@/components/crew-chief-permission-badge"
+import { CrewChiefPermissionBadge, PermissionGuard } from "@/app/(app)/components/crew-chief-permission-badge"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/app/(app)/components/ui/tooltip"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,11 +46,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Progress } from "@/components/ui/progress"
-import { LoadingSpinner, InlineLoading } from "@/components/loading-states"
+} from "@/app/(app)/components/ui/alert-dialog"
+import { Progress } from "@/app/(app)/components/ui/progress"
+import { LoadingSpinner, InlineLoading } from "@/app/(app)/components/loading-states"
 import { useErrorHandler, type ErrorContext } from "@/lib/error-handler"
-import { ErrorBoundary } from "@/components/error-boundary"
+import { ErrorBoundary } from "@/app/(app)/components/error-boundary"
 
 interface TimeEntry {
   id: string;
@@ -84,6 +84,22 @@ interface ActionState {
   lastAction?: string;
   retryCount: number;
 }
+
+interface StatusIndicatorProps {
+  status: "loading" | "idle";
+  message?: string;
+}
+
+const StatusIndicator = ({ status, message }: StatusIndicatorProps) => (
+  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    {status === "loading" ? (
+      <RefreshCw className="h-4 w-4 animate-spin" />
+    ) : (
+      <Timer className="h-4 w-4" />
+    )}
+    <span>{message}</span>
+  </div>
+)
 
 const roleColors = {
   "CC": { name: "Crew Chief", color: "text-blue-700", bgColor: "bg-blue-50", borderColor: "border-blue-200" },
@@ -593,6 +609,23 @@ export default function UnifiedShiftManager({
     }
   }, [actionState.isProcessing, onUpdate, toast])
 
+  // Connection status component
+  const ConnectionStatus = ({ isOnline }: { isOnline: boolean }) => (
+    <div className={`flex items-center gap-2 p-2 rounded-lg ${isOnline ? 'bg-green-50' : 'bg-red-50'}`}>
+      {isOnline ? (
+        <>
+          <Wifi className="h-4 w-4 text-green-600" />
+          <span className="text-sm text-green-600">Online - All features available</span>
+        </>
+      ) : (
+        <>
+          <WifiOff className="h-4 w-4 text-red-600" />
+          <span className="text-sm text-red-600">Offline - Limited functionality</span>
+        </>
+      )}
+    </div>
+  )
+
   return (
     <ErrorBoundary context={{ component: "UnifiedShiftManager", shiftId }}>
       <div className="space-y-6">
@@ -706,7 +739,7 @@ export default function UnifiedShiftManager({
                           <Badge 
                             className={statusConfig.color}
                           >
-                            <StatusIcon className="h-3 w-3 mr-1" />
+                            <statusConfig.icon className="h-3 w-3 mr-1" />
                             {statusConfig.label}
                           </Badge>
                           
@@ -906,6 +939,6 @@ export default function UnifiedShiftManager({
           </CardContent>
         </Card>
       </div>
-    </div>
+    </ErrorBoundary>
   )
 }
