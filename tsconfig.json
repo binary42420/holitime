@@ -17,6 +17,7 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
+    "types": ["@radix-ui/react-dialog", "@radix-ui/react-slot"],
     "plugins": [
       {
         "name": "next"
@@ -34,7 +35,7 @@
     ".next/types/**/*.ts",
     "next-env.d.ts",
     "out/types/**/*.ts",
-    "**/**/*"
+    ""
   ],
   "exclude": [
     "node_modules",

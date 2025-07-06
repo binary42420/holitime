@@ -22,19 +22,20 @@ import {
 import {
   Sidebar,
   SidebarProvider,
-  SidebarTrigger,
   SidebarHeader,
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar'
+import { MobileSidebar } from '@/components/ui/mobile-sidebar'
+import BottomNav from '@/components/bottom-nav'
 import { UserNav } from '@/components/user-nav'
 import { Button } from '@/components/ui/button'
 import { useUser } from '@/hooks/use-user'
 import { AuthGuard } from '@/components/auth-guard'
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+function NavContent() {
   const pathname = usePathname()
   const { user } = useUser()
 
@@ -47,98 +48,110 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const isLimitedUser = user?.role === 'User';
 
   return (
+    <>
+      <SidebarHeader>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="shrink-0" asChild>
+            <Link href="/dashboard"><Hand className="text-primary size-6" /></Link>
+          </Button>
+          <h1 className="text-xl font-semibold text-sidebar-foreground font-headline">Hands On Labor</h1>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton href="/dashboard" isActive={isActive('/dashboard')}>
+              <LayoutDashboard />
+              Dashboard
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          {!isLimitedUser && (
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/shifts" isActive={isActive('/shifts')}>
+                <CalendarClock />
+                Today's Shifts
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {(user?.role === 'Manager/Admin' || user?.role === 'Crew Chief') && (
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/timesheets" isActive={isActive('/timesheets')}>
+                <ClipboardCheck />
+                Timesheets
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {!isClient && !isLimitedUser && (
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/clients" isActive={isActive('/clients')}>
+                <Building2 />
+                Clients
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {user?.role === 'Manager/Admin' && (
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/employees" isActive={isActive('/employees')}>
+                <Users />
+                Employees
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          <SidebarMenuItem>
+            <SidebarMenuButton href="/documents" isActive={isActive('/documents')}>
+              <FileText />
+              Documents
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          {!isClient && !isLimitedUser && (
+             <SidebarMenuItem>
+              <SidebarMenuButton href="/import" isActive={isActive('/import')}>
+                <Upload />
+                Data Import
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+          {user?.role === 'Manager/Admin' && (
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/admin" isActive={isActive('/admin')}>
+                <Settings />
+                Admin
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
+        </SidebarMenu>
+      </SidebarContent>
+    </>
+  )
+}
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  return (
     <AuthGuard>
       <SidebarProvider>
-      <Sidebar collapsible="icon">
-        <SidebarHeader>
-          <div className="flex items-center gap-2">
-             <Button variant="ghost" size="icon" className="shrink-0" asChild>
-              <Link href="/dashboard"><Hand className="text-primary size-6" /></Link>
-            </Button>
-            <h1 className="text-xl font-semibold text-sidebar-foreground font-headline group-data-[collapsible=icon]:hidden">Hands On Labor</h1>
+        <div className="flex min-h-screen">
+          <div className="hidden md:block">
+            <Sidebar>
+              <NavContent />
+            </Sidebar>
           </div>
-        </SidebarHeader>
-        <SidebarContent>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/dashboard" tooltip="Dashboard" isActive={isActive('/dashboard')}>
-                <LayoutDashboard />
-                Dashboard
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            {!isLimitedUser && (
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/shifts" tooltip="Today's Shifts" isActive={isActive('/shifts')}>
-                  <CalendarClock />
-                  Today's Shifts
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-            {(user?.role === 'Manager/Admin' || user?.role === 'Crew Chief') && (
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/timesheets" tooltip="Timesheets" isActive={isActive('/timesheets')}>
-                  <ClipboardCheck />
-                  Timesheets
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-            {!isClient && !isLimitedUser && (
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/clients" tooltip="Clients" isActive={isActive('/clients')}>
-                  <Building2 />
-                  Clients
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-            {user?.role === 'Manager/Admin' && (
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/employees" tooltip="Employees" isActive={isActive('/employees')}>
-                  <Users />
-                  Employees
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/documents" tooltip="Documents" isActive={isActive('/documents')}>
-                <FileText />
-                Documents
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            {!isClient && !isLimitedUser && (
-               <SidebarMenuItem>
-                <SidebarMenuButton href="/import" tooltip="Data Import" isActive={isActive('/import')}>
-                  <Upload />
-                  Data Import
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-            {user?.role === 'Manager/Admin' && (
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/admin" tooltip="Admin" isActive={isActive('/admin')}>
-                  <Settings />
-                  Admin
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            )}
-          </SidebarMenu>
-        </SidebarContent>
-      </Sidebar>
-      
-      <div className="flex flex-1 flex-col">
-         <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 sm:px-6">
-          <SidebarTrigger className="md:hidden">
-            <PanelLeft />
-          </SidebarTrigger>
-          <div className="flex-1">
-            {/* Maybe a search bar or page title here later */}
+          <div className="flex flex-1 flex-col">
+            <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur-sm px-4 sm:px-6">
+              <MobileSidebar>
+                <NavContent />
+              </MobileSidebar>
+              <div className="flex-1">
+                {/* Maybe a search bar or page title here later */}
+              </div>
+              <UserNav />
+            </header>
+            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto bg-muted/40 pb-20 md:pb-8">
+              {children}
+            </main>
+            <BottomNav />
           </div>
-          <UserNav />
-        </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto bg-muted/40">
-          {children}
-        </main>
-      </div>
-    </SidebarProvider>
+        </div>
+      </SidebarProvider>
     </AuthGuard>
   )
 }

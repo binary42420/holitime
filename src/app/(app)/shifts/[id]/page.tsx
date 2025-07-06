@@ -201,8 +201,8 @@ export default function ShiftDetailsPage() {
       </div>
 
       {/* Shift Details */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card className="lg:col-span-1">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5" />
@@ -264,27 +264,26 @@ export default function ShiftDetailsPage() {
             </div>
           </CardContent>
         </Card>
+        <div className="lg:col-span-2 space-y-6">
+          {/* Worker Assignment Display */}
+          {shiftId && (
+            <WorkerAssignmentDisplay
+              shiftId={shiftId}
+              assignedPersonnel={assignedPersonnel}
+              onUpdate={handleRefresh}
+            />
+          )}
+
+          {/* Unified Shift Manager */}
+          {shiftId && (
+            <UnifiedShiftManager
+              shiftId={shiftId}
+              assignedPersonnel={assignedPersonnel}
+              onUpdate={handleRefresh}
+            />
+          )}
+        </div>
       </div>
-
-
-
-      {/* Worker Assignment Display */}
-      {shiftId && (
-        <WorkerAssignmentDisplay
-          shiftId={shiftId}
-          assignedPersonnel={assignedPersonnel}
-          onUpdate={handleRefresh}
-        />
-      )}
-
-      {/* Unified Shift Manager */}
-      {shiftId && (
-        <UnifiedShiftManager
-          shiftId={shiftId}
-          assignedPersonnel={assignedPersonnel}
-          onUpdate={handleRefresh}
-        />
-      )}
 
       {/* Notes */}
       <Card>

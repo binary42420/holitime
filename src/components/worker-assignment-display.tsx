@@ -298,33 +298,57 @@ export default function WorkerAssignmentDisplay({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {(Object.entries(ROLE_DEFINITIONS) as [RoleCode, typeof ROLE_DEFINITIONS[RoleCode]][]).map(([roleCode, roleDef]) => {
               const currentCount = getRequiredCount(roleCode)
               
               return (
                 <div key={roleCode} className={`p-3 rounded-lg border ${roleDef.bgColor} ${roleDef.borderColor}`}>
                   <div className="flex items-center justify-between mb-2">
-                    <span className={`font-medium ${roleDef.color}`}>{roleDef.name}</span>
-                    <Badge variant="outline">{roleCode}</Badge>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className={`${roleDef.color} ${roleDef.bgColor} border-2`}>
+                        {roleCode}
+                      </Badge>
+                      <span className={`font-semibold ${roleDef.color}`}>{roleDef.name}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-end gap-2">
                     <Button
-                      size="sm"
+                      size="lg"
+                      variant="outline"
+                      onClick={() => updateWorkerRequirement(roleCode, currentCount - 5)}
+                      disabled={currentCount < 5 || isUpdating}
+                      className="h-10 w-10 p-0"
+                    >
+                      -5
+                    </Button>
+                    <Button
+                      size="lg"
                       variant="outline"
                       onClick={() => updateWorkerRequirement(roleCode, currentCount - 1)}
                       disabled={currentCount === 0 || isUpdating}
+                      className="h-10 w-10 p-0"
                     >
-                      <Minus className="h-3 w-3" />
+                      <Minus className="h-5 w-5" />
                     </Button>
-                    <span className="w-8 text-center font-medium">{currentCount}</span>
+                    <span className="w-12 text-center font-bold text-2xl">{currentCount}</span>
                     <Button
-                      size="sm"
+                      size="lg"
                       variant="outline"
                       onClick={() => updateWorkerRequirement(roleCode, currentCount + 1)}
                       disabled={isUpdating}
+                      className="h-10 w-10 p-0"
                     >
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      onClick={() => updateWorkerRequirement(roleCode, currentCount + 5)}
+                      disabled={isUpdating}
+                      className="h-10 w-10 p-0"
+                    >
+                      +5
                     </Button>
                   </div>
                 </div>
@@ -364,7 +388,7 @@ export default function WorkerAssignmentDisplay({
                     </span>
                   </div>
                   
-                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {slots.map((slot, index) => (
                       <div 
                         key={`${roleCode}-${index}`} 

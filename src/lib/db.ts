@@ -68,7 +68,6 @@ export function getPool(): Pool {
     } else if (connectionString.includes('sslmode=require')) {
       sslConfig = {
         rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0',
-        ca: process.env.DATABASE_CA_CERT, // Use proper CA certificate if available
       };
     }
 
@@ -86,7 +85,7 @@ export function getPool(): Pool {
       query_timeout: 30000,
       // Additional optimizations for network stability
       keepAlive: true,
-      keepAliveInitialDelayMillis: 5000,
+      keepAliveInitialDelayMillis: 3000,
       allowExitOnIdle: process.env.NODE_ENV !== 'production', // Allow exit in development
       // Application identification
       application_name: 'holitime-app',
@@ -114,7 +113,7 @@ export function getPool(): Pool {
 }
 
 // Enhanced query function with metrics and caching
-export async function query(
+async function query(
   text: string, 
   params?: any[], 
   options: QueryOptions = {}
@@ -517,4 +516,4 @@ if (typeof process !== 'undefined') {
   process.on('SIGINT', gracefulShutdown);
 }
 
-
+export { query };

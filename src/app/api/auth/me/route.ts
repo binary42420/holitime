@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
           name: session.user.name,
           role: session.user.role,
           avatar: session.user.image,
-          clientId: session.user.clientId,
+          clientId: session.user.clientCompanyId,
         },
       });
     }
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
         name: user.name,
         role: user.role,
         avatar: user.avatar,
-        clientId: user.clientId,
+        clientId: user.clientCompanyId,
       },
     });
 

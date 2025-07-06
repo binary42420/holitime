@@ -36,40 +36,40 @@ export default function ManagerDashboard() {
   const shifts = shiftsData?.shifts || [];
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 space-y-6">
       <header className="mb-6">
-        <h1 className="text-4xl font-bold">Welcome, {user?.name}!</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold">Welcome, {user?.name}!</h1>
         <p className="text-muted-foreground">Manager Dashboard Overview</p>
       </header>
 
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
         <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>Total Clients</CardTitle>
-            <Building2 className="h-6 w-6 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
+            <Building2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{clients.length}</div>
+            <div className="text-2xl font-bold">{clients.length}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>Total Jobs</CardTitle>
-            <Briefcase className="h-6 w-6 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Jobs</CardTitle>
+            <Briefcase className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{jobs.length}</div>
+            <div className="text-2xl font-bold">{jobs.length}</div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="flex items-center justify-between">
-            <CardTitle>Total Shifts</CardTitle>
-            <Calendar className="h-6 w-6 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Shifts</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{shifts.length}</div>
+            <div className="text-2xl font-bold">{shifts.length}</div>
           </CardContent>
         </Card>
       </section>
@@ -77,37 +77,24 @@ export default function ManagerDashboard() {
       <section>
         <h2 className="text-2xl font-semibold mb-4">Recent Shifts</h2>
         {shifts.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto border-collapse border border-gray-200">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-4 py-2 text-left">Date</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Job</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Client</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Status</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shifts.slice(0, 10).map((shift) => (
-                  <tr key={shift.id} className="hover:bg-gray-50 cursor-pointer">
-                    <td className="border border-gray-300 px-4 py-2">{new Date(shift.date).toLocaleDateString()}</td>
-                    <td className="border border-gray-300 px-4 py-2">{shift.jobName}</td>
-                    <td className="border border-gray-300 px-4 py-2">{shift.clientName}</td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <Badge variant={shift.status === 'Completed' ? 'default' : 'secondary'}>
-                        {shift.status}
-                      </Badge>
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <Button size="sm" variant="outline" onClick={() => router.push(`/shifts/${shift.id}`)}>
-                        View
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-4">
+            {shifts.slice(0, 5).map((shift) => (
+              <Card key={shift.id} onClick={() => router.push(`/shifts/${shift.id}`)} className="cursor-pointer hover:bg-muted/50">
+                <CardContent className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                  <div className="flex-grow mb-4 sm:mb-0">
+                    <p className="font-semibold">{shift.jobName}</p>
+                    <p className="text-sm text-muted-foreground">{shift.clientName}</p>
+                    <p className="text-sm text-muted-foreground">{new Date(shift.date).toLocaleDateString()}</p>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <Badge variant={shift.status === 'Completed' ? 'default' : 'secondary'}>
+                      {shift.status}
+                    </Badge>
+                    <Button size="sm" variant="outline">View</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : (
           <p>No recent shifts found.</p>
@@ -117,31 +104,19 @@ export default function ManagerDashboard() {
       <section>
         <h2 className="text-2xl font-semibold mt-8 mb-4">Recent Clients</h2>
         {clients.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full table-auto border-collapse border border-gray-200">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border border-gray-300 px-4 py-2 text-left">Company Name</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Contact Person</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Email</th>
-                  <th className="border border-gray-300 px-4 py-2 text-left">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {clients.slice(0, 10).map((client) => (
-                  <tr key={client.id} className="hover:bg-gray-50 cursor-pointer">
-                    <td className="border border-gray-300 px-4 py-2">{client.companyName || client.name}</td>
-                    <td className="border border-gray-300 px-4 py-2">{client.contactPerson}</td>
-                    <td className="border border-gray-300 px-4 py-2">{client.contactEmail}</td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <Button size="sm" variant="outline" onClick={() => router.push(`/clients/${client.id}`)}>
-                        View
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-4">
+            {clients.slice(0, 5).map((client) => (
+              <Card key={client.id} onClick={() => router.push(`/clients/${client.id}`)} className="cursor-pointer hover:bg-muted/50">
+                <CardContent className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                  <div className="flex-grow mb-4 sm:mb-0">
+                    <p className="font-semibold">{client.companyName || client.name}</p>
+                    <p className="text-sm text-muted-foreground">{client.contactPerson}</p>
+                    <p className="text-sm text-muted-foreground">{client.contactEmail}</p>
+                  </div>
+                  <Button size="sm" variant="outline">View</Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         ) : (
           <p>No recent clients found.</p>
