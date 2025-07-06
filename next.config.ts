@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; img-src 'self' data: https://lh3.googleusercontent.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com https://ssl.gstatic.com; connect-src 'self' https://accounts.google.com;",
+            value: "default-src 'self'; img-src 'self' data: https://lh3.googleusercontent.com; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com /_next/static/css/; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://accounts.google.com https://ssl.gstatic.com; connect-src 'self' https://accounts.google.com;",
           },
           {
             key: 'Cross-Origin-Opener-Policy',

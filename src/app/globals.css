@@ -101,6 +101,7 @@
 @layer base {
   body {
     @apply bg-background text-foreground;
+    @reference url("./globals.css");
     /* Mobile-first optimizations */
     -webkit-tap-highlight-color: transparent;
     -webkit-touch-callout: none;

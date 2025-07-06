@@ -16,7 +16,7 @@ build/
 .turbo/
 
 # Environment files (exclude all except production)
-.env*
+.env.local
 !.env.production
 
 # Include certificates (needed for database SSL)

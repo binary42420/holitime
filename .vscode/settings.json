@@ -1,6 +1,0 @@
-{
-    "search.useIgnoreFiles": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "notebook.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.unusualLineTerminators": "auto"
-}
