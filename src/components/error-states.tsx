@@ -1,8 +1,6 @@
 'use client'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Card, Button, Alert, Group, Text, Title, Stack } from '@mantine/core'
 import { 
   AlertTriangle, 
   XCircle, 
@@ -46,34 +44,31 @@ export function ErrorState({
   const getColors = () => {
     switch (type) {
       case 'warning':
-        return 'text-yellow-600'
+        return 'yellow'
       case 'info':
-        return 'text-blue-600'
+        return 'blue'
       default:
-        return 'text-red-600'
+        return 'red'
     }
   }
 
   const Icon = getIcon()
 
   return (
-    <div className={`container mx-auto py-6 ${className}`}>
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <Icon className={`h-12 w-12 ${getColors()}`} />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">{title}</h3>
-              <p className="text-muted-foreground max-w-md">{description}</p>
-            </div>
-            {action && (
-              <Button onClick={action.onClick} className="mt-4">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                {action.label}
-              </Button>
-            )}
-          </div>
-        </CardContent>
+    <div className={className}>
+      <Card withBorder p="xl" radius="md">
+        <Stack align="center" gap="md">
+          <Icon size={48} color={`var(--mantine-color-${getColors()}-6)`} />
+          <Stack align="center" gap={0}>
+            <Title order={3}>{title}</Title>
+            <Text c="dimmed">{description}</Text>
+          </Stack>
+          {action && (
+            <Button onClick={action.onClick} leftSection={<RefreshCw size={16} />}>
+              {action.label}
+            </Button>
+          )}
+        </Stack>
       </Card>
     </div>
   )
@@ -95,23 +90,18 @@ export function NotFoundState({
   className = ''
 }: NotFoundStateProps) {
   return (
-    <div className={`container mx-auto py-6 ${className}`}>
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <FileX className="h-12 w-12 text-gray-400" />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">{title}</h3>
-              <p className="text-muted-foreground max-w-md">{description}</p>
-            </div>
-            <Button asChild className="mt-4">
-              <a href={backUrl}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {backLabel}
-              </a>
-            </Button>
-          </div>
-        </CardContent>
+    <div className={className}>
+      <Card withBorder p="xl" radius="md">
+        <Stack align="center" gap="md">
+          <FileX size={48} color="var(--mantine-color-gray-5)" />
+          <Stack align="center" gap={0}>
+            <Title order={3}>{title}</Title>
+            <Text c="dimmed">{description}</Text>
+          </Stack>
+          <Button component="a" href={backUrl} leftSection={<ArrowLeft size={16} />}>
+            {backLabel}
+          </Button>
+        </Stack>
       </Card>
     </div>
   )
@@ -129,23 +119,18 @@ export function PermissionDeniedState({
   className = ''
 }: PermissionDeniedStateProps) {
   return (
-    <div className={`container mx-auto py-6 ${className}`}>
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <Shield className="h-12 w-12 text-red-500" />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">{title}</h3>
-              <p className="text-muted-foreground max-w-md">{description}</p>
-            </div>
-            <Button asChild className="mt-4">
-              <a href="/dashboard">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </a>
-            </Button>
-          </div>
-        </CardContent>
+    <div className={className}>
+      <Card withBorder p="xl" radius="md">
+        <Stack align="center" gap="md">
+          <Shield size={48} color="var(--mantine-color-red-6)" />
+          <Stack align="center" gap={0}>
+            <Title order={3}>{title}</Title>
+            <Text c="dimmed">{description}</Text>
+          </Stack>
+          <Button component="a" href="/dashboard" leftSection={<ArrowLeft size={16} />}>
+            Back to Dashboard
+          </Button>
+        </Stack>
       </Card>
     </div>
   )
@@ -158,25 +143,22 @@ interface NetworkErrorStateProps {
 
 export function NetworkErrorState({ onRetry, className = '' }: NetworkErrorStateProps) {
   return (
-    <div className={`container mx-auto py-6 ${className}`}>
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <WifiOff className="h-12 w-12 text-gray-400" />
-            <div className="space-y-2">
-              <h3 className="text-lg font-semibold">Connection Error</h3>
-              <p className="text-muted-foreground max-w-md">
-                Unable to connect to the server. Please check your internet connection and try again.
-              </p>
-            </div>
-            {onRetry && (
-              <Button onClick={onRetry} className="mt-4">
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Try Again
-              </Button>
-            )}
-          </div>
-        </CardContent>
+    <div className={className}>
+      <Card withBorder p="xl" radius="md">
+        <Stack align="center" gap="md">
+          <WifiOff size={48} color="var(--mantine-color-gray-5)" />
+          <Stack align="center" gap={0}>
+            <Title order={3}>Connection Error</Title>
+            <Text c="dimmed">
+              Unable to connect to the server. Please check your internet connection and try again.
+            </Text>
+          </Stack>
+          {onRetry && (
+            <Button onClick={onRetry} leftSection={<RefreshCw size={16} />}>
+              Try Again
+            </Button>
+          )}
+        </Stack>
       </Card>
     </div>
   )
@@ -198,28 +180,17 @@ export function InlineError({
   const getVariant = () => {
     switch (type) {
       case 'warning':
-        return 'default'
+        return 'yellow'
       case 'info':
-        return 'default'
+        return 'blue'
       default:
-        return 'destructive'
+        return 'red'
     }
   }
 
   return (
-    <Alert variant={getVariant()} className={className}>
-      <AlertTriangle className="h-4 w-4" />
-      <AlertTitle>
-        {type === 'error' ? 'Error' : type === 'warning' ? 'Warning' : 'Information'}
-      </AlertTitle>
-      <AlertDescription className="flex items-center justify-between">
-        <span>{message}</span>
-        {onDismiss && (
-          <Button variant="ghost" size="sm" onClick={onDismiss}>
-            <XCircle className="h-4 w-4" />
-          </Button>
-        )}
-      </AlertDescription>
+    <Alert color={getVariant()} title={type.charAt(0).toUpperCase() + type.slice(1)} icon={<AlertTriangle />} withCloseButton={!!onDismiss} onClose={onDismiss} className={className}>
+      {message}
     </Alert>
   )
 }
@@ -243,16 +214,16 @@ export function EmptyState({
   className = ''
 }: EmptyStateProps) {
   return (
-    <div className={`flex flex-col items-center justify-center py-12 text-center ${className}`}>
-      <Icon className="h-12 w-12 text-gray-400 mb-4" />
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-muted-foreground max-w-md mb-6">{description}</p>
+    <Stack align="center" justify="center" py="xl" className={className}>
+      <Icon className="h-12 w-12 text-gray-400" />
+      <Title order={3}>{title}</Title>
+      <Text c="dimmed">{description}</Text>
       {action && (
         <Button onClick={action.onClick}>
           {action.label}
         </Button>
       )}
-    </div>
+    </Stack>
   )
 }
 

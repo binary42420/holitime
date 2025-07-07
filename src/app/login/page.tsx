@@ -137,6 +137,9 @@ export default function LoginPage() {
         >
           Sign In with Google
         </Button>
+        <Button fullWidth variant="subtle" component={Link} href="/signup">
+          Don't have an account? Sign up
+        </Button>
 
         <Text ta="center" mt="md">
           Don't have an account?{' '}

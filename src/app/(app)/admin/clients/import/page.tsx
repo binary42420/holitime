@@ -1,18 +1,9 @@
 "use client"
 
 import React, { useState } from "react"
-
-// Force dynamic rendering to avoid build-time URL issues
-export const dynamic = 'force-dynamic'
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Progress } from "@/components/ui/progress"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Card, Button, TextInput, Textarea, Progress, Alert, Group, Text, Title, Stack, FileInput } from "@mantine/core"
 import { 
   ArrowLeft, 
   Upload,
@@ -23,43 +14,31 @@ import {
   Building2
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
+import { notifications } from "@mantine/notifications"
 
 function ImportClientsPage() {
   const { user } = useUser()
   const router = useRouter()
-  const { toast } = useToast()
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [importResults, setImportResults] = useState<any>(null)
   const [csvData, setCsvData] = useState("")
+  const [file, setFile] = useState<File | null>(null);
 
-  // Redirect if not admin
   if (user?.role !== 'Manager/Admin') {
     router.push('/dashboard')
     return null
   }
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+  const handleFileUpload = async () => {
     if (!file) return
-
-    if (!file.name.endsWith('.csv')) {
-      toast({
-        title: "Invalid File Type",
-        description: "Please upload a CSV file.",
-        variant: "destructive",
-      })
-      return
-    }
 
     setIsUploading(true)
     setUploadProgress(0)
 
     try {
-      // Simulate upload progress
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -88,16 +67,17 @@ function ImportClientsPage() {
       const result = await response.json()
       setImportResults(result)
 
-      toast({
+      notifications.show({
         title: "Import Completed",
-        description: `Successfully imported ${result.successful} clients.`,
+        message: `Successfully imported ${result.successful} clients.`,
+        color: 'green'
       })
 
     } catch (error) {
-      toast({
+      notifications.show({
         title: "Import Failed",
-        description: "Failed to import clients. Please check your file format.",
-        variant: "destructive",
+        message: "Failed to import clients. Please check your file format.",
+        color: 'red'
       })
     } finally {
       setIsUploading(false)
@@ -107,10 +87,10 @@ function ImportClientsPage() {
 
   const handleCsvImport = async () => {
     if (!csvData.trim()) {
-      toast({
+      notifications.show({
         title: "No Data",
-        description: "Please enter CSV data to import.",
-        variant: "destructive",
+        message: "Please enter CSV data to import.",
+        color: 'red'
       })
       return
     }
@@ -132,16 +112,17 @@ function ImportClientsPage() {
       const result = await response.json()
       setImportResults(result)
 
-      toast({
+      notifications.show({
         title: "Import Completed",
-        description: `Successfully imported ${result.successful} clients.`,
+        message: `Successfully imported ${result.successful} clients.`,
+        color: 'green'
       })
 
     } catch (error) {
-      toast({
+      notifications.show({
         title: "Import Failed",
-        description: "Failed to import clients. Please check your data format.",
-        variant: "destructive",
+        message: "Failed to import clients. Please check your data format.",
+        color: 'red'
       })
     } finally {
       setIsUploading(false)
@@ -165,205 +146,187 @@ function ImportClientsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/clients')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+    <Stack gap="lg">
+      <Group>
+        <Button variant="subtle" onClick={() => router.push('/admin/clients')} leftSection={<ArrowLeft size={16} />}>
           Back to Clients
         </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">Import Clients</h1>
-          <p className="text-muted-foreground">Bulk import client data from CSV files</p>
+        <div>
+          <Title order={1}>Import Clients</Title>
+          <Text c="dimmed">Bulk import client data from CSV files</Text>
         </div>
-      </div>
+      </Group>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              File Upload
-            </CardTitle>
-            <CardDescription>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '1rem' }}>
+        <Card withBorder radius="md">
+          <Card.Section withBorder inheritPadding py="xs">
+            <Group>
+              <Upload size={20} />
+              <Title order={4}>File Upload</Title>
+            </Group>
+            <Text size="sm" c="dimmed">
               Upload a CSV file containing client data
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="file">CSV File</Label>
-              <Input
-                id="file"
-                type="file"
+            </Text>
+          </Card.Section>
+          <Card.Section p="md">
+            <Stack>
+              <FileInput
+                label="CSV File"
+                placeholder="Select a CSV file"
                 accept=".csv"
-                onChange={handleFileUpload}
+                value={file}
+                onChange={setFile}
                 disabled={isUploading}
               />
-            </div>
-
-            {isUploading && uploadProgress > 0 && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Uploading...</span>
-                  <span>{uploadProgress}%</span>
-                </div>
-                <Progress value={uploadProgress} />
-              </div>
-            )}
-
-            <Button
-              variant="outline"
-              onClick={downloadTemplate}
-              className="w-full"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download CSV Template
-            </Button>
-          </CardContent>
+              <Button onClick={handleFileUpload} disabled={isUploading || !file}>
+                Upload and Import
+              </Button>
+              {isUploading && uploadProgress > 0 && (
+                <Stack>
+                  <Group justify="space-between">
+                    <Text size="sm">Uploading...</Text>
+                    <Text size="sm">{uploadProgress}%</Text>
+                  </Group>
+                  <Progress value={uploadProgress} />
+                </Stack>
+              )}
+              <Button
+                variant="outline"
+                onClick={downloadTemplate}
+                fullWidth
+                leftSection={<Download size={16} />}
+              >
+                Download CSV Template
+              </Button>
+            </Stack>
+          </Card.Section>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Manual Entry
-            </CardTitle>
-            <CardDescription>
+        <Card withBorder radius="md">
+          <Card.Section withBorder inheritPadding py="xs">
+            <Group>
+              <FileText size={20} />
+              <Title order={4}>Manual Entry</Title>
+            </Group>
+            <Text size="sm" c="dimmed">
               Paste CSV data directly into the text area
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="csvData">CSV Data</Label>
+            </Text>
+          </Card.Section>
+          <Card.Section p="md">
+            <Stack>
               <Textarea
-                id="csvData"
+                label="CSV Data"
                 placeholder="name,contactPerson,contactEmail,contactPhone,address,notes&#10;ABC Construction,John Smith,john@abc.com,555-0123,123 Main St,Notes here"
                 value={csvData}
-                onChange={(e) => setCsvData(e.target.value)}
+                onChange={(e) => setCsvData(e.currentTarget.value)}
                 rows={8}
                 disabled={isUploading}
               />
-            </div>
-
-            <Button
-              onClick={handleCsvImport}
-              disabled={isUploading || !csvData.trim()}
-              className="w-full"
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {isUploading ? 'Importing...' : 'Import Data'}
-            </Button>
-          </CardContent>
+              <Button
+                onClick={handleCsvImport}
+                disabled={isUploading || !csvData.trim()}
+                fullWidth
+                leftSection={<Upload size={16} />}
+              >
+                {isUploading ? 'Importing...' : 'Import Data'}
+              </Button>
+            </Stack>
+          </Card.Section>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>CSV Format Requirements</CardTitle>
-          <CardDescription>
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Title order={4}>CSV Format Requirements</Title>
+          <Text size="sm" c="dimmed">
             Your CSV file must include the following columns
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Alert>
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Required columns:</strong> name, contactPerson, contactEmail
-              </AlertDescription>
+          </Text>
+        </Card.Section>
+        <Card.Section p="md">
+          <Stack>
+            <Alert color="blue" icon={<AlertCircle size={16} />}>
+              <strong>Required columns:</strong> name, contactPerson, contactEmail
             </Alert>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 2fr', gap: '0.5rem', alignItems: 'center' }}>
+              <Text fw={500}>Column Name</Text>
+              <Text fw={500}>Required</Text>
+              <Text fw={500}>Description</Text>
+              
+              <Text>name</Text>
+              <Text c="red">Yes</Text>
+              <Text>Company name</Text>
 
-            <div className="grid gap-2 text-sm">
-              <div className="grid grid-cols-3 gap-4 font-medium border-b pb-2">
-                <span>Column Name</span>
-                <span>Required</span>
-                <span>Description</span>
-              </div>
-              <div className="grid grid-cols-3 gap-4 py-1">
-                <span>name</span>
-                <span className="text-destructive">Yes</span>
-                <span>Company name</span>
-              </div>
-              <div className="grid grid-cols-3 gap-4 py-1">
-                <span>contactPerson</span>
-                <span className="text-destructive">Yes</span>
-                <span>Primary contact person</span>
-              </div>
-              <div className="grid grid-cols-3 gap-4 py-1">
-                <span>contactEmail</span>
-                <span className="text-destructive">Yes</span>
-                <span>Contact email address</span>
-              </div>
-              <div className="grid grid-cols-3 gap-4 py-1">
-                <span>contactPhone</span>
-                <span className="text-muted-foreground">No</span>
-                <span>Contact phone number</span>
-              </div>
-              <div className="grid grid-cols-3 gap-4 py-1">
-                <span>address</span>
-                <span className="text-muted-foreground">No</span>
-                <span>Company address</span>
-              </div>
-              <div className="grid grid-cols-3 gap-4 py-1">
-                <span>notes</span>
-                <span className="text-muted-foreground">No</span>
-                <span>Additional notes</span>
-              </div>
+              <Text>contactPerson</Text>
+              <Text c="red">Yes</Text>
+              <Text>Primary contact person</Text>
+
+              <Text>contactEmail</Text>
+              <Text c="red">Yes</Text>
+              <Text>Contact email address</Text>
+
+              <Text>contactPhone</Text>
+              <Text c="dimmed">No</Text>
+              <Text>Contact phone number</Text>
+
+              <Text>address</Text>
+              <Text c="dimmed">No</Text>
+              <Text>Company address</Text>
+
+              <Text>notes</Text>
+              <Text c="dimmed">No</Text>
+              <Text>Additional notes</Text>
             </div>
-          </div>
-        </CardContent>
+          </Stack>
+        </Card.Section>
       </Card>
 
       {importResults && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Import Results
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{importResults.successful}</div>
-                <div className="text-sm text-muted-foreground">Successful</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-destructive">{importResults.failed}</div>
-                <div className="text-sm text-muted-foreground">Failed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">{importResults.total}</div>
-                <div className="text-sm text-muted-foreground">Total Processed</div>
-              </div>
-            </div>
+        <Card withBorder radius="md">
+          <Card.Section withBorder inheritPadding py="xs">
+            <Group>
+              <CheckCircle size={20} color="green" />
+              <Title order={4}>Import Results</Title>
+            </Group>
+          </Card.Section>
+          <Card.Section p="md">
+            <Group>
+              <Stack align="center">
+                <Text size="xl" fw={700} c="green">{importResults.successful}</Text>
+                <Text size="sm" c="dimmed">Successful</Text>
+              </Stack>
+              <Stack align="center">
+                <Text size="xl" fw={700} c="red">{importResults.failed}</Text>
+                <Text size="sm" c="dimmed">Failed</Text>
+              </Stack>
+              <Stack align="center">
+                <Text size="xl" fw={700}>{importResults.total}</Text>
+                <Text size="sm" c="dimmed">Total Processed</Text>
+              </Stack>
+            </Group>
 
             {importResults.errors && importResults.errors.length > 0 && (
-              <div className="mt-4">
-                <h4 className="font-medium mb-2">Errors:</h4>
-                <div className="space-y-1">
-                  {importResults.errors.map((error: string, index: number) => (
-                    <Alert key={index} variant="destructive">
-                      <AlertCircle className="h-4 w-4" />
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  ))}
-                </div>
-              </div>
+              <Stack mt="md">
+                <Title order={5}>Errors:</Title>
+                {importResults.errors.map((error: string, index: number) => (
+                  <Alert key={index} color="red" icon={<AlertCircle size={16} />}>
+                    {error}
+                  </Alert>
+                ))}
+              </Stack>
             )}
 
-            <div className="mt-4 flex gap-2">
-              <Button onClick={() => router.push('/admin/clients')}>
-                <Building2 className="mr-2 h-4 w-4" />
+            <Group mt="md">
+              <Button onClick={() => router.push('/admin/clients')} leftSection={<Building2 size={16} />}>
                 View Clients
               </Button>
               <Button variant="outline" onClick={() => setImportResults(null)}>
                 Import More
               </Button>
-            </div>
-          </CardContent>
+            </Group>
+          </Card.Section>
         </Card>
       )}
-    </div>
+    </Stack>
   )
 }
 

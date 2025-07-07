@@ -2,14 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Card, Button, Badge, Select, Modal, Group, Text, Title, Stack, ActionIcon, Loader, Alert } from '@mantine/core';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Plus, Trash2, Users, Crown, Building, Briefcase, ShieldCheck } from 'lucide-react';
 import type { CrewChiefPermission, CrewChiefPermissionType, User } from '@/lib/types';
+import { notifications } from '@mantine/notifications';
 
 interface CrewChiefPermissionManagerProps {
   targetId: string;
@@ -30,15 +27,14 @@ export function CrewChiefPermissionManager({
   className 
 }: CrewChiefPermissionManagerProps) {
   const { data: session } = useSession();
-  const { toast } = useToast();
   
   const [permissions, setPermissions] = useState<PermissionWithUser[]>([]);
   const [eligibleUsers, setEligibleUsers] = useState<User[]>([]);
-  const [selectedUserId, setSelectedUserId] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isGranting, setIsGranting] = useState(false);
+  const [showRevokeModal, setShowRevokeModal] = useState<PermissionWithUser | null>(null);
 
-  // Only show for admins/managers
   if (session?.user?.role !== 'Manager/Admin') {
     return null;
   }
@@ -50,12 +46,10 @@ export function CrewChiefPermissionManager({
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      // Fetch existing permissions for this target
       const permissionsRes = await fetch(
         `/api/crew-chief-permissions?permissionType=${targetType}&targetId=${targetId}`
       );
       
-      // Fetch eligible users (Employee and Crew Chief roles)
       const usersRes = await fetch('/api/users');
       
       if (permissionsRes.ok) {
@@ -73,10 +67,10 @@ export function CrewChiefPermissionManager({
       }
     } catch (error) {
       console.error('Error fetching permission data:', error);
-      toast({
+      notifications.show({
         title: 'Error',
-        description: 'Failed to load permission data',
-        variant: 'destructive',
+        message: 'Failed to load permission data',
+        color: 'red',
       });
     } finally {
       setIsLoading(false);
@@ -85,10 +79,10 @@ export function CrewChiefPermissionManager({
 
   const handleGrantPermission = async () => {
     if (!selectedUserId) {
-      toast({
+      notifications.show({
         title: 'Error',
-        description: 'Please select a user',
-        variant: 'destructive',
+        message: 'Please select a user',
+        color: 'red',
       });
       return;
     }
@@ -106,21 +100,22 @@ export function CrewChiefPermissionManager({
       });
 
       if (response.ok) {
-        toast({
+        notifications.show({
           title: 'Success',
-          description: 'Permission granted successfully',
+          message: 'Permission granted successfully',
+          color: 'green',
         });
-        setSelectedUserId('');
-        fetchData(); // Refresh data
+        setSelectedUserId(null);
+        fetchData();
       } else {
         throw new Error('Failed to grant permission');
       }
     } catch (error) {
       console.error('Error granting permission:', error);
-      toast({
+      notifications.show({
         title: 'Error',
-        description: 'Failed to grant permission',
-        variant: 'destructive',
+        message: 'Failed to grant permission',
+        color: 'red',
       });
     } finally {
       setIsGranting(false);
@@ -135,34 +130,37 @@ export function CrewChiefPermissionManager({
       );
 
       if (response.ok) {
-        toast({
+        notifications.show({
           title: 'Success',
-          description: 'Permission revoked successfully',
+          message: 'Permission revoked successfully',
+          color: 'blue',
         });
-        fetchData(); // Refresh data
+        fetchData();
       } else {
         throw new Error('Failed to revoke permission');
       }
     } catch (error) {
       console.error('Error revoking permission:', error);
-      toast({
+      notifications.show({
         title: 'Error',
-        description: 'Failed to revoke permission',
-        variant: 'destructive',
+        message: 'Failed to revoke permission',
+        color: 'red',
       });
+    } finally {
+      setShowRevokeModal(null);
     }
   };
 
   const getTargetIcon = () => {
     switch (targetType) {
       case 'client':
-        return <Building className="h-4 w-4" />;
+        return <Building size={16} />;
       case 'job':
-        return <Briefcase className="h-4 w-4" />;
+        return <Briefcase size={16} />;
       case 'shift':
-        return <ShieldCheck className="h-4 w-4" />;
+        return <ShieldCheck size={16} />;
       default:
-        return <Shield className="h-4 w-4" />;
+        return <Shield size={16} />;
     }
   };
 
@@ -179,121 +177,104 @@ export function CrewChiefPermissionManager({
     }
   };
 
-  // Filter out users who already have permissions
   const availableUsers = eligibleUsers.filter(user => 
     !permissions.some(p => p.userId === user.id)
   );
 
   if (isLoading) {
     return (
-      <Card className={className}>
-        <CardContent className="pt-6">
-          <div className="animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          </div>
-        </CardContent>
+      <Card withBorder radius="md" className={className}>
+        <Card.Section p="md">
+          <Group>
+            <Loader size="sm" />
+            <Text>Loading permissions...</Text>
+          </Group>
+        </Card.Section>
       </Card>
     );
   }
 
   return (
-    <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {getTargetIcon()}
-          Crew Chief Permissions
-        </CardTitle>
-        <CardDescription>
-          Manage crew chief permissions for this {getTargetTypeLabel().toLowerCase()}: {targetName}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Current Permissions */}
-        <div>
-          <h4 className="text-sm font-medium mb-2">Current Permissions ({permissions.length})</h4>
-          {permissions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No crew chief permissions granted for this {getTargetTypeLabel().toLowerCase()}.</p>
-          ) : (
-            <div className="space-y-2">
-              {permissions.map((permission) => (
-                <div key={permission.id} className="flex items-center justify-between p-2 border rounded">
-                  <div className="flex items-center space-x-2">
-                    <Crown className="h-4 w-4 text-yellow-600" />
-                    <span className="font-medium">{permission.userName}</span>
-                    <Badge variant="outline" className="text-xs">
-                      {permission.userRole}
-                    </Badge>
-                  </div>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm">
-                        <Trash2 className="h-3 w-3 mr-1" />
-                        Revoke
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Revoke Permission</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to revoke crew chief permission for {permission.userName} on this {getTargetTypeLabel().toLowerCase()}?
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleRevokePermission(permission)}>
-                          Revoke Permission
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Grant New Permission */}
-        <div>
-          <h4 className="text-sm font-medium mb-2">Grant New Permission</h4>
-          {availableUsers.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              All eligible users already have permissions for this {getTargetTypeLabel().toLowerCase()}.
-            </p>
-          ) : (
-            <div className="flex gap-2">
-              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger className="flex-1">
-                  <SelectValue placeholder="Select user to grant permission" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableUsers.map(user => (
-                    <SelectItem key={user.id} value={user.id}>
-                      <div className="flex items-center space-x-2">
-                        <Users className="h-4 w-4" />
-                        <span>{user.name} ({user.role})</span>
-                      </div>
-                    </SelectItem>
+    <>
+      <Card withBorder radius="md" className={className}>
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group>
+            {getTargetIcon()}
+            <Title order={4}>Crew Chief Permissions</Title>
+          </Group>
+          <Text size="sm" c="dimmed">
+            Manage crew chief permissions for this {getTargetTypeLabel().toLowerCase()}: {targetName}
+          </Text>
+        </Card.Section>
+        <Card.Section p="md">
+          <Stack>
+            <div>
+              <Title order={5} mb="xs">Current Permissions ({permissions.length})</Title>
+              {permissions.length === 0 ? (
+                <Text size="sm" c="dimmed">No crew chief permissions granted for this {getTargetTypeLabel().toLowerCase()}.</Text>
+              ) : (
+                <Stack>
+                  {permissions.map((permission) => (
+                    <Card key={permission.id} withBorder p="xs" radius="sm">
+                      <Group justify="space-between">
+                        <Group>
+                          <Crown size={16} color="var(--mantine-color-yellow-6)" />
+                          <Text fw={500}>{permission.userName}</Text>
+                          <Badge variant="light">
+                            {permission.userRole}
+                          </Badge>
+                        </Group>
+                        <Button variant="outline" size="xs" color="red" onClick={() => setShowRevokeModal(permission)} leftSection={<Trash2 size={14} />}>
+                          Revoke
+                        </Button>
+                      </Group>
+                    </Card>
                   ))}
-                </SelectContent>
-              </Select>
-              <Button 
-                onClick={handleGrantPermission} 
-                disabled={isGranting || !selectedUserId}
-                size="sm"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                {isGranting ? 'Granting...' : 'Grant'}
-              </Button>
+                </Stack>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Info */}
-        <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
-          <p><strong>Note:</strong> Users with crew chief permissions for this {getTargetTypeLabel().toLowerCase()} can manage time entries and shift operations for all related shifts.</p>
-        </div>
-      </CardContent>
-    </Card>
+            <div>
+              <Title order={5} mb="xs">Grant New Permission</Title>
+              {availableUsers.length === 0 ? (
+                <Text size="sm" c="dimmed">
+                  All eligible users already have permissions for this {getTargetTypeLabel().toLowerCase()}.
+                </Text>
+              ) : (
+                <Group>
+                  <Select
+                    value={selectedUserId}
+                    onChange={setSelectedUserId}
+                    placeholder="Select user to grant permission"
+                    data={availableUsers.map(user => ({ value: user.id, label: `${user.name} (${user.role})` }))}
+                    style={{ flex: 1 }}
+                  />
+                  <Button 
+                    onClick={handleGrantPermission} 
+                    loading={isGranting}
+                    disabled={!selectedUserId}
+                    leftSection={<Plus size={16} />}
+                  >
+                    Grant
+                  </Button>
+                </Group>
+              )}
+            </div>
+
+            <Alert color="blue" icon={<Shield size={16} />}>
+              <Text size="xs"><strong>Note:</strong> Users with crew chief permissions for this {getTargetTypeLabel().toLowerCase()} can manage time entries and shift operations for all related shifts.</Text>
+            </Alert>
+          </Stack>
+        </Card.Section>
+      </Card>
+
+      <Modal opened={!!showRevokeModal} onClose={() => setShowRevokeModal(null)} title="Revoke Permission">
+        <Text>Are you sure you want to revoke crew chief permission for {showRevokeModal?.userName} on this {getTargetTypeLabel().toLowerCase()}?</Text>
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={() => setShowRevokeModal(null)}>Cancel</Button>
+          <Button color="red" onClick={() => handleRevokePermission(showRevokeModal!)}>Revoke Permission</Button>
+        </Group>
+      </Modal>
+    </>
   );
 }

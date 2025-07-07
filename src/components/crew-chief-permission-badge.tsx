@@ -1,7 +1,6 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge, Tooltip, Group } from '@mantine/core';
 import { Shield, ShieldCheck, ShieldX, Crown, Building, Briefcase } from 'lucide-react';
 import { useCrewChiefPermissions, getPermissionDescription, getPermissionLevel } from '@/hooks/useCrewChiefPermissions';
 import type { CrewChiefPermissionCheck } from '@/lib/types';
@@ -9,20 +8,19 @@ import type { CrewChiefPermissionCheck } from '@/lib/types';
 interface CrewChiefPermissionBadgeProps {
   shiftId: string;
   showTooltip?: boolean;
-  size?: 'sm' | 'default' | 'lg';
+  size?: 'sm' | 'md' | 'lg';
 }
 
 export function CrewChiefPermissionBadge({ 
   shiftId, 
   showTooltip = true, 
-  size = 'default' 
+  size = 'md' 
 }: CrewChiefPermissionBadgeProps) {
   const { hasPermission, permissionCheck, isLoading } = useCrewChiefPermissions(shiftId);
 
   if (isLoading) {
     return (
-      <Badge variant="outline" className="animate-pulse">
-        <Shield className="w-3 h-3 mr-1" />
+      <Badge variant="outline" leftSection={<Shield size={14} />}>
         Checking...
       </Badge>
     );
@@ -31,37 +29,37 @@ export function CrewChiefPermissionBadge({
   const permissionLevel = getPermissionLevel(permissionCheck);
   const description = getPermissionDescription(permissionCheck);
 
-  const getBadgeVariant = () => {
-    if (!hasPermission) return 'destructive';
+  const getBadgeColor = () => {
+    if (!hasPermission) return 'red';
     
     switch (permissionLevel) {
       case 'designated':
-        return 'default';
+        return 'grape';
       case 'client':
-        return 'secondary';
+        return 'blue';
       case 'job':
-        return 'secondary';
+        return 'cyan';
       case 'shift':
-        return 'outline';
+        return 'teal';
       default:
-        return 'outline';
+        return 'gray';
     }
   };
 
   const getIcon = () => {
-    if (!hasPermission) return <ShieldX className="w-3 h-3 mr-1" />;
+    if (!hasPermission) return <ShieldX size={14} />;
     
     switch (permissionLevel) {
       case 'designated':
-        return <Crown className="w-3 h-3 mr-1" />;
+        return <Crown size={14} />;
       case 'client':
-        return <Building className="w-3 h-3 mr-1" />;
+        return <Building size={14} />;
       case 'job':
-        return <Briefcase className="w-3 h-3 mr-1" />;
+        return <Briefcase size={14} />;
       case 'shift':
-        return <ShieldCheck className="w-3 h-3 mr-1" />;
+        return <ShieldCheck size={14} />;
       default:
-        return <Shield className="w-3 h-3 mr-1" />;
+        return <Shield size={14} />;
     }
   };
 
@@ -83,8 +81,7 @@ export function CrewChiefPermissionBadge({
   };
 
   const badge = (
-    <Badge variant={getBadgeVariant()} className={size === 'sm' ? 'text-xs' : ''}>
-      {getIcon()}
+    <Badge color={getBadgeColor()} size={size} leftSection={getIcon()}>
       {getShortText()}
     </Badge>
   );
@@ -94,21 +91,9 @@ export function CrewChiefPermissionBadge({
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          {badge}
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{description}</p>
-          {permissionCheck?.permissions && permissionCheck.permissions.length > 0 && (
-            <div className="mt-1 text-xs text-muted-foreground">
-              {permissionCheck.permissions.length} permission(s) granted
-            </div>
-          )}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip label={description}>
+      {badge}
+    </Tooltip>
   );
 }
 
@@ -119,9 +104,6 @@ interface PermissionGuardProps {
   requirePermission?: boolean;
 }
 
-/**
- * Component that conditionally renders children based on crew chief permissions
- */
 export function PermissionGuard({ 
   shiftId, 
   children, 
@@ -131,7 +113,7 @@ export function PermissionGuard({
   const { hasPermission, isLoading } = useCrewChiefPermissions(shiftId);
 
   if (isLoading) {
-    return <div className="animate-pulse">Loading permissions...</div>;
+    return <div>Loading permissions...</div>;
   }
 
   if (requirePermission && !hasPermission) {
@@ -146,25 +128,22 @@ interface PermissionStatusProps {
   isLoading?: boolean;
 }
 
-/**
- * Component for displaying detailed permission status
- */
 export function PermissionStatus({ permissionCheck, isLoading }: PermissionStatusProps) {
   if (isLoading) {
     return (
-      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-        <Shield className="w-4 h-4 animate-pulse" />
+      <Group>
+        <Shield size={16} />
         <span>Checking permissions...</span>
-      </div>
+      </Group>
     );
   }
 
   if (!permissionCheck || !permissionCheck.hasPermission) {
     return (
-      <div className="flex items-center space-x-2 text-sm text-destructive">
-        <ShieldX className="w-4 h-4" />
+      <Group c="red">
+        <ShieldX size={16} />
         <span>No crew chief permissions</span>
-      </div>
+      </Group>
     );
   }
 
@@ -172,13 +151,13 @@ export function PermissionStatus({ permissionCheck, isLoading }: PermissionStatu
   const level = getPermissionLevel(permissionCheck);
 
   return (
-    <div className="flex items-center space-x-2 text-sm text-green-600">
-      {level === 'designated' && <Crown className="w-4 h-4" />}
-      {level === 'client' && <Building className="w-4 h-4" />}
-      {level === 'job' && <Briefcase className="w-4 h-4" />}
-      {level === 'shift' && <ShieldCheck className="w-4 h-4" />}
-      {level === 'none' && <Shield className="w-4 h-4" />}
+    <Group c="green">
+      {level === 'designated' && <Crown size={16} />}
+      {level === 'client' && <Building size={16} />}
+      {level === 'job' && <Briefcase size={16} />}
+      {level === 'shift' && <ShieldCheck size={16} />}
+      {level === 'none' && <Shield size={16} />}
       <span>{description}</span>
-    </div>
+    </Group>
   );
 }

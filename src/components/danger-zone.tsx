@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, Group, Text, Title } from '@mantine/core';
 import { AlertTriangle } from 'lucide-react';
 import { CascadeDeleteDialog } from './cascade-delete-dialog';
 
@@ -24,7 +24,6 @@ export function DangerZone({
 }: DangerZoneProps) {
   const { data: session } = useSession();
 
-  // Only show for admins/managers
   if (session?.user?.role !== 'Manager/Admin') {
     return null;
   }
@@ -56,23 +55,23 @@ export function DangerZone({
   };
 
   return (
-    <Card className={`border-destructive/20 ${className}`}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-destructive">
-          <AlertTriangle className="h-5 w-5" />
-          Danger Zone
-        </CardTitle>
-        <CardDescription>
+    <Card withBorder radius="md" className={className} style={{ borderColor: 'var(--mantine-color-red-4)' }}>
+      <Card.Section withBorder inheritPadding py="xs">
+        <Group>
+          <AlertTriangle color="var(--mantine-color-red-6)" />
+          <Title order={4} c="red">Danger Zone</Title>
+        </Group>
+        <Text size="sm" c="dimmed">
           {getDescription()}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between">
+        </Text>
+      </Card.Section>
+      <Card.Section p="md">
+        <Group justify="space-between">
           <div>
-            <h4 className="font-medium">Delete {getEntityTypeLabel()}</h4>
-            <p className="text-sm text-muted-foreground">
+            <Text fw={500}>Delete {getEntityTypeLabel()}</Text>
+            <Text size="sm" c="dimmed">
               Once you delete this {getEntityTypeLabel().toLowerCase()}, there is no going back.
-            </p>
+            </Text>
           </div>
           <CascadeDeleteDialog
             entityType={entityType}
@@ -81,8 +80,8 @@ export function DangerZone({
             onSuccess={onSuccess}
             redirectTo={redirectTo}
           />
-        </div>
-      </CardContent>
+        </Group>
+      </Card.Section>
     </Card>
   );
 }

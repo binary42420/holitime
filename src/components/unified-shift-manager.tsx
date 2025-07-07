@@ -1,11 +1,7 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
+import { Card, Button, Badge, Avatar, Group, Text, Title, Stack, ActionIcon, Tooltip, Modal, Progress, Loader } from "@mantine/core"
 import {
   Clock,
   Play,
@@ -30,27 +26,10 @@ import { useApi, useMutation } from "@/hooks/use-api"
 import { format, differenceInMinutes } from "date-fns"
 import { useCrewChiefPermissions } from "@/hooks/useCrewChiefPermissions"
 import { CrewChiefPermissionBadge, PermissionGuard } from "@/components/crew-chief-permission-badge"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
-import { Progress } from "@/components/ui/progress"
 import { LoadingSpinner, InlineLoading } from "@/components/loading-states"
 import { useErrorHandler, type ErrorContext } from "@/lib/error-handler"
 import { ErrorBoundary } from "@/components/error-boundary"
+import { notifications } from '@mantine/notifications'
 
 interface TimeEntry {
   id: string;
@@ -84,13 +63,13 @@ interface ActionState {
   retryCount: number;
 }
 
-const roleColors = {
-  'CC': { name: 'Crew Chief', color: 'text-blue-700', bgColor: 'bg-blue-50', borderColor: 'border-blue-200' },
-  'SH': { name: 'Stage Hand', color: 'text-green-700', bgColor: 'bg-green-50', borderColor: 'border-green-200' },
-  'FO': { name: 'Fork Operator', color: 'text-purple-700', bgColor: 'bg-purple-50', borderColor: 'border-purple-200' },
-  'RFO': { name: 'Rough Fork Operator', color: 'text-orange-700', bgColor: 'bg-orange-50', borderColor: 'border-orange-200' },
-  'RG': { name: 'Rigger', color: 'text-red-700', bgColor: 'bg-red-50', borderColor: 'border-red-200' },
-  'GL': { name: 'General Labor', color: 'text-gray-700', bgColor: 'bg-gray-50', borderColor: 'border-gray-200' },
+const roleColors: Record<string, { name: string; color: string }> = {
+  'CC': { name: 'Crew Chief', color: 'blue' },
+  'SH': { name: 'Stage Hand', color: 'green' },
+  'FO': { name: 'Fork Operator', color: 'purple' },
+  'RFO': { name: 'Rough Fork Operator', color: 'orange' },
+  'RG': { name: 'Rigger', color: 'red' },
+  'GL': { name: 'General Labor', color: 'gray' },
 } as const
 
 const getStatusConfig = (status: string) => {
@@ -98,21 +77,21 @@ const getStatusConfig = (status: string) => {
     case 'not_started':
       return {
         label: 'Not Started',
-        color: 'bg-gray-100 text-gray-800',
+        color: 'gray',
         icon: Clock,
         description: 'Ready to clock in'
       }
     case 'Clocked In':
       return {
         label: 'Working',
-        color: 'bg-green-100 text-green-800',
+        color: 'green',
         icon: Play,
         description: 'Currently working'
       }
     case 'Clocked Out':
       return {
         label: 'On Break',
-        color: 'bg-yellow-100 text-yellow-800',
+        color: 'yellow',
         icon: Coffee,
         description: 'On break'
       }
@@ -120,14 +99,14 @@ const getStatusConfig = (status: string) => {
     case 'shift_ended':
       return {
         label: 'Completed',
-        color: 'bg-blue-100 text-blue-800',
+        color: 'blue',
         icon: CheckCircle2,
         description: 'Shift completed'
       }
     default:
       return {
         label: status,
-        color: 'bg-gray-100 text-gray-800',
+        color: 'gray',
         icon: AlertCircle,
         description: 'Unknown status'
       }
@@ -157,7 +136,6 @@ export default function UnifiedShiftManager({
   isOnline = true
 }: UnifiedShiftManagerProps) {
   const { hasPermission, permissionCheck, isLoading: permissionLoading } = useCrewChiefPermissions(shiftId);
-  const { toast } = useToast()
   const [actionState, setActionState] = useState<ActionState>({
     isProcessing: false,
     retryCount: 0
@@ -166,18 +144,17 @@ export default function UnifiedShiftManager({
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true)
   const [timesheetStatus, setTimesheetStatus] = useState<string | null>(null)
   const [timesheetId, setTimesheetId] = useState<string | null>(null)
+  const [showEndAllShiftsModal, setShowEndAllShiftsModal] = useState(false);
+  const [showFinalizeTimesheetModal, setShowFinalizeTimesheetModal] = useState(false);
 
-  // Calculate shift statistics
   const totalWorkers = assignedPersonnel.length
   const workingCount = assignedPersonnel.filter(w => w.status === 'Clocked In').length
   const completedCount = assignedPersonnel.filter(w => ['Shift Ended', 'shift_ended'].includes(w.status)).length
   const notStartedCount = assignedPersonnel.filter(w => w.status === 'not_started').length
   const onBreakCount = assignedPersonnel.filter(w => w.status === 'Clocked Out').length
 
-  // Calculate completion percentage
   const completionPercentage = totalWorkers > 0 ? (completedCount / totalWorkers) * 100 : 0
 
-  // Fetch timesheet status
   const fetchTimesheetStatus = useCallback(async () => {
     try {
       const response = await fetch(`/api/timesheets?shiftId=${shiftId}`)
@@ -197,7 +174,6 @@ export default function UnifiedShiftManager({
     }
   }, [shiftId])
 
-  // Auto-refresh functionality
   useEffect(() => {
     if (!autoRefreshEnabled) return
 
@@ -207,17 +183,15 @@ export default function UnifiedShiftManager({
         setLastUpdateTime(new Date())
         fetchTimesheetStatus()
       }
-    }, 30000) // Refresh every 30 seconds
+    }, 30000)
 
     return () => clearInterval(interval)
   }, [autoRefreshEnabled, actionState.isProcessing, isOnline, onUpdate, fetchTimesheetStatus])
 
-  // Fetch timesheet status on component mount and when shift updates
   useEffect(() => {
     fetchTimesheetStatus()
   }, [fetchTimesheetStatus, assignedPersonnel])
 
-  // Enhanced error handling with retry logic
   const executeWithRetry = useCallback(async (
     operation: () => Promise<Response>,
     maxRetries: number = 3,
@@ -231,44 +205,38 @@ export default function UnifiedShiftManager({
         if (response.ok) {
           return response
         }
-
-        // If it's a client error (4xx), don't retry
         if (response.status >= 400 && response.status < 500) {
           const errorData = await response.json()
           throw new Error(errorData.error || `Request failed with status ${response.status}`)
         }
-
-        // For server errors (5xx), retry
         throw new Error(`Server error: ${response.status}`)
       } catch (error) {
         lastError = error instanceof Error ? error : new Error('Unknown error')
-
         if (attempt < maxRetries) {
           await new Promise(resolve => setTimeout(resolve, delay * attempt))
           continue
         }
       }
     }
-
     throw lastError || new Error('Operation failed after retries')
   }, [])
 
   const handleClockAction = async (assignmentId: string, action: 'clock_in' | 'clock_out') => {
     if (!isOnline) {
-      toast({
+      notifications.show({
         title: "Offline",
-        description: "Cannot perform clock actions while offline. Please check your connection.",
-        variant: "destructive",
+        message: "Cannot perform clock actions while offline. Please check your connection.",
+        color: 'red'
       })
       return
     }
 
     const worker = assignedPersonnel.find(w => w.id === assignmentId)
     if (!worker) {
-      toast({
+      notifications.show({
         title: "Error",
-        description: "Worker not found",
-        variant: "destructive",
+        message: "Worker not found",
+        color: 'red'
       })
       return
     }
@@ -288,21 +256,21 @@ export default function UnifiedShiftManager({
         })
       })
 
-      toast({
+      notifications.show({
         title: action === 'clock_in' ? "Clocked In" : "Clocked Out",
-        description: `${worker.employeeName} has been ${action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully`,
+        message: `${worker.employeeName} has been ${action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully`,
+        color: 'green'
       })
 
-      // Immediate update after successful action
       onUpdate()
       setLastUpdateTime(new Date())
 
     } catch (error) {
       console.error(`Error ${action}:`, error)
-      toast({
+      notifications.show({
         title: "Error",
-        description: error instanceof Error ? error.message : `Failed to ${action.replace('_', ' ')}`,
-        variant: "destructive",
+        message: error instanceof Error ? error.message : `Failed to ${action.replace('_', ' ')}`,
+        color: 'red'
       })
     } finally {
       setActionState(prev => ({
@@ -315,10 +283,10 @@ export default function UnifiedShiftManager({
 
   const handleEndShift = async (assignmentId: string, workerName: string) => {
     if (!isOnline) {
-      toast({
+      notifications.show({
         title: "Offline",
-        description: "Cannot end shifts while offline. Please check your connection.",
-        variant: "destructive",
+        message: "Cannot end shifts while offline. Please check your connection.",
+        color: 'red'
       })
       return
     }
@@ -336,9 +304,10 @@ export default function UnifiedShiftManager({
         })
       })
 
-      toast({
+      notifications.show({
         title: "Shift Ended",
-        description: `${workerName}'s shift has been ended`,
+        message: `${workerName}'s shift has been ended`,
+        color: 'blue'
       })
 
       onUpdate()
@@ -346,10 +315,10 @@ export default function UnifiedShiftManager({
 
     } catch (error) {
       console.error('Error ending shift:', error)
-      toast({
+      notifications.show({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to end shift",
-        variant: "destructive",
+        message: error instanceof Error ? error.message : "Failed to end shift",
+        color: 'red'
       })
     } finally {
       setActionState(prev => ({
@@ -362,10 +331,10 @@ export default function UnifiedShiftManager({
 
   const handleEndAllShifts = async () => {
     if (!isOnline) {
-      toast({
+      notifications.show({
         title: "Offline",
-        description: "Cannot end all shifts while offline. Please check your connection.",
-        variant: "destructive",
+        message: "Cannot end all shifts while offline. Please check your connection.",
+        color: 'red'
       })
       return
     }
@@ -375,9 +344,9 @@ export default function UnifiedShiftManager({
     )
 
     if (activeWorkers.length === 0) {
-      toast({
+      notifications.show({
         title: "No Active Workers",
-        description: "All workers have already ended their shifts",
+        message: "All workers have already ended their shifts",
       })
       return
     }
@@ -395,9 +364,10 @@ export default function UnifiedShiftManager({
         })
       })
 
-      toast({
+      notifications.show({
         title: "All Shifts Ended",
-        description: `Successfully ended shifts for ${activeWorkers.length} workers`,
+        message: `Successfully ended shifts for ${activeWorkers.length} workers`,
+        color: 'blue'
       })
 
       onUpdate()
@@ -405,10 +375,10 @@ export default function UnifiedShiftManager({
 
     } catch (error) {
       console.error('Error ending all shifts:', error)
-      toast({
+      notifications.show({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to end all shifts",
-        variant: "destructive",
+        message: error instanceof Error ? error.message : "Failed to end all shifts",
+        color: 'red'
       })
     } finally {
       setActionState(prev => ({
@@ -416,15 +386,16 @@ export default function UnifiedShiftManager({
         isProcessing: false,
         lastAction: undefined
       }))
+      setShowEndAllShiftsModal(false)
     }
   }
 
   const handleFinalizeTimesheet = async () => {
     if (!isOnline) {
-      toast({
+      notifications.show({
         title: "Offline",
-        description: "Cannot finalize timesheet while offline. Please check your connection.",
-        variant: "destructive",
+        message: "Cannot finalize timesheet while offline. Please check your connection.",
+        color: 'red'
       })
       return
     }
@@ -434,10 +405,10 @@ export default function UnifiedShiftManager({
     )
 
     if (incompleteWorkers.length > 0) {
-      toast({
+      notifications.show({
         title: "Cannot Finalize",
-        description: `${incompleteWorkers.length} workers have not completed their shifts yet`,
-        variant: "destructive",
+        message: `${incompleteWorkers.length} workers have not completed their shifts yet`,
+        color: 'red'
       })
       return
     }
@@ -456,29 +427,22 @@ export default function UnifiedShiftManager({
       })
 
       const result = await response.json()
-      toast({
+      notifications.show({
         title: "Timesheet Finalized",
-        description: "Timesheet has been finalized and is pending client approval",
+        message: "Timesheet has been finalized and is pending client approval",
+        color: 'green'
       })
 
       if (result.timesheetId) {
-        // Open in new tab with error handling
         try {
           window.open(`/timesheets/${result.timesheetId}/approve`, '_blank')
         } catch (popupError) {
           console.warn('Popup blocked, showing link instead')
-          toast({
+          notifications.show({
             title: "Timesheet Ready",
-            description: "Click here to view the timesheet approval page",
-            action: (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.location.href = `/timesheets/${result.timesheetId}/approve`}
-              >
-                View Timesheet
-              </Button>
-            ),
+            message: "Click here to view the timesheet approval page",
+            color: 'blue',
+            onClick: () => window.location.href = `/timesheets/${result.timesheetId}/approve`
           })
         }
       }
@@ -488,10 +452,10 @@ export default function UnifiedShiftManager({
 
     } catch (error) {
       console.error('Error finalizing timesheet:', error)
-      toast({
+      notifications.show({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to finalize timesheet",
-        variant: "destructive",
+        message: error instanceof Error ? error.message : "Failed to finalize timesheet",
+        color: 'red'
       })
     } finally {
       setActionState(prev => ({
@@ -499,6 +463,7 @@ export default function UnifiedShiftManager({
         isProcessing: false,
         lastAction: undefined
       }))
+      setShowFinalizeTimesheetModal(false)
     }
   }
 
@@ -506,103 +471,86 @@ export default function UnifiedShiftManager({
     if (!actionState.isProcessing) {
       onUpdate()
       setLastUpdateTime(new Date())
-      toast({
+      notifications.show({
         title: "Refreshed",
-        description: "Shift data has been updated",
+        message: "Shift data has been updated",
+        color: 'blue'
       })
     }
-  }, [actionState.isProcessing, onUpdate, toast])
+  }, [actionState.isProcessing, onUpdate])
 
   return (
-    <div className="space-y-6">
-      {/* Shift Progress Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Shift Progress
-              {!isOnline && <WifiOff className="h-4 w-4 text-red-500" />}
-              {isOnline && <Wifi className="h-4 w-4 text-green-500" />}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleManualRefresh}
-                disabled={actionState.isProcessing}
-              >
-                <RefreshCw className={`h-4 w-4 ${actionState.isProcessing ? 'animate-spin' : ''}`} />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
-                className={autoRefreshEnabled ? 'text-green-600' : 'text-gray-400'}
-              >
-                <Timer className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardTitle>
-          <CardDescription>
-            Track employee attendance and manage shift operations
-            <div className="text-xs text-muted-foreground mt-1">
-              Last updated: {format(lastUpdateTime, 'HH:mm:ss')}
-              {autoRefreshEnabled && ' • Auto-refresh enabled'}
-            </div>
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Progress Bar */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Shift Completion</span>
-                <span>{Math.round(completionPercentage)}%</span>
-              </div>
-              <Progress value={completionPercentage} className="h-2" />
-            </div>
-
-            {/* Statistics Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-600">{totalWorkers}</div>
-                <div className="text-sm text-muted-foreground">Total Workers</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{workingCount}</div>
-                <div className="text-sm text-muted-foreground">Working</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-yellow-600">{onBreakCount}</div>
-                <div className="text-sm text-muted-foreground">On Break</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{completedCount}</div>
-                <div className="text-sm text-muted-foreground">Completed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gray-500">{notStartedCount}</div>
-                <div className="text-sm text-muted-foreground">Not Started</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
+    <Stack gap="lg">
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group justify="space-between">
+            <Group>
+              <Users size={20} />
+              <Title order={4}>Shift Progress</Title>
+              {!isOnline && <WifiOff size={16} color="red" />}
+              {isOnline && <Wifi size={16} color="green" />}
+            </Group>
+            <Group>
+              <ActionIcon variant="default" onClick={handleManualRefresh} loading={actionState.isProcessing}>
+                <RefreshCw size={16} />
+              </ActionIcon>
+              <Tooltip label={autoRefreshEnabled ? "Disable auto-refresh" : "Enable auto-refresh"}>
+                <ActionIcon variant="default" onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)} color={autoRefreshEnabled ? 'green' : 'gray'}>
+                  <Timer size={16} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
+          </Group>
+          <Text size="xs" c="dimmed">
+            Last updated: {format(lastUpdateTime, 'HH:mm:ss')}
+            {autoRefreshEnabled && ' • Auto-refresh enabled'}
+          </Text>
+        </Card.Section>
+        <Card.Section p="md">
+          <Stack>
+            <Group justify="space-between">
+              <Text size="sm">Shift Completion</Text>
+              <Text size="sm">{Math.round(completionPercentage)}%</Text>
+            </Group>
+            <Progress value={completionPercentage} />
+            <Group grow>
+              <Stack align="center" gap={0}>
+                <Text size="xl" fw={700}>{totalWorkers}</Text>
+                <Text size="xs" c="dimmed">Total Workers</Text>
+              </Stack>
+              <Stack align="center" gap={0}>
+                <Text size="xl" fw={700} c="green">{workingCount}</Text>
+                <Text size="xs" c="dimmed">Working</Text>
+              </Stack>
+              <Stack align="center" gap={0}>
+                <Text size="xl" fw={700} c="yellow">{onBreakCount}</Text>
+                <Text size="xs" c="dimmed">On Break</Text>
+              </Stack>
+              <Stack align="center" gap={0}>
+                <Text size="xl" fw={700} c="blue">{completedCount}</Text>
+                <Text size="xs" c="dimmed">Completed</Text>
+              </Stack>
+              <Stack align="center" gap={0}>
+                <Text size="xl" fw={700} c="gray">{notStartedCount}</Text>
+                <Text size="xs" c="dimmed">Not Started</Text>
+              </Stack>
+            </Group>
+          </Stack>
+        </Card.Section>
       </Card>
 
-      {/* Employee Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserCheck className="h-5 w-5" />
-            Employee Time Management
-          </CardTitle>
-          <CardDescription>
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group>
+            <UserCheck size={20} />
+            <Title order={4}>Employee Time Management</Title>
+          </Group>
+          <Text size="sm" c="dimmed">
             Manage individual employee clock in/out times and shift status
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+          </Text>
+        </Card.Section>
+        <Card.Section p="md">
+          <Stack>
             {assignedPersonnel.map((worker) => {
               const statusConfig = getStatusConfig(worker.status)
               const roleConfig = roleColors[worker.roleCode as keyof typeof roleColors] || roleColors.GL
@@ -611,288 +559,209 @@ export default function UnifiedShiftManager({
               const currentEntry = worker.timeEntries.find(entry => entry.isActive || (!entry.clockOut && entry.clockIn))
 
               return (
-                <div key={worker.id} className="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={worker.employeeAvatar} alt={worker.employeeName} />
-                        <AvatarFallback>{worker.employeeName.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
-
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{worker.employeeName}</h4>
-                          <Badge className={`${roleConfig.bgColor} ${roleConfig.color} ${roleConfig.borderColor} border`}>
+                <Card key={worker.id} withBorder p="sm" radius="md">
+                  <Group justify="space-between">
+                    <Group>
+                      <Avatar src={worker.employeeAvatar} alt={worker.employeeName} radius="xl" />
+                      <div>
+                        <Group>
+                          <Text fw={500}>{worker.employeeName}</Text>
+                          <Badge color={roleConfig.color} variant="light">
                             {roleConfig.name}
                           </Badge>
-                        </div>
-
-                        <div className="flex items-center gap-4 mt-1">
-                          <Badge className={statusConfig.color}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
+                        </Group>
+                        <Group>
+                          <Badge color={statusConfig.color} variant="light" leftSection={<StatusIcon size={14} />}>
                             {statusConfig.label}
                           </Badge>
-
                           {totalHours !== '0h 0m' && (
-                            <span className="text-sm text-muted-foreground flex items-center gap-1">
-                              <Timer className="h-3 w-3" />
-                              {totalHours}
-                            </span>
+                            <Group gap="xs">
+                              <Timer size={14} />
+                              <Text size="xs">{totalHours}</Text>
+                            </Group>
                           )}
-
                           {currentEntry && currentEntry.clockIn && !currentEntry.clockOut && (
-                            <span className="text-sm text-green-600 flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              Started at {format(new Date(currentEntry.clockIn), 'HH:mm')}
-                            </span>
+                            <Group gap="xs" c="green">
+                              <Clock size={14} />
+                              <Text size="xs">Started at {format(new Date(currentEntry.clockIn), 'HH:mm')}</Text>
+                            </Group>
                           )}
-                        </div>
+                        </Group>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
+                    </Group>
+                    <Group>
                       {worker.timeEntries.map((entry, index) => (
-                        <div key={index} className="text-xs text-muted-foreground">
+                        <Text key={index} size="xs" c="dimmed">
                           {entry.clockIn ? format(new Date(entry.clockIn), 'HH:mm') : '--:--'} - {entry.clockOut ? format(new Date(entry.clockOut), 'HH:mm') : '--:--'}
-                        </div>
+                        </Text>
                       ))}
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <PermissionGuard
-                        shiftId={shiftId}
-                        fallback={
-                          <div className="text-xs text-muted-foreground">
-                            <CrewChiefPermissionBadge shiftId={shiftId} size="sm" />
-                          </div>
-                        }
-                      >
+                    </Group>
+                    <PermissionGuard
+                      shiftId={shiftId}
+                      fallback={
+                        <div>
+                          <CrewChiefPermissionBadge shiftId={shiftId} size="sm" />
+                        </div>
+                      }
+                    >
+                      <Group>
                         {worker.status === 'not_started' && (
                           <Button
-                            size="sm"
+                            size="xs"
                             onClick={() => handleClockAction(worker.id, 'clock_in')}
                             disabled={actionState.isProcessing || !isOnline || !hasPermission}
-                            className="bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                            color="green"
+                            leftSection={actionState.lastAction === `clock_in_${worker.id}` ? <Loader size={14} /> : <Play size={14} />}
                           >
-                            {actionState.lastAction === `clock_in_${worker.id}` ? (
-                              <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                            ) : (
-                              <Play className="h-3 w-3 mr-1" />
-                            )}
                             Clock In
                           </Button>
                         )}
-
                         {worker.status === 'Clocked In' && (
                           <>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleClockAction(worker.id, 'clock_out')}
-                                    disabled={actionState.isProcessing || !isOnline || !hasPermission}
-                                  >
-                                    {actionState.lastAction === `clock_out_${worker.id}` ? (
-                                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                    ) : (
-                                      <Square className="h-3 w-3 mr-1" />
-                                    )}
-                                    Clock Out
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>Clock out for a break.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    onClick={() => handleEndShift(worker.id, worker.employeeName)}
-                                    disabled={actionState.isProcessing || !isOnline || !hasPermission}
-                                  >
-                                    {actionState.lastAction === `end_shift_${worker.id}` ? (
-                                      <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                    ) : (
-                                      <StopCircle className="h-3 w-3 mr-1" />
-                                    )}
-                                    End Shift
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>End the shift for this worker.</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                            <Tooltip label="Clock out for a break.">
+                              <Button
+                                size="xs"
+                                variant="outline"
+                                onClick={() => handleClockAction(worker.id, 'clock_out')}
+                                disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                                leftSection={actionState.lastAction === `clock_out_${worker.id}` ? <Loader size={14} /> : <Square size={14} />}
+                              >
+                                Clock Out
+                              </Button>
+                            </Tooltip>
+                            <Tooltip label="End the shift for this worker.">
+                              <Button
+                                size="xs"
+                                color="red"
+                                onClick={() => handleEndShift(worker.id, worker.employeeName)}
+                                disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                                leftSection={actionState.lastAction === `end_shift_${worker.id}` ? <Loader size={14} /> : <StopCircle size={14} />}
+                              >
+                                End Shift
+                              </Button>
+                            </Tooltip>
                           </>
                         )}
-
-                      {worker.status === 'Clocked Out' && (
-                        <>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={() => handleClockAction(worker.id, 'clock_in')}
-                                  disabled={actionState.isProcessing || !isOnline}
-                                >
-                                  {actionState.lastAction === `clock_in_${worker.id}` ? (
-                                    <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
-                                  ) : (
-                                    <Play className="h-3 w-3 mr-1" />
-                                  )}
-                                  Clock In
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Clock back in from break.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </>
+                        {worker.status === 'Clocked Out' && (
+                          <Tooltip label="Clock back in from break.">
+                            <Button
+                              size="xs"
+                              variant="outline"
+                              onClick={() => handleClockAction(worker.id, 'clock_in')}
+                              disabled={actionState.isProcessing || !isOnline}
+                              leftSection={actionState.lastAction === `clock_in_${worker.id}` ? <Loader size={14} /> : <Play size={14} />}
+                            >
+                              Clock In
+                            </Button>
+                          </Tooltip>
                         )}
-                      </PermissionGuard>
-                    </div>
-                  </div>
-                </div>
+                      </Group>
+                    </PermissionGuard>
+                  </Group>
+                </Card>
               )
             })}
-          </div>
-        </CardContent>
+          </Stack>
+        </Card.Section>
       </Card>
 
-      {/* Bulk Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            Shift Management
-          </CardTitle>
-          <CardDescription>
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group>
+            <FileText size={20} />
+            <Title order={4}>Shift Management</Title>
+          </Group>
+          <Text size="sm" c="dimmed">
             Bulk operations and timesheet finalization
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
+          </Text>
+        </Card.Section>
+        <Card.Section p="md">
+          <Group>
             <PermissionGuard
               shiftId={shiftId}
               fallback={
-                <div className="text-sm text-muted-foreground flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  <span>Crew chief permissions required for bulk operations</span>
+                <Group>
+                  <Shield size={16} />
+                  <Text size="sm">Crew chief permissions required for bulk operations</Text>
                   <CrewChiefPermissionBadge shiftId={shiftId} size="sm" />
-                </div>
+                </Group>
               }
             >
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    disabled={actionState.isProcessing || completedCount === totalWorkers || !hasPermission}
-                  >
-                    <StopCircle className="h-4 w-4 mr-2" />
-                    End All Shifts
-                  </Button>
-                </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will end the shift for all workers who have not yet completed their shift. This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleEndAllShifts}>
-                    End All Shifts
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-
-              {/* Dynamic Timesheet Button based on status */}
+              <Button
+                variant="outline"
+                onClick={() => setShowEndAllShiftsModal(true)}
+                disabled={actionState.isProcessing || completedCount === totalWorkers || !hasPermission}
+                leftSection={<StopCircle size={16} />}
+              >
+                End All Shifts
+              </Button>
               {!timesheetStatus ? (
-                // No timesheet exists - show finalize button
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      disabled={actionState.isProcessing || completedCount < totalWorkers || !hasPermission}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Finalize Timesheet
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will finalize the timesheet and send it for client approval. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleFinalizeTimesheet}>
-                        Finalize Timesheet
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <Button
+                  onClick={() => setShowFinalizeTimesheetModal(true)}
+                  disabled={actionState.isProcessing || completedCount < totalWorkers || !hasPermission}
+                  color="blue"
+                  leftSection={<FileText size={16} />}
+                >
+                  Finalize Timesheet
+                </Button>
               ) : timesheetStatus === 'pending_client_approval' ? (
-                // Timesheet pending client approval
                 <Button
                   onClick={() => window.open(`/timesheets/${timesheetId}/approve`, '_blank')}
-                  className="bg-orange-600 hover:bg-orange-700"
+                  color="orange"
+                  leftSection={<FileText size={16} />}
                 >
-                  <FileText className="h-4 w-4 mr-2" />
                   View Client Approval
                 </Button>
               ) : timesheetStatus === 'pending_final_approval' ? (
-                // Timesheet pending manager approval
                 <Button
                   onClick={() => window.open(`/timesheets/${timesheetId}/manager-approval`, '_blank')}
-                  className="bg-purple-600 hover:bg-purple-700"
+                  color="grape"
+                  leftSection={<FileText size={16} />}
                 >
-                  <FileText className="h-4 w-4 mr-2" />
                   Manager Approval Required
                 </Button>
               ) : timesheetStatus === 'completed' ? (
-                // Timesheet completed - show view button
                 <Button
                   onClick={() => window.open(`/timesheets/${timesheetId}`, '_blank')}
-                  className="bg-green-600 hover:bg-green-700"
+                  color="green"
+                  leftSection={<FileText size={16} />}
                 >
-                  <FileText className="h-4 w-4 mr-2" />
                   View Completed Timesheet
                 </Button>
               ) : (
-                // Other statuses - show generic view button
                 <Button
                   onClick={() => window.open(`/timesheets/${timesheetId}`, '_blank')}
                   variant="outline"
+                  leftSection={<FileText size={16} />}
                 >
-                  <FileText className="h-4 w-4 mr-2" />
                   View Timesheet
                 </Button>
               )}
             </PermissionGuard>
-
             {completedCount === totalWorkers && (
-              <Badge className="bg-green-100 text-green-800 px-3 py-1">
-                <CheckCircle2 className="h-3 w-3 mr-1" />
+              <Badge color="green" variant="light" leftSection={<CheckCircle2 size={14} />}>
                 All workers completed
               </Badge>
             )}
-          </div>
-        </CardContent>
+          </Group>
+        </Card.Section>
       </Card>
-    </div>
+
+      <Modal opened={showEndAllShiftsModal} onClose={() => setShowEndAllShiftsModal(false)} title="End All Shifts">
+        <Text>This will end the shift for all workers who have not yet completed their shift. This action cannot be undone.</Text>
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={() => setShowEndAllShiftsModal(false)}>Cancel</Button>
+          <Button color="red" onClick={handleEndAllShifts}>End All Shifts</Button>
+        </Group>
+      </Modal>
+
+      <Modal opened={showFinalizeTimesheetModal} onClose={() => setShowFinalizeTimesheetModal(false)} title="Finalize Timesheet">
+        <Text>This will finalize the timesheet and send it for client approval. This action cannot be undone.</Text>
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={() => setShowFinalizeTimesheetModal(false)}>Cancel</Button>
+          <Button color="blue" onClick={handleFinalizeTimesheet}>Finalize Timesheet</Button>
+        </Group>
+      </Modal>
+    </Stack>
   )
 }

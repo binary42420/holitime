@@ -3,21 +3,16 @@
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { Card, Button, TextInput, Textarea, Group, Text, Title, Stack } from "@mantine/core"
 import { ArrowLeft, Building2, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
+import { notifications } from "@mantine/notifications"
 
 function NewClientPage() {
   const { user } = useUser()
   const router = useRouter()
-  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
@@ -27,7 +22,6 @@ function NewClientPage() {
     contactPhone: '',
   })
 
-  // Redirect if not admin
   if (user?.role !== 'Manager/Admin') {
     router.push('/dashboard')
     return null
@@ -53,9 +47,10 @@ function NewClientPage() {
 
       if (response.ok) {
         const result = await response.json()
-        toast({
+        notifications.show({
           title: "Client Created",
-          description: `${formData.name} has been successfully added.`,
+          message: `${formData.name} has been successfully added.`,
+          color: 'green'
         })
         router.push('/admin/clients')
       } else {
@@ -63,10 +58,10 @@ function NewClientPage() {
         throw new Error(error.error || 'Failed to create client')
       }
     } catch (error) {
-      toast({
+      notifications.show({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create client",
-        variant: "destructive",
+        message: error instanceof Error ? error.message : "Failed to create client",
+        color: 'red'
       })
     } finally {
       setLoading(false)
@@ -74,72 +69,61 @@ function NewClientPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/clients')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+    <Stack gap="lg">
+      <Group>
+        <Button variant="subtle" onClick={() => router.push('/admin/clients')} leftSection={<ArrowLeft size={16} />}>
           Back to Clients
         </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">Add New Client</h1>
-          <p className="text-muted-foreground">Create a new client company record</p>
+        <div>
+          <Title order={1}>Add New Client</Title>
+          <Text c="dimmed">Create a new client company record</Text>
         </div>
-      </div>
+      </Group>
 
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Client Information
-          </CardTitle>
-          <CardDescription>
+      <Card withBorder radius="md" style={{ maxWidth: '800px' }}>
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group>
+            <Building2 size={20} />
+            <Title order={4}>Client Information</Title>
+          </Group>
+          <Text size="sm" c="dimmed">
             Enter the details for the new client company
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Company Name *</Label>
-                <Input
-                  id="name"
+          </Text>
+        </Card.Section>
+        <Card.Section p="md">
+          <form onSubmit={handleSubmit}>
+            <Stack>
+              <Group grow>
+                <TextInput
+                  label="Company Name"
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
                   placeholder="Enter company name"
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contactPerson">Contact Person *</Label>
-                <Input
-                  id="contactPerson"
+                <TextInput
+                  label="Contact Person"
                   name="contactPerson"
                   value={formData.contactPerson}
                   onChange={handleInputChange}
                   placeholder="Enter contact person name"
                   required
                 />
-              </div>
-            </div>
+              </Group>
 
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
               <Textarea
-                id="address"
+                label="Address"
                 name="address"
                 value={formData.address}
                 onChange={handleInputChange}
                 placeholder="Enter company address"
                 rows={3}
               />
-            </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="contactEmail">Contact Email *</Label>
-                <Input
-                  id="contactEmail"
+              <Group grow>
+                <TextInput
+                  label="Contact Email"
                   name="contactEmail"
                   type="email"
                   value={formData.contactEmail}
@@ -147,37 +131,33 @@ function NewClientPage() {
                   placeholder="Enter contact email"
                   required
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contactPhone">Contact Phone</Label>
-                <Input
-                  id="contactPhone"
+                <TextInput
+                  label="Contact Phone"
                   name="contactPhone"
                   type="tel"
                   value={formData.contactPhone}
                   onChange={handleInputChange}
                   placeholder="Enter contact phone"
                 />
-              </div>
-            </div>
+              </Group>
 
-            <div className="flex gap-4 pt-4">
-              <Button type="submit" disabled={loading}>
-                <Save className="mr-2 h-4 w-4" />
-                {loading ? 'Creating...' : 'Create Client'}
-              </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => router.push('/admin/clients')}
-              >
-                Cancel
-              </Button>
-            </div>
+              <Group mt="md">
+                <Button type="submit" loading={loading} leftSection={<Save size={16} />}>
+                  Create Client
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="default" 
+                  onClick={() => router.push('/admin/clients')}
+                >
+                  Cancel
+                </Button>
+              </Group>
+            </Stack>
           </form>
-        </CardContent>
+        </Card.Section>
       </Card>
-    </div>
+    </Stack>
   )
 }
 

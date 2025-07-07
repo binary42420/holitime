@@ -1,213 +1,172 @@
 "use client"
 
 import React from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Loader2, Clock, Users, Calendar, MapPin, AlertTriangle } from "lucide-react"
+import { Card, Skeleton, Badge, Avatar, Table, Loader, Group, Text, Stack, Progress, Button, Title } from "@mantine/core"
+import { Clock, Users, Calendar, MapPin, AlertTriangle } from "lucide-react"
 
-// Generic loading spinner
-export function LoadingSpinner({ size = "default", className = "" }: { 
-  size?: "sm" | "default" | "lg"
+export function LoadingSpinner({ size = "md", className = "" }: { 
+  size?: "xs" | "sm" | "md" | "lg" | "xl"
   className?: string 
 }) {
-  const sizeClasses = {
-    sm: "h-4 w-4",
-    default: "h-6 w-6", 
-    lg: "h-8 w-8"
-  }
-
   return (
-    <Loader2 className={`animate-spin ${sizeClasses[size]} ${className}`} />
+    <Loader size={size} className={className} />
   )
 }
 
-// Loading overlay for buttons
 export function ButtonLoading({ children, loading, ...props }: { 
   children: React.ReactNode
   loading: boolean
   [key: string]: any 
 }) {
   return (
-    <button {...props} disabled={loading || props.disabled}>
-      {loading && <LoadingSpinner size="sm" className="mr-2" />}
+    <Button {...props} loading={loading}>
       {children}
-    </button>
+    </Button>
   )
 }
 
-// Shift card skeleton
 export function ShiftCardSkeleton() {
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-5 w-32" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-          <Skeleton className="h-6 w-20" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <Skeleton className="h-4 w-24" />
-            </div>
-            <div className="flex items-center gap-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-muted-foreground" />
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-4 w-20" />
-          </div>
-
-          <div className="flex gap-2">
-            <Skeleton className="h-8 w-20" />
-            <Skeleton className="h-8 w-24" />
-            <Skeleton className="h-8 w-28" />
-          </div>
-        </div>
-      </CardContent>
+    <Card withBorder radius="md">
+      <Card.Section withBorder inheritPadding py="xs">
+        <Stack>
+          <Skeleton height={20} width="75%" />
+          <Skeleton height={16} width="50%" />
+        </Stack>
+      </Card.Section>
+      <Card.Section p="md">
+        <Stack>
+          <Group>
+            <Clock size={16} />
+            <Skeleton height={16} width="50%" />
+          </Group>
+          <Group>
+            <MapPin size={16} />
+            <Skeleton height={16} width="75%" />
+          </Group>
+          <Group>
+            <Users size={16} />
+            <Skeleton height={16} width="25%" />
+            <Skeleton height={16} width="40%" />
+          </Group>
+          <Group>
+            <Skeleton height={32} width="30%" />
+            <Skeleton height={32} width="40%" />
+          </Group>
+        </Stack>
+      </Card.Section>
     </Card>
   )
 }
 
-// Multiple shift cards skeleton
 export function ShiftsListSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <div className="space-y-4">
+    <Stack>
       {Array.from({ length: count }).map((_, i) => (
         <ShiftCardSkeleton key={i} />
       ))}
-    </div>
+    </Stack>
   )
 }
 
-// Employee assignment skeleton
 export function EmployeeAssignmentSkeleton() {
   return (
-    <div className="border rounded-lg p-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback>
-              <Skeleton className="h-10 w-10 rounded-full" />
-            </AvatarFallback>
+    <Card withBorder p="md" radius="md">
+      <Group justify="space-between">
+        <Group>
+          <Avatar radius="xl">
+            <Skeleton height={40} circle />
           </Avatar>
-          
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-32" />
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-5 w-16" />
-              <Skeleton className="h-4 w-20" />
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-8 w-20" />
-          <Skeleton className="h-8 w-24" />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Timesheet table skeleton
-export function TimesheetTableSkeleton({ rows = 5 }: { rows?: number }) {
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <Skeleton className="h-6 w-48" />
-            <Skeleton className="h-4 w-64 mt-2" />
-          </div>
-          <div className="flex gap-2">
-            <Skeleton className="h-8 w-24" />
-            <Skeleton className="h-8 w-32" />
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-              <TableHead><Skeleton className="h-4 w-16" /></TableHead>
-              <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-              <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-              <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-              <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-              <TableHead><Skeleton className="h-4 w-16" /></TableHead>
-              <TableHead><Skeleton className="h-4 w-20" /></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: rows }).map((_, i) => (
-              <TableRow key={i}>
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        <Skeleton className="h-8 w-8 rounded-full" />
-                      </AvatarFallback>
-                    </Avatar>
-                    <Skeleton className="h-4 w-24" />
-                  </div>
-                </TableCell>
-                <TableCell><Skeleton className="h-5 w-12" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Skeleton className="h-8 w-20" />
-                    <Skeleton className="h-8 w-24" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
+          <Stack gap={0}>
+            <Skeleton height={16} width={120} />
+            <Group>
+              <Skeleton height={20} width={60} />
+              <Skeleton height={16} width={80} />
+            </Group>
+          </Stack>
+        </Group>
+        <Group>
+          <Skeleton height={32} width={80} />
+          <Skeleton height={32} width={100} />
+        </Group>
+      </Group>
     </Card>
   )
 }
 
-// Dashboard stats skeleton
+export function TimesheetTableSkeleton({ rows = 5 }: { rows?: number }) {
+  return (
+    <Card withBorder radius="md">
+      <Card.Section withBorder inheritPadding py="xs">
+        <Stack>
+          <Skeleton height={24} width="40%" />
+          <Skeleton height={16} width="60%" />
+        </Stack>
+      </Card.Section>
+      <Card.Section p="md">
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th><Skeleton height={16} width="80%" /></Table.Th>
+              <Table.Th><Skeleton height={16} width="60%" /></Table.Th>
+              <Table.Th><Skeleton height={16} width="80%" /></Table.Th>
+              <Table.Th><Skeleton height={16} width="80%" /></Table.Th>
+              <Table.Th><Skeleton height={16} width="80%" /></Table.Th>
+              <Table.Th><Skeleton height={16} width="80%" /></Table.Th>
+              <Table.Th><Skeleton height={16} width="60%" /></Table.Th>
+              <Table.Th><Skeleton height={16} width="80%" /></Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {Array.from({ length: rows }).map((_, i) => (
+              <Table.Tr key={i}>
+                <Table.Td>
+                  <Group>
+                    <Avatar radius="xl">
+                      <Skeleton height={32} circle />
+                    </Avatar>
+                    <Skeleton height={16} width={100} />
+                  </Group>
+                </Table.Td>
+                <Table.Td><Skeleton height={20} width={50} /></Table.Td>
+                <Table.Td><Skeleton height={16} width={70} /></Table.Td>
+                <Table.Td><Skeleton height={16} width={70} /></Table.Td>
+                <Table.Td><Skeleton height={16} width={70} /></Table.Td>
+                <Table.Td><Skeleton height={16} width={70} /></Table.Td>
+                <Table.Td><Skeleton height={20} width={80} /></Table.Td>
+                <Table.Td>
+                  <Group>
+                    <Skeleton height={32} width={80} />
+                    <Skeleton height={32} width={100} />
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
+        </Table>
+      </Card.Section>
+    </Card>
+  )
+}
+
 export function DashboardStatsSkeleton() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
       {Array.from({ length: 4 }).map((_, i) => (
-        <Card key={i}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-8 w-16" />
-              </div>
-              <Skeleton className="h-8 w-8 rounded" />
-            </div>
-          </CardContent>
+        <Card key={i} withBorder p="md" radius="md">
+          <Group justify="space-between">
+            <Stack>
+              <Skeleton height={16} width={100} />
+              <Skeleton height={32} width={70} />
+            </Stack>
+            <Skeleton height={32} width={32} />
+          </Group>
         </Card>
       ))}
     </div>
   )
 }
 
-// Progress indicator for multi-step operations
 export function ProgressIndicator({ 
   steps, 
   currentStep, 
@@ -218,63 +177,51 @@ export function ProgressIndicator({
   className?: string 
 }) {
   return (
-    <div className={`space-y-4 ${className}`}>
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>Step {currentStep + 1} of {steps.length}</span>
-        <span>{Math.round(((currentStep + 1) / steps.length) * 100)}%</span>
-      </div>
-      
-      <div className="w-full bg-gray-200 rounded-full h-2">
-        <div 
-          className="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-in-out"
-          style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }}
-        />
-      </div>
-      
-      <div className="space-y-2">
+    <Stack className={className}>
+      <Group justify="space-between">
+        <Text size="sm">Step {currentStep + 1} of {steps.length}</Text>
+        <Text size="sm">{Math.round(((currentStep + 1) / steps.length) * 100)}%</Text>
+      </Group>
+      <Progress value={((currentStep + 1) / steps.length) * 100} />
+      <Stack>
         {steps.map((step, index) => (
-          <div key={index} className="flex items-center gap-3">
-            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-              index < currentStep 
-                ? 'bg-green-100 text-green-800' 
-                : index === currentStep 
-                ? 'bg-blue-100 text-blue-800' 
-                : 'bg-gray-100 text-gray-500'
-            }`}>
+          <Group key={index}>
+            <Badge
+              color={index < currentStep ? 'green' : index === currentStep ? 'blue' : 'gray'}
+              variant="filled"
+              size="lg"
+              circle
+            >
               {index < currentStep ? '✓' : index + 1}
-            </div>
-            <span className={`text-sm ${
-              index <= currentStep ? 'text-gray-900' : 'text-gray-500'
-            }`}>
+            </Badge>
+            <Text size="sm" c={index <= currentStep ? 'dark' : 'dimmed'}>
               {step}
-            </span>
+            </Text>
             {index === currentStep && (
-              <LoadingSpinner size="sm" className="text-blue-600" />
+              <Loader size="xs" color="blue" />
             )}
-          </div>
+          </Group>
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   )
 }
 
-// Inline loading state for data updates
 export function InlineLoading({ 
   message = "Loading...", 
-  size = "default" 
+  size = "md" 
 }: { 
   message?: string
-  size?: "sm" | "default" | "lg" 
+  size?: "xs" | "sm" | "md" | "lg" | "xl"
 }) {
   return (
-    <div className="flex items-center gap-2 text-muted-foreground">
-      <LoadingSpinner size={size} />
-      <span className="text-sm">{message}</span>
-    </div>
+    <Group>
+      <Loader size={size} />
+      <Text size="sm">{message}</Text>
+    </Group>
   )
 }
 
-// Full page loading state
 export function PageLoading({ 
   title = "Loading...", 
   description = "Please wait while we load your data." 
@@ -283,54 +230,44 @@ export function PageLoading({
   description?: string 
 }) {
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center space-y-4">
-        <LoadingSpinner size="lg" className="mx-auto text-blue-600" />
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-          <p className="text-gray-600">{description}</p>
-        </div>
-      </div>
-    </div>
+    <Stack align="center" justify="center" style={{ height: '100vh' }}>
+      <Loader size="xl" />
+      <Stack align="center" gap={0}>
+        <Title order={3}>{title}</Title>
+        <Text c="dimmed">{description}</Text>
+      </Stack>
+    </Stack>
   )
 }
 
-// Skeleton for worker requirements section
 export function WorkerRequirementsSkeleton() {
   return (
-    <Card>
-      <CardHeader>
-        <Skeleton className="h-6 w-48" />
-        <Skeleton className="h-4 w-64" />
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <Card withBorder radius="md">
+      <Card.Section withBorder inheritPadding py="xs">
+        <Skeleton height={24} width="40%" />
+        <Skeleton height={16} width="60%" />
+      </Card.Section>
+      <Card.Section p="md">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="p-3 rounded-lg border bg-gray-50">
-              <div className="flex items-center justify-between mb-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-5 w-8" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Skeleton className="h-8 w-8" />
-                  <Skeleton className="h-4 w-4" />
-                  <Skeleton className="h-8 w-8" />
-                </div>
-                <div className="flex items-center gap-2 justify-center">
-                  <Skeleton className="h-6 w-8" />
-                  <Skeleton className="h-6 w-10" />
-                </div>
-              </div>
-            </div>
+            <Card key={i} withBorder p="sm" radius="md">
+              <Group justify="space-between" mb="sm">
+                <Skeleton height={16} width={100} />
+                <Skeleton height={20} width={30} />
+              </Group>
+              <Group justify="center">
+                <Skeleton height={32} circle />
+                <Skeleton height={16} width={16} />
+                <Skeleton height={32} circle />
+              </Group>
+            </Card>
           ))}
         </div>
-      </CardContent>
+      </Card.Section>
     </Card>
   )
 }
 
-// Loading state with retry option
 export function LoadingWithRetry({ 
   onRetry, 
   message = "Loading...", 
@@ -342,25 +279,20 @@ export function LoadingWithRetry({
 }) {
   if (error && onRetry) {
     return (
-      <div className="text-center space-y-4 p-8">
-        <div className="text-red-600">
-          <AlertTriangle className="h-8 w-8 mx-auto mb-2" />
-          <p className="text-sm">Failed to load data</p>
-        </div>
-        <button 
-          onClick={onRetry}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-        >
+      <Stack align="center" p="xl">
+        <AlertTriangle size={32} color="red" />
+        <Text c="red">Failed to load data</Text>
+        <Button onClick={onRetry} variant="outline">
           Try Again
-        </button>
-      </div>
+        </Button>
+      </Stack>
     )
   }
 
   return (
-    <div className="text-center space-y-4 p-8">
-      <LoadingSpinner size="lg" className="mx-auto text-blue-600" />
-      <p className="text-sm text-muted-foreground">{message}</p>
-    </div>
+    <Stack align="center" p="xl">
+      <Loader size="lg" />
+      <Text c="dimmed">{message}</Text>
+    </Stack>
   )
 }

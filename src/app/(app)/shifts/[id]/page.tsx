@@ -4,25 +4,20 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useApi, useShift } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
-import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase, Download } from "lucide-react"
+import { Card, Button, Badge, Textarea, Group, Text, Title, Stack, ActionIcon, Alert } from "@mantine/core"
+import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase, Download, AlertTriangle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import UnifiedShiftManager from "@/components/unified-shift-manager"
 import WorkerAssignmentDisplay from "@/components/worker-assignment-display"
 import { generateShiftEditUrl } from "@/lib/url-utils"
 import { LoadingSpinner } from "@/components/loading-states"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { AlertTriangle } from "lucide-react"
 import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"
 import { DangerZone } from "@/components/danger-zone"
+import { notifications } from "@mantine/notifications"
 
 export default function ShiftDetailsPage() {
   const params = useParams()
   const router = useRouter()
-  const { toast } = useToast()
   const shiftId = params.id as string
 
   const { data: shiftData, loading: shiftLoading, error: shiftError, refetch } = useShift(shiftId)
@@ -66,17 +61,18 @@ export default function ShiftDetailsPage() {
         throw new Error('Failed to update notes')
       }
 
-      toast({
+      notifications.show({
         title: "Notes Updated",
-        description: "Shift notes have been saved successfully.",
+        message: "Shift notes have been saved successfully.",
+        color: 'green'
       })
 
       handleRefresh()
     } catch (error) {
-      toast({
+      notifications.show({
         title: "Error",
-        description: "Failed to update notes. Please try again.",
-        variant: "destructive",
+        message: "Failed to update notes. Please try again.",
+        color: 'red'
       })
     } finally {
       setIsSubmittingNotes(false)
@@ -84,14 +80,14 @@ export default function ShiftDetailsPage() {
   }
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      'Upcoming': 'outline',
-      'In Progress': 'default',
-      'Completed': 'secondary',
-      'Cancelled': 'destructive',
-      'Pending Approval': 'outline'
+    const variants: Record<string, string> = {
+      'Upcoming': 'blue',
+      'In Progress': 'yellow',
+      'Completed': 'green',
+      'Cancelled': 'red',
+      'Pending Approval': 'orange'
     }
-    return <Badge variant={variants[status] || 'outline'}>{status}</Badge>
+    return <Badge color={variants[status] || 'gray'}>{status}</Badge>
   }
 
   const getStaffingStatus = () => {
@@ -99,74 +95,67 @@ export default function ShiftDetailsPage() {
     const requested = shift?.requestedWorkers || 0
 
     if (assignedCount >= requested) {
-      return <Badge variant="secondary" className="text-green-700 bg-green-100">Fully Staffed</Badge>
+      return <Badge color="green">Fully Staffed</Badge>
     } else if (assignedCount > 0) {
-      return <Badge variant="outline" className="text-yellow-700 bg-yellow-100">Partially Staffed</Badge>
+      return <Badge color="yellow">Partially Staffed</Badge>
     } else {
-      return <Badge variant="destructive">Unstaffed</Badge>
+      return <Badge color="red">Unstaffed</Badge>
     }
   }
 
   if (shiftLoading || assignedLoading) {
     return (
-      <div className="flex justify-center items-center h-screen">
+      <Group justify="center" style={{ height: '100vh' }}>
         <LoadingSpinner />
-      </div>
+      </Group>
     )
   }
 
   if (shiftError || !shift) {
     return (
-      <div className="container mx-auto py-6">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <h2 className="text-lg font-semibold mb-2">Shift Not Found</h2>
-              <p className="text-muted-foreground mb-4">
-                The shift you're looking for doesn't exist or you don't have permission to view it.
-              </p>
-              <Button onClick={() => router.push('/shifts')}>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Shifts
-              </Button>
-            </div>
-          </CardContent>
+      <Stack align="center" justify="center" style={{ height: '100vh' }}>
+        <Card withBorder p="xl" radius="md">
+          <Stack align="center">
+            <Title order={3}>Shift Not Found</Title>
+            <Text c="dimmed">
+              The shift you're looking for doesn't exist or you don't have permission to view it.
+            </Text>
+            <Button onClick={() => router.push('/shifts')} leftSection={<ArrowLeft size={16} />}>
+              Back to Shifts
+            </Button>
+          </Stack>
         </Card>
-      </div>
+      </Stack>
     )
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="sm" onClick={() => router.push('/shifts')}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Shifts
-          </Button>
+    <Stack gap="lg">
+      <Group justify="space-between">
+        <Group>
+          <ActionIcon variant="subtle" onClick={() => router.push('/shifts')}>
+            <ArrowLeft />
+          </ActionIcon>
           <div>
-            <h1 className="text-2xl font-bold">{shift.jobName}</h1>
-            <p className="text-muted-foreground">
+            <Title order={2}>{shift.jobName}</Title>
+            <Text c="dimmed">
               {shift.clientName} • {new Date(shift.date).toLocaleDateString()} • {shift.startTime}
-            </p>
+            </Text>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
+        </Group>
+        <Group>
           {getStatusBadge(shift.status)}
           {(shift.status === 'Completed' || shift.status === 'Pending Client Approval') && (
             <Button
               variant="outline"
-              size="sm"
+              size="xs"
               onClick={async () => {
                 try {
-                  // Get timesheet for this shift
                   const timesheetResponse = await fetch(`/api/timesheets?shiftId=${shiftId}`)
                   if (timesheetResponse.ok) {
                     const timesheetData = await timesheetResponse.json()
                     if (timesheetData.timesheets && timesheetData.timesheets.length > 0) {
                       const timesheetId = timesheetData.timesheets[0].id
-                      // Download PDF
                       const pdfResponse = await fetch(`/api/timesheets/${timesheetId}/pdf`)
                       if (pdfResponse.ok) {
                         const blob = await pdfResponse.blob()
@@ -185,87 +174,87 @@ export default function ShiftDetailsPage() {
                   console.error('Error downloading PDF:', error)
                 }
               }}
+              leftSection={<Download size={14} />}
             >
-              <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
           )}
           <Button
             variant="outline"
-            size="sm"
+            size="xs"
             onClick={() => router.push(generateShiftEditUrl(shiftId))}
           >
             Edit Shift
           </Button>
-        </div>
-      </div>
+        </Group>
+      </Group>
 
-      {/* Shift Details */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Shift Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Date:</span>
-              <span className="font-medium">{new Date(shift.date).toLocaleDateString()}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Time:</span>
-              <span className="font-medium">{shift.startTime} - {shift.endTime}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Location:</span>
-              <span className="font-medium">{shift.location}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Status:</span>
-              {getStatusBadge(shift.status)}
-            </div>
-          </CardContent>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+        <Card withBorder radius="md">
+          <Card.Section withBorder inheritPadding py="xs">
+            <Group>
+              <Calendar size={20} />
+              <Title order={4}>Shift Information</Title>
+            </Group>
+          </Card.Section>
+          <Card.Section p="md">
+            <Stack>
+              <Group justify="space-between">
+                <Text>Date:</Text>
+                <Text fw={500}>{new Date(shift.date).toLocaleDateString()}</Text>
+              </Group>
+              <Group justify="space-between">
+                <Text>Time:</Text>
+                <Text fw={500}>{shift.startTime} - {shift.endTime}</Text>
+              </Group>
+              <Group justify="space-between">
+                <Text>Location:</Text>
+                <Text fw={500}>{shift.location}</Text>
+              </Group>
+              <Group justify="space-between">
+                <Text>Status:</Text>
+                {getStatusBadge(shift.status)}
+              </Group>
+            </Stack>
+          </Card.Section>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Staffing Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Status:</span>
-              {getStaffingStatus()}
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Assigned Workers:</span>
-              <span className="font-medium">
-                {assignedPersonnel.length}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Requested Workers:</span>
-              <span className="font-medium">{shift.requestedWorkers}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span>Crew Chief:</span>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">
+        <Card withBorder radius="md">
+          <Card.Section withBorder inheritPadding py="xs">
+            <Group>
+              <Users size={20} />
+              <Title order={4}>Staffing Overview</Title>
+            </Group>
+          </Card.Section>
+          <Card.Section p="md">
+            <Stack>
+              <Group justify="space-between">
+                <Text>Status:</Text>
+                {getStaffingStatus()}
+              </Group>
+              <Group justify="space-between">
+                <Text>Assigned Workers:</Text>
+                <Text fw={500}>
+                  {assignedPersonnel.length}
+                </Text>
+              </Group>
+              <Group justify="space-between">
+                <Text>Requested Workers:</Text>
+                <Text fw={500}>{shift.requestedWorkers}</Text>
+              </Group>
+              <Group justify="space-between">
+                <Text>Crew Chief:</Text>
+                <Text fw={500}>
                   {(() => {
                     const crewChief = assignedPersonnel.find((person: any) => person.roleCode === 'CC' || person.isCrewChief);
                     return crewChief ? crewChief.employeeName : 'Unassigned';
                   })()}
-                </span>
-              </div>
-            </div>
-          </CardContent>
+                </Text>
+              </Group>
+            </Stack>
+          </Card.Section>
         </Card>
-        <div className="lg:col-span-2 space-y-6">
-          {/* Worker Assignment Display */}
+        <div style={{ gridColumn: '1 / -1' }}>
           {shiftId && (
             <WorkerAssignmentDisplay
               shiftId={shiftId}
@@ -274,7 +263,6 @@ export default function ShiftDetailsPage() {
             />
           )}
 
-          {/* Unified Shift Manager */}
           {shiftId && (
             <UnifiedShiftManager
               shiftId={shiftId}
@@ -285,46 +273,40 @@ export default function ShiftDetailsPage() {
         </div>
       </div>
 
-      {/* Notes */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Notes</CardTitle>
-          <CardDescription>
-            Add any additional notes or comments about this shift
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Textarea
-            placeholder="Enter shift notes..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={4}
-          />
-          <Button 
-            onClick={handleNotesSubmit}
-            disabled={isSubmittingNotes}
-          >
-            {isSubmittingNotes ? "Saving..." : "Save Notes"}
-          </Button>
-        </CardContent>
+      <Card withBorder radius="md">
+        <Card.Section withBorder inheritPadding py="xs">
+          <Title order={4}>Notes</Title>
+        </Card.Section>
+        <Card.Section p="md">
+          <Stack>
+            <Textarea
+              placeholder="Enter shift notes..."
+              value={notes}
+              onChange={(e) => setNotes(e.currentTarget.value)}
+              rows={4}
+            />
+            <Button 
+              onClick={handleNotesSubmit}
+              loading={isSubmittingNotes}
+            >
+              Save Notes
+            </Button>
+          </Stack>
+        </Card.Section>
       </Card>
 
-      {/* Crew Chief Permissions Section - Only visible to admins */}
       <CrewChiefPermissionManager
         targetId={shiftId}
         targetType="shift"
         targetName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${shift.startTime}`}
-        className="mt-6"
       />
 
-      {/* Danger Zone - Only visible to admins */}
       <DangerZone
         entityType="shift"
         entityId={shiftId}
         entityName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${shift.startTime}`}
         redirectTo="/shifts"
-        className="mt-6"
       />
-    </div>
+    </Stack>
   )
 }
