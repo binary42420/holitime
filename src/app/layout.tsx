@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { Toaster } from "@/components/ui/toaster"
 import { UserProvider } from '@/hooks/use-user';
 import NextAuthSessionProvider from '@/components/providers/session-provider';
-import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Hands On Labor - Workforce Management',

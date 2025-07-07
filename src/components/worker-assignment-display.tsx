@@ -422,7 +422,7 @@ export default function WorkerAssignmentDisplay({
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="Select worker..." />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="bg-background">
                               {availableEmployees
                                 .filter(emp => !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
                                 .map(employee => (

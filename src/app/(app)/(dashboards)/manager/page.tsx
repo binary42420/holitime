@@ -36,7 +36,7 @@ export default function ManagerDashboard() {
   const shifts = shiftsData?.shifts || [];
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
       <header className="mb-6">
         <h1 className="text-3xl sm:text-4xl font-bold">Welcome, {user?.name}!</h1>
         <p className="text-muted-foreground">Manager Dashboard Overview</p>
@@ -79,7 +79,7 @@ export default function ManagerDashboard() {
         {shifts.length > 0 ? (
           <div className="space-y-4">
             {shifts.slice(0, 5).map((shift) => (
-              <Card key={shift.id} onClick={() => router.push(`/shifts/${shift.id}`)} className="cursor-pointer hover:bg-muted/50">
+              <Card key={shift.id} onClick={() => router.push(`/app/shifts/${shift.id}`)} className="cursor-pointer hover:bg-muted/50">
                 <CardContent className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center">
                   <div className="flex-grow mb-4 sm:mb-0">
                     <p className="font-semibold">{shift.jobName}</p>
@@ -90,7 +90,6 @@ export default function ManagerDashboard() {
                     <Badge variant={shift.status === 'Completed' ? 'default' : 'secondary'}>
                       {shift.status}
                     </Badge>
-                    <Button size="sm" variant="outline">View</Button>
                   </div>
                 </CardContent>
               </Card>

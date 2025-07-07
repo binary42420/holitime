@@ -1,7 +1,7 @@
 async function up() {
   try {
-    const db = await import('../src/lib/db.ts');
-    await db.query(`
+    const { query } = await import('../src/lib/db.ts');
+    await query(`
       ALTER TABLE users
       ADD COLUMN is_rigger_eligible BOOLEAN DEFAULT false
     `);
