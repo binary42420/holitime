@@ -4,7 +4,7 @@ import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
 import Link from 'next/link'
 import { Clock, Users, Briefcase, CreditCard, ArrowRight } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@mantine/core'
 
 const services = [
   {

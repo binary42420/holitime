@@ -4,8 +4,8 @@ import React from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Button } from '@mantine/core'
+import { Badge } from '@mantine/core'
 import {
   Building2,
   Users,

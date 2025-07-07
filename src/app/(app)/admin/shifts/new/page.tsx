@@ -7,12 +7,20 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Card,
+  Button,
+  TextInput,
+  Textarea,
+  Select,
+  NumberInput,
+  Group,
+  Stack,
+  Title,
+  Text,
+  Container,
+  Grid,
+} from "@mantine/core"
 import { ArrowLeft, Save, Calendar, Users, Building2, Briefcase } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateShiftUrl } from "@/lib/url-utils"
@@ -113,189 +121,147 @@ function NewShiftPage() {
   ) || []
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/shifts')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Shifts
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">Schedule New Shift</h1>
-          <p className="text-muted-foreground">Create a new work shift</p>
-        </div>
-      </div>
+    <Container size="md" py="lg">
+      <Stack gap="lg">
+        <Group justify="space-between">
+          <Stack gap={0}>
+            <Button
+              variant="subtle"
+              leftSection={<ArrowLeft size={16} />}
+              onClick={() => router.push('/admin/shifts')}
+              size="sm"
+              styles={{ inner: { justifyContent: 'left' }, root: { paddingLeft: 0 } }}
+            >
+              Back to Shifts
+            </Button>
+            <Title order={1}>Schedule New Shift</Title>
+            <Text c="dimmed">Create a new work shift</Text>
+          </Stack>
+        </Group>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Shift Information</CardTitle>
-            <CardDescription>
-              Enter the basic details for the new shift
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="job">Job *</Label>
-                <Select onValueChange={(value) => form.setValue("jobId", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a job" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {jobs
-                      .filter(job => job.id && job.id.trim() !== '')
-                      .map((job) => (
-                      <SelectItem key={job.id} value={job.id}>
-                        <div className="flex items-center gap-2">
-                          <Briefcase className="h-4 w-4" />
-                          <div>
-                            <div className="font-medium">{job.name}</div>
-                            <div className="text-sm text-muted-foreground">{job.clientName}</div>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.jobId && (
-                  <p className="text-sm text-destructive">{form.formState.errors.jobId.message}</p>
-                )}
-              </div>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <Stack gap="lg">
+            <Card withBorder>
+              <Card.Section withBorder inheritPadding py="sm">
+                <Title order={4}>Shift Information</Title>
+                <Text size="sm" c="dimmed">Enter the basic details for the new shift</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Stack>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <Select
+                        label="Job"
+                        placeholder="Select a job"
+                        required
+                        data={jobs.map(job => ({
+                          value: job.id,
+                          label: `${job.name} (${job.clientName})`
+                        }))}
+                        {...form.register("jobId")}
+                        error={form.formState.errors.jobId?.message}
+                        searchable
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <Select
+                        label="Crew Chief"
+                        placeholder="Select crew chief (optional)"
+                        data={crewChiefs.map(chief => ({ value: chief.id, label: chief.name }))}
+                        {...form.register("crewChiefId")}
+                        clearable
+                        searchable
+                      />
+                    </Grid.Col>
+                  </Grid>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
+                      <TextInput
+                        label="Date"
+                        type="date"
+                        required
+                        {...form.register("date")}
+                        error={form.formState.errors.date?.message}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
+                      <TextInput
+                        label="Start Time"
+                        type="time"
+                        required
+                        {...form.register("startTime")}
+                        error={form.formState.errors.startTime?.message}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
+                      <TextInput
+                        label="End Time"
+                        type="time"
+                        required
+                        {...form.register("endTime")}
+                        error={form.formState.errors.endTime?.message}
+                      />
+                    </Grid.Col>
+                  </Grid>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                       <NumberInput
+                        label="Requested Workers"
+                        placeholder="Enter number of workers"
+                        required
+                        min={1}
+                        {...form.register("requestedWorkers", { valueAsNumber: true })}
+                        onChange={(value) => form.setValue("requestedWorkers", Number(value))}
+                        error={form.formState.errors.requestedWorkers?.message}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Location"
+                        placeholder="Enter shift location"
+                        required
+                        {...form.register("location")}
+                        error={form.formState.errors.location?.message}
+                      />
+                    </Grid.Col>
+                  </Grid>
+                  <Textarea
+                    label="Description"
+                    placeholder="Describe the work to be performed"
+                    {...form.register("description")}
+                    rows={3}
+                  />
+                  <Textarea
+                    label="Requirements"
+                    placeholder="Special skills, certifications, or equipment needed"
+                    {...form.register("requirements")}
+                    rows={3}
+                  />
+                  <Textarea
+                    label="Notes"
+                    placeholder="Additional notes or instructions"
+                    {...form.register("notes")}
+                    rows={3}
+                  />
+                </Stack>
+              </Card.Section>
+            </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="crewChief">Crew Chief</Label>
-                <Select onValueChange={(value) => form.setValue("crewChiefId", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select crew chief (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {crewChiefs
-                      .filter(chief => chief.id && chief.id.trim() !== '')
-                      .map((chief) => (
-                      <SelectItem key={chief.id} value={chief.id}>
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          {chief.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="date">Date *</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  {...form.register("date")}
-                />
-                {form.formState.errors.date && (
-                  <p className="text-sm text-destructive">{form.formState.errors.date.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="startTime">Start Time *</Label>
-                <Input
-                  id="startTime"
-                  type="time"
-                  {...form.register("startTime")}
-                />
-                {form.formState.errors.startTime && (
-                  <p className="text-sm text-destructive">{form.formState.errors.startTime.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="endTime">End Time *</Label>
-                <Input
-                  id="endTime"
-                  type="time"
-                  {...form.register("endTime")}
-                />
-                {form.formState.errors.endTime && (
-                  <p className="text-sm text-destructive">{form.formState.errors.endTime.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="requestedWorkers">Requested Workers *</Label>
-                <Input
-                  id="requestedWorkers"
-                  type="number"
-                  min="1"
-                  {...form.register("requestedWorkers", { valueAsNumber: true })}
-                />
-                {form.formState.errors.requestedWorkers && (
-                  <p className="text-sm text-destructive">{form.formState.errors.requestedWorkers.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location">Location *</Label>
-                <Input
-                  id="location"
-                  {...form.register("location")}
-                  placeholder="Enter shift location"
-                />
-                {form.formState.errors.location && (
-                  <p className="text-sm text-destructive">{form.formState.errors.location.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                {...form.register("description")}
-                placeholder="Describe the work to be performed"
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="requirements">Requirements</Label>
-              <Textarea
-                id="requirements"
-                {...form.register("requirements")}
-                placeholder="Special skills, certifications, or equipment needed"
-                rows={3}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                {...form.register("notes")}
-                placeholder="Additional notes or instructions"
-                rows={3}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push('/admin/shifts')}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Scheduling...' : 'Schedule Shift'}
-          </Button>
-        </div>
-      </form>
-    </div>
+            <Group justify="flex-end">
+              <Button
+                variant="default"
+                onClick={() => router.push('/admin/shifts')}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" loading={isSubmitting} leftSection={<Save size={16} />}>
+                Schedule Shift
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Stack>
+    </Container>
   )
 }
 

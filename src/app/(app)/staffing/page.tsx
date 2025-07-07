@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Loader2, Upload, FileSpreadsheet, Download, CheckCircle, AlertCircle, Cloud } from "lucide-react"
 
-import { Button } from "@/components/ui/button"
+import { Button } from '@mantine/core'
 import {
   Card,
   CardContent,
@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@mantine/core'
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 

@@ -4,19 +4,22 @@ import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useClients } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  Card,
+  Table,
+  Button,
+  TextInput,
+  Badge,
+  Menu,
+  Group,
+  Stack,
+  Title,
+  Text,
+  ActionIcon,
+  Loader,
+  Center,
+  Container,
+} from "@mantine/core"
 import { 
   ArrowLeft, 
   Plus, 
@@ -81,125 +84,134 @@ function AdminClientsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Loading clients...</div>
-      </div>
+      <Container>
+        <Center style={{ height: '80vh' }}>
+          <Loader />
+          <Text ml="md">Loading clients...</Text>
+        </Center>
+      </Container>
     )
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-destructive">Error loading clients: {error}</div>
-      </div>
+      <Container>
+        <Center style={{ height: '80vh' }}>
+          <Text color="red">Error loading clients: {error.toString()}</Text>
+        </Center>
+      </Container>
     )
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Admin
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">Client Management</h1>
-          <p className="text-muted-foreground">Manage client companies and contacts</p>
-        </div>
-        <Button onClick={() => router.push('/admin/clients/new')}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Client
-        </Button>
-      </div>
+    <Container size="xl">
+      <Stack gap="lg">
+        <Group justify="space-between">
+          <Stack gap={0}>
+            <Button
+              variant="subtle"
+              leftSection={<ArrowLeft size={16} />}
+              onClick={() => router.push('/admin')}
+              size="sm"
+              styles={{ inner: { justifyContent: 'left' }, root: { paddingLeft: 0 } }}
+            >
+              Back to Admin
+            </Button>
+            <Title order={1}>Client Management</Title>
+            <Text c="dimmed">Manage client companies and contacts</Text>
+          </Stack>
+          <Button
+            leftSection={<Plus size={16} />}
+            onClick={() => router.push('/clients/new')}
+          >
+            Add Client
+          </Button>
+        </Group>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="h-5 w-5" />
-                All Clients
-              </CardTitle>
-              <CardDescription>
-                {filteredClients.length} of {clients.length} clients
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search clients..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 w-64"
-                />
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company Name</TableHead>
-                <TableHead>Contact Person</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Jobs</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <Card withBorder>
+          <Card.Section withBorder inheritPadding py="sm">
+            <Group justify="space-between">
+              <Group>
+                <Building2 size={20} />
+                <Title order={4}>All Clients</Title>
+                <Text c="dimmed" size="sm">
+                  {filteredClients.length} of {clients.length} clients
+                </Text>
+              </Group>
+              <TextInput
+                placeholder="Search clients..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                leftSection={<Search size={16} />}
+              />
+            </Group>
+          </Card.Section>
+          <Table striped highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Company Name</Table.Th>
+                <Table.Th>Contact Person</Table.Th>
+                <Table.Th>Email</Table.Th>
+                <Table.Th>Phone</Table.Th>
+                <Table.Th>Jobs</Table.Th>
+                <Table.Th>Status</Table.Th>
+                <Table.Th style={{ textAlign: 'right' }}>Actions</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
               {filteredClients.map((client) => (
-                <TableRow key={client.id}>
-                  <TableCell className="font-medium">{client.name}</TableCell>
-                  <TableCell>{client.contactPerson}</TableCell>
-                  <TableCell>{client.contactEmail}</TableCell>
-                  <TableCell>{client.contactPhone || 'N/A'}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">
+                <Table.Tr key={client.id}>
+                  <Table.Td><Text fw={500}>{client.name}</Text></Table.Td>
+                  <Table.Td>{client.contactPerson}</Table.Td>
+                  <Table.Td>{client.contactEmail}</Table.Td>
+                  <Table.Td>{client.contactPhone || 'N/A'}</Table.Td>
+                  <Table.Td>
+                    <Badge variant="light">
                       {client.jobCount || 0} jobs
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="default">Active</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => router.push(`/clients/${client.id}`)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push(`/admin/clients/${client.id}/edit`)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Client
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteClient(client.id, client.name)}
-                          className="text-destructive"
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge color="green">Active</Badge>
+                  </Table.Td>
+                  <Table.Td style={{ textAlign: 'right' }}>
+                    <Menu shadow="md" width={200}>
+                      <Menu.Target>
+                        <ActionIcon variant="subtle">
+                          <MoreHorizontal size={16} />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Label>Actions</Menu.Label>
+                        <Menu.Item
+                          leftSection={<Eye size={14} />}
+                          onClick={() => router.push(`/clients/${client.id}`)}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
+                          View Details
+                        </Menu.Item>
+                        <Menu.Item
+                          leftSection={<Edit size={14} />}
+                          onClick={() => router.push(`/admin/clients/${client.id}/edit`)}
+                        >
+                          Edit Client
+                        </Menu.Item>
+                        <Menu.Divider />
+                        <Menu.Item
+                          color="red"
+                          leftSection={<Trash2 size={14} />}
+                          onClick={() => handleDeleteClient(client.id, client.name)}
+                        >
                           Delete Client
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  </Table.Td>
+                </Table.Tr>
               ))}
-            </TableBody>
+            </Table.Tbody>
           </Table>
-        </CardContent>
-      </Card>
-    </div>
+        </Card>
+      </Stack>
+    </Container>
   )
 }
 

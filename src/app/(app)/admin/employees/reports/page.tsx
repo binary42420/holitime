@@ -4,13 +4,19 @@ import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import {
+  Card,
+  Table,
+  Button,
+  Badge,
+  Select,
+  Group,
+  Stack,
+  Title,
+  Text,
+  Container,
+  Grid,
+} from "@mantine/core"
 import { 
   ArrowLeft, 
   Download,
@@ -137,180 +143,163 @@ function EmployeeReportsPage() {
   const attendanceData = generateAttendanceReport()
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/employees')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Employees
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">Employee Reports</h1>
-          <p className="text-muted-foreground">Analyze employee performance and attendance</p>
-        </div>
-        <Button onClick={handleExportReport}>
-          <Download className="mr-2 h-4 w-4" />
-          Export Report
-        </Button>
-      </div>
+    <Container size="xl">
+      <Stack gap="lg">
+        <Group justify="space-between">
+          <Stack gap={0}>
+            <Button
+              variant="subtle"
+              leftSection={<ArrowLeft size={16} />}
+              onClick={() => router.push('/admin/employees')}
+              size="sm"
+              styles={{ inner: { justifyContent: 'left' }, root: { paddingLeft: 0 } }}
+            >
+              Back to Employees
+            </Button>
+            <Title order={1}>Employee Reports</Title>
+            <Text c="dimmed">Analyze employee performance and attendance</Text>
+          </Stack>
+          <Button
+            leftSection={<Download size={16} />}
+            onClick={handleExportReport}
+          >
+            Export Report
+          </Button>
+        </Group>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Report Filters</CardTitle>
-          <CardDescription>
-            Configure your report parameters
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label>Report Type</Label>
-              <Select value={reportType} onValueChange={setReportType}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="performance">Performance Report</SelectItem>
-                  <SelectItem value="attendance">Attendance Report</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <Card withBorder>
+          <Card.Section withBorder inheritPadding py="sm">
+            <Title order={4}>Report Filters</Title>
+            <Text size="sm" c="dimmed">Configure your report parameters</Text>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 4 }}>
+                <Select
+                  label="Report Type"
+                  value={reportType}
+                  onChange={(value) => setReportType(value || "performance")}
+                  data={[
+                    { value: 'performance', label: 'Performance Report' },
+                    { value: 'attendance', label: 'Attendance Report' },
+                  ]}
+                />
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 4 }}>
+                <Select
+                  label="Date Range"
+                  value={dateRange}
+                  onChange={(value) => setDateRange(value || "thisMonth")}
+                  data={[
+                    { value: 'lastWeek', label: 'Last Week' },
+                    { value: 'thisMonth', label: 'This Month' },
+                    { value: 'lastMonth', label: 'Last Month' },
+                    { value: 'last3Months', label: 'Last 3 Months' },
+                  ]}
+                />
+              </Grid.Col>
+              <Grid.Col span={{ base: 12, md: 4 }}>
+                <Select
+                  label="Employee"
+                  value={selectedEmployee}
+                  onChange={(value) => setSelectedEmployee(value || "all")}
+                  data={[
+                    { value: 'all', label: 'All Employees' },
+                    ...employees.map(emp => ({ value: emp.id, label: emp.name }))
+                  ]}
+                />
+              </Grid.Col>
+            </Grid>
+          </Card.Section>
+        </Card>
 
-            <div className="space-y-2">
-              <Label>Date Range</Label>
-              <Select value={dateRange} onValueChange={setDateRange}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="lastWeek">Last Week</SelectItem>
-                  <SelectItem value="thisMonth">This Month</SelectItem>
-                  <SelectItem value="lastMonth">Last Month</SelectItem>
-                  <SelectItem value="last3Months">Last 3 Months</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Employee</Label>
-              <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Employees</SelectItem>
-                  {employees.map(employee => (
-                    <SelectItem key={employee.id} value={employee.id}>
-                      {employee.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {reportType === 'performance' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Performance Report
-            </CardTitle>
-            <CardDescription>
-              Employee performance metrics for the selected period
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Shifts Assigned</TableHead>
-                  <TableHead>Shifts Completed</TableHead>
-                  <TableHead>Completion Rate</TableHead>
-                  <TableHead>Total Hours</TableHead>
-                  <TableHead>Avg Hours/Shift</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+        {reportType === 'performance' && (
+          <Card withBorder>
+            <Card.Section withBorder inheritPadding py="sm">
+              <Group>
+                <BarChart3 size={20} />
+                <Title order={4}>Performance Report</Title>
+              </Group>
+              <Text size="sm" c="dimmed">Employee performance metrics for the selected period</Text>
+            </Card.Section>
+            <Table striped highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Employee</Table.Th>
+                  <Table.Th>Role</Table.Th>
+                  <Table.Th>Shifts Assigned</Table.Th>
+                  <Table.Th>Shifts Completed</Table.Th>
+                  <Table.Th>Completion Rate</Table.Th>
+                  <Table.Th>Total Hours</Table.Th>
+                  <Table.Th>Avg Hours/Shift</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
                 {performanceData.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell className="font-medium">{employee.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{employee.role}</Badge>
-                    </TableCell>
-                    <TableCell>{employee.shiftsAssigned}</TableCell>
-                    <TableCell>{employee.shiftsCompleted}</TableCell>
-                    <TableCell>
-                      <Badge variant={employee.completionRate >= 90 ? 'default' : employee.completionRate >= 70 ? 'secondary' : 'destructive'}>
+                  <Table.Tr key={employee.id}>
+                    <Table.Td><Text fw={500}>{employee.name}</Text></Table.Td>
+                    <Table.Td><Badge variant="light">{employee.role}</Badge></Table.Td>
+                    <Table.Td>{employee.shiftsAssigned}</Table.Td>
+                    <Table.Td>{employee.shiftsCompleted}</Table.Td>
+                    <Table.Td>
+                      <Badge color={employee.completionRate >= 90 ? 'green' : employee.completionRate >= 70 ? 'yellow' : 'red'}>
                         {employee.completionRate.toFixed(1)}%
                       </Badge>
-                    </TableCell>
-                    <TableCell>{employee.totalHours.toFixed(1)}h</TableCell>
-                    <TableCell>{employee.avgHoursPerShift.toFixed(1)}h</TableCell>
-                  </TableRow>
+                    </Table.Td>
+                    <Table.Td>{employee.totalHours.toFixed(1)}h</Table.Td>
+                    <Table.Td>{employee.avgHoursPerShift.toFixed(1)}h</Table.Td>
+                  </Table.Tr>
                 ))}
-              </TableBody>
+              </Table.Tbody>
             </Table>
-          </CardContent>
-        </Card>
-      )}
+          </Card>
+        )}
 
-      {reportType === 'attendance' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Attendance Report
-            </CardTitle>
-            <CardDescription>
-              Employee attendance metrics for the selected period
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Scheduled Shifts</TableHead>
-                  <TableHead>Attended Shifts</TableHead>
-                  <TableHead>No Shows</TableHead>
-                  <TableHead>Attendance Rate</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+        {reportType === 'attendance' && (
+          <Card withBorder>
+            <Card.Section withBorder inheritPadding py="sm">
+              <Group>
+                <Clock size={20} />
+                <Title order={4}>Attendance Report</Title>
+              </Group>
+              <Text size="sm" c="dimmed">Employee attendance metrics for the selected period</Text>
+            </Card.Section>
+            <Table striped highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Employee</Table.Th>
+                  <Table.Th>Role</Table.Th>
+                  <Table.Th>Scheduled Shifts</Table.Th>
+                  <Table.Th>Attended Shifts</Table.Th>
+                  <Table.Th>No Shows</Table.Th>
+                  <Table.Th>Attendance Rate</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
                 {attendanceData.map((employee) => (
-                  <TableRow key={employee.id}>
-                    <TableCell className="font-medium">{employee.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{employee.role}</Badge>
-                    </TableCell>
-                    <TableCell>{employee.scheduledShifts}</TableCell>
-                    <TableCell>{employee.attendedShifts}</TableCell>
-                    <TableCell>
-                      {employee.noShows > 0 && (
-                        <Badge variant="destructive">{employee.noShows}</Badge>
-                      )}
-                      {employee.noShows === 0 && (
-                        <span className="text-muted-foreground">0</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={employee.attendanceRate >= 95 ? 'default' : employee.attendanceRate >= 80 ? 'secondary' : 'destructive'}>
+                  <Table.Tr key={employee.id}>
+                    <Table.Td><Text fw={500}>{employee.name}</Text></Table.Td>
+                    <Table.Td><Badge variant="light">{employee.role}</Badge></Table.Td>
+                    <Table.Td>{employee.scheduledShifts}</Table.Td>
+                    <Table.Td>{employee.attendedShifts}</Table.Td>
+                    <Table.Td>
+                      <Badge color={employee.noShows > 0 ? 'red' : 'gray'}>
+                        {employee.noShows}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge color={employee.attendanceRate >= 95 ? 'green' : employee.attendanceRate >= 80 ? 'yellow' : 'red'}>
                         {employee.attendanceRate.toFixed(1)}%
                       </Badge>
-                    </TableCell>
-                  </TableRow>
+                    </Table.Td>
+                  </Table.Tr>
                 ))}
-              </TableBody>
+              </Table.Tbody>
             </Table>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          </Card>
+        )}
+      </Stack>
+    </Container>
   )
 }
 

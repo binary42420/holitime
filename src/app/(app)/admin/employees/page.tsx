@@ -4,20 +4,23 @@ import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+  Card,
+  Table,
+  Button,
+  TextInput,
+  Badge,
+  Avatar,
+  Menu,
+  Group,
+  Stack,
+  Title,
+  Text,
+  ActionIcon,
+  Loader,
+  Center,
+  Container,
+} from "@mantine/core"
 import { 
   ArrowLeft, 
   Plus, 
@@ -80,160 +83,163 @@ function AdminEmployeesPage() {
     }
   }
 
-  const getRoleBadgeVariant = (role: string) => {
+  const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'Manager/Admin':
-        return 'destructive'
+        return 'red'
       case 'Crew Chief':
-        return 'default'
+        return 'blue'
       case 'Employee':
-        return 'secondary'
+        return 'gray'
       case 'Client':
-        return 'outline'
+        return 'teal'
       default:
-        return 'secondary'
+        return 'gray'
     }
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Loading employees...</div>
-      </div>
+      <Container>
+        <Center style={{ height: '80vh' }}>
+          <Loader />
+          <Text ml="md">Loading employees...</Text>
+        </Center>
+      </Container>
     )
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-destructive">Error loading employees: {error}</div>
-      </div>
+      <Container>
+        <Center style={{ height: '80vh' }}>
+          <Text color="red">Error loading employees: {error.toString()}</Text>
+        </Center>
+      </Container>
     )
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Admin
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">Employee Management</h1>
-          <p className="text-muted-foreground">Manage workforce and employee records</p>
-        </div>
-        <Button onClick={() => router.push('/admin/employees/new')}>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Employee
-        </Button>
-      </div>
+    <Container size="xl">
+      <Stack gap="lg">
+        <Group justify="space-between">
+          <Stack gap={0}>
+            <Button
+              variant="subtle"
+              leftSection={<ArrowLeft size={16} />}
+              onClick={() => router.push('/admin')}
+              size="sm"
+              styles={{ inner: { justifyContent: 'left' }, root: { paddingLeft: 0 } }}
+            >
+              Back to Admin
+            </Button>
+            <Title order={1}>Employee Management</Title>
+            <Text c="dimmed">Manage workforce and employee records</Text>
+          </Stack>
+          <Button
+            leftSection={<Plus size={16} />}
+            onClick={() => router.push('/admin/employees/new')}
+          >
+            Add Employee
+          </Button>
+        </Group>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                All Employees
-              </CardTitle>
-              <CardDescription>
-                {filteredEmployees.length} of {employees.length} employees
-              </CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search employees..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 w-64"
-                />
-              </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Employee</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Recent Activity</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+        <Card withBorder>
+          <Card.Section withBorder inheritPadding py="sm">
+            <Group justify="space-between">
+              <Group>
+                <Users size={20} />
+                <Title order={4}>All Employees</Title>
+                <Text c="dimmed" size="sm">
+                  {filteredEmployees.length} of {employees.length} employees
+                </Text>
+              </Group>
+              <TextInput
+                placeholder="Search employees..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                leftSection={<Search size={16} />}
+              />
+            </Group>
+          </Card.Section>
+          <Table striped highlightOnHover>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Employee</Table.Th>
+                <Table.Th>Email</Table.Th>
+                <Table.Th>Role</Table.Th>
+                <Table.Th>Status</Table.Th>
+                <Table.Th>Recent Activity</Table.Th>
+                <Table.Th style={{ textAlign: 'right' }}>Actions</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
               {filteredEmployees.map((employee) => (
-                <TableRow key={employee.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={employee.avatar} />
-                        <AvatarFallback>
-                          {employee.name.split(' ').map((n: string) => n[0]).join('')}
-                        </AvatarFallback>
+                <Table.Tr key={employee.id}>
+                  <Table.Td>
+                    <Group>
+                      <Avatar src={employee.avatar} radius="xl">
+                        {employee.name.split(' ').map((n: string) => n[0]).join('')}
                       </Avatar>
-                      <div>
-                        <div className="font-medium">{employee.name}</div>
-                        <div className="text-sm text-muted-foreground">ID: {employee.id.slice(0, 8)}</div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{employee.email}</TableCell>
-                  <TableCell>
-                    <Badge variant={getRoleBadgeVariant(employee.role)}>
+                      <Stack gap={0}>
+                        <Text fw={500}>{employee.name}</Text>
+                        <Text size="xs" c="dimmed">ID: {employee.id.slice(0, 8)}</Text>
+                      </Stack>
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>{employee.email}</Table.Td>
+                  <Table.Td>
+                    <Badge color={getRoleBadgeColor(employee.role)}>
                       {employee.role}
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="default">
-                      <UserCheck className="mr-1 h-3 w-3" />
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge color="green" leftSection={<UserCheck size={12} />}>
                       Active
                     </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div className="text-sm text-muted-foreground">
-                      Last shift: 2 days ago
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => router.push(`/admin/employees/${employee.id}`)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Profile
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => router.push(`/admin/employees/${employee.id}/edit`)}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Employee
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem 
-                          onClick={() => handleDeleteEmployee(employee.id, employee.name)}
-                          className="text-destructive"
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" c="dimmed">Last shift: 2 days ago</Text>
+                  </Table.Td>
+                  <Table.Td style={{ textAlign: 'right' }}>
+                    <Menu shadow="md" width={200}>
+                      <Menu.Target>
+                        <ActionIcon variant="subtle">
+                          <MoreHorizontal size={16} />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Label>Actions</Menu.Label>
+                        <Menu.Item
+                          leftSection={<Eye size={14} />}
+                          onClick={() => router.push(`/admin/employees/${employee.id}`)}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" />
+                          View Profile
+                        </Menu.Item>
+                        <Menu.Item
+                          leftSection={<Edit size={14} />}
+                          onClick={() => router.push(`/admin/employees/${employee.id}/edit`)}
+                        >
+                          Edit Employee
+                        </Menu.Item>
+                        <Menu.Divider />
+                        <Menu.Item
+                          color="red"
+                          leftSection={<Trash2 size={14} />}
+                          onClick={() => handleDeleteEmployee(employee.id, employee.name)}
+                        >
                           Delete Employee
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
+                  </Table.Td>
+                </Table.Tr>
               ))}
-            </TableBody>
+            </Table.Tbody>
           </Table>
-        </CardContent>
-      </Card>
-    </div>
+        </Card>
+      </Stack>
+    </Container>
   )
 }
 

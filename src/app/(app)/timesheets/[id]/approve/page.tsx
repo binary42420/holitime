@@ -6,17 +6,29 @@ import { notFound, useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
 import { useToast } from "@/hooks/use-toast"
-import { format, differenceInMinutes } from 'date-fns'
+import { format } from 'date-fns'
+import { useDisclosure } from '@mantine/hooks';
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog"
+import { 
+  Card, 
+  Table, 
+  Button, 
+  Modal, 
+  Alert, 
+  Avatar, 
+  Divider, 
+  Container, 
+  Stack, 
+  Group, 
+  Title, 
+  Text, 
+  Loader, 
+  Center,
+  Image,
+  Grid
+} from "@mantine/core"
 import SignaturePad, { type SignaturePadRef } from "@/components/signature-pad"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, FileSignature, MapPin, User, Pencil, Save, RefreshCw } from "lucide-react"
+import { ArrowLeft, CheckCircle, FileSignature, Save, RefreshCw } from "lucide-react"
 import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
 
 export default function ApproveTimesheetPage({ params }: { params: Promise<{ id: string }> }) {
@@ -24,8 +36,9 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
   const router = useRouter();
   const { toast } = useToast();
   const signatureRef = useRef<SignaturePadRef>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [approvalType, setApprovalType] = useState<'client' | 'manager' | null>(null);
+  const [opened, { open, close }] = useDisclosure(false);
   const { id } = use(params);
 
   const { data: timesheetData, error } = useApi<{ timesheet: any }>(`/api/timesheets/${id}`);
@@ -52,9 +65,12 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
 
   if (!timesheetData || !timesheet || !shift || !client) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
+      <Container>
+        <Center style={{ height: '80vh' }}>
+          <Loader />
+          <Text ml="md">Loading...</Text>
+        </Center>
+      </Container>
     )
   }
 
@@ -67,7 +83,9 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
     return calculateTotalRoundedHours(timeEntries);
   }
 
-  const handleApproval = async (approvalType: 'client' | 'manager') => {
+  const handleApproval = async () => {
+    if (!approvalType) return;
+
     if (!signatureRef.current || signatureRef.current.isEmpty()) {
       toast({
         title: "Error",
@@ -104,7 +122,7 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
       });
 
       // Close dialog
-      setIsDialogOpen(false);
+      close();
 
       // Redirect after a short delay
       setTimeout(() => {
@@ -172,210 +190,145 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
   const canClientApprove = timesheet.status === 'pending_client_approval' && (user?.role === 'Manager/Admin' || user?.role === 'Client');
   const canManagerApprove = timesheet.status === 'pending_manager_approval' && user?.role === 'Manager/Admin';
 
+  const openModal = (type: 'client' | 'manager') => {
+    setApprovalType(type);
+    open();
+  };
+
   return (
-    <div className="flex flex-col gap-6">
-       <div>
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/timesheets"><ArrowLeft className="mr-2 h-4 w-4" />Back to Timesheets</Link>
+    <Container>
+      <Stack gap="lg">
+        <Button
+          component={Link}
+          href="/timesheets"
+          variant="subtle"
+          leftSection={<ArrowLeft size={16} />}
+          styles={{ inner: { justifyContent: 'left' }, root: { paddingLeft: 0 } }}
+        >
+          Back to Timesheets
         </Button>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-                <CardTitle>Timesheet Approval</CardTitle>
-                <CardDescription>
-                Review and approve the hours for the shift on {format(new Date(shift.date), 'EEEE, MMMM d, yyyy')}.
-                </CardDescription>
-            </div>
-            <div className="flex gap-4">
-              {isClientApproved && timesheet.clientSignature && (
-                <div className="text-right">
-                  <p className="text-sm font-medium">Client Approved</p>
-                  <img src={timesheet.clientSignature} alt="Client Signature" className="h-16 w-32 bg-slate-100 rounded-md mt-1 p-2 border" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {timesheet.clientApprovedAt && format(new Date(timesheet.clientApprovedAt), 'MMM d, yyyy')}
-                  </p>
-                </div>
-              )}
-              {isManagerApproved && timesheet.managerSignature && (
-                <div className="text-right">
-                  <p className="text-sm font-medium">Manager Approved</p>
-                  <img src={timesheet.managerSignature} alt="Manager Signature" className="h-16 w-32 bg-slate-100 rounded-md mt-1 p-2 border" />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {timesheet.managerApprovedAt && format(new Date(timesheet.managerApprovedAt), 'MMM d, yyyy')}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm mb-6">
-                <div className="space-y-1">
-                    <p className="text-muted-foreground">Client</p>
-                    <p className="font-medium">{client?.name || 'N/A'}</p>
-                </div>
-                <div className="space-y-1">
-                    <p className="text-muted-foreground">Location</p>
-                    <p className="font-medium">{shift?.location || 'N/A'}</p>
-                </div>
-                <div className="space-y-1">
-                    <p className="text-muted-foreground">Shift Date</p>
-                    <p className="font-medium">{formatDate(shift?.date)}</p>
-                </div>
-                <div className="space-y-1">
-                    <p className="text-muted-foreground">Start Time</p>
-                    <p className="font-medium">{formatTo12Hour(shift?.startTime)}</p>
-                </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm mb-6">
-                <div className="space-y-1">
-                    <p className="text-muted-foreground">Crew Chief</p>
-                    <p className="font-medium">{shift?.crewChief?.name || 'Not Assigned'}</p>
-                </div>
-                <div className="space-y-1">
-                    <p className="text-muted-foreground">Job</p>
-                    <p className="font-medium">{job?.name || shift?.jobName || 'N/A'}</p>
-                </div>
-            </div>
-            <Separator className="my-4" />
-            <Table>
-                <TableHeader>
-                <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Time In</TableHead>
-                    <TableHead>Time Out</TableHead>
-                    <TableHead className="text-right">Total Hours</TableHead>
-                </TableRow>
-                </TableHeader>
-                <TableBody>
-                {shift.assignedPersonnel.filter((p: any) => p.timeEntries.length > 0).map((person: any) => (
-                    <TableRow key={person.employee.id}>
-                        <TableCell className="font-medium">{person.employee.name}</TableCell>
-                        <TableCell>{person.roleOnShift}</TableCell>
-                        <TableCell>
-                          {person.timeEntries.map((entry: any, index: number) => {
-                            const display = getTimeEntryDisplay(entry.clockIn, entry.clockOut);
-                            return (
-                              <div key={index} className="text-sm">
-                                {display.displayClockIn}
-                                {index < person.timeEntries.length - 1 && <br />}
-                              </div>
-                            );
-                          })}
-                        </TableCell>
-                        <TableCell>
-                          {person.timeEntries.map((entry: any, index: number) => {
-                            const display = getTimeEntryDisplay(entry.clockIn, entry.clockOut);
-                            return (
-                              <div key={index} className="text-sm">
-                                {display.displayClockOut}
-                                {index < person.timeEntries.length - 1 && <br />}
-                              </div>
-                            );
-                          })}
-                        </TableCell>
-                        <TableCell className="text-right font-mono">{calculateTotalHours(person.timeEntries)}</TableCell>
-                    </TableRow>
-                ))}
-                <TableRow className="border-t-2 font-semibold bg-muted/50">
-                  <TableCell colSpan={4} className="text-right">Total Hours:</TableCell>
-                  <TableCell className="text-right font-mono">
-                    {(() => {
-                      const allTimeEntries = shift.assignedPersonnel
-                        .filter((p: any) => p.timeEntries.length > 0)
-                        .flatMap((p: any) => p.timeEntries);
-                      return calculateTotalHours(allTimeEntries);
-                    })()}
-                  </TableCell>
-                </TableRow>
-                </TableBody>
-            </Table>
-        </CardContent>
-        <CardFooter className="justify-end">
-            <div className="flex gap-4 w-full">
+        <Card withBorder>
+          <Card.Section withBorder inheritPadding py="sm">
+            <Group justify="space-between">
+              <Stack gap={0}>
+                <Title order={2}>Timesheet Approval</Title>
+                <Text c="dimmed">
+                  Review and approve the hours for the shift on {format(new Date(shift.date), 'EEEE, MMMM d, yyyy')}.
+                </Text>
+              </Stack>
+              <Group>
+                {isClientApproved && timesheet.clientSignature && (
+                  <Stack align="flex-end" gap="xs">
+                    <Text size="sm" fw={500}>Client Approved</Text>
+                    <Image src={timesheet.clientSignature} alt="Client Signature" h={40} w="auto" fit="contain" style={{ border: '1px solid #ccc', borderRadius: '4px' }} />
+                    <Text size="xs" c="dimmed">
+                      {timesheet.clientApprovedAt && format(new Date(timesheet.clientApprovedAt), 'MMM d, yyyy')}
+                    </Text>
+                  </Stack>
+                )}
+                {isManagerApproved && timesheet.managerSignature && (
+                  <Stack align="flex-end" gap="xs">
+                    <Text size="sm" fw={500}>Manager Approved</Text>
+                    <Image src={timesheet.managerSignature} alt="Manager Signature" h={40} w="auto" fit="contain" style={{ border: '1px solid #ccc', borderRadius: '4px' }} />
+                    <Text size="xs" c="dimmed">
+                      {timesheet.managerApprovedAt && format(new Date(timesheet.managerApprovedAt), 'MMM d, yyyy')}
+                    </Text>
+                  </Stack>
+                )}
+              </Group>
+            </Group>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Stack>
+              <Grid>
+                <Grid.Col span={{ base: 12, md: 3 }}><Text c="dimmed" size="sm">Client</Text><Text>{client?.name || 'N/A'}</Text></Grid.Col>
+                <Grid.Col span={{ base: 12, md: 3 }}><Text c="dimmed" size="sm">Location</Text><Text>{shift?.location || 'N/A'}</Text></Grid.Col>
+                <Grid.Col span={{ base: 12, md: 3 }}><Text c="dimmed" size="sm">Shift Date</Text><Text>{formatDate(shift?.date)}</Text></Grid.Col>
+                <Grid.Col span={{ base: 12, md: 3 }}><Text c="dimmed" size="sm">Start Time</Text><Text>{formatTo12Hour(shift?.startTime)}</Text></Grid.Col>
+                <Grid.Col span={{ base: 12, md: 6 }}><Text c="dimmed" size="sm">Crew Chief</Text><Text>{shift?.crewChief?.name || 'Not Assigned'}</Text></Grid.Col>
+                <Grid.Col span={{ base: 12, md: 6 }}><Text c="dimmed" size="sm">Job</Text><Text>{job?.name || shift?.jobName || 'N/A'}</Text></Grid.Col>
+              </Grid>
+              <Divider my="md" />
+              <Table striped>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Employee</Table.Th>
+                    <Table.Th>Role</Table.Th>
+                    <Table.Th>Time In</Table.Th>
+                    <Table.Th>Time Out</Table.Th>
+                    <Table.Th style={{ textAlign: 'right' }}>Total Hours</Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {shift.assignedPersonnel.filter((p: any) => p.timeEntries.length > 0).map((person: any) => (
+                    <Table.Tr key={person.employee.id}>
+                      <Table.Td>{person.employee.name}</Table.Td>
+                      <Table.Td>{person.roleOnShift}</Table.Td>
+                      <Table.Td>
+                        {person.timeEntries.map((entry: any, index: number) => (
+                          <div key={index}>{getTimeEntryDisplay(entry.clockIn, entry.clockOut).displayClockIn}</div>
+                        ))}
+                      </Table.Td>
+                      <Table.Td>
+                        {person.timeEntries.map((entry: any, index: number) => (
+                          <div key={index}>{getTimeEntryDisplay(entry.clockIn, entry.clockOut).displayClockOut}</div>
+                        ))}
+                      </Table.Td>
+                      <Table.Td style={{ textAlign: 'right' }}>{calculateTotalHours(person.timeEntries)}</Table.Td>
+                    </Table.Tr>
+                  ))}
+                  <Table.Tr>
+                    <Table.Td colSpan={4} style={{ textAlign: 'right' }}><Text fw={700}>Total Hours:</Text></Table.Td>
+                    <Table.Td style={{ textAlign: 'right' }}><Text fw={700}>
+                      {calculateTotalHours(shift.assignedPersonnel.flatMap((p: any) => p.timeEntries))}
+                    </Text></Table.Td>
+                  </Table.Tr>
+                </Table.Tbody>
+              </Table>
+            </Stack>
+          </Card.Section>
+          <Card.Section withBorder inheritPadding py="sm">
+            <Group justify="flex-end">
               {canClientApprove && (
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button disabled={loading}>
-                      <FileSignature className="mr-2 h-4 w-4" />
-                      Client Approval
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[500px]">
-                    <DialogHeader>
-                      <DialogTitle>Client Signature</DialogTitle>
-                      <DialogDescription>
-                        Please sign below to confirm the hours are correct.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4">
-                      <SignaturePad ref={signatureRef} />
-                    </div>
-                    <DialogFooter>
-                      <Button variant="ghost" onClick={() => signatureRef.current?.clear()}>
-                        <RefreshCw className="mr-2 h-4 w-4" /> Clear
-                      </Button>
-                      <Button onClick={() => handleApproval('client')} disabled={loading}>
-                        <Save className="mr-2 h-4 w-4" />
-                        {loading ? 'Signing...' : 'Sign and Submit'}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                <Button onClick={() => openModal('client')} disabled={loading} leftSection={<FileSignature size={16} />}>
+                  Client Approval
+                </Button>
               )}
-
               {canManagerApprove && (
-                <div className="flex gap-2">
-                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button disabled={loading}>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Manager Approval
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[500px]">
-                      <DialogHeader>
-                        <DialogTitle>Manager Signature</DialogTitle>
-                        <DialogDescription>
-                          Please sign below to provide final approval for this timesheet.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="py-4">
-                        <SignaturePad ref={signatureRef} />
-                      </div>
-                      <DialogFooter>
-                        <Button variant="ghost" onClick={() => signatureRef.current?.clear()}>
-                          <RefreshCw className="mr-2 h-4 w-4" /> Clear
-                        </Button>
-                        <Button onClick={() => handleApproval('manager')} disabled={loading}>
-                          <Save className="mr-2 h-4 w-4" />
-                          {loading ? 'Approving...' : 'Final Approval'}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  <Button variant="destructive" onClick={handleReject} disabled={loading}>
+                <Group>
+                  <Button onClick={() => openModal('manager')} disabled={loading} color="green" leftSection={<CheckCircle size={16} />}>
+                    Manager Approval
+                  </Button>
+                  <Button variant="filled" color="red" onClick={handleReject} disabled={loading}>
                     Reject
                   </Button>
-                </div>
+                </Group>
               )}
-
               {isManagerApproved && (
-                <Alert variant="default" className="border-green-600 bg-green-50 text-green-800 flex-1">
-                  <CheckCircle className="h-4 w-4 !text-green-600" />
-                  <AlertTitle>Timesheet Completed</AlertTitle>
-                  <AlertDescription>
-                    This timesheet has been fully approved and completed.
-                  </AlertDescription>
+                <Alert color="green" title="Timesheet Completed" icon={<CheckCircle />} style={{ flex: 1 }}>
+                  This timesheet has been fully approved and completed.
                 </Alert>
               )}
-            </div>
-        </CardFooter>
-      </Card>
-    </div>
+            </Group>
+          </Card.Section>
+        </Card>
+
+        <Modal opened={opened} onClose={close} title={`${approvalType === 'client' ? 'Client' : 'Manager'} Signature`}>
+          <Stack>
+            <Text size="sm">Please sign below to confirm the hours are correct.</Text>
+            <SignaturePad ref={signatureRef} />
+            <Group justify="flex-end">
+              <Button variant="default" onClick={() => signatureRef.current?.clear()} leftSection={<RefreshCw size={16} />}>
+                Clear
+              </Button>
+              <Button onClick={handleApproval} loading={loading} leftSection={<Save size={16} />}>
+                {loading ? 'Submitting...' : 'Sign and Submit'}
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+      </Stack>
+    </Container>
   )
 }

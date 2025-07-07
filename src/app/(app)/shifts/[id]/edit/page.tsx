@@ -8,10 +8,10 @@ import { z } from "zod"
 import { useUser } from "@/hooks/use-user"
 import { useApi, useShift } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { Button } from '@mantine/core'
+import { Input } from '@mantine/core'
+import { Label } from '@mantine/core'
+import { TextArea } from '@mantine/core'textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"

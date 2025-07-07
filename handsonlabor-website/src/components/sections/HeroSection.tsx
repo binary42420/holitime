@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Phone, Users, Clock, Shield, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@mantine/core'
 
 export default function HeroSection() {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false)

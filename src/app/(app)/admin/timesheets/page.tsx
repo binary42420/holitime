@@ -9,8 +9,10 @@ import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Button } from '@mantine/core'
+import { Badge } from '@mantine/core'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/mantine/table"
+
 import { 
   ArrowLeft, 
   FileText,

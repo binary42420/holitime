@@ -7,10 +7,10 @@ import { generateShiftUrl } from "@/lib/url-utils"
 import Link from "next/link"
 import { useUser } from "@/hooks/use-user"
 import { useJob, useApi } from "@/hooks/use-api"
-import { Button } from "@/components/ui/button"
+import { Button } from '@mantine/core'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@mantine/core'
 import { ArrowLeft, Briefcase, Calendar, Users, Clock, MapPin, Plus } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"

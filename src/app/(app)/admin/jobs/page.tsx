@@ -7,10 +7,22 @@ export const dynamic = 'force-dynamic'
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import {
+  Card,
+  Table,
+  Button,
+  Badge,
+  Group,
+  Stack,
+  Title,
+  Text,
+  Container,
+  Grid,
+  Menu,
+  ActionIcon,
+  Loader,
+  Center,
+} from "@mantine/core"
 import { 
   ArrowLeft, 
   Plus, 
@@ -24,14 +36,6 @@ import {
   Copy,
   Trash2
 } from "lucide-react"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { format } from "date-fns"
 
 import { withAuth } from '@/lib/with-auth';
@@ -50,173 +54,187 @@ function AdminJobsPage() {
 
   const jobs = jobsData?.jobs || []
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      'Active': 'default',
-      'Completed': 'secondary',
-      'On Hold': 'outline',
-      'Cancelled': 'destructive'
+  const getStatusBadgeColor = (status: string) => {
+    const colors: Record<string, string> = {
+      'Active': 'blue',
+      'Completed': 'green',
+      'On Hold': 'yellow',
+      'Cancelled': 'red'
     }
-    return <Badge variant={variants[status] || 'outline'}>{status}</Badge>
+    return colors[status] || 'gray'
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Admin
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">Job Management</h1>
-          <p className="text-muted-foreground">Create and manage jobs and projects</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push('/admin/jobs/templates')}>
-            Job Templates
-          </Button>
-          <Button onClick={() => router.push('/admin/jobs/new')}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Job
-          </Button>
-        </div>
-      </div>
+    <Container size="xl">
+      <Stack gap="lg">
+        <Group justify="space-between">
+          <Stack gap={0}>
+            <Button
+              variant="subtle"
+              leftSection={<ArrowLeft size={16} />}
+              onClick={() => router.push('/admin')}
+              size="sm"
+              styles={{ inner: { justifyContent: 'left' }, root: { paddingLeft: 0 } }}
+            >
+              Back to Admin
+            </Button>
+            <Title order={1}>Job Management</Title>
+            <Text c="dimmed">Create and manage jobs and projects</Text>
+          </Stack>
+          <Group>
+            <Button
+              variant="default"
+              onClick={() => router.push('/admin/jobs/templates')}
+            >
+              Job Templates
+            </Button>
+            <Button
+              leftSection={<Plus size={16} />}
+              onClick={() => router.push('/admin/jobs/new')}
+            >
+              Create Job
+            </Button>
+          </Group>
+        </Group>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Jobs</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{jobs.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {jobs.filter(job => job.status === 'Active').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Shifts</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {jobs.reduce((total, job) => total + (job.shiftsCount || 0), 0)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        <Grid>
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Card withBorder>
+              <Group justify="space-between">
+                <Text size="sm" fw={500}>Total Jobs</Text>
+                <Briefcase size={18} />
+              </Group>
+              <Text size="xl" fw={700}>{jobs.length}</Text>
+            </Card>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Card withBorder>
+              <Group justify="space-between">
+                <Text size="sm" fw={500}>Active Jobs</Text>
+                <Calendar size={18} />
+              </Group>
+              <Text size="xl" fw={700}>
+                {jobs.filter(job => job.status === 'Active').length}
+              </Text>
+            </Card>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 4 }}>
+            <Card withBorder>
+              <Group justify="space-between">
+                <Text size="sm" fw={500}>Total Shifts</Text>
+                <Users size={18} />
+              </Group>
+              <Text size="xl" fw={700}>
+                {jobs.reduce((total, job) => total + (job.shiftsCount || 0), 0)}
+              </Text>
+            </Card>
+          </Grid.Col>
+        </Grid>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Briefcase className="h-5 w-5" />
-            All Jobs
-          </CardTitle>
-          <CardDescription>
-            Manage all jobs and projects in the system
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <Card withBorder>
+          <Card.Section withBorder inheritPadding py="sm">
+            <Group>
+              <Briefcase size={20} />
+              <Title order={4}>All Jobs</Title>
+            </Group>
+            <Text size="sm" c="dimmed">Manage all jobs and projects in the system</Text>
+          </Card.Section>
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-muted-foreground">Loading jobs...</div>
-            </div>
+            <Center style={{ height: 200 }}>
+              <Loader />
+            </Center>
           ) : error ? (
-            <div className="flex items-center justify-center py-8">
-              <div className="text-destructive">Error loading jobs: {error}</div>
-            </div>
+            <Center style={{ height: 200 }}>
+              <Text color="red">Error loading jobs: {error.toString()}</Text>
+            </Center>
           ) : jobs.length === 0 ? (
-            <div className="text-center py-8">
-              <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Jobs Found</h3>
-              <p className="text-muted-foreground mb-4">
+            <Center style={{ height: 200, flexDirection: 'column' }}>
+              <Briefcase size={48} style={{ marginBottom: 16 }} />
+              <Title order={3}>No Jobs Found</Title>
+              <Text c="dimmed" style={{ marginBottom: 16 }}>
                 Get started by creating your first job.
-              </p>
-              <Button onClick={() => router.push('/admin/jobs/new')}>
-                <Plus className="mr-2 h-4 w-4" />
+              </Text>
+              <Button
+                leftSection={<Plus size={16} />}
+                onClick={() => router.push('/admin/jobs/new')}
+              >
                 Create Job
               </Button>
-            </div>
+            </Center>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Job Name</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Shifts</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <Table striped highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Job Name</Table.Th>
+                  <Table.Th>Client</Table.Th>
+                  <Table.Th>Location</Table.Th>
+                  <Table.Th>Status</Table.Th>
+                  <Table.Th>Shifts</Table.Th>
+                  <Table.Th>Created</Table.Th>
+                  <Table.Th style={{ textAlign: 'right' }}>Actions</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
                 {jobs.map((job) => (
-                  <TableRow
+                  <Table.Tr
                     key={job.id}
                     onClick={() => router.push(`/jobs/${job.id}`)}
-                    className="cursor-pointer hover:bg-muted/50"
+                    style={{ cursor: 'pointer' }}
                   >
-                    <TableCell className="font-medium">{job.name}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        {job.clientName}
-                      </div>
-                    </TableCell>
-                    <TableCell>{job.location}</TableCell>
-                    <TableCell>{getStatusBadge(job.status)}</TableCell>
-                    <TableCell>{job.shiftsCount || 0}</TableCell>
-                    <TableCell>
+                    <Table.Td><Text fw={500}>{job.name}</Text></Table.Td>
+                    <Table.Td>
+                      <Group gap="xs">
+                        <Building2 size={16} />
+                        <Text>{job.clientName}</Text>
+                      </Group>
+                    </Table.Td>
+                    <Table.Td>{job.location}</Table.Td>
+                    <Table.Td>
+                      <Badge color={getStatusBadgeColor(job.status)}>{job.status}</Badge>
+                    </Table.Td>
+                    <Table.Td>{job.shiftsCount || 0}</Table.Td>
+                    <Table.Td>
                       {job.createdAt ? format(new Date(job.createdAt), 'MMM d, yyyy') : 'N/A'}
-                    </TableCell>
-                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => router.push(`/jobs/${job.id}`)}>
-                            <Eye className="mr-2 h-4 w-4" />
+                    </Table.Td>
+                    <Table.Td style={{ textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                      <Menu shadow="md" width={200}>
+                        <Menu.Target>
+                          <ActionIcon variant="subtle">
+                            <MoreHorizontal size={16} />
+                          </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown>
+                          <Menu.Label>Actions</Menu.Label>
+                          <Menu.Item
+                            leftSection={<Eye size={14} />}
+                            onClick={() => router.push(`/jobs/${job.id}`)}
+                          >
                             View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => router.push(`/jobs/${job.id}/edit`)}>
-                            <Edit className="mr-2 h-4 w-4" />
+                          </Menu.Item>
+                          <Menu.Item
+                            leftSection={<Edit size={14} />}
+                            onClick={() => router.push(`/jobs/${job.id}/edit`)}
+                          >
                             Edit Job
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <Copy className="mr-2 h-4 w-4" />
+                          </Menu.Item>
+                          <Menu.Item leftSection={<Copy size={14} />}>
                             Duplicate Job
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="mr-2 h-4 w-4" />
+                          </Menu.Item>
+                          <Menu.Divider />
+                          <Menu.Item color="red" leftSection={<Trash2 size={14} />}>
                             Delete Job
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
+                          </Menu.Item>
+                        </Menu.Dropdown>
+                      </Menu>
+                    </Table.Td>
+                  </Table.Tr>
                 ))}
-              </TableBody>
+              </Table.Tbody>
             </Table>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </Card>
+      </Stack>
+    </Container>
   )
 }
 

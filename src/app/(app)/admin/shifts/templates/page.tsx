@@ -4,9 +4,9 @@ import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
+import { Button } from '@mantine/core'
+import { Badge } from '@mantine/core'
+import { Input } from '@mantine/core'
 import { 
   ArrowLeft, 
   Plus, 

@@ -6,13 +6,21 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useUser } from "@/hooks/use-user"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
+import {
+  Card,
+  Button,
+  TextInput,
+  Textarea,
+  Select,
+  Checkbox,
+  Group,
+  Stack,
+  Title,
+  Text,
+  Container,
+  Grid,
+  SimpleGrid,
+} from "@mantine/core"
 import { ArrowLeft, Save, User, Mail, Phone, MapPin } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -144,236 +152,200 @@ function NewEmployeePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/employees')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Employees
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">Add New Employee</h1>
-          <p className="text-muted-foreground">Create a new employee record</p>
-        </div>
-      </div>
+    <Container size="md" py="lg">
+      <Stack gap="lg">
+        <Group justify="space-between">
+          <Stack gap={0}>
+             <Button
+              variant="subtle"
+              leftSection={<ArrowLeft size={16} />}
+              onClick={() => router.push('/admin/employees')}
+              size="sm"
+              styles={{ inner: { justifyContent: 'left' }, root: { paddingLeft: 0 } }}
+            >
+              Back to Employees
+            </Button>
+            <Title order={1}>Add New Employee</Title>
+            <Text c="dimmed">Create a new employee record</Text>
+          </Stack>
+        </Group>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>
-              Enter the employee's basic personal details
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  {...form.register("name")}
-                  placeholder="Enter full name"
-                />
-                {form.formState.errors.name && (
-                  <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
-                )}
-              </div>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <Stack gap="lg">
+            <Card withBorder>
+              <Card.Section withBorder inheritPadding py="sm">
+                <Title order={4}>Personal Information</Title>
+                <Text size="sm" c="dimmed">Enter the employee's basic personal details</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Stack>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Full Name"
+                        placeholder="Enter full name"
+                        required
+                        {...form.register("name")}
+                        error={form.formState.errors.name?.message}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Email"
+                        placeholder="Enter email address"
+                        type="email"
+                        required
+                        {...form.register("email")}
+                        error={form.formState.errors.email?.message}
+                      />
+                    </Grid.Col>
+                  </Grid>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Phone Number"
+                        placeholder="Enter phone number"
+                        {...form.register("phone")}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <Select
+                        label="Role"
+                        placeholder="Select role"
+                        required
+                        data={["Employee", "Crew Chief", "Manager/Admin"]}
+                        {...form.register("role")}
+                        onChange={(value) => form.setValue("role", value as any)}
+                        error={form.formState.errors.role?.message}
+                      />
+                    </Grid.Col>
+                  </Grid>
+                  <Textarea
+                    label="Address"
+                    placeholder="Enter home address"
+                    {...form.register("address")}
+                    rows={2}
+                  />
+                </Stack>
+              </Card.Section>
+            </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  {...form.register("email")}
-                  placeholder="Enter email address"
-                />
-                {form.formState.errors.email && (
-                  <p className="text-sm text-destructive">{form.formState.errors.email.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  {...form.register("phone")}
-                  placeholder="Enter phone number"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="role">Role *</Label>
-                <Select onValueChange={(value) => form.setValue("role", value as any)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Employee">Employee</SelectItem>
-                    <SelectItem value="Crew Chief">Crew Chief</SelectItem>
-                    <SelectItem value="Manager/Admin">Manager/Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.role && (
-                  <p className="text-sm text-destructive">{form.formState.errors.role.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Textarea
-                id="address"
-                {...form.register("address")}
-                placeholder="Enter home address"
-                rows={2}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Emergency Contact</CardTitle>
-            <CardDescription>
-              Emergency contact information
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="emergencyContact">Emergency Contact Name</Label>
-                <Input
-                  id="emergencyContact"
-                  {...form.register("emergencyContact")}
-                  placeholder="Enter emergency contact name"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="emergencyPhone">Emergency Contact Phone</Label>
-                <Input
-                  id="emergencyPhone"
-                  {...form.register("emergencyPhone")}
-                  placeholder="Enter emergency contact phone"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Skills & Certifications</CardTitle>
-            <CardDescription>
-              Select the employee's skills and certifications
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <Label>Skills</Label>
-              <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                {availableSkills.map((skill) => (
-                  <div key={skill} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`skill-${skill}`}
-                      checked={selectedSkills.includes(skill)}
-                      onCheckedChange={(checked) => handleSkillChange(skill, checked as boolean)}
+            <Card withBorder>
+              <Card.Section withBorder inheritPadding py="sm">
+                <Title order={4}>Emergency Contact</Title>
+                <Text size="sm" c="dimmed">Emergency contact information</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Grid>
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <TextInput
+                      label="Emergency Contact Name"
+                      placeholder="Enter emergency contact name"
+                      {...form.register("emergencyContact")}
                     />
-                    <Label htmlFor={`skill-${skill}`} className="text-sm">
-                      {skill}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <Label>Certifications</Label>
-              <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                {availableCertifications.map((cert) => (
-                  <div key={cert} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`cert-${cert}`}
-                      checked={selectedCertifications.includes(cert)}
-                      onCheckedChange={(checked) => handleCertificationChange(cert, checked as boolean)}
+                  </Grid.Col>
+                  <Grid.Col span={{ base: 12, md: 6 }}>
+                    <TextInput
+                      label="Emergency Contact Phone"
+                      placeholder="Enter emergency contact phone"
+                      {...form.register("emergencyPhone")}
                     />
-                    <Label htmlFor={`cert-${cert}`} className="text-sm">
-                      {cert}
-                    </Label>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  </Grid.Col>
+                </Grid>
+              </Card.Section>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Employment Details</CardTitle>
-            <CardDescription>
-              Employment-related information
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="hourlyRate">Hourly Rate</Label>
-                <Input
-                  id="hourlyRate"
-                  {...form.register("hourlyRate")}
-                  placeholder="$0.00"
-                />
-              </div>
+            <Card withBorder>
+              <Card.Section withBorder inheritPadding py="sm">
+                <Title order={4}>Skills & Certifications</Title>
+                <Text size="sm" c="dimmed">Select the employee's skills and certifications</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Stack>
+                  <Stack gap="xs">
+                    <Text fw={500}>Skills</Text>
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }}>
+                      {availableSkills.map((skill) => (
+                        <Checkbox
+                          key={skill}
+                          label={skill}
+                          checked={selectedSkills.includes(skill)}
+                          onChange={(event) => handleSkillChange(skill, event.currentTarget.checked)}
+                        />
+                      ))}
+                    </SimpleGrid>
+                  </Stack>
+                  <Stack gap="xs">
+                    <Text fw={500}>Certifications</Text>
+                    <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }}>
+                      {availableCertifications.map((cert) => (
+                        <Checkbox
+                          key={cert}
+                          label={cert}
+                          checked={selectedCertifications.includes(cert)}
+                          onChange={(event) => handleCertificationChange(cert, event.currentTarget.checked)}
+                        />
+                      ))}
+                    </SimpleGrid>
+                  </Stack>
+                </Stack>
+              </Card.Section>
+            </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Start Date</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  {...form.register("startDate")}
-                />
-              </div>
-            </div>
+            <Card withBorder>
+              <Card.Section withBorder inheritPadding py="sm">
+                <Title order={4}>Employment Details</Title>
+                <Text size="sm" c="dimmed">Employment-related information</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Stack>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Hourly Rate"
+                        placeholder="$0.00"
+                        {...form.register("hourlyRate")}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Start Date"
+                        type="date"
+                        {...form.register("startDate")}
+                      />
+                    </Grid.Col>
+                  </Grid>
+                  <Textarea
+                    label="Notes"
+                    placeholder="Additional notes about the employee"
+                    {...form.register("notes")}
+                    rows={3}
+                  />
+                  <Checkbox
+                    label="Active Employee"
+                    {...form.register("isActive")}
+                    checked={form.watch("isActive")}
+                    onChange={(event) => form.setValue("isActive", event.currentTarget.checked)}
+                  />
+                </Stack>
+              </Card.Section>
+            </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                {...form.register("notes")}
-                placeholder="Additional notes about the employee"
-                rows={3}
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isActive"
-                checked={form.watch("isActive")}
-                onCheckedChange={(checked) => form.setValue("isActive", checked as boolean)}
-              />
-              <Label htmlFor="isActive">
-                Active Employee
-              </Label>
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push('/admin/employees')}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Creating...' : 'Create Employee'}
-          </Button>
-        </div>
-      </form>
-    </div>
+            <Group justify="flex-end">
+              <Button
+                variant="default"
+                onClick={() => router.push('/admin/employees')}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" loading={isSubmitting} leftSection={<Save size={16} />}>
+                Create Employee
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Stack>
+    </Container>
   )
 }
 

@@ -2,13 +2,24 @@
 
 import React, { useState, useRef } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
+import {
+  Card,
+  Text,
+  Button,
+  Badge,
+  Table,
+  Avatar,
+  Textarea,
+  Group,
+  Stack,
+  Title,
+  Container,
+  Paper,
+  Loader,
+  Center,
+  Image,
+  Grid,
+} from "@mantine/core"
 import { 
   CheckCircle, 
   XCircle, 
@@ -221,249 +232,259 @@ export default function ManagerReviewPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading timesheet...</div>
-        </div>
-      </div>
+      <Container size="md" py="xl">
+        <Center style={{ height: '64vh' }}>
+          <Loader />
+          <Text ml="md">Loading timesheet...</Text>
+        </Center>
+      </Container>
     )
   }
 
   if (!timesheetData) {
     return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Timesheet not found</div>
-        </div>
-      </div>
+      <Container size="md" py="xl">
+        <Center style={{ height: '64vh' }}>
+          <Text>Timesheet not found</Text>
+        </Center>
+      </Container>
     )
   }
 
   const { shift, assignedPersonnel } = timesheetData
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Manager Review</h1>
-          <p className="text-muted-foreground">
-            Final review and approval of the timesheet
-          </p>
-        </div>
-        <Badge variant="outline" className="flex items-center gap-1">
-          <Shield className="h-3 w-3" />
-          {timesheetData.status.replace('_', ' ').toUpperCase()}
-        </Badge>
-      </div>
+    <Container size="lg" py="xl">
+      <Stack gap="xl">
+        {/* Header */}
+        <Group justify="space-between">
+          <Stack gap={0}>
+            <Title order={1}>Manager Review</Title>
+            <Text c="dimmed">
+              Final review and approval of the timesheet
+            </Text>
+          </Stack>
+          <Badge
+            variant="outline"
+            leftSection={<Shield size={14} />}
+          >
+            {timesheetData.status.replace('_', ' ').toUpperCase()}
+          </Badge>
+        </Group>
 
       {/* Client Approval Status */}
       {timesheetData.clientApprovedAt && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CheckCircle className="h-5 w-5 text-green-600" />
-              Client Approval
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium">Approved by {shift.clientName}</p>
-                <p className="text-sm text-muted-foreground">
+        <Card withBorder>
+          <Card.Section withBorder inheritPadding py="xs">
+            <Group>
+              <CheckCircle size={20} color="green" />
+              <Title order={4}>Client Approval</Title>
+            </Group>
+          </Card.Section>
+          <Card.Section inheritPadding py="md">
+            <Group justify="space-between">
+              <Stack gap="xs">
+                <Text fw={500}>Approved by {shift.clientName}</Text>
+                <Text size="sm" c="dimmed">
                   {format(new Date(timesheetData.clientApprovedAt), 'MMMM d, yyyy at h:mm a')}
-                </p>
-              </div>
+                </Text>
+              </Stack>
               {timesheetData.clientSignature && (
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground mb-2">Client Signature:</p>
-                  <img 
-                    src={timesheetData.clientSignature} 
-                    alt="Client Signature" 
-                    className="h-16 border rounded"
-                  />
-                </div>
+                <Stack align="flex-end" gap="xs">
+                  <Text size="sm" c="dimmed">Client Signature:</Text>
+                  <Paper withBorder style={{ height: 64 }}>
+                    <Image
+                      src={timesheetData.clientSignature}
+                      alt="Client Signature"
+                      height={64}
+                      fit="contain"
+                    />
+                  </Paper>
+                </Stack>
               )}
-            </div>
-          </CardContent>
+            </Group>
+          </Card.Section>
         </Card>
       )}
 
       {/* Shift Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Shift Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Job</Label>
-              <p className="font-medium">{shift.jobName}</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Client</Label>
-              <p className="font-medium">{shift.clientName}</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-              <p className="font-medium">{format(new Date(shift.date), 'MMMM d, yyyy')}</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Crew Chief</Label>
-              <p className="font-medium">{shift.crewChiefName}</p>
-            </div>
-          </div>
-        </CardContent>
+      <Card withBorder>
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group>
+            <Building2 size={20} />
+            <Title order={4}>Shift Information</Title>
+          </Group>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <Grid>
+            <Grid.Col span={{ base: 12, md: 6, lg: 3 }}>
+              <Text size="sm" c="dimmed">Job</Text>
+              <Text fw={500}>{shift.jobName}</Text>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6, lg: 3 }}>
+              <Text size="sm" c="dimmed">Client</Text>
+              <Text fw={500}>{shift.clientName}</Text>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6, lg: 3 }}>
+              <Text size="sm" c="dimmed">Date</Text>
+              <Text fw={500}>{format(new Date(shift.date), 'MMMM d, yyyy')}</Text>
+            </Grid.Col>
+            <Grid.Col span={{ base: 12, md: 6, lg: 3 }}>
+              <Text size="sm" c="dimmed">Crew Chief</Text>
+              <Text fw={500}>{shift.crewChiefName}</Text>
+            </Grid.Col>
+          </Grid>
+        </Card.Section>
       </Card>
 
       {/* Time Entries */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Worker Time Entries
-          </CardTitle>
-          <CardDescription>
+      <Card withBorder>
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group>
+            <Clock size={20} />
+            <Title order={4}>Worker Time Entries</Title>
+          </Group>
+          <Text size="sm" c="dimmed">
             Review and verify all worker time entries for accuracy
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Worker</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Clock In 1</TableHead>
-                <TableHead>Clock Out 1</TableHead>
-                <TableHead>Clock In 2</TableHead>
-                <TableHead>Clock Out 2</TableHead>
-                <TableHead>Clock In 3</TableHead>
-                <TableHead>Clock Out 3</TableHead>
-                <TableHead>Total Hours</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          </Text>
+        </Card.Section>
+        <Card.Section>
+          <Table horizontalSpacing="md" verticalSpacing="sm" striped>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th>Worker</Table.Th>
+                <Table.Th>Role</Table.Th>
+                <Table.Th>Clock In 1</Table.Th>
+                <Table.Th>Clock Out 1</Table.Th>
+                <Table.Th>Clock In 2</Table.Th>
+                <Table.Th>Clock Out 2</Table.Th>
+                <Table.Th>Clock In 3</Table.Th>
+                <Table.Th>Clock Out 3</Table.Th>
+                <Table.Th>Total Hours</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>
               {assignedPersonnel.map((worker) => {
                 const totalHours = worker.timeEntries.reduce((sum, entry) => 
                   sum + calculateHours(entry.clockIn, entry.clockOut), 0
                 )
                 
                 return (
-                  <TableRow key={worker.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={worker.employeeAvatar} />
-                          <AvatarFallback>
-                            {worker.employeeName.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
+                  <Table.Tr key={worker.id}>
+                    <Table.Td>
+                      <Group gap="sm">
+                        <Avatar src={worker.employeeAvatar} radius="xl">
+                          {worker.employeeName.split(' ').map(n => n[0]).join('')}
                         </Avatar>
-                        <span className="font-medium">{worker.employeeName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
+                        <Text fw={500}>{worker.employeeName}</Text>
+                      </Group>
+                    </Table.Td>
+                    <Table.Td>
                       <Badge variant="outline">{worker.roleCode}</Badge>
-                    </TableCell>
+                    </Table.Td>
                     {[1, 2, 3].map((entryNum) => {
                       const entry = worker.timeEntries.find(e => e.entryNumber === entryNum)
                       return (
                         <React.Fragment key={entryNum}>
-                          <TableCell>{formatTime(entry?.clockIn)}</TableCell>
-                          <TableCell>{formatTime(entry?.clockOut)}</TableCell>
+                          <Table.Td>{formatTime(entry?.clockIn)}</Table.Td>
+                          <Table.Td>{formatTime(entry?.clockOut)}</Table.Td>
                         </React.Fragment>
                       )
                     })}
-                    <TableCell className="font-medium">
-                      {totalHours.toFixed(2)} hrs
-                    </TableCell>
-                  </TableRow>
+                    <Table.Td>
+                      <Text fw={500}>{totalHours.toFixed(2)} hrs</Text>
+                    </Table.Td>
+                  </Table.Tr>
                 )
               })}
-            </TableBody>
+            </Table.Tbody>
           </Table>
-        </CardContent>
+        </Card.Section>
       </Card>
 
       {/* Manager Signature */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Signature className="h-5 w-5" />
-            Manager Signature
-          </CardTitle>
-          <CardDescription>
+      <Card withBorder>
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group>
+            <Signature size={20} />
+            <Title order={4}>Manager Signature</Title>
+          </Group>
+          <Text size="sm" c="dimmed">
             Please sign below to provide final approval for this timesheet
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-4">
-            <canvas
-              ref={canvasRef}
-              width={600}
-              height={200}
-              className="w-full h-32 border rounded cursor-crosshair"
-              onMouseDown={startDrawing}
-              onMouseMove={draw}
-              onMouseUp={stopDrawing}
-              onMouseLeave={stopDrawing}
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={clearSignature}>
-              Clear Signature
-            </Button>
-          </div>
-        </CardContent>
+          </Text>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
+          <Stack>
+            <Paper withBorder style={{ borderStyle: 'dashed', cursor: 'crosshair' }}>
+              <canvas
+                ref={canvasRef}
+                width={600}
+                height={200}
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+                onMouseDown={startDrawing}
+                onMouseMove={draw}
+                onMouseUp={stopDrawing}
+                onMouseLeave={stopDrawing}
+              />
+            </Paper>
+            <Group>
+              <Button variant="default" onClick={clearSignature}>
+                Clear Signature
+              </Button>
+            </Group>
+          </Stack>
+        </Card.Section>
       </Card>
 
       {/* Rejection Reason */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <XCircle className="h-5 w-5" />
-            Rejection (Optional)
-          </CardTitle>
-          <CardDescription>
+      <Card withBorder>
+        <Card.Section withBorder inheritPadding py="xs">
+          <Group>
+            <XCircle size={20} />
+            <Title order={4}>Rejection (Optional)</Title>
+          </Group>
+          <Text size="sm" c="dimmed">
             If you need to reject this timesheet, please provide a reason
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </Text>
+        </Card.Section>
+        <Card.Section inheritPadding py="md">
           <Textarea
             value={rejectionReason}
             onChange={(e) => setRejectionReason(e.target.value)}
             placeholder="Enter reason for rejection..."
             rows={3}
           />
-        </CardContent>
+        </Card.Section>
       </Card>
 
-      {/* Action Buttons */}
-      <div className="flex gap-4 justify-end">
-        <Button
-          variant="outline"
-          onClick={() => router.push('/timesheets')}
-        >
-          Cancel
-        </Button>
-        <Button
-          variant="destructive"
-          onClick={rejectTimesheet}
-          disabled={isRejecting || !rejectionReason.trim()}
-        >
-          {isRejecting ? "Rejecting..." : "Reject Timesheet"}
-          <XCircle className="ml-2 h-4 w-4" />
-        </Button>
-        <Button
-          onClick={approveTimesheet}
-          disabled={isApproving || !signature}
-        >
-          {isApproving ? "Approving..." : "Final Approval"}
-          <CheckCircle className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-    </div>
+        {/* Action Buttons */}
+        <Group justify="flex-end">
+          <Button
+            variant="default"
+            onClick={() => router.push('/timesheets')}
+          >
+            Cancel
+          </Button>
+          <Button
+            color="red"
+            onClick={rejectTimesheet}
+            loading={isRejecting}
+            disabled={!rejectionReason.trim()}
+            leftSection={<XCircle size={16} />}
+          >
+            Reject Timesheet
+          </Button>
+          <Button
+            color="green"
+            onClick={approveTimesheet}
+            loading={isApproving}
+            disabled={!signature}
+            leftSection={<CheckCircle size={16} />}
+          >
+            Final Approval
+          </Button>
+        </Group>
+      </Stack>
+    </Container>
   )
 }

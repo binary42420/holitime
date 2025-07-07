@@ -7,12 +7,19 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  Card,
+  Button,
+  TextInput,
+  Textarea,
+  Select,
+  Group,
+  Stack,
+  Title,
+  Text,
+  Container,
+  Grid,
+} from "@mantine/core"
 import { ArrowLeft, Save, Building2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
@@ -91,158 +98,130 @@ function NewJobPage() {
   const clients = clientsData?.clients || []
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/jobs')}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Jobs
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold font-headline">Create New Job</h1>
-          <p className="text-muted-foreground">Add a new job to the system</p>
-        </div>
-      </div>
+    <Container size="md" py="lg">
+      <Stack gap="lg">
+        <Group justify="space-between">
+          <Stack gap={0}>
+            <Button
+              variant="subtle"
+              leftSection={<ArrowLeft size={16} />}
+              onClick={() => router.push('/admin/jobs')}
+              size="sm"
+              styles={{ inner: { justifyContent: 'left' }, root: { paddingLeft: 0 } }}
+            >
+              Back to Jobs
+            </Button>
+            <Title order={1}>Create New Job</Title>
+            <Text c="dimmed">Add a new job to the system</Text>
+          </Stack>
+        </Group>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Job Information</CardTitle>
-            <CardDescription>
-              Enter the basic details for the new job
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="name">Job Name *</Label>
-                <Input
-                  id="name"
-                  {...form.register("name")}
-                  placeholder="Enter job name"
-                />
-                {form.formState.errors.name && (
-                  <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
-                )}
-              </div>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <Stack gap="lg">
+            <Card withBorder>
+              <Card.Section withBorder inheritPadding py="sm">
+                <Title order={4}>Job Information</Title>
+                <Text size="sm" c="dimmed">Enter the basic details for the new job</Text>
+              </Card.Section>
+              <Card.Section inheritPadding py="md">
+                <Stack>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Job Name"
+                        placeholder="Enter job name"
+                        required
+                        {...form.register("name")}
+                        error={form.formState.errors.name?.message}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <Select
+                        label="Client"
+                        placeholder="Select a client"
+                        required
+                        data={clients.map(client => ({ value: client.id, label: client.name }))}
+                        {...form.register("clientId")}
+                        onChange={(value) => form.setValue("clientId", value || "")}
+                        error={form.formState.errors.clientId?.message}
+                        searchable
+                      />
+                    </Grid.Col>
+                  </Grid>
+                  <Textarea
+                    label="Description"
+                    placeholder="Enter job description"
+                    {...form.register("description")}
+                    rows={3}
+                  />
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <TextInput
+                        label="Location"
+                        placeholder="Enter job location"
+                        required
+                        {...form.register("location")}
+                        error={form.formState.errors.location?.message}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 6 }}>
+                      <Select
+                        label="Status"
+                        placeholder="Select status"
+                        data={["Active", "On Hold", "Completed", "Cancelled"]}
+                        {...form.register("status")}
+                        onChange={(value) => form.setValue("status", value as any)}
+                      />
+                    </Grid.Col>
+                  </Grid>
+                  <Grid>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
+                      <TextInput
+                        label="Start Date"
+                        type="date"
+                        {...form.register("startDate")}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
+                      <TextInput
+                        label="End Date"
+                        type="date"
+                        {...form.register("endDate")}
+                      />
+                    </Grid.Col>
+                    <Grid.Col span={{ base: 12, md: 4 }}>
+                      <TextInput
+                        label="Budget"
+                        placeholder="$0.00"
+                        {...form.register("budget")}
+                      />
+                    </Grid.Col>
+                  </Grid>
+                  <Textarea
+                    label="Notes"
+                    placeholder="Additional notes or requirements"
+                    {...form.register("notes")}
+                    rows={3}
+                  />
+                </Stack>
+              </Card.Section>
+            </Card>
 
-              <div className="space-y-2">
-                <Label htmlFor="client">Client *</Label>
-                <Select onValueChange={(value) => form.setValue("clientId", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a client" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4" />
-                          {client.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {form.formState.errors.clientId && (
-                  <p className="text-sm text-destructive">{form.formState.errors.clientId.message}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                {...form.register("description")}
-                placeholder="Enter job description"
-                rows={3}
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="location">Location *</Label>
-                <Input
-                  id="location"
-                  {...form.register("location")}
-                  placeholder="Enter job location"
-                />
-                {form.formState.errors.location && (
-                  <p className="text-sm text-destructive">{form.formState.errors.location.message}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select onValueChange={(value) => form.setValue("status", value as any)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="On Hold">On Hold</SelectItem>
-                    <SelectItem value="Completed">Completed</SelectItem>
-                    <SelectItem value="Cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Start Date</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  {...form.register("startDate")}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="endDate">End Date</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  {...form.register("endDate")}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="budget">Budget</Label>
-                <Input
-                  id="budget"
-                  {...form.register("budget")}
-                  placeholder="$0.00"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                {...form.register("notes")}
-                placeholder="Additional notes or requirements"
-                rows={3}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push('/admin/jobs')}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Creating...' : 'Create Job'}
-          </Button>
-        </div>
-      </form>
-    </div>
+            <Group justify="flex-end">
+              <Button
+                variant="default"
+                onClick={() => router.push('/admin/jobs')}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" loading={isSubmitting} leftSection={<Save size={16} />}>
+                Create Job
+              </Button>
+            </Group>
+          </Stack>
+        </form>
+      </Stack>
+    </Container>
   )
 }
 

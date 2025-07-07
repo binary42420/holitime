@@ -2,7 +2,7 @@
 
 import React, { useRef, useImperativeHandle, forwardRef, useState, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import { Button } from '@/components/ui/button';
+import { Button } from '@mantine/core';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { RefreshCw, Download } from 'lucide-react';

@@ -2,10 +2,10 @@
 
 import React, { useState, useRef, useEffect } from "react"
 import { Document, Page, pdfjs } from 'react-pdf'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Button } from '@mantine/core'
+import { Input } from '@mantine/core'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Badge } from '@mantine/core'
 import { 
   ZoomIn, 
   ZoomOut, 

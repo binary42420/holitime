@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import { Button } from '@mantine/core'
 import { Separator } from '@/components/ui/separator'
 import { RotateCcw, Check, X } from 'lucide-react'
 
