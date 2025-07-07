@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useUser } from '@/hooks/use-user';
 import { Home, Briefcase, Calendar, Users, FileText } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { AppShell, NavLink, Group } from '@mantine/core';
 
 const commonRoutes = [
   { href: '/dashboard', label: 'Home', icon: Home },
@@ -60,18 +60,27 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-lg z-50">
-      <div className="flex justify-around items-center h-16">
+    <AppShell.Navbar p="md" hiddenFrom="md">
+      <Group justify="space-around">
         {routes.map(({ href, label, icon: Icon }) => (
-          <Link key={href} href={href} className={cn(
-            "flex flex-col items-center justify-center w-full h-full text-sm font-medium transition-colors",
-            pathname === href ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-          )}>
-            <Icon className="h-6 w-6 mb-1" />
-            <span>{label}</span>
-          </Link>
+          <NavLink
+            key={href}
+            href={href}
+            label={label}
+            leftSection={<Icon size="1rem" />}
+            active={pathname === href}
+            component={Link}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textAlign: 'center',
+              height: '100%',
+            }}
+          />
         ))}
-      </div>
-    </nav>
+      </Group>
+    </AppShell.Navbar>
   );
 }

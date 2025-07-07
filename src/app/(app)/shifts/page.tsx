@@ -5,24 +5,8 @@ import { useRouter } from "next/navigation"
 import { format, isToday, isTomorrow, isYesterday, startOfWeek, endOfWeek, isWithinInterval } from "date-fns"
 import Link from "next/link"
 import { useUser } from "@/hooks/use-user"
-import { useApi, useTodaysShifts, useShiftsByDate } from "@/hooks/use-api"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+import { useApi, useShiftsByDate } from "@/hooks/use-api"
+import { Card, Table, Button, Badge, Skeleton, Select, Tabs, Menu, ActionIcon, Group, Text, Title, Stack, TextInput } from "@mantine/core"
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -45,28 +29,21 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateShiftUrl, generateShiftEditUrl } from "@/lib/url-utils"
+import { notifications } from "@mantine/notifications"
 
 export default function ShiftsPage() {
   const { user } = useUser()
   const router = useRouter()
-  const { toast } = useToast()
 
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [dateFilter, setDateFilter] = useState("today") // Default to today
+  const [dateFilter, setDateFilter] = useState("today")
   const [clientFilter, setClientFilter] = useState("all")
-
-  // Handle row click to navigate to shift details
-  const handleRowClick = (shiftId: string) => {
-    router.push(`/shifts/${shiftId}`)
-  }
-  const [showFilters, setShowFilters] = useState(false) // Collapsible filters
+  const [showFilters, setShowFilters] = useState(false)
 
   const canManage = user?.role === 'Manager/Admin' || user?.role === 'Crew Chief'
 
-  const { data, loading, error, refetch } = user?.role === 'Manager/Admin'
-    ? useApi<{ shifts: any[] }>('/api/shifts')
-    : useShiftsByDate(dateFilter, statusFilter, clientFilter, searchTerm)
+  const { data, loading, error, refetch } = useShiftsByDate(dateFilter, statusFilter, clientFilter, searchTerm)
 
   const shifts = data?.shifts || []
 
@@ -74,58 +51,14 @@ export default function ShiftsPage() {
     refetch()
   }, [dateFilter])
 
-  const ShiftsTableSkeleton = () => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Date & Time</TableHead>
-          <TableHead>Job & Client</TableHead>
-          <TableHead>Location</TableHead>
-          <TableHead>Crew Chief</TableHead>
-          <TableHead>Staffing</TableHead>
-          <TableHead>Status</TableHead>
-          {canManage && <TableHead className="text-right">Actions</TableHead>}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {[...Array(5)].map((_, i) => (
-          <TableRow key={i}>
-            <TableCell>
-              <div className="flex flex-col gap-2">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-3 w-20" />
-              </div>
-            </TableCell>
-            <TableCell>
-              <div className="flex flex-col gap-2">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-3 w-24" />
-              </div>
-            </TableCell>
-            <TableCell><Skeleton className="h-4 w-28" /></TableCell>
-            <TableCell><Skeleton className="h-8 w-8 rounded-full" /></TableCell>
-            <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-            <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-            {canManage && <TableCell><Skeleton className="h-8 w-16" /></TableCell>}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  )
+  const handleRowClick = (shiftId: string) => {
+    router.push(`/shifts/${shiftId}`)
+  }
 
   const handleDeleteShift = async (shiftId: string, shiftName: string) => {
     if (!confirm(`Are you sure you want to delete the shift "${shiftName}"? This action cannot be undone.`)) {
       return
     }
-
-    const originalShifts = shifts
-
-    // Optimistically remove the shift from the UI
-    const newShifts = shifts.filter(s => s.id !== shiftId)
-    // This is a hack to update the state without a setter from the hook
-    // In a real app, the useApi hook would return a state setter
-    Object.assign(shifts, newShifts)
-
 
     try {
       const response = await fetch(`/api/shifts/${shiftId}`, {
@@ -136,20 +69,18 @@ export default function ShiftsPage() {
         throw new Error('Failed to delete shift')
       }
 
-      toast({
+      notifications.show({
         title: "Shift Deleted",
-        description: "The shift has been deleted successfully.",
+        message: "The shift has been deleted successfully.",
+        color: 'green'
       })
-
-      // No need to refetch, UI is already updated
+      refetch()
     } catch (error) {
-      toast({
+      notifications.show({
         title: "Error",
-        description: "Failed to delete shift. Please try again.",
-        variant: "destructive",
+        message: "Failed to delete shift. Please try again.",
+        color: 'red'
       })
-      // Restore the original shifts if the API call fails
-      Object.assign(shifts, originalShifts)
     }
   }
 
@@ -182,17 +113,18 @@ export default function ShiftsPage() {
 
       const result = await response.json()
 
-      toast({
+      notifications.show({
         title: "Shift Duplicated",
-        description: "The shift has been duplicated successfully.",
+        message: "The shift has been duplicated successfully.",
+        color: 'green'
       })
 
       router.push(generateShiftEditUrl(result.shift.id))
     } catch (error) {
-      toast({
+      notifications.show({
         title: "Error",
-        description: "Failed to duplicate shift. Please try again.",
-        variant: "destructive",
+        message: "Failed to duplicate shift. Please try again.",
+        color: 'red'
       })
     }
   }
@@ -206,27 +138,19 @@ export default function ShiftsPage() {
     return 'other'
   }
 
-  // Apply filtering logic
   const filteredShifts = shifts.filter((shift: any) => {
-    // Date filtering
     if (dateFilter !== 'all') {
       const shiftCategory = getDateCategory(shift.date)
       if (shiftCategory !== dateFilter) {
         return false
       }
     }
-
-    // Status filtering
     if (statusFilter !== 'all' && shift.status !== statusFilter) {
       return false
     }
-
-    // Client filtering
     if (clientFilter !== 'all' && shift.clientName !== clientFilter) {
       return false
     }
-
-    // Search term filtering
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase()
       const matchesSearch =
@@ -234,29 +158,27 @@ export default function ShiftsPage() {
         shift.clientName?.toLowerCase().includes(searchLower) ||
         shift.location?.toLowerCase().includes(searchLower) ||
         shift.crewChief?.name?.toLowerCase().includes(searchLower)
-
       if (!matchesSearch) {
         return false
       }
     }
-
     return true
   })
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Completed':
-        return <Badge variant="default"><CheckCircle className="mr-1 h-3 w-3" />Completed</Badge>
+        return <Badge color="green" leftSection={<CheckCircle size={14} />}>Completed</Badge>
       case 'In Progress':
-        return <Badge variant="destructive">In Progress</Badge>
+        return <Badge color="red">In Progress</Badge>
       case 'Upcoming':
-        return <Badge variant="secondary">Upcoming</Badge>
+        return <Badge color="blue">Upcoming</Badge>
       case 'Pending Approval':
-        return <Badge variant="outline">Pending Approval</Badge>
+        return <Badge color="yellow">Pending Approval</Badge>
       case 'Cancelled':
-        return <Badge variant="outline">Cancelled</Badge>
+        return <Badge color="gray">Cancelled</Badge>
       default:
-        return <Badge variant="outline">{status}</Badge>
+        return <Badge color="gray">{status}</Badge>
     }
   }
 
@@ -264,49 +186,23 @@ export default function ShiftsPage() {
     const percentage = requested > 0 ? (assigned / requested) * 100 : 100
 
     if (percentage >= 100) {
-      return <Badge variant="default" className="bg-green-600"><UserCheck className="mr-1 h-3 w-3" />Fully Staffed</Badge>
+      return <Badge color="green" leftSection={<UserCheck size={14} />}>Fully Staffed</Badge>
     } else if (percentage >= 75) {
-      return <Badge variant="secondary"><Users className="mr-1 h-3 w-3" />Nearly Full</Badge>
+      return <Badge color="blue" leftSection={<Users size={14} />}>Nearly Full</Badge>
     } else if (percentage >= 50) {
-      return <Badge variant="outline" className="border-yellow-500 text-yellow-700"><AlertTriangle className="mr-1 h-3 w-3" />Needs Staff</Badge>
+      return <Badge color="yellow" leftSection={<AlertTriangle size={14} />}>Needs Staff</Badge>
     } else {
-      return <Badge variant="destructive"><UserX className="mr-1 h-3 w-3" />Understaffed</Badge>
+      return <Badge color="red" leftSection={<UserX size={14} />}>Understaffed</Badge>
     }
   }
 
   const getDateBadge = (date: string) => {
     const shiftDate = new Date(date)
-    if (isToday(shiftDate)) return <Badge variant="destructive">Today</Badge>
-    if (isTomorrow(shiftDate)) return <Badge variant="default">Tomorrow</Badge>
-    if (isYesterday(shiftDate)) return <Badge variant="outline">Yesterday</Badge>
+    if (isToday(shiftDate)) return <Badge color="red">Today</Badge>
+    if (isTomorrow(shiftDate)) return <Badge color="blue">Tomorrow</Badge>
+    if (isYesterday(shiftDate)) return <Badge color="gray">Yesterday</Badge>
     return null
   }
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Today's Shifts</h1>
-            <p className="text-muted-foreground">
-              Manage and track your shifts
-            </p>
-          </div>
-        </div>
-        <ShiftsTableSkeleton />
-      </div>
-    )
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-destructive">Error loading shifts: {error}</div>
-      </div>
-    )
-  }
-
-  const uniqueClients = [...new Set(shifts.map(s => s.clientName))].filter(Boolean)
 
   const getPageTitle = () => {
     switch (dateFilter) {
@@ -330,307 +226,159 @@ export default function ShiftsPage() {
     }
   }
 
+  const uniqueClients = [...new Set(shifts.map(s => s.clientName))].filter(Boolean)
+
+  if (loading) {
+    return (
+      <Stack gap="lg">
+        <Group justify="space-between">
+          <div>
+            <Title order={1}>{getPageTitle()}</Title>
+            <Text c="dimmed">{getPageDescription()}</Text>
+          </div>
+        </Group>
+        <Skeleton height={400} />
+      </Stack>
+    )
+  }
+
+  if (error) {
+    return (
+      <Group justify="center" style={{ height: '64vh' }}>
+        <Text color="red">Error loading shifts: {error}</Text>
+      </Group>
+    )
+  }
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+    <Stack gap="lg">
+      <Group justify="space-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">{getPageTitle()}</h1>
-          <p className="text-muted-foreground">
-            {getPageDescription()}
-          </p>
+          <Title order={1}>{getPageTitle()}</Title>
+          <Text c="dimmed">{getPageDescription()}</Text>
         </div>
         {canManage && (
-          <Button onClick={() => router.push('/admin/shifts/new')}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button onClick={() => router.push('/admin/shifts/new')} leftSection={<Plus size={16} />}>
             Schedule Shift
           </Button>
         )}
-      </div>
+      </Group>
 
-      {/* Quick Filters */}
-      <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Button
-            variant={dateFilter === "today" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setDateFilter("today")}
-            disabled={loading}
-          >
-            Today
-          </Button>
-          <Button
-            variant={dateFilter === "tomorrow" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setDateFilter("tomorrow")}
-            disabled={loading}
-          >
-            Tomorrow
-          </Button>
-          <Button
-            variant={dateFilter === "this_week" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setDateFilter("this_week")}
-            disabled={loading}
-          >
-            This Week
-          </Button>
-          <Button
-            variant={dateFilter === "all" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setDateFilter("all")}
-            disabled={loading}
-          >
-            All Shifts
-          </Button>
-        </div>
-        {loading && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-            Loading...
-          </div>
-        )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setSearchTerm("")
-            setStatusFilter("all")
-            setDateFilter("today")
-            setClientFilter("all")
-          }}
-          disabled={loading}
-        >
+      <Group>
+        <Button.Group>
+          <Button variant={dateFilter === "today" ? "filled" : "default"} onClick={() => setDateFilter("today")}>Today</Button>
+          <Button variant={dateFilter === "tomorrow" ? "filled" : "default"} onClick={() => setDateFilter("tomorrow")}>Tomorrow</Button>
+          <Button variant={dateFilter === "this_week" ? "filled" : "default"} onClick={() => setDateFilter("this_week")}>This Week</Button>
+          <Button variant={dateFilter === "all" ? "filled" : "default"} onClick={() => setDateFilter("all")}>All Shifts</Button>
+        </Button.Group>
+        <Button variant="subtle" onClick={() => {
+          setSearchTerm("")
+          setStatusFilter("all")
+          setDateFilter("today")
+          setClientFilter("all")
+        }}>
           Clear Filters
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowFilters(!showFilters)}
-          className="ml-auto"
-          disabled={loading}
-        >
-          <Filter className="mr-2 h-4 w-4" />
+        <Button variant="outline" onClick={() => setShowFilters(!showFilters)} leftSection={<Filter size={16} />} style={{ marginLeft: 'auto' }}>
           {showFilters ? "Hide Filters" : "More Filters"}
-          {loading && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary ml-2"></div>}
         </Button>
-      </div>
+      </Group>
 
-      {/* Advanced Filters (Collapsible) */}
       {showFilters && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Advanced Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search shifts..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="Upcoming">Upcoming</SelectItem>
-                  <SelectItem value="In Progress">In Progress</SelectItem>
-                  <SelectItem value="Completed">Completed</SelectItem>
-                  <SelectItem value="Pending Approval">Pending Approval</SelectItem>
-                  <SelectItem value="Cancelled">Cancelled</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={clientFilter} onValueChange={setClientFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All Clients" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Clients</SelectItem>
-                  {uniqueClients.map(client => (
-                    <SelectItem key={client} value={client}>{client}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchTerm("")
-                  setStatusFilter("all")
-                  setDateFilter("today")
-                  setClientFilter("all")
-                }}
-              >
-                Reset Filters
-              </Button>
-            </div>
-          </CardContent>
+        <Card withBorder p="md" radius="md">
+          <Group>
+            <TextInput
+              placeholder="Search shifts..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.currentTarget.value)}
+              leftSection={<Search size={16} />}
+            />
+            <Select
+              value={statusFilter}
+              onChange={(value) => setStatusFilter(value || 'all')}
+              data={[
+                { value: 'all', label: 'All Statuses' },
+                { value: 'Upcoming', label: 'Upcoming' },
+                { value: 'In Progress', label: 'In Progress' },
+                { value: 'Completed', label: 'Completed' },
+                { value: 'Pending Approval', label: 'Pending Approval' },
+                { value: 'Cancelled', label: 'Cancelled' },
+              ]}
+            />
+            <Select
+              value={clientFilter}
+              onChange={(value) => setClientFilter(value || 'all')}
+              data={[
+                { value: 'all', label: 'All Clients' },
+                ...uniqueClients.map(client => ({ value: client, label: client }))
+              ]}
+            />
+            <Button variant="outline" onClick={() => {
+              setSearchTerm("")
+              setStatusFilter("all")
+              setDateFilter("today")
+              setClientFilter("all")
+            }}>
+              Reset Filters
+            </Button>
+          </Group>
         </Card>
       )}
 
-      {/* Shifts Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5" />
-            {dateFilter === "today" ? "Today's Shifts" :
-             dateFilter === "tomorrow" ? "Tomorrow's Shifts" :
-             dateFilter === "this_week" ? "This Week's Shifts" :
-             dateFilter === "yesterday" ? "Yesterday's Shifts" : "All Shifts"}
-          </CardTitle>
-          <CardDescription>
-            {filteredShifts.length} {dateFilter === "today" ? "shifts today" :
-             dateFilter === "tomorrow" ? "shifts tomorrow" :
-             dateFilter === "this_week" ? "shifts this week" :
-             `of ${shifts.length} shifts`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <ShiftsTableSkeleton />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date & Time</TableHead>
-                  <TableHead>Job & Client</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>Crew Chief</TableHead>
-                  <TableHead>Staffing</TableHead>
-                  <TableHead>Status</TableHead>
-                  {canManage && <TableHead className="text-right">Actions</TableHead>}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredShifts.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={canManage ? 7 : 6} className="h-24 text-center">
-                      <h3 className="text-lg font-semibold">No shifts found</h3>
-                      <p className="text-muted-foreground">
-                        Try adjusting your search or filter criteria.
-                      </p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-4"
-                        onClick={() => {
-                          setSearchTerm("")
-                          setStatusFilter("all")
-                          setDateFilter("today")
-                          setClientFilter("all")
-                        }}
-                      >
-                        Clear Filters
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredShifts.map((shift: any) => (
-                    <TableRow
-                      key={shift.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleRowClick(shift.id)}
-                    >
-                      <TableCell>
-                        <div className="font-medium">
-                          {format(new Date(shift.date), 'MMM d, yyyy')}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {shift.startTime} - {shift.endTime}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{shift.jobName}</div>
-                        <div className="text-sm text-muted-foreground">{shift.clientName}</div>
-                      </TableCell>
-                      <TableCell>{shift.location}</TableCell>
-                      <TableCell>
-                        {shift.crewChief ? (
-                          <div className="flex items-center gap-2">
-                            <Avatar className="h-6 w-6">
-                              <AvatarImage src={shift.crewChief.avatar} />
-                              <AvatarFallback>{shift.crewChief.name?.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <span className="text-sm">{shift.crewChief.name}</span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">Unassigned</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {shift.assignedCount || 0} / {shift.requestedWorkers || 1}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(shift.status)}
-                      </TableCell>
-                      {canManage && (
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => e.stopPropagation()} // Prevent row click
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem onClick={(e) => {
-                                e.stopPropagation()
-                                router.push(`/shifts/${shift.id}`)
-                              }}>
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => {
-                                e.stopPropagation()
-                                router.push(`/shifts/${shift.id}/edit`)
-                              }}>
-                                Edit Shift
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={(e) => {
-                                e.stopPropagation()
-                                // TODO: Add assign workers functionality
-                                toast({
-                                  title: "Feature Coming Soon",
-                                  description: "Worker assignment functionality will be available soon.",
-                                })
-                              }}>
-                                Assign Workers
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={(e) => {
-                                e.stopPropagation()
-                                // TODO: Add duplicate shift functionality
-                                toast({
-                                  title: "Feature Coming Soon",
-                                  description: "Duplicate shift functionality will be available soon.",
-                                })
-                              }}>
-                                Duplicate Shift
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+      <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+        {filteredShifts.length === 0 ? (
+          <Stack align="center" justify="center" style={{ gridColumn: '1 / -1', minHeight: '300px' }}>
+            <Title order={3}>No shifts found</Title>
+            <Text c="dimmed">Try adjusting your search or filter criteria.</Text>
+            <Button variant="outline" onClick={() => {
+              setSearchTerm("")
+              setStatusFilter("all")
+              setDateFilter("today")
+              setClientFilter("all")
+            }}>
+              Clear Filters
+            </Button>
+          </Stack>
+        ) : (
+          filteredShifts.map((shift: any) => (
+            <Card
+              key={shift.id}
+              shadow="sm"
+              padding="lg"
+              radius="md"
+              withBorder
+              style={{ cursor: 'pointer' }}
+              onClick={() => handleRowClick(shift.id)}
+            >
+              <Group justify="space-between" mb="xs">
+                <div>
+                  <Title order={4}>{shift.jobName}</Title>
+                  <Text size="sm" c="dimmed">{shift.clientName}</Text>
+                </div>
+                {getDateBadge(shift.date)}
+              </Group>
+              <Stack gap="xs">
+                <Group gap="xs">
+                  <CalendarIcon size={16} />
+                  <Text size="sm">{format(new Date(shift.date), 'MMM d, yyyy')}</Text>
+                </Group>
+                <Group gap="xs">
+                  <Clock size={16} />
+                  <Text size="sm">{shift.startTime} - {shift.endTime}</Text>
+                </Group>
+                <Group gap="xs">
+                  <MapPin size={16} />
+                  <Text size="sm">{shift.location}</Text>
+                </Group>
+              </Stack>
+              <Group justify="space-between" mt="md">
+                {getStaffingBadge(shift.assignedCount || 0, shift.requestedWorkers || 1)}
+                {getStatusBadge(shift.status)}
+              </Group>
+            </Card>
+          ))
+        )}
+      </div>
+    </Stack>
   )
 }

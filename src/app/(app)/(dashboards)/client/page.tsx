@@ -2,10 +2,8 @@
 
 import { useUser } from '@/hooks/use-user';
 import { useApi } from '@/hooks/use-api';
-import type { Job, Shift, ClientCompany } from '@/lib/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import type { Job, Shift } from '@/lib/types';
+import { Card, Badge, Button, Group, Text, Title, Stack } from '@mantine/core';
 import { Calendar, Users, Briefcase } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -22,7 +20,7 @@ export default function ClientDashboard() {
   );
 
   if (shiftsLoading || jobsLoading) {
-    return <div>Loading...</div>;
+    return <Text>Loading...</Text>;
   }
 
   const shifts: Shift[] = shiftsData?.shifts || [];
@@ -31,113 +29,100 @@ export default function ClientDashboard() {
   const completedShifts = shifts.filter((shift: Shift) => shift.status === 'Completed');
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Welcome, {user?.name}!</h1>
-          <p className="text-muted-foreground">{user?.companyName || ''}</p>
-        </div>
-      </div>
+    <div>
+      <Stack gap="lg">
+        <Group justify="space-between">
+          <div>
+            <Title order={1}>Welcome, {user?.name}!</Title>
+            <Text c="dimmed">{user?.companyName || ''}</Text>
+          </div>
+        </Group>
 
-      {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Jobs</CardTitle>
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+        <Group>
+          <Card withBorder p="md" radius="md" style={{ flex: 1 }}>
+            <Group>
+              <Briefcase size={24} />
+              <Text>Active Jobs</Text>
+            </Group>
+            <Text size="xl" fw={700}>
               {jobs.filter((job: Job) => job.status === 'Active').length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Shifts</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{upcomingShifts.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Shifts</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{completedShifts.length}</div>
-          </CardContent>
-        </Card>
-      </div>
+            </Text>
+          </Card>
+          <Card withBorder p="md" radius="md" style={{ flex: 1 }}>
+            <Group>
+              <Calendar size={24} />
+              <Text>Upcoming Shifts</Text>
+            </Group>
+            <Text size="xl" fw={700}>{upcomingShifts.length}</Text>
+          </Card>
+          <Card withBorder p="md" radius="md" style={{ flex: 1 }}>
+            <Group>
+              <Users size={24} />
+              <Text>Completed Shifts</Text>
+            </Group>
+            <Text size="xl" fw={700}>{completedShifts.length}</Text>
+          </Card>
+        </Group>
 
-      {/* Recent Jobs */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Jobs</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {jobs.length > 0 ? (
-            <div className="space-y-4">
-              {jobs.slice(0, 5).map((job: Job) => (
-                <div
-                  key={job.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium">{job.name}</p>
-                    <p className="text-sm text-muted-foreground">{job.description}</p>
-                  </div>
-                  <Badge variant={job.status === 'Active' ? 'default' : 'secondary'}>
-                    {job.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-muted-foreground">No jobs found</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <Card withBorder radius="md">
+          <Card.Section withBorder inheritPadding py="xs">
+            <Title order={4}>Recent Jobs</Title>
+          </Card.Section>
+          <Card.Section p="md">
+            {jobs.length > 0 ? (
+              <Stack>
+                {jobs.slice(0, 5).map((job: Job) => (
+                  <Card key={job.id} withBorder p="md" radius="sm">
+                    <Group justify="space-between">
+                      <div>
+                        <Text fw={500}>{job.name}</Text>
+                        <Text size="sm" c="dimmed">{job.description}</Text>
+                      </div>
+                      <Badge color={job.status === 'Active' ? 'blue' : 'gray'}>
+                        {job.status}
+                      </Badge>
+                    </Group>
+                  </Card>
+                ))}
+              </Stack>
+            ) : (
+              <Text c="dimmed" ta="center" py="lg">No jobs found</Text>
+            )}
+          </Card.Section>
+        </Card>
 
-      {/* Upcoming Shifts */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Shifts</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {upcomingShifts.length > 0 ? (
-            <div className="space-y-4">
-              {upcomingShifts.slice(0, 5).map((shift: Shift) => (
-                <div
-                  key={shift.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium">{shift.jobName}</p>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      {new Date(shift.date).toLocaleDateString()} {shift.startTime} - {shift.endTime}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline">
-                      {shift.assignedCount}/{shift.requestedWorkers} Workers
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-6">
-              <p className="text-muted-foreground">No upcoming shifts</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <Card withBorder radius="md">
+          <Card.Section withBorder inheritPadding py="xs">
+            <Title order={4}>Upcoming Shifts</Title>
+          </Card.Section>
+          <Card.Section p="md">
+            {upcomingShifts.length > 0 ? (
+              <Stack>
+                {upcomingShifts.slice(0, 5).map((shift: Shift) => (
+                  <Card key={shift.id} withBorder p="md" radius="sm">
+                    <Group justify="space-between">
+                      <div>
+                        <Text fw={500}>{shift.jobName}</Text>
+                        <Group gap="xs">
+                          <Calendar size={16} />
+                          <Text size="sm" c="dimmed">
+                            {new Date(shift.date).toLocaleDateString()} {shift.startTime} - {shift.endTime}
+                          </Text>
+                        </Group>
+                      </div>
+                      <Badge>
+                        {shift.assignedCount}/{shift.requestedWorkers} Workers
+                      </Badge>
+                    </Group>
+                  </Card>
+                ))}
+              </Stack>
+            ) : (
+              <Text c="dimmed" ta="center" py="lg">No upcoming shifts</Text>
+            )}
+          </Card.Section>
+        </Card>
+      </Stack>
     </div>
   );
 }

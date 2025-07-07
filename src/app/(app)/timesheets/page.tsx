@@ -3,35 +3,17 @@
 import Link from "next/link"
 import { useMemo, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Table, Card, Tabs, Button, Badge, Group, Text, Title, Stack } from "@mantine/core"
 import { useUser } from "@/hooks/use-user"
 import { useTimesheets } from "@/hooks/use-api"
 import { format } from "date-fns"
 import type { Timesheet, TimesheetStatus } from "@/lib/types"
 import { ArrowRight, Check, FileSignature, VenetianMask, Download } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { notifications } from "@mantine/notifications"
 
 export default function TimesheetsPage() {
   const { user } = useUser();
   const router = useRouter();
-  const { toast } = useToast();
   const { data: timesheetsData, loading, error, refetch } = useTimesheets();
 
   const handleApproveTimesheet = async (timesheetId: string) => {
@@ -48,17 +30,18 @@ export default function TimesheetsPage() {
         throw new Error('Failed to approve timesheet')
       }
 
-      toast({
+      notifications.show({
         title: "Timesheet Approved",
-        description: "The timesheet has been approved successfully.",
+        message: "The timesheet has been approved successfully.",
+        color: 'green'
       })
 
       refetch()
     } catch (error) {
-      toast({
+      notifications.show({
         title: "Error",
-        description: "Failed to approve timesheet. Please try again.",
-        variant: "destructive",
+        message: "Failed to approve timesheet. Please try again.",
+        color: 'red'
       })
     }
   };
@@ -75,32 +58,24 @@ export default function TimesheetsPage() {
   }, [timesheetsData]);
 
   if (user?.role === 'Employee') {
-    return null; // Render nothing while redirecting
+    return null;
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-muted-foreground">Loading timesheets...</div>
-      </div>
-    );
+    return <Text>Loading timesheets...</Text>;
   }
 
   if (error) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="text-destructive">Error loading timesheets: {error}</div>
-      </div>
-    );
+    return <Text color="red">Error loading timesheets: {error}</Text>;
   }
 
   const getTimesheetStatusVariant = (status: TimesheetStatus) => {
     switch (status) {
-      case 'Approved': return 'default';
-      case 'Awaiting Client Approval': return 'destructive';
-      case 'Awaiting Manager Approval': return 'secondary';
-      case 'Pending Finalization': return 'outline';
-      default: return 'secondary'
+      case 'Approved': return 'green';
+      case 'Awaiting Client Approval': return 'red';
+      case 'Awaiting Manager Approval': return 'yellow';
+      case 'Pending Finalization': return 'blue';
+      default: return 'gray'
     }
   }
 
@@ -118,18 +93,18 @@ export default function TimesheetsPage() {
         window.URL.revokeObjectURL(url)
         document.body.removeChild(a)
       } else {
-        toast({
+        notifications.show({
           title: "Error",
-          description: "Failed to download PDF",
-          variant: "destructive",
+          message: "Failed to download PDF",
+          color: 'red'
         })
       }
     } catch (error) {
       console.error('Error downloading PDF:', error)
-      toast({
+      notifications.show({
         title: "Error",
-        description: "Failed to download PDF",
-        variant: "destructive",
+        message: "Failed to download PDF",
+        color: 'red'
       })
     }
   }
@@ -137,47 +112,41 @@ export default function TimesheetsPage() {
   const renderAction = (timesheet: any) => {
     if (!timesheet.shift) return null;
 
-    // Show PDF download for completed timesheets
     if (timesheet.status === 'completed' || timesheet.status === 'Approved') {
       return (
-        <div className="flex items-center gap-2">
+        <Group>
           <Button
-            size="sm"
+            size="xs"
             variant="outline"
             onClick={() => handleDownloadPDF(timesheet.id, timesheet.shift.clientName, timesheet.shift.date)}
+            leftSection={<Download size={14} />}
           >
-            <Download className="mr-2 h-4 w-4" />
             PDF
           </Button>
-          <Button size="sm" variant="outline" asChild>
-            <Link href={`/timesheets/${timesheet.id}`}>View</Link>
-          </Button>
-        </div>
+          <Button size="xs" variant="outline" component={Link} href={`/timesheets/${timesheet.id}`}>View</Button>
+        </Group>
       )
     }
 
     if (user?.role === 'Manager/Admin') {
       if (timesheet.status === 'pending_final_approval' || timesheet.status === 'Awaiting Manager Approval') {
-        return <Button size="sm" asChild><Link href={`/timesheets/${timesheet.id}/manager-approval`}><Check className="mr-2 h-4 w-4" />Final Approval</Link></Button>
+        return <Button size="xs" component={Link} href={`/timesheets/${timesheet.id}/manager-approval`} leftSection={<Check size={14} />}>Final Approval</Button>
       }
       if (timesheet.status === 'pending_client_approval' || timesheet.status === 'Awaiting Client Approval') {
-        return <Button size="sm" asChild><Link href={`/timesheets/${timesheet.id}/approve`}><FileSignature className="mr-2 h-4 w-4" />Client Approval</Link></Button>
+        return <Button size="xs" component={Link} href={`/timesheets/${timesheet.id}/approve`} leftSection={<FileSignature size={14} />}>Client Approval</Button>
       }
     }
 
     if (user?.role === 'Crew Chief' && (timesheet.status === 'pending_client_approval' || timesheet.status === 'Awaiting Client Approval')) {
-       return <Button size="sm" asChild><Link href={`/timesheets/${timesheet.id}/approve`}><FileSignature className="mr-2 h-4 w-4" />Client Approval</Link></Button>
+       return <Button size="xs" component={Link} href={`/timesheets/${timesheet.id}/approve`} leftSection={<FileSignature size={14} />}>Client Approval</Button>
     }
 
-    // This is a demo feature allowing client view without separate login
     if (user?.role === 'Manager/Admin' && timesheet.status === 'Approved') {
-        return <Button size="sm" variant="outline" asChild><Link href={`/timesheets/${timesheet.id}/approve`}><VenetianMask className="mr-2 h-4 w-4" />View as Client</Link></Button>
+        return <Button size="xs" variant="outline" component={Link} href={`/timesheets/${timesheet.id}/approve`} leftSection={<VenetianMask size={14} />}>View as Client</Button>
     }
 
     return (
-        <Button size="sm" variant="outline" asChild>
-            <Link href={`/shifts/${timesheet.shift.id}`}>View Shift <ArrowRight className="ml-2 h-4 w-4" /></Link>
-        </Button>
+        <Button size="xs" variant="outline" component={Link} href={`/shifts/${timesheet.shift.id}`} rightSection={<ArrowRight size={14} />}>View Shift</Button>
     )
   }
 
@@ -189,49 +158,46 @@ export default function TimesheetsPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold font-headline">Timesheets</h1>
-      </div>
+    <Stack gap="lg">
+      <Group justify="space-between">
+        <Title order={1}>Timesheets</Title>
+      </Group>
       <Tabs defaultValue="pending_client_approval">
-        <TabsList className="grid w-full grid-cols-4">
-          {tabs.map(tab => <TabsTrigger key={tab.value} value={tab.value}>{tab.label}</TabsTrigger>)}
-        </TabsList>
+        <Tabs.List>
+          {tabs.map(tab => <Tabs.Tab key={tab.value} value={tab.value}>{tab.label}</Tabs.Tab>)}
+        </Tabs.List>
         {tabs.map(tab => (
-            <TabsContent key={tab.value} value={tab.value}>
-                <Card>
-                    <CardHeader>
-                        <CardTitle>{tab.label}</CardTitle>
-                        <CardDescription>
+            <Tabs.Panel key={tab.value} value={tab.value} pt="xs">
+                <Card withBorder radius="md">
+                    <Card.Section withBorder inheritPadding py="xs">
+                        <Title order={4}>{tab.label}</Title>
+                        <Text size="sm" c="dimmed">
                             Shifts with timesheets currently in this state.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <Table>
-                            <TableHeader>
-                            <TableRow>
-                                <TableHead>Client</TableHead>
-                                <TableHead>Shift Date</TableHead>
-                                <TableHead className="hidden md:table-cell">Crew Chief</TableHead>
-                                <TableHead className="text-right">Action</TableHead>
-                            </TableRow>
-                            </TableHeader>
-                            <TableBody>
+                        </Text>
+                    </Card.Section>
+                    <Card.Section p="md">
+                        <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
                             {timesheetsToDisplay.filter(t => t.status === tab.value).map(timesheet => (
-                                    <TableRow key={timesheet.id}>
-                                        <TableCell className="font-medium">{timesheet.shift.clientName}</TableCell>
-                                        <TableCell>{format(new Date(timesheet.shift.date), 'EEE, MMM d, yyyy')}</TableCell>
-                                        <TableCell className="hidden md:table-cell">{timesheet.shift.crewChiefName}</TableCell>
-                                        <TableCell className="text-right">{renderAction(timesheet)}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
+                                <Card key={timesheet.id} withBorder radius="md" p="md">
+                                    <Title order={5}>{timesheet.shift.clientName}</Title>
+                                    <Text size="sm" c="dimmed">
+                                        {format(new Date(timesheet.shift.date), 'EEE, MMM d, yyyy')}
+                                    </Text>
+                                    <Group justify="space-between" mt="md">
+                                        <div>
+                                            <Text size="xs" c="dimmed">Crew Chief</Text>
+                                            <Text fw={500}>{timesheet.shift.crewChiefName}</Text>
+                                        </div>
+                                        {renderAction(timesheet)}
+                                    </Group>
+                                </Card>
+                            ))}
+                        </div>
+                    </Card.Section>
                 </Card>
-            </TabsContent>
+            </Tabs.Panel>
         ))}
       </Tabs>
-    </div>
+    </Stack>
   )
 }

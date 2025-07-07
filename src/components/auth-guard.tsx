@@ -3,7 +3,7 @@
 import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useUser } from '@/hooks/use-user'
-import { Loader2 } from 'lucide-react'
+import { Loader, Center, Text } from '@mantine/core'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -30,12 +30,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
+      <Center style={{ height: '100vh' }}>
+        <Loader />
+        <Text>Loading...</Text>
+      </Center>
     )
   }
 
