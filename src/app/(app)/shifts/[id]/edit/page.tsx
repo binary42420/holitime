@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from '@mantine/core'
 import { Input } from '@mantine/core'
 import { Label } from '@/components/ui/label'
-import { TextArea } from '@/components/ui/textarea'textarea"
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"

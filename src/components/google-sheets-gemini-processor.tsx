@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '@mantine/core'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@mantine/core'import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@mantine/core'
+import { Textarea } from '@/components/ui/textarea'
 import { Progress } from '@/components/ui/progress'
 import { useToast } from '@/hooks/use-toast'
 import { 
@@ -163,9 +164,9 @@ export default function GoogleSheetsGeminiProcessor({
           sheetsData: sheetsData,
           prompt: generateEnhancedPrompt(sheetsData),
           options: {
-            temperature: 0.1, // Low temperature for consistent results
-            maxTokens: 4000,
-            model: 'gemini-1.5-flash' // Use latest model
+            temperature: 0.2, // Low temperature for consistent results
+            maxTokens: 12000,
+            model: 'gemini-2.5-flash' // Use latest model
           }
         })
       })
@@ -190,8 +191,7 @@ export default function GoogleSheetsGeminiProcessor({
 
       toast({
         title: 'Processing Complete',
-        description: `Successfully processed ${result.csvData.split('\n').length - 1} rows with ${(result.confidence * 100).toFixed(1)}% confidence`,
-        duration: 5000
+        description: `Successfully processed ${result.csvData.split('\n').length - 1} rows with ${(result.confidence * 100).toFixed(1)}% confidence`
       })
 
     } catch (error) {
