@@ -10,8 +10,8 @@ import { useApi, useShift } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from '@mantine/core'
 import { Input } from '@mantine/core'
-import { Label } from '@mantine/core'
-import { TextArea } from '@mantine/core'textarea"
+import { Label } from '@/components/ui/label'
+import { TextArea } from '@/components/ui/textarea'textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"

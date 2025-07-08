@@ -21,7 +21,9 @@
     "[html]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
-
+// put this line in settings.json
+"typescript.tsserver.experimental.enableProjectDiagnostics": true
+,
     // --- Python Language Server (Pylance) Analysis Settings ---
     "python.analysis.addHoverSummaries": true, // Show hover summaries for symbols
     "python.analysis.autoImportCompletions": true, // Enable auto-import completions
