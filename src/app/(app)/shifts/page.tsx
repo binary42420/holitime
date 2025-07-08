@@ -28,7 +28,7 @@ import {
   UserX
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { generateShiftUrl, generateShiftEditUrl } from "@/lib/url-utils"
+import { generateShiftEditUrl } from "@/lib/url-utils"
 import { notifications } from "@mantine/notifications"
 
 export default function ShiftsPage() {
@@ -37,7 +37,7 @@ export default function ShiftsPage() {
 
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [dateFilter, setDateFilter] = useState("today")
+  const [dateFilter, setDateFilter] = useState("all")
   const [clientFilter, setClientFilter] = useState("all")
   const [showFilters, setShowFilters] = useState(false)
 
@@ -211,7 +211,7 @@ export default function ShiftsPage() {
       case "yesterday": return "Yesterday's Shifts"
       case "this_week": return "This Week's Shifts"
       case "all": return "All Shifts"
-      default: return "Shifts"
+      default: return "All Shifts"
     }
   }
 
@@ -259,7 +259,7 @@ export default function ShiftsPage() {
         </div>
         {canManage && (
           <Button onClick={() => router.push('/admin/shifts/new')} leftSection={<Plus size={16} />}>
-            Schedule Shift
+            Create New Shift
           </Button>
         )}
       </Group>
@@ -274,7 +274,7 @@ export default function ShiftsPage() {
         <Button variant="subtle" onClick={() => {
           setSearchTerm("")
           setStatusFilter("all")
-          setDateFilter("today")
+          setDateFilter("all")
           setClientFilter("all")
         }}>
           Clear Filters
@@ -316,7 +316,7 @@ export default function ShiftsPage() {
             <Button variant="outline" onClick={() => {
               setSearchTerm("")
               setStatusFilter("all")
-              setDateFilter("today")
+              setDateFilter("all")
               setClientFilter("all")
             }}>
               Reset Filters
@@ -333,7 +333,7 @@ export default function ShiftsPage() {
             <Button variant="outline" onClick={() => {
               setSearchTerm("")
               setStatusFilter("all")
-              setDateFilter("today")
+              setDateFilter("all")
               setClientFilter("all")
             }}>
               Clear Filters

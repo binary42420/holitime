@@ -71,7 +71,7 @@ export default function ManagerDashboard() {
         {shifts.length > 0 ? (
           <Stack>
             {shifts.slice(0, 5).map((shift) => (
-              <Card key={shift.id} withBorder p="md" radius="sm" style={{ cursor: 'pointer' }} onClick={() => router.push(`/app/shifts/${shift.id}`)}>
+              <Card key={shift.id} withBorder p="md" radius="sm" style={{ cursor: 'pointer' }} onClick={() => router.push(`/shifts/${shift.id}`)}>
                 <Group justify="space-between">
                   <div>
                     <Text fw={500}>{shift.jobName}</Text>

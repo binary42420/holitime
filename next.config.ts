@@ -24,6 +24,9 @@ const nextConfig: NextConfig = {
     config.externals = config.externals || [];
     config.externals.push('pg-native');
 
+    // Disable webpack cache to fix Cloud Build issue
+    config.cache = false;
+
     return config;
   },
 };
