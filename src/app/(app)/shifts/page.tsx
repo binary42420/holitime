@@ -166,42 +166,36 @@ export default function ShiftsPage() {
   })
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return <Badge color="green" leftSection={<CheckCircle size={14} />}>Completed</Badge>
-      case 'In Progress':
-        return <Badge color="red">In Progress</Badge>
-      case 'Upcoming':
-        return <Badge color="blue">Upcoming</Badge>
-      case 'Pending Approval':
-        return <Badge color="yellow">Pending Approval</Badge>
-      case 'Cancelled':
-        return <Badge color="gray">Cancelled</Badge>
-      default:
-        return <Badge color="gray">{status}</Badge>
-    }
+    const statusColors: Record<string, string> = {
+      'Completed': 'teal',
+      'In Progress': 'orange',
+      'Upcoming': 'cyan',
+      'Pending Approval': 'pink',
+      'Cancelled': 'gray',
+    };
+    const icon = status === 'Completed' ? <CheckCircle size={14} /> : null;
+    return <Badge color={statusColors[status] || 'gray'} leftSection={icon}>{status}</Badge>;
   }
 
   const getStaffingBadge = (assigned: number, requested: number) => {
-    const percentage = requested > 0 ? (assigned / requested) * 100 : 100
+    const percentage = requested > 0 ? (assigned / requested) * 100 : 100;
+    const label = `${assigned}/${requested} Assigned`;
 
     if (percentage >= 100) {
-      return <Badge color="green" leftSection={<UserCheck size={14} />}>Fully Staffed</Badge>
-    } else if (percentage >= 75) {
-      return <Badge color="blue" leftSection={<Users size={14} />}>Nearly Full</Badge>
-    } else if (percentage >= 50) {
-      return <Badge color="yellow" leftSection={<AlertTriangle size={14} />}>Needs Staff</Badge>
+      return <Badge color="green" leftSection={<UserCheck size={14} />}>Fully Staffed ({label})</Badge>;
+    } else if (percentage > 0) {
+      return <Badge color="yellow" leftSection={<Users size={14} />}>Partially Staffed ({label})</Badge>;
     } else {
-      return <Badge color="red" leftSection={<UserX size={14} />}>Understaffed</Badge>
+      return <Badge color="red" leftSection={<UserX size={14} />}>Unstaffed ({label})</Badge>;
     }
   }
 
   const getDateBadge = (date: string) => {
-    const shiftDate = new Date(date)
-    if (isToday(shiftDate)) return <Badge color="red">Today</Badge>
-    if (isTomorrow(shiftDate)) return <Badge color="blue">Tomorrow</Badge>
-    if (isYesterday(shiftDate)) return <Badge color="gray">Yesterday</Badge>
-    return null
+    const shiftDate = new Date(date);
+    if (isToday(shiftDate)) return <Badge color="indigo">Today</Badge>;
+    if (isTomorrow(shiftDate)) return <Badge color="violet">Tomorrow</Badge>;
+    if (isYesterday(shiftDate)) return <Badge color="light-gray">Yesterday</Badge>;
+    return null;
   }
 
   const getPageTitle = () => {

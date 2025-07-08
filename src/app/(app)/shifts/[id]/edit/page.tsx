@@ -8,12 +8,12 @@ import { z } from "zod"
 import { useUser } from "@/hooks/use-user"
 import { useApi, useShift } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from '@mantine/core'
+import { Button, Group, Text } from '@mantine/core'
 import { Input } from '@mantine/core'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Save } from "lucide-react"
+import { ArrowLeft, Save, Crown, Shield, User as UserIcon, ShieldCheck, Truck } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateShiftUrl } from "@/lib/url-utils"
 import WorkerTypeSelector from "@/components/worker-type-selector"
@@ -49,6 +49,17 @@ const shiftSchema = z.object({
 })
 
 type ShiftFormData = z.infer<typeof shiftSchema>
+
+const getRoleIcon = (role: string) => {
+  switch (role) {
+    case 'Manager/Admin':
+      return <Crown size={16} className="text-yellow-500" />;
+    case 'Crew Chief':
+      return <Shield size={16} className="text-purple-500" />;
+    default:
+      return <UserIcon size={16} className="text-blue-500" />;
+  }
+}
 
 export default function EditShiftPage() {
   const params = useParams()
@@ -279,7 +290,16 @@ export default function EditShiftPage() {
                       .filter(user => user.id && user.id.trim() !== '')
                       .map((user) => (
                       <SelectItem key={user.id} value={user.id}>
-                        {user.name}
+                        <Group justify="space-between">
+                          <Group gap="xs">
+                            {getRoleIcon(user.role)}
+                            <Text>{user.name}</Text>
+                          </Group>
+                          <Group gap="xs">
+                            {user.isCrewChiefEligible && <ShieldCheck size={16} className="text-green-500" />}
+                            {user.isForkliftCertified && <Truck size={16} className="text-orange-500" />}
+                          </Group>
+                        </Group>
                       </SelectItem>
                     ))}
                   </SelectContent>

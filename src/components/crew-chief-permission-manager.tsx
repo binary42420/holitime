@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { Card, Button, Badge, Select, Modal, Group, Text, Title, Stack, ActionIcon, Loader, Alert } from '@mantine/core';
+import { Card, Button, Badge, Select, Modal, Group, Text, Title, Stack, ActionIcon, Loader, Alert, ComboboxItem } from '@mantine/core';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, Plus, Trash2, Users, Crown, Building, Briefcase, ShieldCheck } from 'lucide-react';
+import { Shield, Plus, Trash2, Users, Crown, Building, Briefcase, ShieldCheck, User as UserIcon, Truck } from 'lucide-react';
 import type { CrewChiefPermission, CrewChiefPermissionType, User } from '@/lib/types';
 import { notifications } from '@mantine/notifications';
 
@@ -20,7 +20,18 @@ interface PermissionWithUser extends CrewChiefPermission {
   userRole?: string;
 }
 
-export function CrewChiefPermissionManager({ 
+const getRoleIcon = (role: string) => {
+  switch (role) {
+    case 'Manager/Admin':
+      return <Crown size={16} className="text-yellow-500" />;
+    case 'Crew Chief':
+      return <Shield size={16} className="text-purple-500" />;
+    default:
+      return <UserIcon size={16} className="text-blue-500" />;
+  }
+}
+
+export function CrewChiefPermissionManager({
   targetId, 
   targetType, 
   targetName, 
@@ -246,8 +257,29 @@ export function CrewChiefPermissionManager({
                     value={selectedUserId}
                     onChange={setSelectedUserId}
                     placeholder="Select user to grant permission"
-                    data={availableUsers.map(user => ({ value: user.id, label: `${user.name} (${user.role})` }))}
+                    data={availableUsers.map(user => ({
+                      value: user.id,
+                      label: user.name,
+                      role: user.role,
+                      isCrewChiefEligible: user.crewChiefEligible,
+                      isForkliftCertified: user.forkOperatorEligible,
+                    }))}
                     style={{ flex: 1 }}
+                    renderOption={(item) => {
+                      const optionWithRole = item.option as ComboboxItem & { role: string, isCrewChiefEligible?: boolean, isForkliftCertified?: boolean };
+                      return (
+                        <Group justify="space-between">
+                          <Group gap="xs">
+                            {getRoleIcon(optionWithRole.role)}
+                            <Text>{optionWithRole.label}</Text>
+                          </Group>
+                          <Group gap="xs">
+                            {optionWithRole.isCrewChiefEligible && <ShieldCheck size={16} className="text-green-500" />}
+                            {optionWithRole.isForkliftCertified && <Truck size={16} className="text-orange-500" />}
+                          </Group>
+                        </Group>
+                      );
+                    }}
                   />
                   <Button 
                     onClick={handleGrantPermission} 

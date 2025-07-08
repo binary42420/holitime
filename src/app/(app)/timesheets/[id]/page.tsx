@@ -296,21 +296,24 @@ export default function TimesheetViewPage() {
               <TableRow>
                 <TableHead>Worker</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Clock In 1</TableHead>
-                <TableHead>Clock Out 1</TableHead>
-                <TableHead>Clock In 2</TableHead>
-                <TableHead>Clock Out 2</TableHead>
-                <TableHead>Clock In 3</TableHead>
-                <TableHead>Clock Out 3</TableHead>
+                <TableHead>Time In</TableHead>
+                <TableHead>Time Out</TableHead>
+                <TableHead>Time In</TableHead>
+                <TableHead>Time Out</TableHead>
+                <TableHead>Time In</TableHead>
+                <TableHead>Time Out</TableHead>
                 <TableHead>Total Hours</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {assignedPersonnel.map((worker) => {
-                const totalHours = worker.timeEntries.reduce((sum, entry) => 
+                const totalHours = worker.timeEntries.reduce((sum, entry) =>
                   sum + calculateHours(entry.clockIn, entry.clockOut), 0
-                )
-                
+                );
+                const entries = Array(3).fill(null).map((_, i) =>
+                  worker.timeEntries.find(e => e.entryNumber === i + 1)
+                );
+
                 return (
                   <TableRow key={worker.id}>
                     <TableCell>
@@ -327,20 +330,17 @@ export default function TimesheetViewPage() {
                     <TableCell>
                       <Badge variant="outline">{worker.roleCode}</Badge>
                     </TableCell>
-                    {[1, 2, 3].map((entryNum) => {
-                      const entry = worker.timeEntries.find(e => e.entryNumber === entryNum)
-                      return (
-                        <React.Fragment key={entryNum}>
-                          <TableCell>{formatTime(entry?.clockIn)}</TableCell>
-                          <TableCell>{formatTime(entry?.clockOut)}</TableCell>
-                        </React.Fragment>
-                      )
-                    })}
+                    {entries.map((entry, index) => (
+                      <React.Fragment key={index}>
+                        <TableCell>{formatTime(entry?.clockIn)}</TableCell>
+                        <TableCell>{formatTime(entry?.clockOut)}</TableCell>
+                      </React.Fragment>
+                    ))}
                     <TableCell className="font-medium">
                       {totalHours.toFixed(2)} hrs
                     </TableCell>
                   </TableRow>
-                )
+                );
               })}
             </TableBody>
           </Table>

@@ -105,14 +105,13 @@ export default function ManagerApprovalPage() {
     try {
       setSubmitting(true)
 
-      const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
+      const response = await fetch(`/api/timesheets/${timesheetId}/finalize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           signature: signatureData,
-          approvalType: 'manager'
         }),
       })
 
@@ -333,7 +332,7 @@ export default function ManagerApprovalPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {shift.assignedPersonnel.filter((p: any) => p.timeEntries.length > 0).map((person: any) => (
+              {shift?.assignedPersonnel?.filter((p: any) => p.timeEntries.length > 0).map((person: any) => (
                 <TableRow key={person.employee.id}>
                   <TableCell className="font-medium">{person.employee.name}</TableCell>
                   <TableCell>{person.roleOnShift}</TableCell>
@@ -366,9 +365,9 @@ export default function ManagerApprovalPage() {
                 <TableCell colSpan={4} className="text-right">Total Hours:</TableCell>
                 <TableCell className="text-right font-mono">
                   {(() => {
-                    const allTimeEntries = shift.assignedPersonnel
-                      .filter((p: any) => p.timeEntries.length > 0)
-                      .flatMap((p: any) => p.timeEntries);
+                    const allTimeEntries = shift?.assignedPersonnel
+                      ?.filter((p: any) => p.timeEntries.length > 0)
+                      .flatMap((p: any) => p.timeEntries) || [];
                     return calculateTotalHours(allTimeEntries);
                   })()}
                 </TableCell>

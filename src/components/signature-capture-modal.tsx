@@ -137,7 +137,7 @@ export default function SignatureCaptureModal({
 
         <div className="space-y-4">
           {/* Signature Canvas */}
-          <div className="border-2 border-dashed border-muted-foreground/30 rounded-lg p-4 bg-white">
+          <div className="border-2 border-solid border-gray-300 rounded-lg p-4 bg-white">
             <canvas
               ref={canvasRef}
               className="w-full h-48 cursor-crosshair touch-none"

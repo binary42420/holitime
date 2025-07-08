@@ -59,15 +59,10 @@ function ClientsPage() {
               radius="md" 
               withBorder 
               className="cursor-pointer"
-              onClick={() => router.push(`/admin/clients/${client.id}`)}
+              onClick={() => router.push(`/clients/${client.id}`)}
             >
               <Group justify="space-between" mb="md">
                 <Title order={3}>{client.companyName || client.name}</Title>
-                {canEdit && (
-                  <ActionIcon variant="default" component="a" href={`/admin/clients/${client.id}`} onClick={(e) => e.stopPropagation()}>
-                    <ExternalLink size={18} />
-                  </ActionIcon>
-                )}
               </Group>
               
               <Stack gap="xs" mb="md">
@@ -80,7 +75,7 @@ function ClientsPage() {
                 {client.mostRecentCompletedShift ? (
                   <Card withBorder p="sm" radius="sm">
                     <Group justify="space-between">
-                      <Text size="sm" component={Link} href={`/shifts/${client.mostRecentCompletedShift.id}`} onClick={(e) => e.stopPropagation()}>
+                      <Text size="sm" component={Link} href={`/shifts/${client.mostRecentCompletedShift.id}`}>
                         {client.mostRecentCompletedShift.jobName}
                       </Text>
                       <Text size="xs" c="dimmed">
@@ -98,7 +93,7 @@ function ClientsPage() {
                 {client.mostRecentUpcomingShift ? (
                   <Card withBorder p="sm" radius="sm">
                     <Group justify="space-between">
-                        <Text size="sm" component={Link} href={`/shifts/${client.mostRecentUpcomingShift.id}`} onClick={(e) => e.stopPropagation()}>
+                        <Text size="sm" component={Link} href={`/shifts/${client.mostRecentUpcomingShift.id}`}>
                           {client.mostRecentUpcomingShift.jobName}
                         </Text>
                         <Text size="xs" c="dimmed">

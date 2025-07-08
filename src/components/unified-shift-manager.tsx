@@ -30,6 +30,7 @@ import { LoadingSpinner, InlineLoading } from "@/components/loading-states"
 import { useErrorHandler, type ErrorContext } from "@/lib/error-handler"
 import { ErrorBoundary } from "@/components/error-boundary"
 import { notifications } from '@mantine/notifications'
+import { ROLE_DEFINITIONS } from "@/lib/color-utils"
 
 interface TimeEntry {
   id: string;
@@ -62,15 +63,6 @@ interface ActionState {
   lastAction?: string;
   retryCount: number;
 }
-
-const roleColors: Record<string, { name: string; color: string }> = {
-  'CC': { name: 'Crew Chief', color: 'blue' },
-  'SH': { name: 'Stage Hand', color: 'green' },
-  'FO': { name: 'Fork Operator', color: 'purple' },
-  'RFO': { name: 'Rough Fork Operator', color: 'orange' },
-  'RG': { name: 'Rigger', color: 'red' },
-  'GL': { name: 'General Labor', color: 'gray' },
-} as const
 
 const getStatusConfig = (status: string) => {
   switch (status) {
@@ -146,6 +138,7 @@ export default function UnifiedShiftManager({
   const [timesheetId, setTimesheetId] = useState<string | null>(null)
   const [showEndAllShiftsModal, setShowEndAllShiftsModal] = useState(false);
   const [showFinalizeTimesheetModal, setShowFinalizeTimesheetModal] = useState(false);
+  const [workerToEnd, setWorkerToEnd] = useState<AssignedWorker | null>(null);
 
   const totalWorkers = assignedPersonnel.length
   const workingCount = assignedPersonnel.filter(w => w.status === 'Clocked In').length
@@ -553,111 +546,121 @@ export default function UnifiedShiftManager({
           <Stack>
             {assignedPersonnel.map((worker) => {
               const statusConfig = getStatusConfig(worker.status)
-              const roleConfig = roleColors[worker.roleCode as keyof typeof roleColors] || roleColors.GL
+              const roleConfig = ROLE_DEFINITIONS[worker.roleCode as keyof typeof ROLE_DEFINITIONS] || ROLE_DEFINITIONS.GL
               const StatusIcon = statusConfig.icon
               const totalHours = calculateTotalHours(worker.timeEntries)
               const currentEntry = worker.timeEntries.find(entry => entry.isActive || (!entry.clockOut && entry.clockIn))
 
               return (
                 <Card key={worker.id} withBorder p="sm" radius="md">
-                  <Group justify="space-between">
-                    <Group>
-                      <Avatar src={worker.employeeAvatar} alt={worker.employeeName} radius="xl" />
-                      <div>
-                        <Group>
-                          <Text fw={500}>{worker.employeeName}</Text>
-                          <Badge color={roleConfig.color} variant="light">
-                            {roleConfig.name}
-                          </Badge>
-                        </Group>
-                        <Group>
-                          <Badge color={statusConfig.color} variant="light" leftSection={<StatusIcon size={14} />}>
-                            {statusConfig.label}
-                          </Badge>
-                          {totalHours !== '0h 0m' && (
-                            <Group gap="xs">
-                              <Timer size={14} />
-                              <Text size="xs">{totalHours}</Text>
-                            </Group>
-                          )}
-                          {currentEntry && currentEntry.clockIn && !currentEntry.clockOut && (
-                            <Group gap="xs" c="green">
-                              <Clock size={14} />
-                              <Text size="xs">Started at {format(new Date(currentEntry.clockIn), 'HH:mm')}</Text>
-                            </Group>
-                          )}
-                        </Group>
-                      </div>
-                    </Group>
-                    <Group>
-                      {worker.timeEntries.map((entry, index) => (
-                        <Text key={index} size="xs" c="dimmed">
-                          {entry.clockIn ? format(new Date(entry.clockIn), 'HH:mm') : '--:--'} - {entry.clockOut ? format(new Date(entry.clockOut), 'HH:mm') : '--:--'}
-                        </Text>
-                      ))}
-                    </Group>
-                    <PermissionGuard
-                      shiftId={shiftId}
-                      fallback={
-                        <div>
-                          <CrewChiefPermissionBadge shiftId={shiftId} size="sm" />
-                        </div>
-                      }
-                    >
+                  <Stack>
+                    <Group justify="space-between">
                       <Group>
-                        {worker.status === 'not_started' && (
-                          <Button
-                            size="xs"
-                            onClick={() => handleClockAction(worker.id, 'clock_in')}
-                            disabled={actionState.isProcessing || !isOnline || !hasPermission}
-                            color="green"
-                            leftSection={actionState.lastAction === `clock_in_${worker.id}` ? <Loader size={14} /> : <Play size={14} />}
-                          >
-                            Clock In
-                          </Button>
-                        )}
-                        {worker.status === 'Clocked In' && (
-                          <>
-                            <Tooltip label="Clock out for a break.">
-                              <Button
-                                size="xs"
-                                variant="outline"
-                                onClick={() => handleClockAction(worker.id, 'clock_out')}
-                                disabled={actionState.isProcessing || !isOnline || !hasPermission}
-                                leftSection={actionState.lastAction === `clock_out_${worker.id}` ? <Loader size={14} /> : <Square size={14} />}
-                              >
-                                Clock Out
-                              </Button>
-                            </Tooltip>
-                            <Tooltip label="End the shift for this worker.">
-                              <Button
-                                size="xs"
-                                color="red"
-                                onClick={() => handleEndShift(worker.id, worker.employeeName)}
-                                disabled={actionState.isProcessing || !isOnline || !hasPermission}
-                                leftSection={actionState.lastAction === `end_shift_${worker.id}` ? <Loader size={14} /> : <StopCircle size={14} />}
-                              >
-                                End Shift
-                              </Button>
-                            </Tooltip>
-                          </>
-                        )}
-                        {worker.status === 'Clocked Out' && (
-                          <Tooltip label="Clock back in from break.">
+                        <Avatar src={worker.employeeAvatar} alt={worker.employeeName} radius="xl" />
+                        <div>
+                          <Group>
+                            <Text fw={500}>{worker.employeeName}</Text>
+                            <Badge color={roleConfig.color} variant="light">
+                              {roleConfig.name}
+                            </Badge>
+                          </Group>
+                          <Group>
+                            <Badge color={statusConfig.color} variant="light" leftSection={<StatusIcon size={14} />}>
+                              {statusConfig.label}
+                            </Badge>
+                            {totalHours !== '0h 0m' && (
+                              <Group gap="xs">
+                                <Timer size={14} />
+                                <Text size="xs">{totalHours}</Text>
+                              </Group>
+                            )}
+                            {currentEntry && currentEntry.clockIn && !currentEntry.clockOut && (
+                              <Group gap="xs" c="green">
+                                <Clock size={14} />
+                                <Text size="xs">Started at {format(new Date(currentEntry.clockIn), 'HH:mm')}</Text>
+                              </Group>
+                            )}
+                          </Group>
+                        </div>
+                      </Group>
+                      <PermissionGuard
+                        shiftId={shiftId}
+                        fallback={
+                          <div>
+                            <CrewChiefPermissionBadge shiftId={shiftId} size="sm" />
+                          </div>
+                        }
+                      >
+                        <Group>
+                          {worker.status === 'not_started' && (
                             <Button
                               size="xs"
-                              variant="outline"
                               onClick={() => handleClockAction(worker.id, 'clock_in')}
-                              disabled={actionState.isProcessing || !isOnline}
+                              disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                              color="green"
                               leftSection={actionState.lastAction === `clock_in_${worker.id}` ? <Loader size={14} /> : <Play size={14} />}
                             >
                               Clock In
                             </Button>
-                          </Tooltip>
-                        )}
-                      </Group>
-                    </PermissionGuard>
-                  </Group>
+                          )}
+                          {worker.status === 'Clocked In' && (
+                            <>
+                              <Tooltip label="Clock out for a break.">
+                                <Button
+                                  size="xs"
+                                  variant="outline"
+                                  onClick={() => handleClockAction(worker.id, 'clock_out')}
+                                  disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                                  leftSection={actionState.lastAction === `clock_out_${worker.id}` ? <Loader size={14} /> : <Square size={14} />}
+                                >
+                                  Clock Out
+                                </Button>
+                              </Tooltip>
+                              <Tooltip label="End the shift for this worker.">
+                                <Button
+                                  size="xs"
+                                  color="red"
+                                  onClick={() => setWorkerToEnd(worker)}
+                                  disabled={actionState.isProcessing || !isOnline || !hasPermission}
+                                  leftSection={actionState.lastAction === `end_shift_${worker.id}` ? <Loader size={14} /> : <StopCircle size={14} />}
+                                >
+                                  End Shift
+                                </Button>
+                              </Tooltip>
+                            </>
+                          )}
+                          {worker.status === 'Clocked Out' && (
+                            <Tooltip label="Clock back in from break.">
+                              <Button
+                                size="xs"
+                                variant="outline"
+                                onClick={() => handleClockAction(worker.id, 'clock_in')}
+                                disabled={actionState.isProcessing || !isOnline}
+                                leftSection={actionState.lastAction === `clock_in_${worker.id}` ? <Loader size={14} /> : <Play size={14} />}
+                              >
+                                Clock In
+                              </Button>
+                            </Tooltip>
+                          )}
+                        </Group>
+                      </PermissionGuard>
+                    </Group>
+                    <Group gap="md" mt="sm" grow>
+                      {[
+                        { label: 'START TIME', time: worker.timeEntries[0]?.clockIn },
+                        { label: 'OUT 1', time: worker.timeEntries[0]?.clockOut },
+                        { label: 'IN 2', time: worker.timeEntries[1]?.clockIn },
+                        { label: 'OUT 2', time: worker.timeEntries[1]?.clockOut },
+                        { label: 'IN 3', time: worker.timeEntries[2]?.clockIn },
+                        { label: 'END TIME', time: worker.timeEntries[2]?.clockOut },
+                      ].map(({ label, time }) => (
+                        <Stack key={label} gap={0}>
+                          <Text size="xs" c="dimmed">{label}</Text>
+                          <Text size="lg" fw={500}>{time ? format(new Date(time), 'HH:mm') : '--:--'}</Text>
+                        </Stack>
+                      ))}
+                    </Group>
+                  </Stack>
                 </Card>
               )
             })}
@@ -760,6 +763,28 @@ export default function UnifiedShiftManager({
         <Group justify="flex-end" mt="md">
           <Button variant="default" onClick={() => setShowFinalizeTimesheetModal(false)}>Cancel</Button>
           <Button color="blue" onClick={handleFinalizeTimesheet}>Finalize Timesheet</Button>
+        </Group>
+      </Modal>
+
+      <Modal opened={!!workerToEnd} onClose={() => setWorkerToEnd(null)} title={`End shift for ${workerToEnd?.employeeName}?`}>
+        <Text>
+          This will finalize the current shift for this employee. This can not be undone without manager intervention. Are you sure?
+        </Text>
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={() => setWorkerToEnd(null)}>
+            Cancel
+          </Button>
+          <Button
+            color="red"
+            onClick={() => {
+              if (workerToEnd) {
+                handleEndShift(workerToEnd.id, workerToEnd.employeeName);
+              }
+              setWorkerToEnd(null);
+            }}
+          >
+            End Shift
+          </Button>
         </Group>
       </Modal>
     </Stack>
