@@ -7,6 +7,7 @@ export interface ErrorContext {
   action?: string
   userId?: string
   shiftId?: string
+  assignmentId?: string
   metadata?: Record<string, any>
 }
 

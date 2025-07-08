@@ -7,24 +7,18 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
-import {
-  Card,
-  Button,
-  TextInput,
-  Textarea,
-  Select,
-  NumberInput,
-  Group,
-  Stack,
-  Title,
-  Text,
-  Container,
-  Grid,
-} from "@mantine/core"
-import { ArrowLeft, Save, Calendar, Users, Building2, Briefcase } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { ArrowLeft, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { generateShiftUrl } from "@/lib/url-utils"
 import WorkerTypeSelector from "@/components/worker-type-selector"
+import { withAuth } from '@/lib/with-auth';
+import { hasAdminAccess } from '@/lib/auth';
 
 const shiftSchema = z.object({
   jobId: z.string().min(1, "Job is required"),
@@ -47,9 +41,6 @@ const shiftSchema = z.object({
 
 type ShiftFormData = z.infer<typeof shiftSchema>
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
-
 function NewShiftPage() {
   const { user } = useUser()
   const router = useRouter()
@@ -59,7 +50,6 @@ function NewShiftPage() {
   const { data: jobsData } = useApi<{ jobs: any[] }>('/api/jobs')
   const { data: usersData } = useApi<{ users: any[] }>('/api/users')
 
-  // Redirect if not admin
   if (user?.role !== 'Manager/Admin') {
     router.push('/dashboard')
     return null
@@ -73,10 +63,7 @@ function NewShiftPage() {
     },
   })
 
-  const [workerRequirements, setWorkerRequirements] = useState<any[]>([])
-
   const handleWorkerRequirementsChange = (requirements: any[], totalCount: number) => {
-    setWorkerRequirements(requirements)
     form.setValue('requestedWorkers', totalCount)
     form.setValue('workerRequirements', requirements)
   }
@@ -103,7 +90,7 @@ function NewShiftPage() {
         description: "The shift has been scheduled successfully.",
       })
 
-      router.push(generateShiftUrl(result.shift.clientName, result.shift.jobName, result.shift.date, result.shift.startTime))
+      router.push(generateShiftUrl(result.shift.id))
     } catch (error) {
       toast({
         title: "Error",
@@ -121,147 +108,102 @@ function NewShiftPage() {
   ) || []
 
   return (
-    <Container size="md" py="lg">
-      <Stack gap="lg">
-        <Group justify="space-between">
-          <Stack gap={0}>
-            <Button
-              variant="subtle"
-              leftSection={<ArrowLeft size={16} />}
-              onClick={() => router.push('/admin/shifts')}
-              size="sm"
-              styles={{ inner: { justifyContent: 'left' }, root: { paddingLeft: 0 } }}
-            >
-              Back to Shifts
-            </Button>
-            <Title order={1}>Schedule New Shift</Title>
-            <Text c="dimmed">Create a new work shift</Text>
-          </Stack>
-        </Group>
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" onClick={() => router.push('/admin/shifts')}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Shifts
+        </Button>
+        <div className="flex-1">
+          <h1 className="text-3xl font-bold">Schedule New Shift</h1>
+          <p className="text-muted-foreground">Create a new work shift</p>
+        </div>
+      </div>
 
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          <Stack gap="lg">
-            <Card withBorder>
-              <Card.Section withBorder inheritPadding py="sm">
-                <Title order={4}>Shift Information</Title>
-                <Text size="sm" c="dimmed">Enter the basic details for the new shift</Text>
-              </Card.Section>
-              <Card.Section inheritPadding py="md">
-                <Stack>
-                  <Grid>
-                    <Grid.Col span={{ base: 12, md: 6 }}>
-                      <Select
-                        label="Job"
-                        placeholder="Select a job"
-                        required
-                        data={jobs.map(job => ({
-                          value: job.id,
-                          label: `${job.name} (${job.clientName})`
-                        }))}
-                        {...form.register("jobId")}
-                        error={form.formState.errors.jobId?.message}
-                        searchable
-                      />
-                    </Grid.Col>
-                    <Grid.Col span={{ base: 12, md: 6 }}>
-                      <Select
-                        label="Crew Chief"
-                        placeholder="Select crew chief (optional)"
-                        data={crewChiefs.map(chief => ({ value: chief.id, label: chief.name }))}
-                        {...form.register("crewChiefId")}
-                        clearable
-                        searchable
-                      />
-                    </Grid.Col>
-                  </Grid>
-                  <Grid>
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                      <TextInput
-                        label="Date"
-                        type="date"
-                        required
-                        {...form.register("date")}
-                        error={form.formState.errors.date?.message}
-                      />
-                    </Grid.Col>
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                      <TextInput
-                        label="Start Time"
-                        type="time"
-                        required
-                        {...form.register("startTime")}
-                        error={form.formState.errors.startTime?.message}
-                      />
-                    </Grid.Col>
-                    <Grid.Col span={{ base: 12, md: 4 }}>
-                      <TextInput
-                        label="End Time"
-                        type="time"
-                        required
-                        {...form.register("endTime")}
-                        error={form.formState.errors.endTime?.message}
-                      />
-                    </Grid.Col>
-                  </Grid>
-                  <Grid>
-                    <Grid.Col span={{ base: 12, md: 6 }}>
-                       <NumberInput
-                        label="Requested Workers"
-                        placeholder="Enter number of workers"
-                        required
-                        min={1}
-                        {...form.register("requestedWorkers", { valueAsNumber: true })}
-                        onChange={(value) => form.setValue("requestedWorkers", Number(value))}
-                        error={form.formState.errors.requestedWorkers?.message}
-                      />
-                    </Grid.Col>
-                    <Grid.Col span={{ base: 12, md: 6 }}>
-                      <TextInput
-                        label="Location"
-                        placeholder="Enter shift location"
-                        required
-                        {...form.register("location")}
-                        error={form.formState.errors.location?.message}
-                      />
-                    </Grid.Col>
-                  </Grid>
-                  <Textarea
-                    label="Description"
-                    placeholder="Describe the work to be performed"
-                    {...form.register("description")}
-                    rows={3}
-                  />
-                  <Textarea
-                    label="Requirements"
-                    placeholder="Special skills, certifications, or equipment needed"
-                    {...form.register("requirements")}
-                    rows={3}
-                  />
-                  <Textarea
-                    label="Notes"
-                    placeholder="Additional notes or instructions"
-                    {...form.register("notes")}
-                    rows={3}
-                  />
-                </Stack>
-              </Card.Section>
-            </Card>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Shift Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="jobId">Job</Label>
+                <Select onValueChange={(value) => form.setValue('jobId', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a job" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {jobs.map(job => (
+                      <SelectItem key={job.id} value={job.id}>
+                        {job.name} ({job.clientName})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="crewChiefId">Crew Chief (Optional)</Label>
+                <Select onValueChange={(value) => form.setValue('crewChiefId', value)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a crew chief" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {crewChiefs.map(chief => (
+                      <SelectItem key={chief.id} value={chief.id}>
+                        {chief.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="date">Date</Label>
+                <Input id="date" type="date" {...form.register("date")} />
+              </div>
+              <div>
+                <Label htmlFor="startTime">Start Time</Label>
+                <Input id="startTime" type="time" {...form.register("startTime")} />
+              </div>
+              <div>
+                <Label htmlFor="endTime">End Time</Label>
+                <Input id="endTime" type="time" {...form.register("endTime")} />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="location">Location</Label>
+              <Input id="location" {...form.register("location")} />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea id="description" {...form.register("description")} />
+            </div>
+            <div>
+              <Label htmlFor="requirements">Requirements</Label>
+              <Textarea id="requirements" {...form.register("requirements")} />
+            </div>
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea id="notes" {...form.register("notes")} />
+            </div>
+          </CardContent>
+        </Card>
 
-            <Group justify="flex-end">
-              <Button
-                variant="default"
-                onClick={() => router.push('/admin/shifts')}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" loading={isSubmitting} leftSection={<Save size={16} />}>
-                Schedule Shift
-              </Button>
-            </Group>
-          </Stack>
-        </form>
-      </Stack>
-    </Container>
+        <WorkerTypeSelector onChange={handleWorkerRequirementsChange} />
+
+        <div className="flex justify-end gap-4">
+          <Button variant="outline" onClick={() => router.push('/admin/shifts')}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            <Save className="mr-2 h-4 w-4" />
+            {isSubmitting ? 'Scheduling...' : 'Schedule Shift'}
+          </Button>
+        </div>
+      </form>
+    </div>
   )
 }
 

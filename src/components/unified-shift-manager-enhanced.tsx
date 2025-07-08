@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from '@mantine/core'
-import { Badge } from '@mantine/core'
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from "@/components/ui/separator"
 import { 
@@ -26,8 +26,6 @@ import {
   Shield
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { format, differenceInMinutes } from "date-fns"
-import { useErrorHandler } from "@/lib/error-handler"
 
 interface MutationState<T = any> {
   mutate: (variables: T) => Promise<any>
@@ -116,14 +114,6 @@ import { Progress } from "@/components/ui/progress"
 import { LoadingSpinner, InlineLoading } from "@/components/loading-states"
 import { useErrorHandler, type ErrorContext } from "@/lib/error-handler"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { 
-  FeedbackButton, 
-  StatusIndicator, 
-  ConnectionStatus, 
-  OptimisticUpdate,
-  AnimatedBadge,
-  InstantFeedback
-} from "@/components/ui/enhanced-feedback"
 
 interface TimeEntry {
   id: string;

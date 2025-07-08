@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from '@mantine/core'
-import { Badge } from '@mantine/core'
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { 
   Clock, 
@@ -38,13 +38,26 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { useErrorHandler } from "@/lib/error-handler"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { 
-  FeedbackButton, 
-  StatusIndicator, 
-  ConnectionStatus, 
-  OptimisticUpdate,
-  AnimatedBadge
-} from "@/components/ui/enhanced-feedback"
+
+const FeedbackButton = ({ children, ...props }: any) => (
+  <Button {...props}>{children}</Button>
+);
+
+const StatusIndicator = ({ status, message }: any) => (
+  <div>{status}: {message}</div>
+);
+
+const ConnectionStatus = ({ isOnline }: any) => (
+  <div>{isOnline ? 'Online' : 'Offline'}</div>
+);
+
+const OptimisticUpdate = ({ children, isUpdating }: any) => (
+  <div style={{ opacity: isUpdating ? 0.5 : 1 }}>{children}</div>
+);
+
+const AnimatedBadge = ({ children, ...props }: any) => (
+  <Badge {...props}>{children}</Badge>
+);
 
 interface TimeEntry {
   id: string;
@@ -379,8 +392,7 @@ export default function UnifiedShiftManagerEnhanced({
           console.warn('Popup blocked, showing link instead')
           toast({
             title: "Timesheet Ready",
-            description: "Click here to view the timesheet approval page",
-            action: (
+            description: (
               <Button 
                 variant="outline" 
                 size="sm"
