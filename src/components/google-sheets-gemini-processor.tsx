@@ -164,9 +164,9 @@ export default function GoogleSheetsGeminiProcessor({
           sheetsData: sheetsData,
           prompt: generateEnhancedPrompt(sheetsData),
           options: {
-            temperature: 0.2, // Low temperature for consistent results
-            maxTokens: 12000,
-            model: 'gemini-2.5-flash' // Use latest model
+            temperature: 0.1, // Low temperature for consistent results
+            maxTokens: 4000,
+            model: 'gemini-1.5-flash' // Use latest model
           }
         })
       })
