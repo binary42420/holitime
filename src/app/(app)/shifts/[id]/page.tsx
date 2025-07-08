@@ -15,6 +15,7 @@ import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-m
 import { DangerZone } from "@/components/danger-zone"
 import { notifications } from "@mantine/notifications"
 import { useAccordionState } from "@/hooks/use-accordion-state"
+import { formatTimeTo12Hour } from "@/lib/time-utils"
 
 export default function ShiftDetailsPage() {
   const params = useParams()
@@ -149,7 +150,7 @@ export default function ShiftDetailsPage() {
           <div>
             <Title order={2}>{shift.jobName}</Title>
             <Text c="dimmed">
-              {shift.clientName} • {new Date(shift.date).toLocaleDateString()} • {shift.startTime}
+              {shift.clientName} • {new Date(shift.date).toLocaleDateString()} • {formatTimeTo12Hour(shift.startTime)}
             </Text>
           </div>
         </Group>
@@ -215,7 +216,7 @@ export default function ShiftDetailsPage() {
               </Group>
               <Group justify="space-between">
                 <Text>Time:</Text>
-                <Text fw={500}>{shift.startTime} - {shift.endTime}</Text>
+                <Text fw={500}>{formatTimeTo12Hour(shift.startTime)} - {formatTimeTo12Hour(shift.endTime)}</Text>
               </Group>
               <Group justify="space-between">
                 <Text>Location:</Text>
@@ -335,7 +336,7 @@ export default function ShiftDetailsPage() {
             <CrewChiefPermissionManager
               targetId={shiftId}
               targetType="shift"
-              targetName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${shift.startTime}`}
+              targetName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${formatTimeTo12Hour(shift.startTime)}`}
             />
           </Accordion.Panel>
         </Accordion.Item>
@@ -350,7 +351,7 @@ export default function ShiftDetailsPage() {
             <DangerZone
               entityType="shift"
               entityId={shiftId}
-              entityName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${shift.startTime}`}
+              entityName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${formatTimeTo12Hour(shift.startTime)}`}
               redirectTo="/shifts"
             />
           </Accordion.Panel>

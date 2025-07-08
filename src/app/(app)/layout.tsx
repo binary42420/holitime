@@ -104,6 +104,7 @@ function BottomNav() {
         backgroundColor: activeColors.surface,
         transform: `translateY(${isVisible ? 0 : '110%'})`,
         transition: 'transform 200ms ease',
+        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)',
       }}
       className="md:hidden"
     >
@@ -162,8 +163,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
             <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
               <Group>
-                <Hand color={colors.light.primary.DEFAULT} size={24} />
-                <Title order={4}>Hands On Labor</Title>
+                <Hand color={activeColors.primary.DEFAULT} size={24} />
+                <Title order={4} style={{ color: activeColors.text.primary }}>Hands On Labor</Title>
               </Group>
             </Link>
             <div style={{ flex: 1 }} />
@@ -177,14 +178,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           style={{
             paddingBottom: 'calc(env(safe-area-inset-bottom) + 60px)',
           }}
-          className="md:hidden"
         >
-          {children}
-        </AppShell.Main>
-        <AppShell.Main className="hidden md:block">
           {children}
         </AppShell.Main>
         <BottomNav />
       </AppShell>
     </AuthGuard>
-  );}
+  );
+}

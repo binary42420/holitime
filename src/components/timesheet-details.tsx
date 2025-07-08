@@ -21,16 +21,13 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import type { TimesheetDetails as TimesheetDetailsType } from "@/lib/types"
+import { formatTimeTo12Hour } from "@/lib/time-utils"
 
 interface TimesheetDetailsProps {
   timesheet: TimesheetDetailsType;
 }
 
 export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
-  const formatTime = (timeString?: string) => {
-    if (!timeString) return '-'
-    return format(new Date(timeString), 'h:mm a')
-  }
 
   const calculateHours = (clockIn?: string, clockOut?: string) => {
     if (!clockIn || !clockOut) return 0
@@ -209,7 +206,7 @@ export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Time</Label>
-              <p className="font-medium">{timesheet.shift.startTime} - {timesheet.shift.endTime}</p>
+              <p className="font-medium">{formatTimeTo12Hour(timesheet.shift.startTime)} - {formatTimeTo12Hour(timesheet.shift.endTime)}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Location</Label>
@@ -271,8 +268,8 @@ export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
                       const entry = worker.timeEntries.find(e => e.entryNumber === i + 1);
                       return (
                         <React.Fragment key={i}>
-                          <TableCell>{formatTime(entry?.clockIn)}</TableCell>
-                          <TableCell>{formatTime(entry?.clockOut)}</TableCell>
+                          <TableCell>{formatTimeTo12Hour(entry?.clockIn)}</TableCell>
+                          <TableCell>{formatTimeTo12Hour(entry?.clockOut)}</TableCell>
                         </React.Fragment>
                       )
                     })}

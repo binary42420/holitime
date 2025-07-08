@@ -10,7 +10,7 @@ export const colors = {
       light: '#A5B4FC',
       dark: '#4338CA',
     },
-    background: '#F3F4F6',
+    background: '#F9FAFB',
     surface: '#FFFFFF',
     text: {
       primary: '#1F2937',

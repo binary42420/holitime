@@ -7,6 +7,7 @@ import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
 import { format } from "date-fns"
 import type { TimesheetDetails } from "@/lib/types"
+import { formatTimeTo12Hour } from "@/lib/time-utils"
 import { TimesheetDetails as TimesheetDetailsComponent } from "@/components/timesheet-details"
 import { FileText } from "lucide-react"
 
@@ -73,7 +74,9 @@ export default function TimesheetsPage() {
                 >
                   <Text fw={500}>{timesheet.shift.jobName}</Text>
                   <Text size="sm" c="dimmed">{timesheet.shift.clientName}</Text>
-                  <Text size="xs" c="dimmed" mt="xs">{format(new Date(timesheet.shift.date), 'EEE, MMM d, yyyy')}</Text>
+                  <Text size="xs" c="dimmed" mt="xs">
+                    {format(new Date(timesheet.shift.date), 'EEE, MMM d, yyyy')} • {formatTimeTo12Hour(timesheet.shift.startTime)} - {formatTimeTo12Hour(timesheet.shift.endTime)}
+                  </Text>
                 </Card>
               ))}
             </Stack>
