@@ -196,3 +196,9 @@ export interface Timesheet {
     approvedByClientAt?: string;
     approvedByManagerAt?: string;
 }
+
+export interface TimesheetDetails extends Timesheet {
+  shift: Shift;
+  assignedPersonnel: AssignedPersonnel[];
+  rejectionReason?: string;
+}

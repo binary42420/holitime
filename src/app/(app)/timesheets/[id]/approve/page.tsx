@@ -54,7 +54,7 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
 
     if (user?.role === 'Employee') {
       router.push('/dashboard');
-    } else if (user?.role === 'Crew Chief' && shift.crewChief.id !== user.id) {
+    } else if ((user?.role === 'Crew Chief' && shift.crewChief.id !== user.id) | user?.role === ) {
       router.push('/timesheets');
     }
   }, [user, shift, router]);
@@ -126,7 +126,7 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
 
       // Redirect after a short delay
       setTimeout(() => {
-        router.push('/timesheets');
+        router.push(`/timesheets/${id}`);
       }, 1000);
 
     } catch (error) {

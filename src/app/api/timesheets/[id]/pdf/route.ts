@@ -63,13 +63,6 @@ export async function GET(
 
     // Redirect to the Google Drive URL
     return NextResponse.redirect(row.pdf_url, 307);
-
-
-
-
-
-
-
   } catch (error) {
     console.error('Error generating timesheet PDF:', error);
     return NextResponse.json(

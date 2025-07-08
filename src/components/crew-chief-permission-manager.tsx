@@ -57,24 +57,15 @@ export function CrewChiefPermissionManager({
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const permissionsRes = await fetch(
-        `/api/crew-chief-permissions?permissionType=${targetType}&targetId=${targetId}`
+      const response = await fetch(
+        `/api/crew-chief-permissions/manage?permissionType=${targetType}&targetId=${targetId}`
       );
-      
-      const usersRes = await fetch('/api/users');
-      
-      if (permissionsRes.ok) {
-        const permissionsData = await permissionsRes.json();
-        setPermissions(permissionsData.permissions || []);
-      }
-      
-      if (usersRes.ok) {
-        const usersData = await usersRes.json();
-        const users = usersData.users || [];
-        const eligible = users.filter((u: User) =>
-          ['Employee', 'Crew Chief'].includes(u.role)
-        );
-        setEligibleUsers(eligible);
+      if (response.ok) {
+        const data = await response.json();
+        setPermissions(data.permissions || []);
+        setEligibleUsers(data.eligibleUsers || []);
+      } else {
+        throw new Error('Failed to fetch permission data');
       }
     } catch (error) {
       console.error('Error fetching permission data:', error);
@@ -235,9 +226,9 @@ export function CrewChiefPermissionManager({
                             {permission.userRole}
                           </Badge>
                         </Group>
-                        <Button variant="outline" size="xs" color="red" onClick={() => setShowRevokeModal(permission)} leftSection={<Trash2 size={14} />}>
-                          Revoke
-                        </Button>
+                        <ActionIcon variant="subtle" color="red" onClick={() => setShowRevokeModal(permission)}>
+                          <Trash2 size={16} />
+                        </ActionIcon>
                       </Group>
                     </Card>
                   ))}
@@ -274,15 +265,15 @@ export function CrewChiefPermissionManager({
                             <Text>{optionWithRole.label}</Text>
                           </Group>
                           <Group gap="xs">
-                            {optionWithRole.isCrewChiefEligible && <ShieldCheck size={16} className="text-green-500" />}
-                            {optionWithRole.isForkliftCertified && <Truck size={16} className="text-orange-500" />}
+                            {optionWithRole.isCrewChiefEligible && <ShieldCheck size={16} className="text-green-500" title="Crew Chief Eligible" />}
+                            {optionWithRole.isForkliftCertified && <Truck size={16} className="text-orange-500" title="Forklift Certified" />}
                           </Group>
                         </Group>
                       );
                     }}
                   />
-                  <Button 
-                    onClick={handleGrantPermission} 
+                  <Button
+                    onClick={handleGrantPermission}
                     loading={isGranting}
                     disabled={!selectedUserId}
                     leftSection={<Plus size={16} />}

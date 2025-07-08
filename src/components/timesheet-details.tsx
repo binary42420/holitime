@@ -1,7 +1,6 @@
 "use client"
 
 import React from "react"
-import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -18,52 +17,16 @@ import {
   Calendar,
   Download,
   Shield,
-  ArrowLeft,
   AlertCircle
 } from "lucide-react"
-import { useApi } from "@/hooks/use-api"
 import { format } from "date-fns"
+import type { TimesheetDetails as TimesheetDetailsType } from "@/lib/types"
 
-interface TimesheetData {
-  id: string
-  status: string
-  clientSignature?: string
-  clientApprovedAt?: string
-  managerApprovedAt?: string
-  rejectionReason?: string
-  shift: {
-    id: string
-    date: string
-    startTime: string
-    endTime: string
-    location: string
-    jobName: string
-    clientName: string
-    crewChiefName: string
-  }
-  assignedPersonnel: Array<{
-    id: string
-    employeeName: string
-    employeeAvatar: string
-    roleOnShift: string
-    roleCode: string
-    timeEntries: Array<{
-      id: string
-      entryNumber: number
-      clockIn?: string
-      clockOut?: string
-    }>
-  }>
+interface TimesheetDetailsProps {
+  timesheet: TimesheetDetailsType;
 }
 
-export default function TimesheetViewPage() {
-  const params = useParams()
-  const router = useRouter()
-  const timesheetId = params.id as string
-
-  // Fetch timesheet data
-  const { data: timesheetData, loading } = useApi<TimesheetData>(`/api/timesheets/${timesheetId}`)
-
+export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
   const formatTime = (timeString?: string) => {
     if (!timeString) return '-'
     return format(new Date(timeString), 'h:mm a')
@@ -93,14 +56,14 @@ export default function TimesheetViewPage() {
 
   const downloadPDF = async () => {
     try {
-      const response = await fetch(`/api/timesheets/${timesheetId}/pdf`)
+      const response = await fetch(`/api/timesheets/${timesheet.id}/pdf`)
       if (!response.ok) throw new Error('Failed to generate PDF')
       
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `timesheet-${timesheetData?.shift.jobName}-${timesheetData?.shift.date}.pdf`
+      a.download = `timesheet-${timesheet.shift.clientName}-${timesheet.shift.date}.pdf`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -110,61 +73,23 @@ export default function TimesheetViewPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading timesheet...</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!timesheetData) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Timesheet not found</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!timesheetData.shift) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-red-500">Error: Shift data is missing for this timesheet.</div>
-        </div>
-      </div>
-    )
-  }
- 
-  const { shift, assignedPersonnel } = timesheetData
-
   const maxEntries = Math.max(
-    ...assignedPersonnel.map(p => p.timeEntries.length),
+    ...timesheet.assignedPersonnel.map(p => p.timeEntries.length),
     1
   )
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => router.push('/timesheets')}>
-            <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Back to Timesheets</span>
-          </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Timesheet Details</h1>
-            <p className="text-muted-foreground">
-              View timesheet information and approval status
-            </p>
-          </div>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Timesheet Details</h1>
+          <p className="text-muted-foreground">
+            View timesheet information and approval status
+          </p>
         </div>
         <div className="flex items-center gap-2 self-end sm:self-center">
-          {getStatusBadge(timesheetData.status)}
+          {getStatusBadge(timesheet.status)}
           <Button variant="outline" onClick={downloadPDF}>
             <Download className="h-4 w-4 mr-2" />
             PDF
@@ -173,7 +98,7 @@ export default function TimesheetViewPage() {
       </div>
 
       {/* Rejection Notice */}
-      {timesheetData.status === 'rejected' && timesheetData.rejectionReason && (
+      {timesheet.status === 'rejected' && timesheet.rejectionReason && (
         <Card className="border-red-200 bg-red-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-800">
@@ -182,7 +107,7 @@ export default function TimesheetViewPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-red-700">{timesheetData.rejectionReason}</p>
+            <p className="text-red-700">{timesheet.rejectionReason}</p>
           </CardContent>
         </Card>
       )}
@@ -198,21 +123,21 @@ export default function TimesheetViewPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {timesheetData.clientApprovedAt ? (
+            {timesheet.clientApprovedAt ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span className="font-medium text-green-700">Approved</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(timesheetData.clientApprovedAt), 'MMMM d, yyyy at h:mm a')}
+                  {format(new Date(timesheet.clientApprovedAt), 'MMMM d, yyyy at h:mm a')}
                 </p>
-                {timesheetData.clientSignature && (
+                {timesheet.clientSignature && (
                   <div className="mt-2">
                     <p className="text-xs text-muted-foreground mb-1">Client Signature:</p>
-                    <img
-                      src={timesheetData.clientSignature}
-                      alt="Client Signature"
+                    <img 
+                      src={timesheet.clientSignature} 
+                      alt="Client Signature" 
                       className="h-12 border rounded"
                     />
                   </div>
@@ -236,14 +161,14 @@ export default function TimesheetViewPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {timesheetData.managerApprovedAt ? (
+            {timesheet.managerApprovedAt ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span className="font-medium text-green-700">Approved</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(timesheetData.managerApprovedAt), 'MMMM d, yyyy at h:mm a')}
+                  {format(new Date(timesheet.managerApprovedAt), 'MMMM d, yyyy at h:mm a')}
                 </p>
               </div>
             ) : (
@@ -268,27 +193,27 @@ export default function TimesheetViewPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Job</Label>
-              <p className="font-medium">{shift.jobName}</p>
+              <p className="font-medium">{timesheet.shift.jobName}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Client</Label>
-              <p className="font-medium">{shift.clientName}</p>
+              <p className="font-medium">{timesheet.shift.clientName}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-              <p className="font-medium">{format(new Date(shift.date), 'MMMM d, yyyy')}</p>
+              <p className="font-medium">{format(new Date(timesheet.shift.date), 'MMMM d, yyyy')}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Crew Chief</Label>
-              <p className="font-medium">{shift.crewChiefName}</p>
+              <p className="font-medium">{timesheet.shift.crewChiefName}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Time</Label>
-              <p className="font-medium">{shift.startTime} - {shift.endTime}</p>
+              <p className="font-medium">{timesheet.shift.startTime} - {timesheet.shift.endTime}</p>
             </div>
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Location</Label>
-              <p className="font-medium">{shift.location}</p>
+              <p className="font-medium">{timesheet.shift.location}</p>
             </div>
           </div>
         </CardContent>
@@ -321,7 +246,7 @@ export default function TimesheetViewPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {assignedPersonnel.map((worker) => {
+              {timesheet.assignedPersonnel.map((worker) => {
                 const totalHours = worker.timeEntries.reduce((sum, entry) =>
                   sum + calculateHours(entry.clockIn, entry.clockOut), 0
                 );
