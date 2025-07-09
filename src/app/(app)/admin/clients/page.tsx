@@ -32,8 +32,6 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
 
 function AdminClientsPage() {
   const { user } = useUser()
@@ -72,7 +70,7 @@ function AdminClientsPage() {
         } else {
           throw new Error('Failed to delete client')
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Failed to delete client. Please try again.",
@@ -215,4 +213,4 @@ function AdminClientsPage() {
   )
 }
 
-export default withAuth(AdminClientsPage, hasAdminAccess);
+export default AdminClientsPage;

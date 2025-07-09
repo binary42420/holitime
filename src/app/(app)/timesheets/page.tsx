@@ -1,203 +1,105 @@
 "use client"
 
-import Link from "next/link"
-import { useMemo, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Table, Card, Tabs, Button, Badge, Group, Text, Title, Stack } from "@mantine/core"
+import { useState, useMemo } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { Grid, Card, Tabs, Text, Title, Stack, ScrollArea, Center, Loader } from "@mantine/core"
 import { useUser } from "@/hooks/use-user"
-import { useTimesheets } from "@/hooks/use-api"
+import { useApi } from "@/hooks/use-api"
 import { format } from "date-fns"
-import type { Timesheet, TimesheetStatus } from "@/lib/types"
-import { ArrowRight, Check, FileSignature, VenetianMask, Download } from "lucide-react"
-import { notifications } from "@mantine/notifications"
+import type { TimesheetDetails } from "@/lib/types"
+import { formatTimeTo12Hour } from "@/lib/time-utils"
+import { TimesheetDetails as TimesheetDetailsComponent } from "@/components/timesheet-details"
+import { FileText } from "lucide-react"
 
 export default function TimesheetsPage() {
   const { user } = useUser();
   const router = useRouter();
-  const { data: timesheetsData, loading, error, refetch } = useTimesheets();
+  const searchParams = useSearchParams();
+  const selectedTimesheetId = searchParams.get('id');
 
-  const handleApproveTimesheet = async (timesheetId: string) => {
-    try {
-      const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action: 'approve' }),
-      })
+  const { data: timesheetsData, loading, error } = useApi<{ timesheets: TimesheetDetails[] }>('/api/timesheets');
 
-      if (!response.ok) {
-        throw new Error('Failed to approve timesheet')
-      }
+  const [activeTab, setActiveTab] = useState<string | null>('pending_client_approval');
 
-      notifications.show({
-        title: "Timesheet Approved",
-        message: "The timesheet has been approved successfully.",
-        color: 'green'
-      })
-
-      refetch()
-    } catch (error) {
-      notifications.show({
-        title: "Error",
-        message: "Failed to approve timesheet. Please try again.",
-        color: 'red'
-      })
-    }
-  };
-
-  useEffect(() => {
-    if (user?.role === 'Employee') {
-      router.push('/dashboard');
-    }
-  }, [user?.role, router]);
-
-  const timesheetsToDisplay = useMemo(() => {
+  const filteredTimesheets = useMemo(() => {
     if (!timesheetsData?.timesheets) return [];
-    return timesheetsData.timesheets;
-  }, [timesheetsData]);
+    return timesheetsData.timesheets.filter(t => t.status === activeTab);
+  }, [timesheetsData, activeTab]);
 
-  if (user?.role === 'Employee') {
-    return null;
-  }
+  const selectedTimesheet = useMemo(() => {
+    if (!selectedTimesheetId || !timesheetsData?.timesheets) return null;
+    return timesheetsData.timesheets.find(t => t.id === selectedTimesheetId) || null;
+  }, [selectedTimesheetId, timesheetsData]);
 
-  if (loading) {
-    return <Text>Loading timesheets...</Text>;
-  }
-
-  if (error) {
-    return <Text color="red">Error loading timesheets: {error}</Text>;
-  }
-
-  const getTimesheetStatusVariant = (status: TimesheetStatus) => {
-    switch (status) {
-      case 'Approved': return 'green';
-      case 'Awaiting Client Approval': return 'red';
-      case 'Awaiting Manager Approval': return 'yellow';
-      case 'Pending Finalization': return 'blue';
-      default: return 'gray'
-    }
-  }
-
-  const handleDownloadPDF = async (timesheetId: string, clientName: string, shiftDate: string) => {
-    try {
-      const response = await fetch(`/api/timesheets/${timesheetId}/pdf`)
-      if (response.ok) {
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = `timesheet-${clientName.replace(/\s+/g, '-')}-${shiftDate}.pdf`
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      } else {
-        notifications.show({
-          title: "Error",
-          message: "Failed to download PDF",
-          color: 'red'
-        })
-      }
-    } catch (error) {
-      console.error('Error downloading PDF:', error)
-      notifications.show({
-        title: "Error",
-        message: "Failed to download PDF",
-        color: 'red'
-      })
-    }
-  }
-
-  const renderAction = (timesheet: any) => {
-    if (!timesheet.shift) return null;
-
-    if (timesheet.status === 'completed' || timesheet.status === 'Approved') {
-      return (
-        <Group>
-          <Button
-            size="xs"
-            variant="outline"
-            onClick={() => handleDownloadPDF(timesheet.id, timesheet.shift.clientName, timesheet.shift.date)}
-            leftSection={<Download size={14} />}
-          >
-            PDF
-          </Button>
-          <Button size="xs" variant="outline" component={Link} href={`/timesheets/${timesheet.id}`}>View</Button>
-        </Group>
-      )
-    }
-
-    if (user?.role === 'Manager/Admin') {
-      if (timesheet.status === 'pending_final_approval' || timesheet.status === 'Awaiting Manager Approval') {
-        return <Button size="xs" component={Link} href={`/timesheets/${timesheet.id}/manager-approval`} leftSection={<Check size={14} />}>Final Approval</Button>
-      }
-      if (timesheet.status === 'pending_client_approval' || timesheet.status === 'Awaiting Client Approval') {
-        return <Button size="xs" component={Link} href={`/timesheets/${timesheet.id}/approve`} leftSection={<FileSignature size={14} />}>Client Approval</Button>
-      }
-    }
-
-    if (user?.role === 'Crew Chief' && (timesheet.status === 'pending_client_approval' || timesheet.status === 'Awaiting Client Approval')) {
-       return <Button size="xs" component={Link} href={`/timesheets/${timesheet.id}/approve`} leftSection={<FileSignature size={14} />}>Client Approval</Button>
-    }
-
-    if (user?.role === 'Manager/Admin' && timesheet.status === 'Approved') {
-        return <Button size="xs" variant="outline" component={Link} href={`/timesheets/${timesheet.id}/approve`} leftSection={<VenetianMask size={14} />}>View as Client</Button>
-    }
-
-    return (
-        <Button size="xs" variant="outline" component={Link} href={`/shifts/${timesheet.shift.id}`} rightSection={<ArrowRight size={14} />}>View Shift</Button>
-    )
-  }
+  const handleSelectTimesheet = (id: string) => {
+    router.push(`/timesheets?id=${id}`);
+  };
 
   const tabs = [
     { value: 'pending_client_approval', label: 'Client Approval' },
-    { value: 'pending_final_approval', label: 'Manager Approval' },
+    { value: 'pending_manager_approval', label: 'Manager Approval' },
     { value: 'completed', label: 'Completed' },
-    { value: 'draft', label: 'Draft' }
+    { value: 'rejected', label: 'Rejected' }
   ];
 
+  if (loading) {
+    return <Center style={{ height: '100%' }}><Loader /></Center>;
+  }
+
+  if (error) {
+    return <Center style={{ height: '100%' }}><Text color="red">Error loading timesheets.</Text></Center>;
+  }
+
   return (
-    <Stack gap="lg">
-      <Group justify="space-between">
-        <Title order={1}>Timesheets</Title>
-      </Group>
-      <Tabs defaultValue="pending_client_approval">
-        <Tabs.List>
-          {tabs.map(tab => <Tabs.Tab key={tab.value} value={tab.value}>{tab.label}</Tabs.Tab>)}
-        </Tabs.List>
-        {tabs.map(tab => (
-            <Tabs.Panel key={tab.value} value={tab.value} pt="xs">
-                <Card withBorder radius="md">
-                    <Card.Section withBorder inheritPadding py="xs">
-                        <Title order={4}>{tab.label}</Title>
-                        <Text size="sm" c="dimmed">
-                            Shifts with timesheets currently in this state.
-                        </Text>
-                    </Card.Section>
-                    <Card.Section p="md">
-                        <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-                            {timesheetsToDisplay.filter(t => t.status === tab.value).map(timesheet => (
-                                <Card key={timesheet.id} withBorder radius="md" p="md">
-                                    <Title order={5}>{timesheet.shift.clientName}</Title>
-                                    <Text size="sm" c="dimmed">
-                                        {format(new Date(timesheet.shift.date), 'EEE, MMM d, yyyy')}
-                                    </Text>
-                                    <Group justify="space-between" mt="md">
-                                        <div>
-                                            <Text size="xs" c="dimmed">Crew Chief</Text>
-                                            <Text fw={500}>{timesheet.shift.crewChiefName}</Text>
-                                        </div>
-                                        {renderAction(timesheet)}
-                                    </Group>
-                                </Card>
-                            ))}
-                        </div>
-                    </Card.Section>
+    <Grid gutter="md" style={{ height: '100%' }}>
+      <Grid.Col span={{ base: 12, md: 4 }}>
+        <Stack style={{ height: '100%' }}>
+          <Title order={2}>Timesheets</Title>
+          <Tabs value={activeTab} onChange={setActiveTab}>
+            <Tabs.List grow>
+              {tabs.map(tab => <Tabs.Tab key={tab.value} value={tab.value}>{tab.label}</Tabs.Tab>)}
+            </Tabs.List>
+          </Tabs>
+          <ScrollArea style={{ flex: 1 }}>
+            <Stack gap="sm">
+              {filteredTimesheets.map(timesheet => (
+                <Card
+                  key={timesheet.id}
+                  shadow="sm"
+                  padding="md"
+                  radius="md"
+                  withBorder
+                  onClick={() => handleSelectTimesheet(timesheet.id)}
+                  style={{ cursor: 'pointer', borderLeft: selectedTimesheetId === timesheet.id ? '4px solid var(--mantine-color-primary-filled)' : undefined }}
+                >
+                  <Text fw={500}>{timesheet.shift.jobName}</Text>
+                  <Text size="sm" c="dimmed">{timesheet.shift.clientName}</Text>
+                  <Text size="xs" c="dimmed" mt="xs">
+                    {format(new Date(timesheet.shift.date), 'EEE, MMM d, yyyy')} • {formatTimeTo12Hour(timesheet.shift.startTime)} - {formatTimeTo12Hour(timesheet.shift.endTime)}
+                  </Text>
                 </Card>
-            </Tabs.Panel>
-        ))}
-      </Tabs>
-    </Stack>
+              ))}
+            </Stack>
+          </ScrollArea>
+        </Stack>
+      </Grid.Col>
+      <Grid.Col span={{ base: 12, md: 8 }}>
+        <Card style={{ height: '100%' }} withBorder>
+          <ScrollArea style={{ height: 'calc(100vh - 160px)' }}>
+            {selectedTimesheet ? (
+              <TimesheetDetailsComponent timesheet={selectedTimesheet} />
+            ) : (
+              <Center style={{ height: '100%' }}>
+                <Stack align="center" gap="md">
+                  <FileText size={48} strokeWidth={1} />
+                  <Title order={3}>No timesheet selected</Title>
+                  <Text c="dimmed">Please select a timesheet from the list to view its details.</Text>
+                </Stack>
+              </Center>
+            )}
+          </ScrollArea>
+        </Card>
+      </Grid.Col>
+    </Grid>
   )
 }

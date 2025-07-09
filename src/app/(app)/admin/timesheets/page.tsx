@@ -11,8 +11,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from '@mantine/core'
 import { Badge } from '@mantine/core'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/mantine/table"
-
 import { 
   ArrowLeft, 
   FileText,

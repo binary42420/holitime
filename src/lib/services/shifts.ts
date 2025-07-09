@@ -153,8 +153,8 @@ export async function getAllShifts(options: ShiftQueryOptions = {}): Promise<{
     } = options;
 
     const offset = (page - 1) * pageSize;
-    const params: any[] = [pageSize, offset];
-    let paramIndex = 3;
+    const params: any[] = [];
+    let paramIndex = 1;
 
     // Build WHERE clause
     const conditions: string[] = [];
@@ -183,15 +183,54 @@ export async function getAllShifts(options: ShiftQueryOptions = {}): Promise<{
       ? `WHERE ${conditions.join(' AND ')}`
       : '';
 
-    // Get total count
-    const countResult = await query(
-      `SELECT COUNT(*) FROM shifts s ${whereClause}`,
-      params.slice(2)
-    );
-    const total = parseInt(countResult.rows[0].count);
+    // Add pagination to params
+    params.push(pageSize, offset);
+    const limitOffsetClause = `LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+
+    // Get paginated results and total count in one query
+    const result = await query(`
+      ${SHIFT_PERSONNEL_CTE}
+      SELECT
+        s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
+        s.requested_workers,
+        j.id as job_id, j.name as job_name, j.client_id,
+        c.company_name as client_name,
+        cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
+        t.id as timesheet_id, t.status as timesheet_status,
+        sp.assigned_personnel,
+        (
+          SELECT COUNT(*)
+          FROM assigned_personnel ap
+          WHERE ap.shift_id = s.id AND ap.is_placeholder = false
+        ) + (CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count,
+        COUNT(*) OVER() as total_count
+      FROM shifts s
+      JOIN jobs j ON s.job_id = j.id
+      JOIN clients c ON j.client_id = c.id
+      LEFT JOIN users cc ON s.crew_chief_id = cc.id
+      LEFT JOIN timesheets t ON s.id = t.shift_id
+      LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
+      ${whereClause}
+      ORDER BY s.date DESC, s.start_time
+      ${limitOffsetClause}
+    `, params);
+
+    const total = result.rows.length > 0 ? parseInt(result.rows[0].total_count) : 0;
     const pages = Math.ceil(total / pageSize);
 
-    // Get paginated results with optimized query
+    return {
+      shifts: result.rows.map(mapShiftRow),
+      total,
+      pages
+    };
+  } catch (error) {
+    console.error('Error getting all shifts:', error);
+    return { shifts: [], total: 0, pages: 0 };
+  }
+}
+
+export async function getShiftById(id: string): Promise<Shift | null> {
+  try {
     const result = await query(`
       ${SHIFT_PERSONNEL_CTE}
       SELECT
@@ -213,79 +252,14 @@ export async function getAllShifts(options: ShiftQueryOptions = {}): Promise<{
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
-      ${whereClause}
-      ORDER BY s.date DESC, s.start_time
-      LIMIT $1 OFFSET $2
-    `, params);
-
-    return {
-      shifts: result.rows.map(mapShiftRow),
-      total,
-      pages
-    };
-  } catch (error) {
-    console.error('Error getting all shifts:', error);
-    return { shifts: [], total: 0, pages: 0 };
-  }
-}
-
-export async function getShiftById(id: string): Promise<Shift | null> {
-  try {
-    console.log('getShiftById called with ID:', id);
-    // Use simpler query similar to getAllShifts that we know works
-    const result = await query(`
-      SELECT
-        s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-        s.requested_workers,
-        j.id as job_id, j.name as job_name, j.client_id,
-        c.company_name as client_name,
-        cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
-        t.id as timesheet_id, t.status as timesheet_status,
-        (
-          SELECT COUNT(*)
-          FROM assigned_personnel ap
-          WHERE ap.shift_id = s.id AND ap.is_placeholder = false
-        ) + (CASE WHEN s.crew_chief_id IS NOT NULL THEN 1 ELSE 0 END) as assigned_count
-      FROM shifts s
-      JOIN jobs j ON s.job_id = j.id
-      JOIN clients c ON j.client_id = c.id
-      LEFT JOIN users cc ON s.crew_chief_id = cc.id
-      LEFT JOIN timesheets t ON s.id = t.shift_id
       WHERE s.id = $1
     `, [id]);
 
-    console.log('getShiftById query result:', result.rows.length, 'rows found');
     if (result.rows.length === 0) {
-      console.log('No shift found with ID:', id);
       return null;
     }
-
-    // Get assigned personnel separately for the simplified query
-    const assignedResult = await query(`
-      SELECT
-        json_agg(
-          json_build_object(
-            'employee', json_build_object(
-              'id', u.id,
-              'name', u.name,
-              'certifications', u.certifications,
-              'performance', u.performance,
-              'location', u.location,
-              'avatar', u.avatar
-            ),
-            'roleOnShift', ap.role_on_shift,
-            'roleCode', ap.role_code,
-            'status', ap.status,
-            'isPlaceholder', ap.is_placeholder
-          )
-        ) as assigned_personnel
-      FROM assigned_personnel ap
-      LEFT JOIN users u ON ap.employee_id = u.id
-      WHERE ap.shift_id = $1
-    `, [id]);
-
+    
     const row = result.rows[0];
-    row.assigned_personnel = assignedResult.rows[0]?.assigned_personnel || [];
 
     // Get worker requirements for this shift
     const workerRequirements = await getWorkerRequirements(id);
@@ -341,7 +315,7 @@ export async function createShift(shiftData: {
   crewChiefId?: string;
   requestedWorkers: number;
   notes?: string;
-}): Promise<Shift | null> {
+}): Promise<string | null> {
   try {
     const result = await query(`
       INSERT INTO shifts (job_id, date, start_time, end_time, location, crew_chief_id, requested_workers, notes, status)
@@ -378,7 +352,7 @@ export async function createShift(shiftData: {
       }
     }
 
-    return await getShiftById(shiftId);
+    return shiftId;
   } catch (error) {
     console.error('Error creating shift:', error);
     return null;
@@ -393,7 +367,7 @@ export async function updateShift(shiftId: string, shiftData: {
   crewChiefId?: string;
   requestedWorkers?: number;
   notes?: string;
-}): Promise<Shift | null> {
+}): Promise<string | null> {
   try {
     const updates: string[] = [];
     const values: any[] = [];
@@ -429,7 +403,7 @@ export async function updateShift(shiftId: string, shiftData: {
     }
 
     if (updates.length === 0) {
-      return await getShiftById(shiftId);
+      return shiftId;
     }
 
     updates.push(`updated_at = NOW()`);
@@ -461,7 +435,7 @@ export async function updateShift(shiftId: string, shiftData: {
       }
     }
 
-    return await getShiftById(shiftId);
+    return shiftId;
   } catch (error) {
     console.error('Error updating shift:', error);
     return null;

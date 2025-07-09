@@ -31,7 +31,8 @@ steps:
       - '--max-instances'
       - '1'
       - '--set-env-vars'
-      - 'NODE_ENV=production,DATABASE_PROVIDER=aiven,DATABASE_SSL=true,NODE_TLS_REJECT_UNAUTHORIZED=0,NEXT_TELEMETRY_DISABLED=1,DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@holidb-hol619.d.aivencloud.com:12297/defaultdb?sslmode=require,NEXTAUTH_SECRET=holitime-super-secure-secret-key-for-production-2024,NEXTAUTH_URL=https://holitime-369017734615.us-central1.run.app,GOOGLE_CLIENT_ID=369017734615-d69l9fi2bphahlk815ji447ri2m3qjjp.apps.googleusercontent.com,GOOGLE_CLIENT_SECRET=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,GOOGLE_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k,JWT_SECRET=holitime-jwt-secret-key-for-production-2024'
+      - 'NODE_ENV=production,DATABASE_PROVIDER=aiven,DATABASE_SSL=true,NEXT_TELEMETRY_DISABLED=1,NEXTAUTH_URL=https://holitime-369017734615.us-central1.run.app'
+      - '--set-secrets=DATABASE_URL=DATABASE_URL:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest,GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest,GOOGLE_CLIENT_SECRET=GOOGLE_CLIENT_SECRET:latest,GOOGLE_API_KEY=GOOGLE_API_KEY:latest,JWT_SECRET=JWT_SECRET:latest'
 
 # Store images in Google Container Registry
 images:

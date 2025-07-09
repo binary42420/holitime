@@ -6,20 +6,21 @@ import { Card, Badge, Button, Group, Text, Title, Stack } from '@mantine/core';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Briefcase, Building2 } from 'lucide-react';
+import type { Client, Job, Shift } from '@/lib/types';
 
 export default function ManagerDashboard() {
   const { user } = useUser();
   const router = useRouter();
 
-  const { data: clientsData, loading: clientsLoading, error: clientsError, refetch: refetchClients } = useApi<{ clients: any[] }>('/api/clients');
-  const { data: jobsData, loading: jobsLoading, error: jobsError, refetch: refetchJobs } = useApi<{ jobs: any[] }>('/api/jobs');
-  const { data: shiftsData, loading: shiftsLoading, error: shiftsError, refetch: refetchShifts } = useApi<{ shifts: any[] }>('/api/shifts?filter=all');
+  const { data: clientsData, loading: clientsLoading, error: clientsError, refetch: refetchClients } = useApi<{ clients: Client[] }>('/api/clients');
+  const { data: jobsData, loading: jobsLoading, error: jobsError, refetch: refetchJobs } = useApi<{ jobs: Job[] }>('/api/jobs');
+  const { data: shiftsData, loading: shiftsLoading, error: shiftsError, refetch: refetchShifts } = useApi<{ shifts: Shift[] }>('/api/shifts?filter=all');
 
   useEffect(() => {
     refetchClients();
     refetchJobs();
     refetchShifts();
-  }, []);
+  }, [refetchClients, refetchJobs, refetchShifts]);
 
   if (clientsLoading || jobsLoading || shiftsLoading) {
     return <Text>Loading dashboard data...</Text>;
@@ -71,7 +72,7 @@ export default function ManagerDashboard() {
         {shifts.length > 0 ? (
           <Stack>
             {shifts.slice(0, 5).map((shift) => (
-              <Card key={shift.id} withBorder p="md" radius="sm" style={{ cursor: 'pointer' }} onClick={() => router.push(`/app/shifts/${shift.id}`)}>
+              <Card key={shift.id} withBorder p="md" radius="sm" style={{ cursor: 'pointer' }} onClick={() => router.push(`/shifts/${shift.id}`)}>
                 <Group justify="space-between">
                   <div>
                     <Text fw={500}>{shift.jobName}</Text>

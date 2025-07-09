@@ -3,13 +3,11 @@
 import { useUser } from '@/hooks/use-user';
 import { useApi } from '@/hooks/use-api';
 import type { Job, Shift } from '@/lib/types';
-import { Card, Badge, Button, Group, Text, Title, Stack } from '@mantine/core';
+import { Card, Badge, Group, Text, Title, Stack } from '@mantine/core';
 import { Calendar, Users, Briefcase } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 export default function ClientDashboard() {
   const { user } = useUser();
-  const router = useRouter();
 
   const { data: shiftsData, loading: shiftsLoading } = useApi<{ shifts: Shift[] }>(
     `/api/shifts?clientId=${user?.clientCompanyId || ''}`

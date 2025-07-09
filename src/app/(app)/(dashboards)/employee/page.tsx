@@ -2,7 +2,7 @@
 
 import { useUser } from '@/hooks/use-user';
 import QuickStats from '@/components/quick-stats';
-import { Button, Card, Group, Text, Title, Stack } from '@mantine/core';
+import { Button, Card, Text, Title, Stack } from '@mantine/core';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 

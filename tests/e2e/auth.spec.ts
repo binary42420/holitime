@@ -22,8 +22,12 @@ test.describe('Authentication', () => {
 
     // Now, test logout
     // Click the user menu to open it
+<<<<<<< HEAD
     await page.waitForSelector('[data-testid="user-nav-menu-button"]');
     await page.getByTestId('user-nav-menu-button').click();
+=======
+    await page.click('button[aria-haspopup="menu"]');
+>>>>>>> 2f8e1e5b6390304607fcd44d81da069e7d051ca2
     
     // Click the logout button
     await page.getByRole('menuitem', { name: 'Log out' }).click();

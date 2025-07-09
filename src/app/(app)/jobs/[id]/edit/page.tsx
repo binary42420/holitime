@@ -7,8 +7,8 @@ import { useJob, useApi } from "@/hooks/use-api"
 import { Button } from '@mantine/core'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from '@mantine/core'
-import { Label } from '@mantine/core'
-import { TextArea } from '@mantine/core'textarea"
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, Briefcase } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"

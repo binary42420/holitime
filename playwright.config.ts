@@ -28,7 +28,10 @@ export default defineConfig({
     env: {
       NODE_ENV: 'development',
       NODE_TLS_REJECT_UNAUTHORIZED: '0',
+<<<<<<< HEAD
       DATABASE_URL: process.env.DATABASE_URL || '',
+=======
+>>>>>>> 2f8e1e5b6390304607fcd44d81da069e7d051ca2
     },
   },
 

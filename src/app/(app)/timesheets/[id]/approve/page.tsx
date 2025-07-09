@@ -25,11 +25,12 @@ import {
   Loader, 
   Center,
   Image,
-  Grid
+  Grid,
+  Textarea
 } from "@mantine/core"
 import SignaturePad, { type SignaturePadRef } from "@/components/signature-pad"
 import { ArrowLeft, CheckCircle, FileSignature, Save, RefreshCw } from "lucide-react"
-import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
+import { formatTimeTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
 
 export default function ApproveTimesheetPage({ params }: { params: Promise<{ id: string }> }) {
   const { user } = useUser()
@@ -40,8 +41,10 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
   const [approvalType, setApprovalType] = useState<'client' | 'manager' | null>(null);
   const [opened, { open, close }] = useDisclosure(false);
   const { id } = use(params);
+  const [rejectionModalOpened, { open: openRejectionModal, close: closeRejectionModal }] = useDisclosure(false);
+  const [rejectionReason, setRejectionReason] = useState('');
 
-  const { data: timesheetData, error } = useApi<{ timesheet: any }>(`/api/timesheets/${id}`);
+  const { data: timesheetData, error, mutate } = useApi<{ timesheet: any }>(`/api/timesheets/${id}`);
 
   const timesheet = timesheetData?.timesheet;
   const shift = timesheet?.shift;
@@ -126,7 +129,7 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
 
       // Redirect after a short delay
       setTimeout(() => {
-        router.push('/timesheets');
+        router.push(`/timesheets/${id}`);
       }, 1000);
 
     } catch (error) {
@@ -142,16 +145,25 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
   };
 
   const handleReject = async () => {
-    // TODO: Add rejection dialog with reason
+    if (!rejectionReason.trim()) {
+      toast({
+        title: "Reason Required",
+        description: "Please provide a reason for rejecting the timesheet.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await fetch(`/api/timesheets/${id}/approve`, {
-        method: 'PUT',
+      const response = await fetch(`/api/timesheets/${id}/review`, {
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          reason: 'Rejected by manager',
+          status: 'rejected',
+          rejectionReason,
         }),
       });
 
@@ -162,16 +174,13 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
       const result = await response.json();
 
       toast({
-        title: "Success",
-        description: result.message,
+        title: "Timesheet Rejected",
+        description: "The timesheet has been rejected and sent back for review.",
       });
 
-      // Data will be refreshed on page reload
-
-      // Redirect after a short delay
-      setTimeout(() => {
-        router.push('/timesheets');
-      }, 1000);
+      closeRejectionModal();
+      setRejectionReason('');
+      mutate(); // Re-fetch data to show updated status
 
     } catch (error) {
       console.error('Error rejecting timesheet:', error);
@@ -185,10 +194,10 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
     }
   };
 
-  const isClientApproved = timesheet.status === 'pending_manager_approval' || timesheet.status === 'completed';
+  const isClientApproved = timesheet.status === 'pending_final_approval' || timesheet.status === 'completed';
   const isManagerApproved = timesheet.status === 'completed';
-  const canClientApprove = timesheet.status === 'pending_client_approval' && (user?.role === 'Manager/Admin' || user?.role === 'Client');
-  const canManagerApprove = timesheet.status === 'pending_manager_approval' && user?.role === 'Manager/Admin';
+  const canClientApprove = timesheet.status === 'pending_client_approval' && (user?.role === 'Manager/Admin' || user?.role === 'Client' || user?.role === 'Crew Chief');
+  const canManagerApprove = timesheet.status === 'pending_final_approval' && user?.role === 'Manager/Admin';
 
   const openModal = (type: 'client' | 'manager') => {
     setApprovalType(type);
@@ -212,7 +221,7 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
           <Card.Section withBorder inheritPadding py="sm">
             <Group justify="space-between">
               <Stack gap={0}>
-                <Title order={2}>Timesheet Approval</Title>
+                <Title order={2}>Timesheet Review & Approval</Title>
                 <Text c="dimmed">
                   Review and approve the hours for the shift on {format(new Date(shift.date), 'EEEE, MMMM d, yyyy')}.
                 </Text>
@@ -245,7 +254,7 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
                 <Grid.Col span={{ base: 12, md: 3 }}><Text c="dimmed" size="sm">Client</Text><Text>{client?.name || 'N/A'}</Text></Grid.Col>
                 <Grid.Col span={{ base: 12, md: 3 }}><Text c="dimmed" size="sm">Location</Text><Text>{shift?.location || 'N/A'}</Text></Grid.Col>
                 <Grid.Col span={{ base: 12, md: 3 }}><Text c="dimmed" size="sm">Shift Date</Text><Text>{formatDate(shift?.date)}</Text></Grid.Col>
-                <Grid.Col span={{ base: 12, md: 3 }}><Text c="dimmed" size="sm">Start Time</Text><Text>{formatTo12Hour(shift?.startTime)}</Text></Grid.Col>
+                <Grid.Col span={{ base: 12, md: 3 }}><Text c="dimmed" size="sm">Start Time</Text><Text>{formatTimeTo12Hour(shift?.startTime)}</Text></Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}><Text c="dimmed" size="sm">Crew Chief</Text><Text>{shift?.crewChief?.name || 'Not Assigned'}</Text></Grid.Col>
                 <Grid.Col span={{ base: 12, md: 6 }}><Text c="dimmed" size="sm">Job</Text><Text>{job?.name || shift?.jobName || 'N/A'}</Text></Grid.Col>
               </Grid>
@@ -292,15 +301,15 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
             <Group justify="flex-end">
               {canClientApprove && (
                 <Button onClick={() => openModal('client')} disabled={loading} leftSection={<FileSignature size={16} />}>
-                  Client Approval
+                  Provide Client Signature
                 </Button>
               )}
               {canManagerApprove && (
                 <Group>
                   <Button onClick={() => openModal('manager')} disabled={loading} color="green" leftSection={<CheckCircle size={16} />}>
-                    Manager Approval
+                    Provide Final Approval
                   </Button>
-                  <Button variant="filled" color="red" onClick={handleReject} disabled={loading}>
+                  <Button variant="filled" color="red" onClick={openRejectionModal} disabled={loading}>
                     Reject
                   </Button>
                 </Group>
@@ -324,6 +333,28 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
               </Button>
               <Button onClick={handleApproval} loading={loading} leftSection={<Save size={16} />}>
                 {loading ? 'Submitting...' : 'Sign and Submit'}
+              </Button>
+            </Group>
+          </Stack>
+        </Modal>
+
+        <Modal opened={rejectionModalOpened} onClose={closeRejectionModal} title="Reject Timesheet">
+          <Stack>
+            <Textarea
+              label="Rejection Reason"
+              placeholder="Provide a clear reason for rejection..."
+              value={rejectionReason}
+              onChange={(event) => setRejectionReason(event.currentTarget.value)}
+              required
+              autosize
+              minRows={3}
+            />
+            <Group justify="flex-end">
+              <Button variant="default" onClick={closeRejectionModal}>
+                Cancel
+              </Button>
+              <Button color="red" onClick={handleReject} loading={loading}>
+                Confirm Rejection
               </Button>
             </Group>
           </Stack>

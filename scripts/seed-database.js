@@ -1,6 +1,7 @@
 const { config } = require('dotenv');
 const path = require('path');
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
 
 // Load environment variables
 config({ path: path.join(__dirname, '..', '.env.local') });
@@ -16,15 +17,19 @@ async function seedDatabase() {
   try {
     console.log('🌱 Starting database seeding...');
     
+    await pool.query('TRUNCATE TABLE users, jobs, shifts, timesheets, assigned_personnel, time_entries, notifications RESTART IDENTITY CASCADE');
+    console.log('✅ Database cleaned.');
+
     // Create sample users (no password hashing)
     const password = 'password123';
+    const passwordHash = await bcrypt.hash(password, 10);
 
     // Insert admin user
     const adminResult = await pool.query(`
       INSERT INTO users (email, password_hash, name, role)
       VALUES ($1, $2, $3, $4)
       RETURNING id
-    `, ['sam.c@handson.com', password, 'Sam C', 'Manager/Admin']);
+    `, ['sam.c@handson.com', passwordHash, 'Sam C', 'Manager/Admin']);
     const adminId = adminResult.rows[0].id;
     console.log('✅ Admin user created:', adminId);
 
@@ -55,19 +60,15 @@ async function seedDatabase() {
 
     // Insert client
     const clientResult = await pool.query(`
-      INSERT INTO users (email, password_hash, name, role, company_name, company_address, contact_person, contact_email, contact_phone)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      INSERT INTO clients (company_name, company_address, contact_email, contact_phone, notes)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING id
     `, [
-      'contact@cityparks.gov', 
-      passwordHash, 
-      'City Parks Department', 
-      'Client',
       'City Parks Department',
       '123 Main St, City Hall, NY 10001',
-      'Jane Parks',
       'jane.parks@cityparks.gov',
-      '(555) 123-4567'
+      '(555) 123-4567',
+      'Primary contact is Jane Parks.'
     ]);
     const clientId = clientResult.rows[0].id;
     console.log('✅ Client created:', clientId);

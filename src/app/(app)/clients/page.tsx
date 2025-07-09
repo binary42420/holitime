@@ -1,27 +1,18 @@
 "use client"
 
-import React, { useState } from "react"
+import React from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import Link from "next/link"
 import { useUser } from "@/hooks/use-user"
 import { useClients } from "@/hooks/use-api"
-import { Button } from '@mantine/core'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from '@mantine/core'
-import { Plus, Building2, Calendar, ExternalLink } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { generateClientUrl } from "@/lib/url-utils"
-
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
+import { Button, Card, Text, Group, ActionIcon, Badge, Stack, Title } from '@mantine/core'
+import { Plus, ExternalLink, Mail, User, Calendar } from "lucide-react"
 
 function ClientsPage() {
   const { user } = useUser()
   const router = useRouter()
   const canEdit = user?.role === 'Manager/Admin'
-  const { toast } = useToast()
   const { data: clientsData, loading, error } = useClients()
 
   if (loading) {
@@ -35,144 +26,126 @@ function ClientsPage() {
   if (error) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="text-destructive">Error loading clients: {error}</div>
+        <div className="text-destructive">Error loading clients: {error.toString()}</div>
       </div>
     )
   }
 
+  const clients = clientsData?.clients || []
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+    <Stack gap="lg">
+      <Group justify="space-between">
         <div>
-          <h1 className="text-3xl font-bold font-headline">Clients</h1>
-          <p className="text-muted-foreground">
+          <Title order={1}>Clients</Title>
+          <Text c="dimmed">
             Manage client companies and view their job history
-          </p>
+          </Text>
         </div>
         {canEdit && (
-          <Button onClick={() => router.push('/clients/new')}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button onClick={() => router.push('/clients/new')} leftSection={<Plus size={16} />}>
             Add Client
           </Button>
         )}
-      </div>
+      </Group>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Client Companies
-          </CardTitle>
-          <CardDescription>
-            Overview of all client companies with recent shift activity
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Company Name</TableHead>
-                <TableHead>Contact Person</TableHead>
-                <TableHead className="hidden md:table-cell">Email</TableHead>
-                <TableHead>Recent Completed</TableHead>
-                <TableHead>Upcoming Shift</TableHead>
-                {canEdit && <TableHead className="text-right">Actions</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {clientsData?.clients && clientsData.clients.length > 0 ? (
-                clientsData.clients.map(client => (
-                  <TableRow
-                    key={client.id}
-                    onClick={() => router.push(generateClientUrl(client.clientCompanyId || client.id))}
-                    className="cursor-pointer hover:bg-muted/50"
-                  >
-                    <TableCell className="font-medium">{client.companyName || client.name}</TableCell>
-                    <TableCell>{client.contactPerson}</TableCell>
-                    <TableCell className="hidden md:table-cell">{client.contactEmail}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      {client.mostRecentCompletedShift ? (
-                        <div className="flex flex-col gap-1">
-                          <Button variant="link" asChild className="p-0 h-auto font-normal justify-start">
-                            <Link href={`/shifts/${client.mostRecentCompletedShift.id}`}>
-                              <Calendar className="mr-1 h-3 w-3" />
-                              {format(new Date(client.mostRecentCompletedShift.date), 'MMM d, yyyy')}
-                            </Link>
-                          </Button>
-                          <span className="text-xs text-muted-foreground">
-                            {client.mostRecentCompletedShift.jobName}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">No completed shifts</span>
-                      )}
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      {client.mostRecentUpcomingShift ? (
-                        <div className="flex flex-col gap-1">
-                          <Button variant="link" asChild className="p-0 h-auto font-normal justify-start">
-                            <Link href={`/shifts/${client.mostRecentUpcomingShift.id}`}>
-                              <Calendar className="mr-1 h-3 w-3" />
-                              {format(new Date(client.mostRecentUpcomingShift.date), 'MMM d, yyyy')} at {client.mostRecentUpcomingShift.startTime}
-                            </Link>
-                          </Button>
-                          <span className="text-xs text-muted-foreground">
-                            {client.mostRecentUpcomingShift.jobName}
-                          </span>
-                          <div className="flex items-center gap-1 text-xs">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              client.mostRecentUpcomingShift.assignedCount >= client.mostRecentUpcomingShift.requestedWorkers
-                                ? 'bg-green-100 text-green-800'
-                                : client.mostRecentUpcomingShift.assignedCount > 0
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {client.mostRecentUpcomingShift.assignedCount}/{client.mostRecentUpcomingShift.requestedWorkers} workers
-                            </span>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">No upcoming shifts</span>
-                      )}
-                    </TableCell>
-                    {canEdit && (
-                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link href={generateClientUrl(client.id)}>
-                            <ExternalLink className="h-4 w-4" />
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={canEdit ? 6 : 5} className="h-24 text-center">
-                    <h3 className="text-lg font-semibold">No clients found</h3>
-                    <p className="text-muted-foreground">
-                      Get started by adding your first client.
-                    </p>
-                    {canEdit && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-4"
-                        onClick={() => router.push('/clients/new')}
-                      >
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Client
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+      {clients.length > 0 ? (
+        <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
+          {clients.map(client => (
+            <Card 
+              key={client.id} 
+              shadow="sm" 
+              padding="lg" 
+              radius="md" 
+              withBorder 
+              className="cursor-pointer"
+              onClick={() => router.push(`/clients/${client.id}`)}
+            >
+              <Group justify="space-between" mb="md">
+                <Title order={3}>{client.companyName || client.name}</Title>
+              </Group>
+              
+              <Stack gap="xs" mb="md">
+                {client.contactPerson && <Group gap="xs"><User size={16} /><Text size="sm">{client.contactPerson}</Text></Group>}
+                {client.contactEmail && <Group gap="xs"><Mail size={16} /><Text size="sm">{client.contactEmail}</Text></Group>}
+              </Stack>
+
+              <div>
+                <Text size="sm" fw={500} mb="xs">Recent Completed</Text>
+                {client.mostRecentCompletedShift ? (
+                  <Card withBorder p="sm" radius="sm">
+                    <Group justify="space-between">
+                      <Text size="sm" component={Link} href={`/shifts/${client.mostRecentCompletedShift.id}`}>
+                        {client.mostRecentCompletedShift.jobName}
+                      </Text>
+                      <Text size="xs" c="dimmed">
+                        {format(new Date(client.mostRecentCompletedShift.date), 'MMM d, yyyy')}
+                      </Text>
+                    </Group>
+                  </Card>
+                ) : (
+                  <Text size="sm" c="dimmed">No completed shifts</Text>
+                )}
+              </div>
+
+              <div style={{ marginTop: '1rem' }}>
+                <Text size="sm" fw={500} mb="xs">Upcoming Shift</Text>
+                {client.mostRecentUpcomingShift ? (
+                  <Card withBorder p="sm" radius="sm">
+                    <Group justify="space-between">
+                        <Text size="sm" component={Link} href={`/shifts/${client.mostRecentUpcomingShift.id}`}>
+                          {client.mostRecentUpcomingShift.jobName}
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          {format(new Date(client.mostRecentUpcomingShift.date), 'MMM d, yyyy')}
+                        </Text>
+                    </Group>
+                    <Text size="xs" c="dimmed">
+                      {client.mostRecentUpcomingShift.startTime}
+                    </Text>
+                    <Badge
+                      mt="xs"
+                      color={
+                        client.mostRecentUpcomingShift.assignedCount >= client.mostRecentUpcomingShift.requestedWorkers
+                          ? 'green'
+                          : client.mostRecentUpcomingShift.assignedCount > 0
+                          ? 'yellow'
+                          : 'red'
+                      }
+                    >
+                      {client.mostRecentUpcomingShift.assignedCount}/{client.mostRecentUpcomingShift.requestedWorkers} workers
+                    </Badge>
+                  </Card>
+                ) : (
+                  <Text size="sm" c="dimmed">No upcoming shifts</Text>
+                )}
+              </div>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <Card padding="lg" radius="md" withBorder>
+          <Stack align="center" justify="center" style={{ minHeight: '300px' }}>
+            <Title order={3}>No clients found</Title>
+            <Text c="dimmed">
+              Get started by adding your first client.
+            </Text>
+            {canEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={() => router.push('/clients/new')}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Client
+              </Button>
+            )}
+          </Stack>
+        </Card>
+      )}
+    </Stack>
   )
 }
 
-export default withAuth(ClientsPage, hasAdminAccess);
+export default ClientsPage;

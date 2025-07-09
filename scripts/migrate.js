@@ -4,8 +4,6 @@ const path = require('path');
 // Load environment variables
 config({ path: path.join(__dirname, '..', '.env.local') });
 
-// Allow self-signed certificates for Aiven
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 async function runMigrations() {
   try {

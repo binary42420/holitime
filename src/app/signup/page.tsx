@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { Button } from '@mantine/core';
 import { Input } from '@mantine/core';
-import { Label } from '@mantine/core';
+import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Hand, Loader2, CheckCircle } from "lucide-react";

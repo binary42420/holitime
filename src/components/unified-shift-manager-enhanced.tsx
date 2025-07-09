@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from '@mantine/core'
-import { Badge } from '@mantine/core'
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from "@/components/ui/separator"
 import { 
@@ -26,8 +26,6 @@ import {
   Shield
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { format, differenceInMinutes } from "date-fns"
-import { useErrorHandler } from "@/lib/error-handler"
 
 interface MutationState<T = any> {
   mutate: (variables: T) => Promise<any>
@@ -116,14 +114,34 @@ import { Progress } from "@/components/ui/progress"
 import { LoadingSpinner, InlineLoading } from "@/components/loading-states"
 import { useErrorHandler, type ErrorContext } from "@/lib/error-handler"
 import { ErrorBoundary } from "@/components/error-boundary"
-import { 
-  FeedbackButton, 
-  StatusIndicator, 
-  ConnectionStatus, 
-  OptimisticUpdate,
-  AnimatedBadge,
-  InstantFeedback
-} from "@/components/ui/enhanced-feedback"
+
+const StatusIndicator = ({ status, message }: { status: string, message: string }) => (
+  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    {status === 'loading' ? (
+      <RefreshCw className="h-4 w-4 animate-spin" />
+    ) : (
+      <CheckCircle2 className="h-4 w-4 text-green-500" />
+    )}
+    <span>{message}</span>
+  </div>
+);
+
+const ConnectionStatus = ({ isOnline }: { isOnline: boolean }) => (
+  <div className={`flex items-center gap-2 text-sm p-2 rounded-md ${isOnline ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+    {isOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
+    <span>{isOnline ? 'Online' : 'Offline - Changes will not be saved'}</span>
+  </div>
+);
+
+const OptimisticUpdate = ({ children, isUpdating }: { children: React.ReactNode, isUpdating: boolean }) => (
+  <div className={`transition-opacity duration-300 ${isUpdating ? 'opacity-50' : 'opacity-100'}`}>{children}</div>
+);
+
+const AnimatedBadge = ({ children, className, variant, animate = 'none' }: { children: React.ReactNode, className?: string, variant?: "default" | "secondary" | "destructive" | "outline" | null | undefined, animate?: 'pulse' | 'none' }) => (
+  <Badge variant={variant} className={`${className} ${animate === 'pulse' ? 'animate-pulse' : ''}`}>
+    {children}
+  </Badge>
+);
 
 interface TimeEntry {
   id: string;
@@ -353,12 +371,11 @@ export default function UnifiedShiftManagerEnhanced({
             console.warn('Popup blocked, showing link instead')
             toast({
               title: "Timesheet Ready",
-              description: "Click here to view the timesheet approval page",
-              action: (
+              description: (
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => window.location.href = `/timesheets/${result.timesheetId}/approve`}
+                  onClick={() => window.open(`/timesheets/${result.timesheetId}/approve`, '_blank')}
                 >
                   View Timesheet
                 </Button>
@@ -472,7 +489,7 @@ export default function UnifiedShiftManagerEnhanced({
       return
     }
 
-    await endAllShiftsMutation.mutate()
+    await endAllShiftsMutation.mutate(undefined)
   }
 
   const handleFinalizeTimesheet = async () => {
@@ -498,7 +515,7 @@ export default function UnifiedShiftManagerEnhanced({
       return
     }
 
-    await finalizeTimesheetMutation.mutate()
+    await finalizeTimesheetMutation.mutate(undefined)
   }
 
   return (
@@ -525,16 +542,24 @@ export default function UnifiedShiftManagerEnhanced({
                   status={isProcessing ? 'loading' : 'idle'}
                   message={isProcessing ? 'Processing...' : `Last updated: ${format(lastUpdateTime, 'HH:mm:ss')}`}
                 />
-                <FeedbackButton
+                <Button
                   variant="outline"
                   size="sm"
                   onClick={onUpdate}
-                  loading={isProcessing}
-                  loadingText="Refreshing..."
+                  disabled={isProcessing}
                 >
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh
-                </FeedbackButton>
+                  {isProcessing ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      {"Refreshing..."}
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Refresh
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
           </CardHeader>
@@ -634,17 +659,23 @@ export default function UnifiedShiftManagerEnhanced({
                           {worker.status === 'not_started' && (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <FeedbackButton
+                                <Button
                                   size="sm"
                                   onClick={() => handleClockAction(worker.id, 'clock_in')}
-                                  loading={clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id}
-                                  loadingText="Clocking In..."
-                                  successText="Clocked In!"
-                                  disabled={!isOnline}
+                                  disabled={!isOnline || (clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id)}
                                 >
-                                  <Play className="h-4 w-4 mr-1" />
-                                  Clock In
-                                </FeedbackButton>
+                                  {(clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id) ? (
+                                    <>
+                                      <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                                      {"Clocking In..."}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Play className="h-4 w-4 mr-1" />
+                                      Clock In
+                                    </>
+                                  )}
+                                </Button>
                               </TooltipTrigger>
                               <TooltipContent>Start this worker's shift</TooltipContent>
                             </Tooltip>
@@ -654,36 +685,48 @@ export default function UnifiedShiftManagerEnhanced({
                             <>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <FeedbackButton
+                                  <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => handleClockAction(worker.id, 'clock_out')}
-                                    loading={clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id}
-                                    loadingText="Taking Break..."
-                                    successText="On Break!"
-                                    disabled={!isOnline}
+                                    disabled={!isOnline || (clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id)}
                                   >
-                                    <Coffee className="h-4 w-4 mr-1" />
-                                    Break
-                                  </FeedbackButton>
+                                    {(clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id) ? (
+                                      <>
+                                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                                        {"Taking Break..."}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Coffee className="h-4 w-4 mr-1" />
+                                        Break
+                                      </>
+                                    )}
+                                  </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>Send worker on break</TooltipContent>
                               </Tooltip>
 
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <FeedbackButton
+                                  <Button
                                     variant="destructive"
                                     size="sm"
                                     onClick={() => handleEndShift(worker.id)}
-                                    loading={endShiftMutation.loading && endShiftMutation.variables?.assignmentId === worker.id}
-                                    loadingText="Ending Shift..."
-                                    successText="Shift Ended!"
-                                    disabled={!isOnline}
+                                    disabled={!isOnline || (endShiftMutation.loading && endShiftMutation.variables?.assignmentId === worker.id)}
                                   >
-                                    <StopCircle className="h-4 w-4 mr-1" />
-                                    End Shift
-                                  </FeedbackButton>
+                                    {(endShiftMutation.loading && endShiftMutation.variables?.assignmentId === worker.id) ? (
+                                      <>
+                                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                                        {"Ending Shift..."}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <StopCircle className="h-4 w-4 mr-1" />
+                                        End Shift
+                                      </>
+                                    )}
+                                  </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>End this worker's shift</TooltipContent>
                               </Tooltip>
@@ -694,35 +737,47 @@ export default function UnifiedShiftManagerEnhanced({
                             <>
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <FeedbackButton
+                                  <Button
                                     size="sm"
                                     onClick={() => handleClockAction(worker.id, 'clock_in')}
-                                    loading={clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id}
-                                    loadingText="Returning..."
-                                    successText="Back to Work!"
-                                    disabled={!isOnline}
+                                    disabled={!isOnline || (clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id)}
                                   >
-                                    <Play className="h-4 w-4 mr-1" />
-                                    Return
-                                  </FeedbackButton>
+                                    {(clockActionMutation.loading && clockActionMutation.variables?.assignmentId === worker.id) ? (
+                                      <>
+                                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                                        {"Returning..."}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Play className="h-4 w-4 mr-1" />
+                                        Return
+                                      </>
+                                    )}
+                                  </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>Return from break</TooltipContent>
                               </Tooltip>
 
                               <Tooltip>
                                 <TooltipTrigger asChild>
-                                  <FeedbackButton
+                                  <Button
                                     variant="destructive"
                                     size="sm"
                                     onClick={() => handleEndShift(worker.id)}
-                                    loading={endShiftMutation.loading && endShiftMutation.variables?.assignmentId === worker.id}
-                                    loadingText="Ending Shift..."
-                                    successText="Shift Ended!"
-                                    disabled={!isOnline}
+                                    disabled={!isOnline || (endShiftMutation.loading && endShiftMutation.variables?.assignmentId === worker.id)}
                                   >
-                                    <StopCircle className="h-4 w-4 mr-1" />
-                                    End Shift
-                                  </FeedbackButton>
+                                    {(endShiftMutation.loading && endShiftMutation.variables?.assignmentId === worker.id) ? (
+                                      <>
+                                        <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                                        {"Ending Shift..."}
+                                      </>
+                                    ) : (
+                                      <>
+                                        <StopCircle className="h-4 w-4 mr-1" />
+                                        End Shift
+                                      </>
+                                    )}
+                                  </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>End this worker's shift</TooltipContent>
                               </Tooltip>
@@ -757,15 +812,22 @@ export default function UnifiedShiftManagerEnhanced({
             <div className="flex flex-wrap gap-4">
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <FeedbackButton
+                  <Button
                     variant="destructive"
-                    disabled={!isOnline || assignedPersonnel.filter(w => !['Shift Ended', 'shift_ended'].includes(w.status)).length === 0}
-                    loading={endAllShiftsMutation.loading}
-                    loadingText="Ending All Shifts..."
+                    disabled={!isOnline || endAllShiftsMutation.loading || assignedPersonnel.filter(w => !['Shift Ended', 'shift_ended'].includes(w.status)).length === 0}
                   >
-                    <StopCircle className="h-4 w-4 mr-2" />
-                    End All Shifts
-                  </FeedbackButton>
+                    {endAllShiftsMutation.loading ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        {"Ending All Shifts..."}
+                      </>
+                    ) : (
+                      <>
+                        <StopCircle className="h-4 w-4 mr-2" />
+                        End All Shifts
+                      </>
+                    )}
+                  </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
@@ -786,15 +848,21 @@ export default function UnifiedShiftManagerEnhanced({
 
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <FeedbackButton
-                    disabled={!isOnline || completedCount !== totalWorkers}
-                    loading={finalizeTimesheetMutation.loading}
-                    loadingText="Finalizing..."
-                    successText="Finalized!"
+                  <Button
+                    disabled={!isOnline || finalizeTimesheetMutation.loading || completedCount !== totalWorkers}
                   >
-                    <FileText className="h-4 w-4 mr-2" />
-                    Finalize Timesheet
-                  </FeedbackButton>
+                    {finalizeTimesheetMutation.loading ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        {"Finalizing..."}
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Finalize Timesheet
+                      </>
+                    )}
+                  </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
