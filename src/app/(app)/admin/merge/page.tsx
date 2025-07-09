@@ -32,28 +32,29 @@ import {
   CheckCircle,
   User,
   Mail,
-  Phone,
-  MapPin
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
 
+import { User as UserIcon } from "lucide-react"
+import { User as UserType, Client, Job } from "@/lib/types"
+
 function AdminMergePage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
   
-  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useApi<{ users: any[] }>('/api/users')
-  const { data: clientsData, loading: clientsLoading, refetch: refetchClients } = useApi<{ clients: any[] }>('/api/clients')
-  const { data: jobsData, loading: jobsLoading, refetch: refetchJobs } = useApi<{ jobs: any[] }>('/api/jobs')
+  const { data: usersData, refetch: refetchUsers } = useApi<{ users: UserType[] }>('/api/users')
+  const { data: clientsData, refetch: refetchClients } = useApi<{ clients: Client[] }>('/api/clients')
+  const { data: jobsData, refetch: refetchJobs } = useApi<{ jobs: Job[] }>('/api/jobs')
 
   const [activeTab, setActiveTab] = useState("employees")
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedItems, setSelectedItems] = useState<any[]>([])
-  const [mergeDialog, setMergeDialog] = useState({ open: false, type: '', items: [] as any[] })
-  const [mergeData, setMergeData] = useState<any>({})
+  const [selectedItems, setSelectedItems] = useState<(UserType | Client | Job)[]>([])
+  const [mergeDialog, setMergeDialog] = useState({ open: false, type: '', items: [] as (UserType | Client | Job)[] })
+  const [mergeData, setMergeData] = useState<Partial<UserType & Client & Job>>({})
   const [isMerging, setIsMerging] = useState(false)
 
   // Redirect if not admin
@@ -95,7 +96,7 @@ function AdminMergePage() {
     })
   }
 
-  const handleItemSelect = (item: any) => {
+  const handleItemSelect = (item: UserType | Client | Job) => {
     if (selectedItems.find(selected => selected.id === item.id)) {
       setSelectedItems(selectedItems.filter(selected => selected.id !== item.id))
     } else if (selectedItems.length < 2) {
@@ -146,7 +147,7 @@ function AdminMergePage() {
         throw new Error('Failed to merge items')
       }
 
-      const result = await response.json()
+      await response.json()
 
       toast({
         title: "Merge Successful",
@@ -161,7 +162,7 @@ function AdminMergePage() {
       setSelectedItems([])
       setMergeDialog({ open: false, type: '', items: [] })
       setMergeData({})
-    } catch (error) {
+    } catch {
       toast({
         title: "Merge Failed",
         description: "Failed to merge items. Please try again.",
@@ -172,7 +173,7 @@ function AdminMergePage() {
     }
   }
 
-  const renderItemCard = (item: any) => {
+  const renderItemCard = (item: UserType | Client | Job) => {
     const isSelected = selectedItems.find(selected => selected.id === item.id)
     
     return (
@@ -210,7 +211,7 @@ function AdminMergePage() {
               {activeTab === 'clients' && (
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
-                    <User className="h-3 w-3" />
+                    <UserIcon className="h-3 w-3" />
                     <span className="truncate">{item.contactPerson}</span>
                   </div>
                   <div className="flex items-center gap-1">

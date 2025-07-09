@@ -5,7 +5,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 // Database connection
 const pool = new Pool({
-  connectionString: 'postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@pg-3c901dd1-hol619.b.aivencloud.com:12297/defaultdb?sslmode=require',
+  connectionString: 'postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@pg-3595fcb-hol619.b.aivencloud.com:12297/defaultdb?sslmode=require',
   ssl: { rejectUnauthorized: false }
 });
 

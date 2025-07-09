@@ -4,14 +4,8 @@
   "private": false,
   "scripts": {
     "dev": "next dev",
-    "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
-    "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit",
-    "migrate": "tsx scripts/migrate.js",
-    "db:setup": "npm run migrate",
     "deploy": "powershell -ExecutionPolicy Bypass -File deploy-cloud-run.ps1 -ProjectId handsonlabor",
     "deploy:bash": "./deploy.sh"
   },
@@ -51,7 +45,6 @@
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.0",
     "eslint": "^8.0.0",
@@ -73,13 +66,8 @@
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.60.0",
     "react-pdf": "^10.0.1",
-<<<<<<< HEAD
     "react-signature-canvas": "^1.0.6",
     "recharts": "^2.15.1",
-=======
-    "react-signature-canvas": "^1.1.0-alpha.2",
-    "recharts": "^3.1.0",
->>>>>>> holitime
     "tailwind-merge": "^3.3.1",
     "xlsx": "^0.18.5",
     "zod": "^3.25.76",

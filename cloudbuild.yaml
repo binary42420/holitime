@@ -31,7 +31,7 @@ steps:
       - '--max-instances'
       - '1'
       - '--set-env-vars'
-      - 'NODE_ENV=production,DATABASE_PROVIDER=aiven,DATABASE_SSL=true,NODE_TLS_REJECT_UNAUTHORIZED=0,NEXT_TELEMETRY_DISABLED=1,DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@pg-3c901dd1-hol619.b.aivencloud.com:12297/defaultdb?sslmode=require,NEXTAUTH_SECRET=holitime-super-secure-secret-key-for-production-2024,NEXTAUTH_URL=https://holitime-369017734615.us-central1.run.app,GOOGLE_CLIENT_ID=369017734615-d69l9fi2bphahlk815ji447ri2m3qjjp.apps.googleusercontent.com,GOOGLE_CLIENT_SECRET=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,GOOGLE_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k,JWT_SECRET=holitime-jwt-secret-key-for-production-2024'
+      - 'NODE_ENV=production,DATABASE_PROVIDER=aiven,DATABASE_SSL=true,NODE_TLS_REJECT_UNAUTHORIZED=0,NEXT_TELEMETRY_DISABLED=1,DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@pg-3595fcb-hol619.b.aivencloud.com:12297/defaultdb?sslmode=require,NEXTAUTH_SECRET=holitime-super-secure-secret-key-for-production-2024,NEXTAUTH_URL=https://holitime-369017734615.us-central1.run.app,GOOGLE_CLIENT_ID=369017734615-d69l9fi2bphahlk815ji447ri2m3qjjp.apps.googleusercontent.com,GOOGLE_CLIENT_SECRET=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,GOOGLE_API_KEY=AIzaSyDb8Qj6GKxUL1I2StgvE1B0gSTDOj0FB6k,JWT_SECRET=holitime-jwt-secret-key-for-production-2024'
 
 # Store images in Google Container Registry
 images:

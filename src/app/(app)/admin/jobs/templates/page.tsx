@@ -25,14 +25,24 @@ import {
   Edit,
   Trash2,
   FileText,
-  Building2,
   MapPin,
   Users
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-// Mock data for job templates
-const mockTemplates = [
+interface JobTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  requiredWorkers: number;
+  duration: string;
+  skills: string[];
+  location: string;
+  usageCount: number;
+}
+
+const mockTemplates: JobTemplate[] = [
   {
     id: "1",
     name: "Warehouse Loading",
@@ -89,7 +99,7 @@ function JobTemplatesPage() {
     template.description.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleUseTemplate = (template: any) => {
+  const handleUseTemplate = (template: JobTemplate) => {
     // Navigate to new job page with template data pre-filled
     const queryParams = new URLSearchParams({
       template: template.id,
@@ -100,14 +110,14 @@ function JobTemplatesPage() {
     router.push(`/admin/jobs/new?${queryParams.toString()}`)
   }
 
-  const handleEditTemplate = (templateId: string) => {
+  const handleEditTemplate = () => {
     toast({
       title: "Feature Coming Soon",
       description: "Template editing will be available in a future update.",
     })
   }
 
-  const handleDeleteTemplate = (templateId: string) => {
+  const handleDeleteTemplate = () => {
     toast({
       title: "Feature Coming Soon", 
       description: "Template deletion will be available in a future update.",

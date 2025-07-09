@@ -1,9 +1,48 @@
 import { query } from '../db';
 import type { Job } from '../types';
 
-export async function getAllJobs(): Promise<Job[]> {
+export async function getJobsCount(): Promise<number> {
+  try {
+    const result = await query('SELECT COUNT(*) FROM jobs');
+    return parseInt(result.rows[0].count, 10);
+  } catch (error) {
+    console.error('Error getting jobs count:', error);
+    throw error;
+  }
+}
+
+export async function getRecentJobs(limit: number = 5): Promise<Job[]> {
   try {
     const result = await query(`
+      SELECT 
+        j.id, j.name, j.description, j.client_id,
+        c.company_name as client_name
+      FROM jobs j
+      JOIN clients c ON j.client_id = c.id
+      ORDER BY j.created_at DESC
+      LIMIT $1
+    `, [limit]);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      clientId: row.client_id,
+      clientName: row.client_name,
+    }));
+  } catch (error) {
+    console.error('Error getting recent jobs:', error);
+    return [];
+  }
+}
+
+export async function getAllJobs(limit?: number, offset?: number, sort?: string, order?: string): Promise<Job[]> {
+  try {
+    const sortColumn = sort || 'created_at';
+    const sortOrder = order || 'DESC';
+    const queryParams: any[] = [];
+
+    let queryString = `
       SELECT 
         j.id, j.name, j.description, j.client_id,
         c.company_name as client_name,
@@ -19,8 +58,20 @@ export async function getAllJobs(): Promise<Job[]> {
       JOIN clients c ON j.client_id = c.id
       LEFT JOIN shifts s ON j.id = s.job_id
       GROUP BY j.id, j.name, j.description, j.client_id, c.company_name
-      ORDER BY j.created_at DESC
-    `);
+      ORDER BY ${sortColumn} ${sortOrder}
+    `;
+
+    if (limit) {
+      queryString += ` LIMIT ${queryParams.length + 1}`;
+      queryParams.push(limit);
+    }
+
+    if (offset) {
+      queryString += ` OFFSET ${queryParams.length + 1}`;
+      queryParams.push(offset);
+    }
+
+    const result = await query(queryString, queryParams);
 
     return result.rows.map(row => ({
       id: row.id,

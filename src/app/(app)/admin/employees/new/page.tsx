@@ -172,7 +172,7 @@ function NewEmployeePage() {
             <Card withBorder>
               <Card.Section withBorder inheritPadding py="sm">
                 <Title order={4}>Personal Information</Title>
-                <Text size="sm" c="dimmed">Enter the employee's basic personal details</Text>
+                <Text size="sm" c="dimmed">Enter the employee&apos;s basic personal details</Text>
               </Card.Section>
               <Card.Section inheritPadding py="md">
                 <Stack>
@@ -255,7 +255,7 @@ function NewEmployeePage() {
             <Card withBorder>
               <Card.Section withBorder inheritPadding py="sm">
                 <Title order={4}>Skills & Certifications</Title>
-                <Text size="sm" c="dimmed">Select the employee's skills and certifications</Text>
+                <Text size="sm" c="dimmed">Select the employee&apos;s skills and certifications</Text>
               </Card.Section>
               <Card.Section inheritPadding py="md">
                 <Stack>

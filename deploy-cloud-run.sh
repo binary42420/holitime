@@ -87,14 +87,14 @@ gcloud run deploy ${SERVICE_NAME} \n
   --allow-unauthenticated \n
   --port 3000 \n
   --memory 2Gi \n
-  --cpu 2 \n
+  --cpu 1 \n
   --min-instances 0 \n
   --max-instances 1 \n
   --timeout 300 \n
   --concurrency 80 \n
   --set-env-vars "NODE_ENV=production" \n
   --set-env-vars "NEXT_TELEMETRY_DISABLED=1" \n
-  --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@pg-3c901dd1-hol619.b.aivencloud.com:12297/defaultdb?sslmode=require" \n
+  --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@pg-3595fcb-hol619.b.aivencloud.com:12297/defaultdb?sslmode=require" \n
   --set-env-vars "DATABASE_PROVIDER=aiven" \n
   --set-env-vars "DATABASE_SSL=true" \n
   --set-env-vars "NODE_TLS_REJECT_UNAUTHORIZED=0" \n
@@ -112,14 +112,14 @@ gcloud run deploy ${SERVICE_NAME} \
   --allow-unauthenticated \
   --port 3000 \
   --memory 2Gi \
-  --cpu 2 \
+  --cpu 1 \
   --min-instances 0 \
   --max-instances 1 \
   --timeout 300 \
   --concurrency 80 \
   --set-env-vars "NODE_ENV=production" \
   --set-env-vars "NEXT_TELEMETRY_DISABLED=1" \
-  --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@pg-3c901dd1-hol619.b.aivencloud.com:12297/defaultdb?sslmode=require" \
+  --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@pg-3595fcb-hol619.b.aivencloud.com:12297/defaultdb?sslmode=require" \
   --set-env-vars "DATABASE_PROVIDER=aiven" \
   --set-env-vars "DATABASE_SSL=true" \
   --set-env-vars "NODE_TLS_REJECT_UNAUTHORIZED=0" \

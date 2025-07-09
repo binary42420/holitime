@@ -56,19 +56,59 @@ export async function getClientCompanyById(id: string): Promise<ClientCompany | 
 }
 
 // Client Contact functions (for the contact person users)
-export async function getAllClients(): Promise<Client[]> {
+export async function getClientsCount(): Promise<number> {
+  try {
+    const result = await query("SELECT COUNT(*) FROM users WHERE role = 'Client'");
+    return parseInt(result.rows[0].count, 10);
+  } catch (error) {
+    console.error('Error getting clients count:', error);
+    throw error;
+  }
+}
+
+export async function getRecentClients(limit: number = 5): Promise<Client[]> {
   try {
     const result = await query(`
       SELECT
         u.id, u.name, u.email, u.client_company_id,
+        c.company_name, c.company_address
+      FROM users u
+      LEFT JOIN clients c ON u.client_company_id = c.id
+      WHERE u.role = 'Client'
+      ORDER BY u.created_at DESC
+      LIMIT $1
+    `, [limit]);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      clientCompanyId: row.client_company_id,
+      companyName: row.company_name,
+      companyAddress: row.company_address,
+      contactPerson: row.name,
+      contactEmail: row.email,
+    }));
+  } catch (error) {
+    console.error('Error getting recent clients:', error);
+    return [];
+  }
+}
+
+export async function getAllClients(limit?: number, offset?: number, sort?: string, order?: string): Promise<Client[]> {
+  try {
+    const sortColumn = sort || 'company_name';
+    const sortOrder = order || 'ASC';
+    const queryParams: any[] = [];
+
+    let queryString = `
+      SELECT
+        u.id, u.name, u.email, u.client_company_id,
         c.company_name, c.company_address, c.contact_phone, c.contact_email as company_contact_email, c.notes,
-        -- Job count (now based on client company, not user)
         COALESCE(job_counts.job_count, 0) as job_count,
-        -- Most recent completed shift
         completed_shift.shift_id as completed_shift_id,
         completed_shift.shift_date as completed_shift_date,
         completed_shift.job_name as completed_job_name,
-        -- Most recent upcoming shift
         upcoming_shift.shift_id as upcoming_shift_id,
         upcoming_shift.shift_date as upcoming_shift_date,
         upcoming_shift.start_time as upcoming_shift_start_time,
@@ -114,8 +154,20 @@ export async function getAllClients(): Promise<Client[]> {
         ORDER BY j.client_id, s.date ASC, s.start_time ASC
       ) upcoming_shift ON u.client_company_id = upcoming_shift.client_id
       WHERE u.role = 'Client' AND u.client_company_id IS NOT NULL
-      ORDER BY COALESCE(c.company_name, u.name)
-    `);
+      ORDER BY ${sortColumn} ${sortOrder}
+    `;
+
+    if (limit) {
+      queryString += ` LIMIT ${queryParams.length + 1}`;
+      queryParams.push(limit);
+    }
+
+    if (offset) {
+      queryString += ` OFFSET ${queryParams.length + 1}`;
+      queryParams.push(offset);
+    }
+
+    const result = await query(queryString, queryParams);
 
     return result.rows.map(row => ({
       id: row.id, // User ID (contact person)

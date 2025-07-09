@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@mantine/core';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@mantine/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Badge } from '@mantine/core';
 import { useToast } from '@/hooks/use-toast';
@@ -179,14 +179,14 @@ export function CascadeDeleteDialog({
     <AlertDialog open={isOpen} onOpenChange={handleOpenChange}>
       <AlertDialogTrigger asChild>
         <Button variant="destructive" className={className}>
-          <Trash2 className="h-4 w-4 mr-2" />
+          <Trash2 className="w-4 h-4 mr-2" />
           Delete {getEntityTypeLabel()}
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent className="max-w-2xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-destructive">
-            <AlertTriangle className="h-5 w-5" />
+            <AlertTriangle className="w-5 h-5" />
             Delete {getEntityTypeLabel()}: {entityName}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-base">
@@ -200,7 +200,7 @@ export function CascadeDeleteDialog({
             <Card>
               <CardContent className="pt-6">
                 <div className="flex items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  <Loader2 className="w-6 h-6 mr-2 animate-spin" />
                   <span>Calculating deletion impact...</span>
                 </div>
               </CardContent>
@@ -220,7 +220,7 @@ export function CascadeDeleteDialog({
                     return (
                       <div key={item.label} className="flex items-center justify-between p-2 border rounded">
                         <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4 text-muted-foreground" />
+                          <Icon className="w-4 h-4 text-muted-foreground" />
                           <span className="text-sm">{item.label}</span>
                         </div>
                         <Badge variant="destructive">{item.count}</Badge>
@@ -259,11 +259,11 @@ export function CascadeDeleteDialog({
               </div>
               
               {entityType === 'client' && (
-                <div className="p-3 bg-destructive/10 border border-destructive/20 rounded">
-                  <p className="text-sm text-destructive font-medium">
+                <div className="p-3 border rounded bg-destructive/10 border-destructive/20">
+                  <p className="text-sm font-medium text-destructive">
                     ⚠️ Double Confirmation Required for Client Deletion
                   </p>
-                  <p className="text-xs text-destructive/80 mt-1">
+                  <p className="mt-1 text-xs text-destructive/80">
                     Client company deletion has the highest impact and affects the most data.
                   </p>
                 </div>
@@ -281,12 +281,12 @@ export function CascadeDeleteDialog({
           >
             {isDeleting ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Deleting...
               </>
             ) : (
               <>
-                <Trash2 className="h-4 w-4 mr-2" />
+                <Trash2 className="w-4 h-4 mr-2" />
                 Delete {getEntityTypeLabel()}
               </>
             )}

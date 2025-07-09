@@ -102,6 +102,45 @@ WITH shift_personnel AS (
   GROUP BY ap.shift_id
 )`;
 
+export async function getShiftsCount(): Promise<number> {
+  try {
+    const result = await query('SELECT COUNT(*) FROM shifts');
+    return parseInt(result.rows[0].count, 10);
+  } catch (error) {
+    console.error('Error getting shifts count:', error);
+    throw error;
+  }
+}
+
+export async function getRecentShifts(limit: number = 5): Promise<Shift[]> {
+  try {
+    const result = await query(`
+      SELECT
+        s.id, s.date, s.start_time, s.end_time, s.status,
+        j.name as job_name,
+        c.company_name as client_name
+      FROM shifts s
+      JOIN jobs j ON s.job_id = j.id
+      JOIN clients c ON j.client_id = c.id
+      ORDER BY s.date DESC, s.start_time DESC
+      LIMIT $1
+    `, [limit]);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      date: row.date,
+      startTime: row.start_time,
+      endTime: row.end_time,
+      status: row.status as Shift['status'],
+      jobName: row.job_name,
+      clientName: row.client_name,
+    }));
+  } catch (error) {
+    console.error('Error getting recent shifts:', error);
+    return [];
+  }
+}
+
 export async function getTodaysShifts(): Promise<Shift[]> {
   try {
     const result = await cachedQuery(`
@@ -141,6 +180,7 @@ export async function getAllShifts(options: ShiftQueryOptions = {}): Promise<{
   total: number;
   pages: number;
 }> {
+
   try {
     const {
       page = 1,

@@ -3,7 +3,6 @@
 import { useUser } from '@/hooks/use-user';
 import { useApi } from '@/hooks/use-api';
 import { Card, Badge, Button, Group, Text, Title, Stack } from '@mantine/core';
-import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Briefcase, Building2 } from 'lucide-react';
 import type { Client, Job, Shift } from '@/lib/types';
@@ -12,27 +11,28 @@ export default function ManagerDashboard() {
   const { user } = useUser();
   const router = useRouter();
 
-  const { data: clientsData, loading: clientsLoading, error: clientsError, refetch: refetchClients } = useApi<{ clients: Client[] }>('/api/clients');
-  const { data: jobsData, loading: jobsLoading, error: jobsError, refetch: refetchJobs } = useApi<{ jobs: Job[] }>('/api/jobs');
-  const { data: shiftsData, loading: shiftsLoading, error: shiftsError, refetch: refetchShifts } = useApi<{ shifts: Shift[] }>('/api/shifts?filter=all');
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useApi<{ count: number }>('/api/clients/count');
+  const { data: jobsData, loading: jobsLoading, error: jobsError } = useApi<{ count: number }>('/api/jobs/count');
+  const { data: shiftsData, loading: shiftsLoading, error: shiftsError } = useApi<{ count: number }>('/api/shifts/count');
+  const { data: recentShiftsData, loading: recentShiftsLoading, error: recentShiftsError } = useApi<{ shifts: Shift[] }>('/api/shifts/recent');
+  const { data: recentClientsData, loading: recentClientsLoading, error: recentClientsError } = useApi<{ clients: Client[] }>('/api/clients/recent');
 
-  useEffect(() => {
-    refetchClients();
-    refetchJobs();
-    refetchShifts();
-  }, [refetchClients, refetchJobs, refetchShifts]);
+  const loading = clientsLoading || jobsLoading || shiftsLoading || recentShiftsLoading || recentClientsLoading;
+  const error = clientsError || jobsError || shiftsError || recentShiftsError || recentClientsError;
 
-  if (clientsLoading || jobsLoading || shiftsLoading) {
+  if (loading) {
     return <Text>Loading dashboard data...</Text>;
   }
 
-  if (clientsError || jobsError || shiftsError) {
+  if (error) {
     return <Text color="red">Error loading dashboard data.</Text>;
   }
 
-  const clients = clientsData?.clients || [];
-  const jobs = jobsData?.jobs || [];
-  const shifts = shiftsData?.shifts || [];
+  const clientsCount = clientsData?.count || 0;
+  const jobsCount = jobsData?.count || 0;
+  const shiftsCount = shiftsData?.count || 0;
+  const recentShifts = recentShiftsData?.shifts || [];
+  const recentClients = recentClientsData?.clients || [];
 
   return (
     <Stack gap="lg">
@@ -47,7 +47,7 @@ export default function ManagerDashboard() {
             <Building2 size={24} />
             <Text>Total Clients</Text>
           </Group>
-          <Text size="xl" fw={700}>{clients.length}</Text>
+          <Text size="xl" fw={700}>{clientsCount}</Text>
         </Card>
 
         <Card withBorder p="md" radius="md" style={{ flex: 1 }}>
@@ -55,7 +55,7 @@ export default function ManagerDashboard() {
             <Briefcase size={24} />
             <Text>Total Jobs</Text>
           </Group>
-          <Text size="xl" fw={700}>{jobs.length}</Text>
+          <Text size="xl" fw={700}>{jobsCount}</Text>
         </Card>
 
         <Card withBorder p="md" radius="md" style={{ flex: 1 }}>
@@ -63,15 +63,15 @@ export default function ManagerDashboard() {
             <Calendar size={24} />
             <Text>Total Shifts</Text>
           </Group>
-          <Text size="xl" fw={700}>{shifts.length}</Text>
+          <Text size="xl" fw={700}>{shiftsCount}</Text>
         </Card>
       </Group>
 
       <section>
         <Title order={2} mb="md">Recent Shifts</Title>
-        {shifts.length > 0 ? (
+        {recentShifts.length > 0 ? (
           <Stack>
-            {shifts.slice(0, 5).map((shift) => (
+            {recentShifts.map((shift) => (
               <Card key={shift.id} withBorder p="md" radius="sm" style={{ cursor: 'pointer' }} onClick={() => router.push(`/shifts/${shift.id}`)}>
                 <Group justify="space-between">
                   <div>
@@ -93,9 +93,9 @@ export default function ManagerDashboard() {
 
       <section>
         <Title order={2} mt="lg" mb="md">Recent Clients</Title>
-        {clients.length > 0 ? (
+        {recentClients.length > 0 ? (
           <Stack>
-            {clients.slice(0, 5).map((client) => (
+            {recentClients.map((client) => (
               <Card key={client.id} withBorder p="md" radius="sm" style={{ cursor: 'pointer' }} onClick={() => router.push(`/clients/${client.id}`)}>
                 <Group justify="space-between">
                   <div>

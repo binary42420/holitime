@@ -20,8 +20,10 @@ import {
   Container,
   Grid,
 } from "@mantine/core"
-import { ArrowLeft, Save, Building2 } from "lucide-react"
+import { ArrowLeft, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+
+import { Client } from "@/lib/types"
 
 const jobSchema = z.object({
   name: z.string().min(1, "Job name is required"),
@@ -46,7 +48,7 @@ function NewJobPage() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  const { data: clientsData } = useApi<{ clients: any[] }>('/api/clients')
+  const { data: clientsData } = useApi<{ clients: Client[] }>('/api/clients')
 
   // Redirect if not admin
   if (user?.role !== 'Manager/Admin') {
@@ -84,7 +86,7 @@ function NewJobPage() {
       })
 
       router.push(`/jobs/${result.job.id}`)
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to create job. Please try again.",
@@ -170,7 +172,7 @@ function NewJobPage() {
                         placeholder="Select status"
                         data={["Active", "On Hold", "Completed", "Cancelled"]}
                         {...form.register("status")}
-                        onChange={(value) => form.setValue("status", value as any)}
+                        onChange={(value) => form.setValue("status", value as JobFormData['status'])}
                       />
                     </Grid.Col>
                   </Grid>
