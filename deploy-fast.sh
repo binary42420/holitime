@@ -68,7 +68,7 @@ gcloud run deploy ${SERVICE_NAME} \
   --concurrency 100 \
   --set-env-vars "NODE_ENV=production" \
   --set-env-vars "NEXT_TELEMETRY_DISABLED=1" \
-  --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@holidb-hol619.d.aivencloud.com:12297/defaultdb?sslmode=require" \
+  --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@pg-3c901dd1-hol619.b.aivencloud.com:12297/defaultdb?sslmode=require" \
   --set-env-vars "DATABASE_PROVIDER=aiven" \
   --set-env-vars "DATABASE_SSL=true" \
   --set-env-vars "NODE_TLS_REJECT_UNAUTHORIZED=0" \

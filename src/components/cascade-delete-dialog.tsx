@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@mantine/core';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@mantine/card';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@mantine/core';
 import { useToast } from '@/hooks/use-toast';
 import { Trash2, AlertTriangle, Loader2, Database, Users, Clock, Briefcase, Building } from 'lucide-react';
 
