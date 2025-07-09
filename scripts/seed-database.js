@@ -1,6 +1,7 @@
 const { config } = require('dotenv');
 const path = require('path');
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
 
 // Load environment variables
 config({ path: path.join(__dirname, '..', '.env.local') });
@@ -21,13 +22,14 @@ async function seedDatabase() {
 
     // Create sample users (no password hashing)
     const password = 'password123';
+    const passwordHash = await bcrypt.hash(password, 10);
 
     // Insert admin user
     const adminResult = await pool.query(`
       INSERT INTO users (email, password_hash, name, role)
       VALUES ($1, $2, $3, $4)
       RETURNING id
-    `, ['sam.c@handson.com', password, 'Sam C', 'Manager/Admin']);
+    `, ['sam.c@handson.com', passwordHash, 'Sam C', 'Manager/Admin']);
     const adminId = adminResult.rows[0].id;
     console.log('✅ Admin user created:', adminId);
 
@@ -36,7 +38,7 @@ async function seedDatabase() {
       INSERT INTO users (email, password_hash, name, role, certifications, performance, location)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id
-    `, ['john.chief@handson.com', password, 'John Chief', 'Crew Chief', ['Safety', 'Equipment'], 4.8, 'Downtown']);
+    `, ['john.chief@handson.com', passwordHash, 'John Chief', 'Crew Chief', ['Safety', 'Equipment'], 4.8, 'Downtown']);
     const crewChiefId = crewChiefResult.rows[0].id;
     console.log('✅ Crew chief created:', crewChiefId);
 
@@ -45,14 +47,14 @@ async function seedDatabase() {
       INSERT INTO users (email, password_hash, name, role, certifications, performance, location)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id
-    `, ['mike.worker@handson.com', password, 'Mike Worker', 'Employee', ['Stage Setup'], 4.2, 'Downtown']);
+    `, ['mike.worker@handson.com', passwordHash, 'Mike Worker', 'Employee', ['Stage Setup'], 4.2, 'Downtown']);
     const employee1Id = employee1Result.rows[0].id;
 
     const employee2Result = await pool.query(`
       INSERT INTO users (email, password_hash, name, role, certifications, performance, location)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id
-    `, ['sarah.tech@handson.com', password, 'Sarah Tech', 'Employee', ['Audio', 'Lighting'], 4.6, 'Midtown']);
+    `, ['sarah.tech@handson.com', passwordHash, 'Sarah Tech', 'Employee', ['Audio', 'Lighting'], 4.6, 'Midtown']);
     const employee2Id = employee2Result.rows[0].id;
     console.log('✅ Employees created');
 

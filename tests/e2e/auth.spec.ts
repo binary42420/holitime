@@ -7,7 +7,7 @@ test.describe('Authentication', () => {
 
     // Fill in the login form
     // Make sure to use valid credentials for a test user in your database
-    await page.getByLabel('Email Address').fill('test-manager@example.com');
+    await page.getByLabel('Email Address').fill('sam.c@handson.com');
     await page.getByLabel('Password').fill('password123');
 
     // Click the login button
@@ -18,14 +18,14 @@ test.describe('Authentication', () => {
     expect(page.url()).toContain('/dashboard');
 
     // Verify that the user navigation element is visible
-    await expect(page.locator('div:has-text("UserNav")')).toBeVisible();
+    await expect(page.getByText('Sam C')).toBeVisible();
 
     // Now, test logout
     // Click the user menu to open it
     await page.click('button[aria-haspopup="menu"]');
     
     // Click the logout button
-    await page.click('button:has-text("Log out")');
+    await page.getByRole('menuitem', { name: 'Log out' }).click();
 
     // Wait for navigation back to the login page
     await page.waitForURL('/login');
