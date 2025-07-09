@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@mantine/core'
-import { Badge } from '@mantine/core'import { Separator } from '@/components/ui/separator'
+import { Badge } from '@mantine/core'
+import { Separator } from '@/components/ui/separator'
 import { Clock, User, MapPin, Calendar, Building, FileText, Download } from 'lucide-react'
 import { format } from 'date-fns'
 import SignatureCaptureModal from '@/components/signature-capture-modal'
 import { useToast } from '@/hooks/use-toast'
-import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
+import { formatTimeTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
 
 interface TimeEntry {
   id: string

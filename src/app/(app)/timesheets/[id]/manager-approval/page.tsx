@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@mantine/core'
-import { Badge } from '@mantine/core'import { Separator } from '@/components/ui/separator'
+import { Badge } from '@mantine/core'
+import { Separator } from '@/components/ui/separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, FileSignature, MapPin, User, Shield } from 'lucide-react'
-import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
+import { formatTimeTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
 import SignatureCaptureModal from '@/components/signature-capture-modal'
 import { useToast } from '@/hooks/use-toast'
 import { useSession } from 'next-auth/react'
@@ -104,14 +105,13 @@ export default function ManagerApprovalPage() {
     try {
       setSubmitting(true)
 
-      const response = await fetch(`/api/timesheets/${timesheetId}/approve`, {
+      const response = await fetch(`/api/timesheets/${timesheetId}/finalize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           signature: signatureData,
-          approvalType: 'manager'
         }),
       })
 
@@ -266,7 +266,7 @@ export default function ManagerApprovalPage() {
             </div>
             <div className="space-y-1">
               <p className="text-muted-foreground">Start Time</p>
-              <p className="font-medium">{formatTo12Hour(shift?.startTime)}</p>
+              <p className="font-medium">{formatTimeTo12Hour(shift?.startTime)}</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
@@ -332,7 +332,7 @@ export default function ManagerApprovalPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {shift.assignedPersonnel.filter((p: any) => p.timeEntries.length > 0).map((person: any) => (
+              {shift?.assignedPersonnel?.filter((p: any) => p.timeEntries.length > 0).map((person: any) => (
                 <TableRow key={person.employee.id}>
                   <TableCell className="font-medium">{person.employee.name}</TableCell>
                   <TableCell>{person.roleOnShift}</TableCell>
@@ -365,9 +365,9 @@ export default function ManagerApprovalPage() {
                 <TableCell colSpan={4} className="text-right">Total Hours:</TableCell>
                 <TableCell className="text-right font-mono">
                   {(() => {
-                    const allTimeEntries = shift.assignedPersonnel
-                      .filter((p: any) => p.timeEntries.length > 0)
-                      .flatMap((p: any) => p.timeEntries);
+                    const allTimeEntries = shift?.assignedPersonnel
+                      ?.filter((p: any) => p.timeEntries.length > 0)
+                      .flatMap((p: any) => p.timeEntries) || [];
                     return calculateTotalHours(allTimeEntries);
                   })()}
                 </TableCell>

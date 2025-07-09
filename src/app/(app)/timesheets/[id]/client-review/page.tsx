@@ -7,8 +7,9 @@ import { Button } from '@mantine/core'
 import { Badge } from '@mantine/core'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { TextArea } from '@mantine/core'textarea"
-import { Label } from '@mantine/core'
+import { Textarea } from "@/components/ui/textarea"
+
+import { Label } from '@/components/ui/label'
 import { 
   CheckCircle, 
   XCircle, 

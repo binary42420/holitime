@@ -5,9 +5,6 @@ import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { Card, Button, TextInput, Textarea, Group, Text, Title, Stack } from "@mantine/core"
 import { ArrowLeft, Building2, Save } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
 import { notifications } from "@mantine/notifications"
 
 function NewClientPage() {
@@ -46,7 +43,7 @@ function NewClientPage() {
       })
 
       if (response.ok) {
-        const result = await response.json()
+        await response.json()
         notifications.show({
           title: "Client Created",
           message: `${formData.name} has been successfully added.`,
@@ -161,4 +158,4 @@ function NewClientPage() {
   )
 }
 
-export default withAuth(NewClientPage, hasAdminAccess);
+export default NewClientPage;

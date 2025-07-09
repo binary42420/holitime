@@ -1,42 +1,20 @@
 "use client"
 
-import type { User } from '@/lib/types'
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession, signIn, signOut } from 'next-auth/react'
+import { useAppStore } from '@/lib/stores/app-store'
+import type { User } from '@/lib/types'
 
-interface UserContextType {
-  user: User | null
-  isLoading: boolean
-  login: (email: string, password: string) => Promise<boolean>
-  logout: () => Promise<void>
-  refreshUser: () => Promise<void>
-}
-
-const UserContext = createContext<UserContextType | undefined>(undefined)
-
-export const UserProvider = ({ children }: { children: React.ReactNode }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+export const useUser = () => {
   const router = useRouter()
   const { data: session, status } = useSession()
+  const { session: appSession, setSession, setIsLoading } = useAppStore()
 
-  // Update user state when session changes
   useEffect(() => {
-    if (session?.user) {
-      setCurrentUser({
-        id: session.user.id as string,
-        email: session.user.email!,
-        name: session.user.name!,
-        role: session.user.role as any,
-        avatar: session.user.image || `https://i.pravatar.cc/32?u=${session.user.email}`,
-        clientId: session.user.clientId as string || null,
-      })
-    } else if (status === 'unauthenticated') {
-      setCurrentUser(null)
-    }
+    setSession(session)
     setIsLoading(status === 'loading')
-  }, [session, status])
+  }, [session, status, setSession, setIsLoading])
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -67,25 +45,22 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }
 
-  const refreshUser = async () => {
-    // No need to implement - NextAuth handles session refresh
-  }
+  const user: User | null = appSession?.user
+    ? {
+        id: appSession.user.id as string,
+        email: appSession.user.email!,
+        name: appSession.user.name!,
+        role: appSession.user.role as any,
+        avatar: appSession.user.image || `https://i.pravatar.cc/32?u=${appSession.user.email}`,
+        clientCompanyId: appSession.user.clientCompanyId as string | undefined,
+      }
+    : null
 
-  const value = useMemo(() => ({
-    user: currentUser,
-    isLoading,
+  return {
+    user,
+    isLoading: status === 'loading',
     login,
     logout,
-    refreshUser,
-  }), [currentUser, isLoading])
-
-  return React.createElement(UserContext.Provider, { value }, children)
-}
-
-export const useUser = () => {
-  const context = useContext(UserContext)
-  if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider')
+    refreshUser: async () => {}, // Kept for compatibility, but NextAuth handles this.
   }
-  return context
 }

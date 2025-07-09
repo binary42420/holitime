@@ -157,7 +157,7 @@ export default function PendingTimesheetsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="outline" size="sm" asChild>
+                      <Button variant="outline" size="sm">
                         <Link href={`/timesheets/${timesheet.id}/review`}>
                           <Eye className="mr-2 h-4 w-4" />
                           Review

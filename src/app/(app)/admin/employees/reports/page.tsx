@@ -17,22 +17,14 @@ import {
   Container,
   Grid,
 } from "@mantine/core"
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   Download,
-  FileText,
-  Users,
   Clock,
-  DollarSign,
-  TrendingUp,
-  Calendar,
   BarChart3
 } from "lucide-react"
-import { format, subDays, startOfMonth, endOfMonth } from "date-fns"
+import { subDays, startOfMonth, endOfMonth } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
-
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
 
 function EmployeeReportsPage() {
   const { user } = useUser()
@@ -62,9 +54,10 @@ function EmployeeReportsPage() {
         return { start: subDays(now, 7), end: now }
       case 'thisMonth':
         return { start: startOfMonth(now), end: endOfMonth(now) }
-      case 'lastMonth':
+      case 'lastMonth': {
         const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
         return { start: startOfMonth(lastMonth), end: endOfMonth(lastMonth) }
+      }
       case 'last3Months':
         return { start: subDays(now, 90), end: now }
       default:
@@ -303,4 +296,4 @@ function EmployeeReportsPage() {
   )
 }
 
-export default withAuth(EmployeeReportsPage, hasAdminAccess);
+export default EmployeeReportsPage;

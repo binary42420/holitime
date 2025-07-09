@@ -123,16 +123,25 @@ export interface Employee {
   avatar: string;
 }
 
-export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended';
+export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended' | 'shift_ended' | 'not_started';
 
 export type RoleCode = 'CC' | 'SH' | 'FO' | 'RFO' | 'RG' | 'GL';
 
+export interface TimeEntry {
+  id: string;
+  entryNumber: number;
+  clockIn?: string;
+  clockOut?: string;
+  isActive: boolean;
+}
+
 export interface AssignedPersonnel {
+  id: string;
   employee: Employee;
   roleOnShift: string;
   roleCode: RoleCode;
   status: AssignedPersonnelStatus;
-  timeEntries: { clockIn?: string; clockOut?: string }[];
+  timeEntries: TimeEntry[];
   isPlaceholder?: boolean;
 }
 
@@ -195,4 +204,10 @@ export interface Timesheet {
     clientSignature?: string; // a data URI
     approvedByClientAt?: string;
     approvedByManagerAt?: string;
+}
+
+export interface TimesheetDetails extends Timesheet {
+  shift: Shift;
+  assignedPersonnel: AssignedPersonnel[];
+  rejectionReason?: string;
 }

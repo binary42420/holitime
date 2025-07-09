@@ -9,18 +9,18 @@ export function withAuth<P extends object>(
   hasAccess: (role: string) => boolean
 ) {
   return function WithAuth(props: P) {
-    const { user, loading } = useUser();
+    const { user, isLoading } = useUser();
     const router = useRouter();
 
     useEffect(() => {
-      if (!loading && !user) {
+      if (!isLoading && !user) {
         router.push('/login');
-      } else if (!loading && user && !hasAccess(user.role)) {
+      } else if (!isLoading && user && !hasAccess(user.role)) {
         router.push('/unauthorized');
       }
-    }, [user, loading, router]);
+    }, [user, isLoading, router]);
 
-    if (loading || !user || !hasAccess(user.role)) {
+    if (isLoading || !user || !hasAccess(user.role)) {
       return <div>Loading...</div>; // Or a proper loading spinner
     }
 

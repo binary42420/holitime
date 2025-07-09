@@ -12,6 +12,11 @@
     "gitlens.ai.model": "gitkraken", // GitLens AI model setting
     "gitlens.ai.gitkraken.model": "gemini:gemini-2.0-flash", // Specific GitKraken AI model
 
+
+  "extensions.experimental.affinity": {
+    "better-ts-errors.better-ts-errors": 1
+  }
+,
     // --- Language-Specific Overrides (Prettier) ---
     // These are slightly redundant given the global "editor.defaultFormatter",
     // but don't cause issues and explicitly ensure Prettier for these types.
@@ -21,7 +26,9 @@
     "[html]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
-
+// put this line in settings.json
+"typescript.tsserver.experimental.enableProjectDiagnostics": true
+,
     // --- Python Language Server (Pylance) Analysis Settings ---
     "python.analysis.addHoverSummaries": true, // Show hover summaries for symbols
     "python.analysis.autoImportCompletions": true, // Enable auto-import completions
@@ -51,6 +58,15 @@
         "vscode-insiders",
         "docker-desktop"
     ],
+
+    
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    }
+  },
+
     "terminal.integrated.profiles.windows": { // Define terminal profiles for Windows
         "PowerShell": {
             "source": "PowerShell",

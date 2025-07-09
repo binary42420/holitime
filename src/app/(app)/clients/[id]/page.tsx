@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
@@ -12,14 +11,7 @@ import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-m
 import { DangerZone } from "@/components/danger-zone"
 import { notifications } from "@mantine/notifications"
 
-interface ClientDetailPageProps {
-  params: { id: string }
-}
-
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
-
-function ClientDetailPage({ params }: ClientDetailPageProps) {
+function ClientDetailPage({ params }: { params: { id: string } }) {
   const { id: clientId } = params
   const { user } = useUser()
   const router = useRouter()
@@ -260,4 +252,4 @@ function ClientDetailPage({ params }: ClientDetailPageProps) {
   )
 }
 
-export default withAuth(ClientDetailPage, hasAdminAccess);
+export default ClientDetailPage;

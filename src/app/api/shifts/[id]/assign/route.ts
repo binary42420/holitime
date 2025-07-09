@@ -91,7 +91,7 @@ export async function POST(
         const conflict = conflictResult.rows[0]
         return NextResponse.json(
           {
-            error: `Worker is already assigned to another shift at ${conflict.client_name} - ${conflict.job_name} from ${conflict.start_time} to ${conflict.end_time} on the same day`
+            error: `Worker is already assigned to another shift`
           },
           { status: 400 }
         )

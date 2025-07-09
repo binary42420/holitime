@@ -3,11 +3,11 @@
 import React from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from '@mantine/core'
-import { Badge } from '@mantine/core'
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Label } from '@mantine/core'
+import { Label } from '@/components/ui/label'
 import { 
   CheckCircle, 
   XCircle, 
@@ -130,29 +130,44 @@ export default function TimesheetViewPage() {
     )
   }
 
+  if (!timesheetData.shift) {
+    return (
+      <div className="container mx-auto py-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-red-500">Error: Shift data is missing for this timesheet.</div>
+        </div>
+      </div>
+    )
+  }
+ 
   const { shift, assignedPersonnel } = timesheetData
+
+  const maxEntries = Math.max(
+    ...assignedPersonnel.map(p => p.timeEntries.length),
+    1
+  )
 
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" onClick={() => router.push('/timesheets')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Timesheets
+            <ArrowLeft className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Back to Timesheets</span>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Timesheet Details</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Timesheet Details</h1>
             <p className="text-muted-foreground">
               View timesheet information and approval status
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-end sm:self-center">
           {getStatusBadge(timesheetData.status)}
           <Button variant="outline" onClick={downloadPDF}>
             <Download className="h-4 w-4 mr-2" />
-            Download PDF
+            PDF
           </Button>
         </div>
       </div>
@@ -195,9 +210,9 @@ export default function TimesheetViewPage() {
                 {timesheetData.clientSignature && (
                   <div className="mt-2">
                     <p className="text-xs text-muted-foreground mb-1">Client Signature:</p>
-                    <img 
-                      src={timesheetData.clientSignature} 
-                      alt="Client Signature" 
+                    <img
+                      src={timesheetData.clientSignature}
+                      alt="Client Signature"
                       className="h-12 border rounded"
                     />
                   </div>
@@ -250,7 +265,7 @@ export default function TimesheetViewPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <Label className="text-sm font-medium text-muted-foreground">Job</Label>
               <p className="font-medium">{shift.jobName}</p>
@@ -290,30 +305,30 @@ export default function TimesheetViewPage() {
             Complete record of all worker time entries for this shift
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Worker</TableHead>
+                <TableHead className="sticky left-0 bg-white">Worker</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead>Clock In 1</TableHead>
-                <TableHead>Clock Out 1</TableHead>
-                <TableHead>Clock In 2</TableHead>
-                <TableHead>Clock Out 2</TableHead>
-                <TableHead>Clock In 3</TableHead>
-                <TableHead>Clock Out 3</TableHead>
+                {Array.from({ length: maxEntries }, (_, i) => (
+                  <React.Fragment key={i}>
+                    <TableHead>Time In {i + 1}</TableHead>
+                    <TableHead>Time Out {i + 1}</TableHead>
+                  </React.Fragment>
+                ))}
                 <TableHead>Total Hours</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {assignedPersonnel.map((worker) => {
-                const totalHours = worker.timeEntries.reduce((sum, entry) => 
+                const totalHours = worker.timeEntries.reduce((sum, entry) =>
                   sum + calculateHours(entry.clockIn, entry.clockOut), 0
-                )
+                );
                 
                 return (
                   <TableRow key={worker.id}>
-                    <TableCell>
+                    <TableCell className="sticky left-0 bg-white">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage src={worker.employeeAvatar} />
@@ -321,16 +336,16 @@ export default function TimesheetViewPage() {
                             {worker.employeeName.split(' ').map(n => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="font-medium">{worker.employeeName}</span>
+                        <span className="font-medium truncate">{worker.employeeName}</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{worker.roleCode}</Badge>
                     </TableCell>
-                    {[1, 2, 3].map((entryNum) => {
-                      const entry = worker.timeEntries.find(e => e.entryNumber === entryNum)
+                    {Array.from({ length: maxEntries }, (_, i) => {
+                      const entry = worker.timeEntries.find(e => e.entryNumber === i + 1);
                       return (
-                        <React.Fragment key={entryNum}>
+                        <React.Fragment key={i}>
                           <TableCell>{formatTime(entry?.clockIn)}</TableCell>
                           <TableCell>{formatTime(entry?.clockOut)}</TableCell>
                         </React.Fragment>
@@ -340,7 +355,7 @@ export default function TimesheetViewPage() {
                       {totalHours.toFixed(2)} hrs
                     </TableCell>
                   </TableRow>
-                )
+                );
               })}
             </TableBody>
           </Table>

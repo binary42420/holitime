@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/middleware';
 import { query } from '@/lib/db';
+import { TimeEntry } from '@/lib/types';
 
 // GET /api/timesheets/[id]/review - Get timesheet details for review
 export async function GET(
@@ -64,7 +65,7 @@ export async function GET(
     const hasAccess =
       user.role === 'Manager/Admin' ||  // Managers have access to all
       user.id === timesheet.crew_chief_id ||  // Assigned crew chief
-      (user.role === 'Client' && user.client_company_id === timesheet.client_id);  // Client users for their company
+      (user.role === 'Client' && user.clientCompanyId === timesheet.client_id);  // Client users for their company
 
     if (!hasAccess) {
       return NextResponse.json(
@@ -124,7 +125,7 @@ export async function GET(
     assignedPersonnel.forEach(employee => {
       let totalMinutes = 0;
       
-      employee.timeEntries.forEach(entry => {
+      employee.timeEntries.forEach((entry: TimeEntry) => {
         if (entry.clockIn && entry.clockOut) {
           const clockIn = new Date(entry.clockIn);
           const clockOut = new Date(entry.clockOut);
@@ -189,6 +190,68 @@ export async function GET(
 
   } catch (error) {
     console.error('Error fetching timesheet for review:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/timesheets/[id]/review - Update timesheet status (e.g., reject)
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const user = await getCurrentUser(request);
+    if (!user || user.role !== 'Manager/Admin') {
+      return NextResponse.json(
+        { error: 'Forbidden: Only managers can update timesheet status.' },
+        { status: 403 }
+      );
+    }
+
+    const { id: timesheetId } = await params;
+    const { status, rejectionReason } = await request.json();
+
+    if (status !== 'rejected') {
+      return NextResponse.json(
+        { error: 'Invalid status. Only "rejected" is supported.' },
+        { status: 400 }
+      );
+    }
+
+    if (!rejectionReason) {
+      return NextResponse.json(
+        { error: 'Rejection reason is required.' },
+        { status: 400 }
+      );
+    }
+
+    const result = await query(
+      `UPDATE timesheets
+       SET status = $1, rejection_reason = $2, updated_at = NOW()
+       WHERE id = $3
+       RETURNING id`,
+      [status, rejectionReason, timesheetId]
+    );
+
+    if (result.rows.length === 0) {
+      return NextResponse.json(
+        { error: 'Timesheet not found or update failed.' },
+        { status: 404 }
+      );
+    }
+
+    // TODO: Add notification logic here to inform the crew chief.
+
+    return NextResponse.json({
+      message: 'Timesheet has been rejected successfully.',
+      timesheetId: result.rows[0].id,
+    });
+
+  } catch (error) {
+    console.error('Error updating timesheet status:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

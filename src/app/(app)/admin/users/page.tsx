@@ -39,7 +39,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Label } from '@mantine/core'
+import { Label } from '@/components/ui/label'
 import {
   Users,
   Search,

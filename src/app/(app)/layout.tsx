@@ -13,14 +13,20 @@ import {
   Settings,
   Upload,
   Users,
+  Home,
+  Briefcase,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
-import { AppShell, Burger, Group, NavLink, Title } from '@mantine/core';
+import { AppShell, Burger, Group, NavLink, Title, Paper, ActionIcon } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-
-import BottomNav from '@/components/bottom-nav';
 import { UserNav } from '@/components/user-nav';
+import { useScrollDirection } from '@/hooks/use-scroll-direction';
 import { useUser } from '@/hooks/use-user';
 import { AuthGuard } from '@/components/auth-guard';
+import { colors } from '@/lib/color-scheme';
+import { useTheme } from '@/components/providers/theme-provider';
 
 function NavContent() {
   const pathname = usePathname();
@@ -34,82 +40,111 @@ function NavContent() {
   const isClient = user?.role === 'Client';
   const isLimitedUser = user?.role === 'User';
 
+  const navLinks = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['Manager/Admin', 'Client', 'Employee', 'Crew Chief', 'User'] },
+    { href: '/shifts', label: "Today's Shifts", icon: CalendarClock, roles: ['Manager/Admin', 'Crew Chief', 'Employee', 'Client'] },
+    { href: '/timesheets', label: 'Timesheets', icon: ClipboardCheck, roles: ['Manager/Admin', 'Crew Chief', 'Client'] },
+    { href: '/clients', label: 'Clients', icon: Building2, roles: ['Manager/Admin'] },
+    { href: '/employees', label: 'Employees', icon: Users, roles: ['Manager/Admin'] },
+    { href: '/documents', label: 'Documents', icon: FileText, roles: ['Manager/Admin', 'Client', 'Employee', 'Crew Chief'] },
+    { href: '/import', label: 'Data Import', icon: Upload, roles: ['Manager/Admin'] },
+    { href: '/admin', label: 'Admin', icon: Settings, roles: ['Manager/Admin'] },
+  ];
+
+  const filteredNavLinks = navLinks.filter(link => user?.role && link.roles.includes(user.role));
+
   return (
     <>
-      <NavLink
-        href="/dashboard"
-        label="Dashboard"
-        leftSection={<LayoutDashboard size="1rem" />}
-        active={isActive('/dashboard')}
-        component={Link}
-      />
-      {!isLimitedUser && (
+      {filteredNavLinks.map(link => (
         <NavLink
-          href="/shifts"
-          label="Today's Shifts"
-          leftSection={<CalendarClock size="1rem" />}
-          active={isActive('/shifts')}
+          key={link.href}
+          href={link.href}
+          label={link.label}
+          leftSection={<link.icon size="1.1rem" />}
+          active={isActive(link.href)}
           component={Link}
         />
-      )}
-      {(user?.role === 'Manager/Admin' || user?.role === 'Crew Chief') && (
-        <NavLink
-          href="/timesheets"
-          label="Timesheets"
-          leftSection={<ClipboardCheck size="1rem" />}
-          active={isActive('/timesheets')}
-          component={Link}
-        />
-      )}
-      {!isClient && !isLimitedUser && (
-        <NavLink
-          href="/clients"
-          label="Clients"
-          leftSection={<Building2 size="1rem" />}
-          active={isActive('/clients')}
-          component={Link}
-        />
-      )}
-      {user?.role === 'Manager/Admin' && (
-        <NavLink
-          href="/employees"
-          label="Employees"
-          leftSection={<Users size="1rem" />}
-          active={isActive('/employees')}
-          component={Link}
-        />
-      )}
-      <NavLink
-        href="/documents"
-        label="Documents"
-        leftSection={<FileText size="1rem" />}
-        active={isActive('/documents')}
-        component={Link}
-      />
-      {!isClient && !isLimitedUser && (
-        <NavLink
-          href="/import"
-          label="Data Import"
-          leftSection={<Upload size="1rem" />}
-          active={isActive('/import')}
-          component={Link}
-        />
-      )}
-      {user?.role === 'Manager/Admin' && (
-        <NavLink
-          href="/admin"
-          label="Admin"
-          leftSection={<Settings size="1rem" />}
-          active={isActive('/admin')}
-          component={Link}
-        />
-      )}
+      ))}
     </>
+  );
+}
+
+function BottomNav() {
+  const pathname = usePathname();
+  const { user } = useUser();
+  const scrollDirection = useScrollDirection();
+  const [manualHidden, setManualHidden] = React.useState(false);
+  const { theme } = useTheme();
+  const activeColors = theme === 'dark' ? colors.dark : colors.light;
+
+  const isVisible = !manualHidden && scrollDirection !== 'down';
+
+  const navLinks = [
+    { href: '/dashboard', label: 'Home', icon: LayoutDashboard, roles: ['Manager/Admin', 'Client', 'Employee', 'Crew Chief', 'User'] },
+    { href: '/shifts', label: 'Shifts', icon: CalendarClock, roles: ['Manager/Admin', 'Crew Chief', 'Employee'] },
+    { href: '/timesheets', label: 'Timesheets', icon: ClipboardCheck, roles: ['Manager/Admin', 'Crew Chief'] },
+    { href: '/documents', label: 'Docs', icon: FileText, roles: ['Manager/Admin', 'Client', 'Employee', 'Crew Chief'] },
+  ];
+  
+  const filteredNavLinks = navLinks.filter(link => user?.role && link.roles.includes(user.role));
+
+  return (
+    <Paper
+      component="nav"
+      withBorder
+      p={0}
+      m={0}
+      radius={0}
+      style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+        backgroundColor: activeColors.surface,
+        transform: `translateY(${isVisible ? 0 : '110%'})`,
+        transition: 'transform 200ms ease',
+        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)',
+      }}
+      className="md:hidden"
+    >
+      <Group justify="space-around" gap={0} py="xs">
+        {filteredNavLinks.map(link => (
+          <NavLink
+            key={link.href}
+            href={link.href}
+            label={link.label}
+            leftSection={<link.icon size="1.2rem" />}
+            active={pathname.startsWith(link.href)}
+            component={Link}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0.25rem',
+              borderRadius: '0.5rem',
+            }}
+            styles={{
+              label: {
+                fontSize: '0.75rem',
+                marginTop: '0.25rem',
+              }
+            }}
+          />
+        ))}
+        <ActionIcon onClick={() => setManualHidden(prev => !prev)} variant="transparent" color="gray">
+          {manualHidden ? <ChevronUp size="1.2rem" /> : <ChevronDown size="1.2rem" />}
+        </ActionIcon>
+      </Group>
+    </Paper>
   );
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [opened, { toggle }] = useDisclosure();
+  const { theme } = useTheme();
+  const activeColors = theme === 'dark' ? colors.dark : colors.light;
 
   return (
     <AuthGuard>
@@ -117,14 +152,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         header={{ height: 60 }}
         navbar={{ width: 250, breakpoint: 'md', collapsed: { mobile: !opened, desktop: false } }}
         padding="md"
+        styles={{
+          main: {
+            backgroundColor: activeColors.background,
+          },
+        }}
       >
         <AppShell.Header>
           <Group h="100%" px="md">
             <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
             <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
               <Group>
-                <Hand className="text-primary" size={24} />
-                <Title order={4} >Hands On Labor</Title>
+                <Hand color={activeColors.primary.DEFAULT} size={24} />
+                <Title order={4} style={{ color: activeColors.text.primary }}>Hands On Labor</Title>
               </Group>
             </Link>
             <div style={{ flex: 1 }} />
@@ -134,12 +174,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <AppShell.Navbar p="md">
           <NavContent />
         </AppShell.Navbar>
-        <AppShell.Main>
+        <AppShell.Main
+          style={{
+            paddingBottom: 'calc(env(safe-area-inset-bottom) + 60px)',
+          }}
+        >
           {children}
         </AppShell.Main>
-        <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 100 }}>
-           <BottomNav />
-        </div>
+        <BottomNav />
       </AppShell>
     </AuthGuard>
   );

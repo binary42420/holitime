@@ -18,14 +18,11 @@ export async function GET(
 
     const { id } = await params;
 
-    // Get timesheet with PDF data and access control info
+    // Get timesheet with pdf_url and access control info
     const timesheetResult = await query(`
       SELECT
         t.id,
-        t.pdf_data,
-        t.pdf_filename,
-        t.pdf_content_type,
-        t.pdf_generated_at,
+        t.pdf_url,
         s.crew_chief_id,
         j.client_id
       FROM timesheets t
@@ -43,19 +40,11 @@ export async function GET(
 
     const row = timesheetResult.rows[0];
 
-    // Check if PDF exists
-    if (!row.pdf_data) {
-      return NextResponse.json(
-        { error: 'PDF not generated yet. Please generate the PDF first.' },
-        { status: 404 }
-      );
-    }
-
     // Check permissions
     const hasAccess =
       user.role === 'Manager/Admin' ||
       user.id === row.crew_chief_id ||
-      (user.role === 'Client' && user.client_company_id === row.client_id);
+      (user.role === 'Client' && user.clientCompanyId === row.client_id);
 
     if (!hasAccess) {
       return NextResponse.json(
@@ -64,26 +53,16 @@ export async function GET(
       );
     }
 
-    // Return the PDF from database
-    const pdfBuffer = Buffer.from(row.pdf_data);
-    const filename = row.pdf_filename || `timesheet-${id}.pdf`;
+    // Check if PDF URL exists
+    if (!row.pdf_url) {
+      return NextResponse.json(
+        { error: 'PDF not available for this timesheet.' },
+        { status: 404 }
+      );
+    }
 
-    return new NextResponse(pdfBuffer, {
-      status: 200,
-      headers: {
-        'Content-Type': row.pdf_content_type || 'application/pdf',
-        'Content-Disposition': `attachment; filename="${filename}"`,
-        'Content-Length': pdfBuffer.length.toString(),
-        'Cache-Control': 'private, max-age=3600', // Cache for 1 hour
-      },
-    });
-
-
-
-
-
-
-
+    // Redirect to the Google Drive URL
+    return NextResponse.redirect(row.pdf_url, 307);
   } catch (error) {
     console.error('Error generating timesheet PDF:', error);
     return NextResponse.json(

@@ -14,59 +14,55 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const dateFilter = searchParams.get('date') || 'today';
+    const dateFilter = searchParams.get('filter') || 'all';
     const statusFilter = searchParams.get('status') || 'all';
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '20');
 
-    let startDate: string;
-    let endDate: string;
     const today = new Date();
+    let startDate: string | null = null;
+    let endDate: string | null = null;
 
-    switch (dateFilter) {
-      case 'today':
-        startDate = endDate = today.toISOString().split('T')[0];
-        break;
-      case 'tomorrow':
-        const tomorrow = addDays(today, 1);
-        startDate = endDate = tomorrow.toISOString().split('T')[0];
-        break;
-      case 'yesterday':
-        const yesterday = subDays(today, 1);
-        startDate = endDate = yesterday.toISOString().split('T')[0];
-        break;
-      case 'this_week':
-        startDate = startOfWeek(today, { weekStartsOn: 1 }).toISOString().split('T')[0];
-        endDate = endOfWeek(today, { weekStartsOn: 1 }).toISOString().split('T')[0];
-        break;
-      case 'all':
-        // For 'all', we'll get shifts from 30 days ago to 30 days in the future
-        startDate = subDays(today, 30).toISOString().split('T')[0];
-        endDate = addDays(today, 30).toISOString().split('T')[0];
-        break;
-      default:
-        startDate = endDate = today.toISOString().split('T')[0];
+    if (dateFilter === 'today') {
+      startDate = endDate = today.toISOString().split('T')[0];
+    } else if (dateFilter === 'tomorrow') {
+      const tomorrow = addDays(today, 1);
+      startDate = endDate = tomorrow.toISOString().split('T')[0];
+    } else if (dateFilter === 'yesterday') {
+      const yesterday = subDays(today, 1);
+      startDate = endDate = yesterday.toISOString().split('T')[0];
+    } else if (dateFilter === 'this_week') {
+      startDate = startOfWeek(today, { weekStartsOn: 1 }).toISOString().split('T')[0];
+      endDate = endOfWeek(today, { weekStartsOn: 1 }).toISOString().split('T')[0];
     }
 
-    const queryParams: any[] = [startDate, endDate];
-    let whereClause = 'WHERE s.date BETWEEN $1 AND $2';
+    const queryParams: any[] = [];
+    const whereClauses: string[] = [];
+
+    if (startDate && endDate) {
+      queryParams.push(startDate, endDate);
+      whereClauses.push(`s.date BETWEEN $1 AND $2`);
+    }
 
     if (statusFilter !== 'all') {
       queryParams.push(statusFilter);
-      whereClause += ` AND s.status = $${queryParams.length}`;
+      whereClauses.push(`s.status = $${queryParams.length}`);
     }
 
     const clientFilter = searchParams.get('client') || 'all';
     if (clientFilter !== 'all') {
       queryParams.push(clientFilter);
-      whereClause += ` AND c.company_name = $${queryParams.length}`;
+      whereClauses.push(`c.company_name = $${queryParams.length}`);
     }
 
     const searchTerm = searchParams.get('search') || '';
     if (searchTerm) {
       queryParams.push(`%${searchTerm}%`);
-      whereClause += ` AND (j.name ILIKE $${queryParams.length} OR c.company_name ILIKE $${queryParams.length} OR s.location ILIKE $${queryParams.length} OR cc.name ILIKE $${queryParams.length})`;
+      const searchParamIndex = `$${queryParams.length}`;
+      whereClauses.push(`(j.name ILIKE ${searchParamIndex} OR c.company_name ILIKE ${searchParamIndex} OR s.location ILIKE ${searchParamIndex} OR cc.name ILIKE ${searchParamIndex})`);
     }
+
+    const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
     // Optimized query that gets shifts with all needed data in one query
     const offset = (page - 1) * pageSize;

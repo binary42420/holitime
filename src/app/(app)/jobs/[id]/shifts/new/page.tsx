@@ -86,7 +86,7 @@ export default function NewJobShiftPage({ params }: JobShiftPageProps) {
         description: "Shift created successfully",
       })
 
-      router.push(generateShiftUrl(result.shift.clientName, result.shift.jobName, result.shift.date, result.shift.startTime))
+      router.push(generateShiftUrl(result.shift.id))
     } catch (error) {
       console.error('Error creating shift:', error)
       toast({

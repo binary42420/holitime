@@ -31,8 +31,7 @@ export async function updateWorkerRequirements(
     // Delete existing requirements for this shift
     await query(`
       DELETE FROM worker_requirements
-      WHERE shift_id = $1
-    `, [shiftId]);
+      WHERE shift_id = $1`, [shiftId]);
 
     // Insert new requirements
     for (const req of requirements) {
@@ -40,8 +39,8 @@ export async function updateWorkerRequirements(
         INSERT INTO worker_requirements (shift_id, role_code, required_count)
         VALUES ($1, $2, $3)
         ON CONFLICT (shift_id, role_code) 
-        DO UPDATE SET required_count = EXCLUDED.required_count
-      `, [shiftId, req.roleCode, req.requiredCount]);
+        DO UPDATE SET required_count = EXCLUDED.required_count`,
+        [shiftId, req.roleCode, req.requiredCount]);
     }
 
     // Calculate and update total requested workers on shifts table

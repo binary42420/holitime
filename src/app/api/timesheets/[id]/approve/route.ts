@@ -131,22 +131,91 @@ export async function POST(
         WHERE id = $3
       `, [user.id, signature, id]);
 
-      // Generate PDF after final approval
+      // New: Gather data and call Google Apps Script
       try {
-        const generatePdfResponse = await fetch(`${process.env.NEXTAUTH_URL}/api/timesheets/${id}/generate-pdf`, {
+        // 1. Gather all necessary data
+        const shiftDetailsResult = await query(`
+          SELECT
+            s.date,
+            s.start_time,
+            s.end_time,
+            j.name as job_name,
+            j.po_number as client_po,
+            c.company_name as client_name
+          FROM shifts s
+          JOIN jobs j ON s.job_id = j.id
+          JOIN clients c ON j.client_id = c.id
+          WHERE s.id = $1
+        `, [timesheet.shift_id]);
+
+        const timeEntriesResult = await query(`
+          SELECT
+            u.name as employee_name,
+            te.clock_in,
+            te.clock_out,
+            te.role_on_shift
+          FROM time_entries te
+          JOIN users u ON te.user_id = u.id
+          WHERE te.shift_id = $1
+          ORDER BY u.name, te.clock_in
+        `, [timesheet.shift_id]);
+
+        if (shiftDetailsResult.rows.length === 0) {
+          throw new Error('Shift details not found');
+        }
+
+        const shiftDetails = shiftDetailsResult.rows[0];
+        const employeeTimes = timeEntriesResult.rows.map(entry => ({
+          name: entry.employee_name,
+          clockIn: entry.clock_in,
+          clockOut: entry.clock_out,
+          role: entry.role_on_shift,
+        }));
+
+        // 2. Construct payload
+        const payload = {
+          apiKey: process.env.GOOGLE_APPS_SCRIPT_API_KEY,
+          clientName: shiftDetails.client_name,
+          clientPO: shiftDetails.client_po,
+          jobNo: shiftDetails.job_name, // Assuming job_name is the job number
+          date: shiftDetails.date,
+          shiftStartTime: shiftDetails.start_time,
+          shiftEndTime: shiftDetails.end_time,
+          employeeTimes: employeeTimes,
+          clientSignatureBase64: timesheet.client_signature,
+          managerSignatureBase64: signature, // The new manager signature
+        };
+
+        // 3. Call Google Apps Script
+        const scriptResponse = await fetch(process.env.GOOGLE_APPS_SCRIPT_URL!, {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${user.id}`, // Simple auth for internal call
+            'Content-Type': 'application/json',
           },
+          body: JSON.stringify(payload),
         });
 
-        if (generatePdfResponse.ok) {
-          console.log(`PDF generated for completed timesheet ${id}`);
+        // 4. Handle response
+        if (scriptResponse.ok) {
+          const result = await scriptResponse.json();
+          if (result.status === 'success' && result.pdfUrl) {
+            // 5. Save PDF URL to the database
+            await query(`
+              UPDATE timesheets
+              SET pdf_url = $1
+              WHERE id = $2
+            `, [result.pdfUrl, id]);
+            console.log(`Successfully generated and saved PDF URL for timesheet ${id}`);
+          } else {
+            throw new Error(result.message || 'Failed to get PDF URL from Apps Script');
+          }
         } else {
-          console.warn(`Failed to generate PDF for timesheet ${id}`);
+          const errorText = await scriptResponse.text();
+          throw new Error(`Google Apps Script request failed: ${scriptResponse.status} ${errorText}`);
         }
       } catch (error) {
-        console.warn(`Error generating PDF for timesheet ${id}:`, error);
+        console.error(`Error generating PDF for timesheet ${id} via Apps Script:`, error);
+        // Continue without failing the entire approval process
       }
 
       // Update shift status to completed

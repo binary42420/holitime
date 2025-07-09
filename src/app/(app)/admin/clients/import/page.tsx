@@ -3,9 +3,9 @@
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
-import { Card, Button, TextInput, Textarea, Progress, Alert, Group, Text, Title, Stack, FileInput } from "@mantine/core"
-import { 
-  ArrowLeft, 
+import { Card, Button, Textarea, Progress, Alert, Group, Text, Title, Stack, FileInput } from "@mantine/core"
+import {
+  ArrowLeft,
   Upload,
   FileText,
   Download,
@@ -13,9 +13,6 @@ import {
   CheckCircle,
   Building2
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
 import { notifications } from "@mantine/notifications"
 
 function ImportClientsPage() {
@@ -23,7 +20,7 @@ function ImportClientsPage() {
   const router = useRouter()
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
-  const [importResults, setImportResults] = useState<any>(null)
+  const [importResults, setImportResults] = useState<{ successful: number; failed: number; total: number; errors: string[] } | null>(null)
   const [csvData, setCsvData] = useState("")
   const [file, setFile] = useState<File | null>(null);
 
@@ -73,7 +70,7 @@ function ImportClientsPage() {
         color: 'green'
       })
 
-    } catch (error) {
+    } catch {
       notifications.show({
         title: "Import Failed",
         message: "Failed to import clients. Please check your file format.",
@@ -118,7 +115,7 @@ function ImportClientsPage() {
         color: 'green'
       })
 
-    } catch (error) {
+    } catch {
       notifications.show({
         title: "Import Failed",
         message: "Failed to import clients. Please check your data format.",
@@ -330,4 +327,4 @@ function ImportClientsPage() {
   )
 }
 
-export default withAuth(ImportClientsPage, hasAdminAccess);
+export default ImportClientsPage;

@@ -250,14 +250,6 @@ export async function getClientById(id: string): Promise<Client | null> {
       phone: row.contact_phone,
       notes: row.notes,
 
-      jobs: jobsResult.rows.map(job => ({
-        id: job.id,
-        name: job.name,
-        description: job.description,
-        status: job.status,
-        startDate: job.start_date,
-        shiftsCount: parseInt(job.shifts_count) || 0,
-      })),
       authorizedCrewChiefIds: crewChiefsResult.rows.map(r => r.crew_chief_id),
       mostRecentCompletedShift: recentCompletedResult.rows.length > 0 ? {
         id: recentCompletedResult.rows[0].id,
@@ -282,18 +274,15 @@ export async function getClientById(id: string): Promise<Client | null> {
 export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCrewChiefIds'>): Promise<Client | null> {
   try {
     const result = await query(`
-      INSERT INTO users (name, email, password_hash, role, company_name, company_address, contact_person, contact_email, contact_phone)
-      VALUES ($1, $2, $3, 'Client', $4, $5, $6, $7, $8)
-      RETURNING id, name, company_name, company_address, contact_person, contact_email, contact_phone
+      INSERT INTO clients (company_name, company_address, contact_phone, contact_email, notes)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, company_name, company_address, contact_phone, contact_email, notes
     `, [
-      clientData.name,
-      clientData.contactEmail || `${clientData.name.toLowerCase().replace(/\s+/g, '')}@example.com`,
-      'password123', // Default plain text password
       clientData.companyName,
       clientData.companyAddress,
-      clientData.contactPerson,
+      clientData.contactPhone,
       clientData.contactEmail,
-      clientData.contactPhone
+      clientData.notes
     ]);
 
     if (result.rows.length === 0) {
@@ -303,16 +292,17 @@ export async function createClient(clientData: Omit<Client, 'id' | 'authorizedCr
     const row = result.rows[0];
     return {
       id: row.id,
-      name: row.name,
+      name: row.company_name,
+      email: row.contact_email,
+      clientCompanyId: row.id,
       companyName: row.company_name,
       companyAddress: row.company_address,
-      contactPerson: row.contact_person,
+      contactPerson: row.company_name,
       contactEmail: row.contact_email,
       contactPhone: row.contact_phone,
-      // Add backward compatibility fields for the frontend
       address: row.company_address,
-      email: row.contact_email,
       phone: row.contact_phone,
+      notes: row.notes,
       authorizedCrewChiefIds: [],
     };
   } catch (error) {

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/middleware';
 import { query } from '@/lib/db';
 import jsPDF from 'jspdf';
-import { formatTo12Hour, formatDate, getTimeEntryDisplay } from '@/lib/time-utils';
+import { formatTimeTo12Hour, formatDate, getTimeEntryDisplay } from '@/lib/time-utils';
 
 // POST /api/timesheets/[id]/generate-pdf - Generate and store PDF in database
 export async function POST(
@@ -121,11 +121,11 @@ export async function POST(
 
     yPos += 20;
     pdf.text('Start Time:', 350, yPos);
-    pdf.text(formatTo12Hour(timesheet.start_time), 420, yPos);
+    pdf.text(formatTimeTo12Hour(timesheet.start_time), 420, yPos);
 
     yPos += 20;
     pdf.text('End Time:', 350, yPos);
-    pdf.text(formatTo12Hour(timesheet.end_time), 420, yPos);
+    pdf.text(formatTimeTo12Hour(timesheet.end_time), 420, yPos);
 
     // Employee table header
     yPos = 220;

@@ -35,7 +35,7 @@ export async function GET(
           notes: clientCompany.notes,
           // Default values for missing fields
           name: clientCompany.companyName,
-          email: clientCompany.contactEmail,
+          email: clientCompany.contactEmail || '',
           address: clientCompany.companyAddress,
           phone: clientCompany.contactPhone,
           contactPerson: 'N/A',

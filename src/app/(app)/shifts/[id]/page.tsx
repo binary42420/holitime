@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { useUser } from "@/hooks/use-user"
 import { useApi, useShift } from "@/hooks/use-api"
-import { Card, Button, Badge, Textarea, Group, Text, Title, Stack, ActionIcon, Alert } from "@mantine/core"
+import { Card, Button, Badge, Textarea, Group, Text, Title, Stack, ActionIcon, Alert, Accordion } from "@mantine/core"
 import { ArrowLeft, Building2, Calendar, Clock, MapPin, Users, Briefcase, Download, AlertTriangle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import UnifiedShiftManager from "@/components/unified-shift-manager"
@@ -14,6 +14,8 @@ import { LoadingSpinner } from "@/components/loading-states"
 import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"
 import { DangerZone } from "@/components/danger-zone"
 import { notifications } from "@mantine/notifications"
+import { useAccordionState } from "@/hooks/use-accordion-state"
+import { formatTimeTo12Hour } from "@/lib/time-utils"
 
 export default function ShiftDetailsPage() {
   const params = useParams()
@@ -33,6 +35,12 @@ export default function ShiftDetailsPage() {
 
   const assignedPersonnel = assignedData?.assignedPersonnel || []
 
+  const [requirementsAccordion, setRequirementsAccordion] = useAccordionState('shift-requirements', ['requirements']);
+  const [assignmentsAccordion, setAssignmentsAccordion] = useAccordionState('shift-assignments', ['assignments']);
+  const [notesAccordion, setNotesAccordion] = useAccordionState('shift-notes', []);
+  const [permissionsAccordion, setPermissionsAccordion] = useAccordionState('shift-permissions', []);
+  const [dangerZoneAccordion, setDangerZoneAccordion] = useAccordionState('shift-danger-zone', []);
+
   const handleRefresh = useCallback(() => {
     if (refetch) refetch()
     if (refetchAssigned) refetchAssigned()
@@ -42,7 +50,10 @@ export default function ShiftDetailsPage() {
     if (shift?.notes) {
       setNotes(shift.notes)
     }
-  }, [shift?.notes])
+    if (shift?.status === 'Completed') {
+      setRequirementsAccordion([]);
+    }
+  }, [shift?.notes, shift?.status, setRequirementsAccordion])
 
   const handleNotesSubmit = async () => {
     if (!shiftId) return
@@ -139,7 +150,7 @@ export default function ShiftDetailsPage() {
           <div>
             <Title order={2}>{shift.jobName}</Title>
             <Text c="dimmed">
-              {shift.clientName} • {new Date(shift.date).toLocaleDateString()} • {shift.startTime}
+              {shift.clientName} • {new Date(shift.date).toLocaleDateString()} • {formatTimeTo12Hour(shift.startTime)}
             </Text>
           </div>
         </Group>
@@ -205,7 +216,7 @@ export default function ShiftDetailsPage() {
               </Group>
               <Group justify="space-between">
                 <Text>Time:</Text>
-                <Text fw={500}>{shift.startTime} - {shift.endTime}</Text>
+                <Text fw={500}>{formatTimeTo12Hour(shift.startTime)} - {formatTimeTo12Hour(shift.endTime)}</Text>
               </Group>
               <Group justify="space-between">
                 <Text>Location:</Text>
@@ -255,58 +266,97 @@ export default function ShiftDetailsPage() {
           </Card.Section>
         </Card>
         <div style={{ gridColumn: '1 / -1' }}>
-          {shiftId && (
-            <WorkerAssignmentDisplay
-              shiftId={shiftId}
-              assignedPersonnel={assignedPersonnel}
-              onUpdate={handleRefresh}
-            />
-          )}
-
-          {shiftId && (
-            <UnifiedShiftManager
-              shiftId={shiftId}
-              assignedPersonnel={assignedPersonnel}
-              onUpdate={handleRefresh}
-            />
-          )}
+          <Accordion multiple value={requirementsAccordion} onChange={setRequirementsAccordion} variant="separated">
+            <Accordion.Item value="requirements">
+              <Accordion.Control>
+                <Title order={4}>Worker Requirements</Title>
+              </Accordion.Control>
+              <Accordion.Panel>
+                {shiftId && (
+                  <UnifiedShiftManager
+                    shiftId={shiftId}
+                    initialAssignedPersonnel={assignedPersonnel}
+                    onUpdate={handleRefresh}
+                  />
+                )}
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
+        </div>
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Accordion multiple value={assignmentsAccordion} onChange={setAssignmentsAccordion} variant="separated">
+            <Accordion.Item value="assignments">
+              <Accordion.Control>
+                <Title order={4}>Worker Assignments</Title>
+              </Accordion.Control>
+              <Accordion.Panel>
+                {shiftId && (
+                  <WorkerAssignmentDisplay
+                    shiftId={shiftId}
+                    assignedPersonnel={assignedPersonnel}
+                    onUpdate={handleRefresh}
+                  />
+                )}
+              </Accordion.Panel>
+            </Accordion.Item>
+          </Accordion>
         </div>
       </div>
 
-      <Card withBorder radius="md">
-        <Card.Section withBorder inheritPadding py="xs">
-          <Title order={4}>Notes</Title>
-        </Card.Section>
-        <Card.Section p="md">
-          <Stack>
-            <Textarea
-              placeholder="Enter shift notes..."
-              value={notes}
-              onChange={(e) => setNotes(e.currentTarget.value)}
-              rows={4}
+      <Accordion multiple value={notesAccordion} onChange={setNotesAccordion} variant="separated">
+        <Accordion.Item value="notes">
+          <Accordion.Control>
+            <Title order={4}>Notes</Title>
+          </Accordion.Control>
+          <Accordion.Panel>
+            <Stack>
+              <Textarea
+                placeholder="Enter shift notes..."
+                value={notes}
+                onChange={(e) => setNotes(e.currentTarget.value)}
+                rows={4}
+              />
+              <Button
+                onClick={handleNotesSubmit}
+                loading={isSubmittingNotes}
+              >
+                Save Notes
+              </Button>
+            </Stack>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
+
+      <Accordion multiple value={permissionsAccordion} onChange={setPermissionsAccordion} variant="separated">
+        <Accordion.Item value="permissions">
+          <Accordion.Control>
+            <Title order={4}>Crew Chief Permissions</Title>
+          </Accordion.Control>
+          <Accordion.Panel>
+            <CrewChiefPermissionManager
+              targetId={shiftId}
+              targetType="shift"
+              targetName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${formatTimeTo12Hour(shift.startTime)}`}
             />
-            <Button 
-              onClick={handleNotesSubmit}
-              loading={isSubmittingNotes}
-            >
-              Save Notes
-            </Button>
-          </Stack>
-        </Card.Section>
-      </Card>
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
 
-      <CrewChiefPermissionManager
-        targetId={shiftId}
-        targetType="shift"
-        targetName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${shift.startTime}`}
-      />
-
-      <DangerZone
-        entityType="shift"
-        entityId={shiftId}
-        entityName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${shift.startTime}`}
-        redirectTo="/shifts"
-      />
+      <Accordion multiple value={dangerZoneAccordion} onChange={setDangerZoneAccordion} variant="separated">
+        <Accordion.Item value="danger-zone">
+          <Accordion.Control>
+            <Title order={4} style={{ color: '#B91C1C' }}>Danger Zone</Title>
+          </Accordion.Control>
+          <Accordion.Panel>
+            <DangerZone
+              entityType="shift"
+              entityId={shiftId}
+              entityName={`${shift.jobName} - ${new Date(shift.date).toLocaleDateString()} ${formatTimeTo12Hour(shift.startTime)}`}
+              redirectTo="/shifts"
+            />
+          </Accordion.Panel>
+        </Accordion.Item>
+      </Accordion>
     </Stack>
-  )
+  );
 }

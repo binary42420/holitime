@@ -1,11 +1,12 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Button, Card, Badge, Select, Avatar, Group, Text, ActionIcon, Grid, Stack, Title } from "@mantine/core"
-import { Users, Plus, Minus, UserPlus, X } from "lucide-react"
+import { Button, Card, Badge, Select, Avatar, Group, Text, ActionIcon, Grid, Stack, Title, ComboboxItem } from "@mantine/core"
+import { Users, Plus, Minus, UserPlus, X, Crown, Shield, User as UserIcon, ShieldCheck, Truck } from "lucide-react"
 import { notifications } from "@mantine/notifications"
 import { RoleCode } from "@/lib/types"
 import { useApi } from "@/hooks/use-api"
+import { ROLE_DEFINITIONS } from "@/lib/color-utils"
 
 interface WorkerRequirement {
   roleCode: RoleCode;
@@ -32,16 +33,18 @@ type WorkerSlot =
   | { type: 'assigned'; worker: AssignedWorker }
   | { type: 'empty'; roleCode: RoleCode }
 
-const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string }> = {
-  'CC': { name: 'Crew Chief', color: 'purple' },
-  'SH': { name: 'Stage Hand', color: 'blue' },
-  'FO': { name: 'Fork Operator', color: 'green' },
-  'RFO': { name: 'Reach Fork Operator', color: 'yellow' },
-  'RG': { name: 'Rigger', color: 'red' },
-  'GL': { name: 'General Labor', color: 'gray' },
-} as const
+const getRoleIcon = (role: string) => {
+  switch (role) {
+    case 'Manager/Admin':
+      return <Crown size={16} className="text-yellow-500" />;
+    case 'Crew Chief':
+      return <Shield size={16} className="text-purple-500" />;
+    default:
+      return <UserIcon size={16} className="text-blue-500" />;
+  }
+}
 
-export default function WorkerAssignmentDisplay({ 
+export default function WorkerAssignmentDisplay({
   shiftId, 
   assignedPersonnel, 
   onUpdate 
@@ -295,13 +298,30 @@ export default function WorkerAssignmentDisplay({
                               placeholder="Select worker..."
                               onChange={(value) => assignWorker(value, roleCode)}
                               data={availableEmployees
-                                .filter(emp => !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
+                                .filter(emp => emp.id && !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
                                 .map(employee => ({
                                   value: employee.id,
                                   label: employee.name,
-                                  group: employee.role === 'Manager/Admin' ? 'Manager' : undefined
+                                  role: employee.role,
+                                  isCrewChiefEligible: employee.isCrewChiefEligible,
+                                  isForkliftCertified: employee.isForkliftCertified,
                                 }))
                               }
+                              renderOption={(item) => {
+                                const optionWithRole = item.option as ComboboxItem & { role: string, isCrewChiefEligible?: boolean, isForkliftCertified?: boolean };
+                                return (
+                                  <Group justify="space-between">
+                                    <Group gap="xs">
+                                      {getRoleIcon(optionWithRole.role)}
+                                      <Text>{optionWithRole.label}</Text>
+                                    </Group>
+                                    <Group gap="xs">
+                                      {optionWithRole.isCrewChiefEligible && <ShieldCheck size={16} className="text-green-500" />}
+                                      {optionWithRole.isForkliftCertified && <Truck size={16} className="text-orange-500" />}
+                                    </Group>
+                                  </Group>
+                                );
+                              }}
                             />
                           )}
                         </Card>
