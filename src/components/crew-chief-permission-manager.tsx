@@ -265,8 +265,8 @@ export function CrewChiefPermissionManager({
                             <Text>{optionWithRole.label}</Text>
                           </Group>
                           <Group gap="xs">
-                            {optionWithRole.isCrewChiefEligible && <ShieldCheck size={16} className="text-green-500" title="Crew Chief Eligible" />}
-                            {optionWithRole.isForkliftCertified && <Truck size={16} className="text-orange-500" title="Forklift Certified" />}
+                            {optionWithRole.isCrewChiefEligible && <ShieldCheck size={16} className="text-green-500" />}
+                            {optionWithRole.isForkliftCertified && <Truck size={16} className="text-orange-500" />}
                           </Group>
                         </Group>
                       );

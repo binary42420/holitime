@@ -123,7 +123,7 @@ export interface Employee {
   avatar: string;
 }
 
-export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended';
+export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended' | 'shift_ended' | 'not_started';
 
 export type RoleCode = 'CC' | 'SH' | 'FO' | 'RFO' | 'RG' | 'GL';
 

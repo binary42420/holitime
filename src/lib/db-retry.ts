@@ -82,8 +82,8 @@ export async function queryWithRetry(
       
       const delay = calculateDelay(attempt, options);
       console.warn(`Database query failed (attempt ${attempt}/${options.maxAttempts}), retrying in ${delay}ms:`, {
-        error: error.message,
-        code: error.code,
+        error: (error as any).message,
+        code: (error as any).code,
         query: text.substring(0, 100) + '...',
       });
       
@@ -93,8 +93,8 @@ export async function queryWithRetry(
   
   // If we get here, all attempts failed
   console.error(`Database query failed after ${options.maxAttempts} attempts:`, {
-    error: lastError.message,
-    code: lastError.code,
+    error: (lastError as any).message,
+    code: (lastError as any).code,
     query: text.substring(0, 100) + '...',
   });
   

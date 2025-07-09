@@ -11,10 +11,6 @@ import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-m
 import { DangerZone } from "@/components/danger-zone"
 import { notifications } from "@mantine/notifications"
 
-interface ClientDetailPageProps {
-  params: { id: string }
-}
-
 function ClientDetailPage({ params }: { params: { id: string } }) {
   const { id: clientId } = params
   const { user } = useUser()

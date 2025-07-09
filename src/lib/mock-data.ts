@@ -4,7 +4,7 @@ export const mockUsers: Record<UserRole, User> = {
   'Employee': { id: 'emp1', name: 'Alex Johnson', email: 'alex.j@handson.com', avatar: '/avatars/01.png', role: 'Employee' },
   'Crew Chief': { id: 'cc1', name: 'Maria Garcia', email: 'maria.g@handson.com', avatar: '/avatars/02.png', role: 'Crew Chief' },
   'Manager/Admin': { id: 'mgr1', name: 'Sam Chen', email: 'sam.c@handson.com', avatar: '/avatars/03.png', role: 'Manager/Admin' },
-  'Client': { id: 'cli-user1', name: 'John Smith', email: 'jsmith@constructo.com', avatar: '/avatars/04.png', role: 'Client', clientId: 'cli1' },
+  'Client': { id: 'cli-user1', name: 'John Smith', email: 'jsmith@constructo.com', avatar: '/avatars/04.png', role: 'Client', clientCompanyId: 'cli1' },
   'User': { id: 'user1', name: 'Jane Doe', email: 'jane.doe@example.com', avatar: '/avatars/05.png', role: 'User' },
 };
 
@@ -18,8 +18,8 @@ export const mockEmployees: Employee[] = [
 ];
 
 export const mockClients: Client[] = [
-  { id: 'cli1', name: 'Constructo Corp.', companyName: 'Constructo Corp.', address: '123 Main St, Buildville', contactPerson: 'John Smith', contactEmail: 'jsmith@constructo.com', contactPhone: '555-1234' },
-  { id: 'cli2', name: 'EventMakers Inc.', companyName: 'EventMakers Inc.', address: '456 Market Ave, EventCity', contactPerson: 'Jane Doe', contactEmail: 'jdoe@eventmakers.com', contactPhone: '555-5678', authorizedCrewChiefIds: ['emp2'] },
+  { id: 'cli1', name: 'Constructo Corp.', companyName: 'Constructo Corp.', address: '123 Main St, Buildville', contactPerson: 'John Smith', contactEmail: 'jsmith@constructo.com', contactPhone: '555-1234', email: 'jsmith@constructo.com', clientCompanyId: 'cli1' },
+  { id: 'cli2', name: 'EventMakers Inc.', companyName: 'EventMakers Inc.', address: '456 Market Ave, EventCity', contactPerson: 'Jane Doe', contactEmail: 'jdoe@eventmakers.com', contactPhone: '555-5678', authorizedCrewChiefIds: ['emp2'], email: 'jdoe@eventmakers.com', clientCompanyId: 'cli2' },
 ];
 
 export const mockJobs: Job[] = [
@@ -40,10 +40,10 @@ export const mockShifts: Shift[] = [
     location: 'Downtown Core Project - Site A',
     crewChief: mockEmployees[4], // Maria Garcia
     assignedPersonnel: [
-      { employee: mockEmployees[0], roleOnShift: 'Forklift Operator', roleCode: 'FO', status: 'Clocked In', timeEntries: [{ clockIn: '07:58' }] },
-      { employee: mockEmployees[2], roleOnShift: 'General Laborer', roleCode: 'GL', status: 'On Break', timeEntries: [{ clockIn: '08:01', clockOut: '12:00' }] },
-      { employee: mockEmployees[3], roleOnShift: 'General Laborer', roleCode: 'GL', status: 'Clocked Out', timeEntries: [] },
-      { employee: mockEmployees[4], roleOnShift: 'Crew Chief', roleCode: 'CC', status: 'Clocked In', timeEntries: [{ clockIn: '07:55' }] },
+      { id: 'ap1', employee: mockEmployees[0], roleOnShift: 'Forklift Operator', roleCode: 'FO', status: 'Clocked In', timeEntries: [{ id: 'te1', entryNumber: 1, clockIn: '07:58', isActive: true }] },
+      { id: 'ap2', employee: mockEmployees[2], roleOnShift: 'General Laborer', roleCode: 'GL', status: 'On Break', timeEntries: [{ id: 'te2', entryNumber: 1, clockIn: '08:01', clockOut: '12:00', isActive: false }] },
+      { id: 'ap3', employee: mockEmployees[3], roleOnShift: 'General Laborer', roleCode: 'GL', status: 'Clocked Out', timeEntries: [] },
+      { id: 'ap4', employee: mockEmployees[4], roleOnShift: 'Crew Chief', roleCode: 'CC', status: 'Clocked In', timeEntries: [{ id: 'te3', entryNumber: 1, clockIn: '07:55', isActive: true }] },
     ],
     status: 'In Progress',
     timesheetStatus: 'Pending Finalization',
@@ -60,8 +60,8 @@ export const mockShifts: Shift[] = [
     location: 'City Park Festival Setup',
     crewChief: mockEmployees[4], // Maria Garcia
     assignedPersonnel: [
-      { employee: mockEmployees[4], roleOnShift: 'Crew Chief', roleCode: 'CC', status: 'Clocked Out', timeEntries: [] },
-      { employee: mockEmployees[0], roleOnShift: 'General Laborer', roleCode: 'GL', status: 'Clocked Out', timeEntries: [] }
+      { id: 'ap5', employee: mockEmployees[4], roleOnShift: 'Crew Chief', roleCode: 'CC', status: 'Clocked Out', timeEntries: [] },
+      { id: 'ap6', employee: mockEmployees[0], roleOnShift: 'General Laborer', roleCode: 'GL', status: 'Clocked Out', timeEntries: [] }
     ],
     status: 'Upcoming',
     timesheetStatus: 'Pending Finalization',
@@ -77,8 +77,8 @@ export const mockShifts: Shift[] = [
     location: 'Suburban Office Complex - West Wing',
     crewChief: mockEmployees[1], // Ben Carter
     assignedPersonnel: [
-      { employee: mockEmployees[0], roleOnShift: 'Rigger', roleCode: 'RG', status: 'Shift Ended', timeEntries: [{ clockIn: '09:00', clockOut: '17:00' }] },
-      { employee: mockEmployees[1], roleOnShift: 'Crew Chief', roleCode: 'CC', status: 'Shift Ended', timeEntries: [{ clockIn: '08:55', clockOut: '17:05' }] },
+      { id: 'ap7', employee: mockEmployees[0], roleOnShift: 'Rigger', roleCode: 'RG', status: 'Shift Ended', timeEntries: [{ id: 'te4', entryNumber: 1, clockIn: '09:00', clockOut: '17:00', isActive: false }] },
+      { id: 'ap8', employee: mockEmployees[1], roleOnShift: 'Crew Chief', roleCode: 'CC', status: 'Shift Ended', timeEntries: [{ id: 'te5', entryNumber: 1, clockIn: '08:55', clockOut: '17:05', isActive: false }] },
     ],
     status: 'Completed',
     timesheetStatus: 'Approved'

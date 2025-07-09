@@ -26,7 +26,7 @@ import { useCrewChiefPermissions } from "@/hooks/useCrewChiefPermissions"
 import { CrewChiefPermissionBadge, PermissionGuard } from "@/components/crew-chief-permission-badge"
 import { notifications } from '@mantine/notifications'
 import { ROLE_DEFINITIONS } from "@/lib/color-utils"
-import { createShiftManagerStore } from '@/lib/stores/shift-manager-store'
+import { useShiftManagerStore } from '@/lib/stores/shift-manager-store'
 import type { AssignedPersonnel, TimeEntry } from '@/lib/types'
 
 interface UnifiedShiftManagerProps {
@@ -69,7 +69,6 @@ const UnifiedShiftManager: React.FC<UnifiedShiftManagerProps> = ({
   onUpdate,
   isOnline = true
 }) => {
-  const useShiftManagerStore = useMemo(() => createShiftManagerStore(), []);
   const {
     assignedPersonnel,
     setAssignedPersonnel,

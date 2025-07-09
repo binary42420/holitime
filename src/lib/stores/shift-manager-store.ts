@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { AssignedWorker } from '@/lib/types'; // Assuming AssignedWorker is in types
+import { AssignedPersonnel } from '@/lib/types';
 
 interface ShiftManagerState {
-  assignedPersonnel: AssignedWorker[];
-  setAssignedPersonnel: (personnel: AssignedWorker[]) => void;
+  assignedPersonnel: AssignedPersonnel[];
+  setAssignedPersonnel: (personnel: AssignedPersonnel[]) => void;
 
   isProcessing: boolean;
   lastAction?: string;
@@ -14,7 +14,7 @@ interface ShiftManagerState {
   fetchTimesheetStatus: (shiftId: string) => Promise<void>;
 }
 
-export const createShiftManagerStore = () => create<ShiftManagerState>((set, get) => ({
+export const useShiftManagerStore = create<ShiftManagerState>((set, get) => ({
   assignedPersonnel: [],
   setAssignedPersonnel: (personnel) => set({ assignedPersonnel: personnel }),
 

@@ -1,12 +1,12 @@
 export const colors = {
   light: {
     primary: {
-      DEFAULT: '#10B981',
+      DEFAULT: '#059669',
       light: '#6EE7B7',
       dark: '#047857',
     },
     secondary: {
-      DEFAULT: '#6366F1',
+      DEFAULT: '#4F46E5',
       light: '#A5B4FC',
       dark: '#4338CA',
     },
@@ -16,16 +16,16 @@ export const colors = {
       primary: '#1F2937',
       secondary: '#6B7280',
     },
-    accent: '#F59E0B',
+    accent: '#D97706',
   },
   dark: {
     primary: {
-      DEFAULT: '#10B981',
+      DEFAULT: '#34D399',
       light: '#6EE7B7',
       dark: '#047857',
     },
     secondary: {
-      DEFAULT: '#818CF8',
+      DEFAULT: '#A78BFA',
       light: '#A5B4FC',
       dark: '#6366F1',
     },

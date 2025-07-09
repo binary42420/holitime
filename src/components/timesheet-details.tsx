@@ -95,7 +95,7 @@ export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
       </div>
 
       {/* Rejection Notice */}
-      {timesheet.status === 'rejected' && timesheet.rejectionReason && (
+      {timesheet.status === 'Rejected' && timesheet.rejectionReason && (
         <Card className="border-red-200 bg-red-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-800">
@@ -120,14 +120,14 @@ export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {timesheet.clientApprovedAt ? (
+            {timesheet.approvedByClientAt ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span className="font-medium text-green-700">Approved</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(timesheet.clientApprovedAt), 'MMMM d, yyyy at h:mm a')}
+                  {format(new Date(timesheet.approvedByClientAt), 'MMMM d, yyyy at h:mm a')}
                 </p>
                 {timesheet.clientSignature && (
                   <div className="mt-2">
@@ -158,14 +158,14 @@ export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {timesheet.managerApprovedAt ? (
+            {timesheet.approvedByManagerAt ? (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-600" />
                   <span className="font-medium text-green-700">Approved</span>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  {format(new Date(timesheet.managerApprovedAt), 'MMMM d, yyyy at h:mm a')}
+                  {format(new Date(timesheet.approvedByManagerAt), 'MMMM d, yyyy at h:mm a')}
                 </p>
               </div>
             ) : (
@@ -253,12 +253,12 @@ export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
                     <TableCell className="sticky left-0 bg-white">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
-                          <AvatarImage src={worker.employeeAvatar} />
+                          <AvatarImage src={worker.employee.avatar} />
                           <AvatarFallback>
-                            {worker.employeeName.split(' ').map(n => n[0]).join('')}
+                            {worker.employee.name.split(' ').map((n: string) => n[0]).join('')}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="font-medium truncate">{worker.employeeName}</span>
+                        <span className="font-medium truncate">{worker.employee.name}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -268,8 +268,8 @@ export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
                       const entry = worker.timeEntries.find(e => e.entryNumber === i + 1);
                       return (
                         <React.Fragment key={i}>
-                          <TableCell>{formatTimeTo12Hour(entry?.clockIn)}</TableCell>
-                          <TableCell>{formatTimeTo12Hour(entry?.clockOut)}</TableCell>
+                          <TableCell>{entry?.clockIn ? formatTimeTo12Hour(entry.clockIn) : '-'}</TableCell>
+                          <TableCell>{entry?.clockOut ? formatTimeTo12Hour(entry.clockOut) : '-'}</TableCell>
                         </React.Fragment>
                       )
                     })}

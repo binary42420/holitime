@@ -70,6 +70,8 @@ export async function POST(request: NextRequest) {
       contactPerson,
       contactEmail: email,
       contactPhone: phone,
+      email: email,
+      clientCompanyId: '',
     });
 
     if (!client) {

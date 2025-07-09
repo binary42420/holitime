@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Users, Plus, Minus, UserPlus, X, Clock, ClockIcon, FileText, Download, CheckCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { RoleCode } from "@/lib/types"
+import { AssignedPersonnel, RoleCode, TimeEntry } from "@/lib/types";
 import { useApi } from "@/hooks/use-api"
 import { format } from "date-fns"
 
@@ -29,33 +29,16 @@ interface WorkerRequirement {
   requiredCount: number;
 }
 
-interface TimeEntry {
-  id: string;
-  entryNumber: number;
-  clockIn?: string;
-  clockOut?: string;
-  isActive: boolean;
-}
 
-interface AssignedWorker {
-  id: string;
-  employeeId: string;
-  employeeName: string;
-  employeeAvatar: string;
-  roleOnShift: string;
-  roleCode: string;
-  status: 'Clocked Out' | 'Clocked In' | 'On Break' | 'Shift Ended' | 'shift_ended' | 'not_started';
-  timeEntries: TimeEntry[];
-}
 
 interface ComprehensiveTimesheetManagerProps {
   shiftId: string;
-  assignedPersonnel: AssignedWorker[];
+  assignedPersonnel: AssignedPersonnel[];
   onUpdate: () => void;
 }
 
 type WorkerSlot =
-  | { type: 'assigned'; worker: AssignedWorker }
+  | { type: 'assigned'; worker: AssignedPersonnel }
   | { type: 'empty'; roleCode: RoleCode }
 
 const ROLE_DEFINITIONS: Record<RoleCode, { name: string; color: string; bgColor: string; borderColor: string }> = {
@@ -313,7 +296,7 @@ export default function ComprehensiveTimesheetManager({
       const worker = assignedPersonnel.find(w => w.id === assignmentId)
       toast({
         title: action === 'clock_in' ? "Clocked In" : "Clocked Out",
-        description: `${worker?.employeeName} has been ${action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully`,
+        description: `${worker?.employee.name} has been ${action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully`,
       })
       onUpdate()
     } catch (error) {
@@ -495,7 +478,7 @@ export default function ComprehensiveTimesheetManager({
     return workerRequirements.find(req => req.roleCode === roleCode)?.requiredCount || 0
   }
 
-  const getAssignedWorkers = (roleCode: RoleCode): AssignedWorker[] => {
+  const getAssignedWorkers = (roleCode: RoleCode): AssignedPersonnel[] => {
     return assignedPersonnel.filter(worker => worker.roleCode === roleCode)
   }
 
@@ -518,13 +501,13 @@ export default function ComprehensiveTimesheetManager({
     return slots
   }
 
-  const getClockButtonText = (worker: AssignedWorker): string => {
+  const getClockButtonText = (worker: AssignedPersonnel): string => {
     if (worker.status === 'Shift Ended' || worker.status === 'shift_ended') return 'Shift Ended'
     if (worker.status === 'Clocked In') return 'Clock Out'
     return 'Clock In'
   }
 
-  const getClockButtonAction = (worker: AssignedWorker): 'clock_in' | 'clock_out' | null => {
+  const getClockButtonAction = (worker: AssignedPersonnel): 'clock_in' | 'clock_out' | null => {
     if (worker.status === 'Shift Ended' || worker.status === 'shift_ended') return null
     if (worker.status === 'Clocked In') return 'clock_out'
     return 'clock_in'
@@ -651,20 +634,20 @@ export default function ComprehensiveTimesheetManager({
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                               <Avatar className="h-8 w-8">
-                                <AvatarImage src={slot.worker.employeeAvatar} />
+                                <AvatarImage src={slot.worker.employee.avatar} />
                                 <AvatarFallback>
-                                  {slot.worker.employeeName.split(' ').map((n: string) => n[0]).join('')}
+                                  {slot.worker.employee.name.split(' ').map((n: string) => n[0]).join('')}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <div className="font-medium text-sm">{slot.worker.employeeName}</div>
+                                <div className="font-medium text-sm">{slot.worker.employee.name}</div>
                                 <div className={`text-xs ${roleDef.color}`}>{slot.worker.roleOnShift}</div>
                               </div>
                             </div>
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => unassignWorker(slot.worker.id, slot.worker.employeeName)}
+                              onClick={() => unassignWorker(slot.worker.id, slot.worker.employee.name)}
                               className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
                             >
                               <X className="h-3 w-3" />
@@ -677,7 +660,7 @@ export default function ComprehensiveTimesheetManager({
                             </SelectTrigger>
                             <SelectContent>
                               {getEligibleEmployees(roleCode)
-                                .filter(emp => !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
+                                .filter(emp => !assignedPersonnel.some(assigned => assigned.employee.id === emp.id))
                                 .map(employee => (
                                   <SelectItem key={employee.id} value={employee.id}>
                                     <div className="flex items-center justify-between w-full">
@@ -697,7 +680,7 @@ export default function ComprehensiveTimesheetManager({
                                   </SelectItem>
                                 ))}
                               {getEligibleEmployees(roleCode)
-                                .filter(emp => !assignedPersonnel.some(assigned => assigned.employeeId === emp.id))
+                                .filter(emp => !assignedPersonnel.some(assigned => assigned.employee.id === emp.id))
                                 .length === 0 && (
                                 <SelectItem value="no-workers" disabled>
                                   No eligible workers available
@@ -755,13 +738,13 @@ export default function ComprehensiveTimesheetManager({
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage src={worker.employeeAvatar} />
+                              <AvatarImage src={worker.employee.avatar} />
                               <AvatarFallback>
-                                {worker.employeeName.split(' ').map(n => n[0]).join('')}
+                                {worker.employee.name.split(' ').map(n => n[0]).join('')}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{worker.employeeName}</div>
+                              <div className="font-medium">{worker.employee.name}</div>
                             </div>
                           </div>
                         </TableCell>
@@ -831,14 +814,14 @@ export default function ComprehensiveTimesheetManager({
                                   <AlertDialogHeader>
                                     <AlertDialogTitle>End Shift</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Are you sure you want to end {worker.employeeName}'s shift?
+                                      Are you sure you want to end {worker.employee.name}'s shift?
                                       This will clock them out if they're currently clocked in and mark their status as 'Shift Ended'.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction
-                                      onClick={() => endWorkerShift(worker.id, worker.employeeName)}
+                                      onClick={() => endWorkerShift(worker.id, worker.employee.name)}
                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     >
                                       End Shift
@@ -884,7 +867,7 @@ export default function ComprehensiveTimesheetManager({
                             {assignedPersonnel
                               .filter(w => w.status !== 'Shift Ended' && w.status !== 'shift_ended')
                               .map(w => (
-                                <li key={w.id} className="text-sm">• {w.employeeName} ({w.roleOnShift})</li>
+                                <li key={w.id} className="text-sm">• {w.employee.name} ({w.roleOnShift})</li>
                               ))}
                           </ul>
                         </div>

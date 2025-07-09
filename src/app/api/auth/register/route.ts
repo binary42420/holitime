@@ -40,7 +40,6 @@ export async function POST(request: NextRequest) {
       password,
       name,
       role: role || 'User', // Default to 'User' role for public signups
-      clientId,
       companyName,
       phone,
     });
@@ -60,7 +59,6 @@ export async function POST(request: NextRequest) {
         name: user.name,
         role: user.role,
         avatar: user.avatar,
-        clientId: user.clientId,
       },
     });
   } catch (error) {

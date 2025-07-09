@@ -10,7 +10,7 @@ import { Clock, User, MapPin, Calendar, Building, FileText, Download } from 'luc
 import { format } from 'date-fns'
 import SignatureCaptureModal from '@/components/signature-capture-modal'
 import { useToast } from '@/hooks/use-toast'
-import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
+import { formatTimeTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
 
 interface TimeEntry {
   id: string

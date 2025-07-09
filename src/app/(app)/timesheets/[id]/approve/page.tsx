@@ -44,7 +44,7 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
   const [rejectionModalOpened, { open: openRejectionModal, close: closeRejectionModal }] = useDisclosure(false);
   const [rejectionReason, setRejectionReason] = useState('');
 
-  const { data: timesheetData, error, mutate } = useApi<{ timesheet: any }>(`/api/timesheets/${id}`);
+  const { data: timesheetData, error, refetch } = useApi<{ timesheet: any }>(`/api/timesheets/${id}`);
 
   const timesheet = timesheetData?.timesheet;
   const shift = timesheet?.shift;
@@ -180,7 +180,7 @@ export default function ApproveTimesheetPage({ params }: { params: Promise<{ id:
 
       closeRejectionModal();
       setRejectionReason('');
-      mutate(); // Re-fetch data to show updated status
+      refetch(); // Re-fetch data to show updated status
 
     } catch (error) {
       console.error('Error rejecting timesheet:', error);
