@@ -275,7 +275,7 @@ export default function ShiftDetailsPage() {
                 {shiftId && (
                   <UnifiedShiftManager
                     shiftId={shiftId}
-                    assignedPersonnel={assignedPersonnel}
+                    initialAssignedPersonnel={assignedPersonnel}
                     onUpdate={handleRefresh}
                   />
                 )}

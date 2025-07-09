@@ -70,5 +70,9 @@ export function MantineProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
-  return <Provider theme={mantineTheme}>{children}</Provider>;
+  return (
+    <Provider theme={mantineTheme}>
+      {children}
+    </Provider>
+  );
 }

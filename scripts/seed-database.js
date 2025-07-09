@@ -16,6 +16,9 @@ async function seedDatabase() {
   try {
     console.log('🌱 Starting database seeding...');
     
+    await pool.query('TRUNCATE TABLE users, jobs, shifts, timesheets, assigned_personnel, time_entries, notifications RESTART IDENTITY CASCADE');
+    console.log('✅ Database cleaned.');
+
     // Create sample users (no password hashing)
     const password = 'password123';
 
@@ -33,7 +36,7 @@ async function seedDatabase() {
       INSERT INTO users (email, password_hash, name, role, certifications, performance, location)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id
-    `, ['john.chief@handson.com', passwordHash, 'John Chief', 'Crew Chief', ['Safety', 'Equipment'], 4.8, 'Downtown']);
+    `, ['john.chief@handson.com', password, 'John Chief', 'Crew Chief', ['Safety', 'Equipment'], 4.8, 'Downtown']);
     const crewChiefId = crewChiefResult.rows[0].id;
     console.log('✅ Crew chief created:', crewChiefId);
 
@@ -42,32 +45,28 @@ async function seedDatabase() {
       INSERT INTO users (email, password_hash, name, role, certifications, performance, location)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id
-    `, ['mike.worker@handson.com', passwordHash, 'Mike Worker', 'Employee', ['Stage Setup'], 4.2, 'Downtown']);
+    `, ['mike.worker@handson.com', password, 'Mike Worker', 'Employee', ['Stage Setup'], 4.2, 'Downtown']);
     const employee1Id = employee1Result.rows[0].id;
 
     const employee2Result = await pool.query(`
       INSERT INTO users (email, password_hash, name, role, certifications, performance, location)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING id
-    `, ['sarah.tech@handson.com', passwordHash, 'Sarah Tech', 'Employee', ['Audio', 'Lighting'], 4.6, 'Midtown']);
+    `, ['sarah.tech@handson.com', password, 'Sarah Tech', 'Employee', ['Audio', 'Lighting'], 4.6, 'Midtown']);
     const employee2Id = employee2Result.rows[0].id;
     console.log('✅ Employees created');
 
     // Insert client
     const clientResult = await pool.query(`
-      INSERT INTO users (email, password_hash, name, role, company_name, company_address, contact_person, contact_email, contact_phone)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      INSERT INTO clients (company_name, company_address, contact_email, contact_phone, notes)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING id
     `, [
-      'contact@cityparks.gov', 
-      passwordHash, 
-      'City Parks Department', 
-      'Client',
       'City Parks Department',
       '123 Main St, City Hall, NY 10001',
-      'Jane Parks',
       'jane.parks@cityparks.gov',
-      '(555) 123-4567'
+      '(555) 123-4567',
+      'Primary contact is Jane Parks.'
     ]);
     const clientId = clientResult.rows[0].id;
     console.log('✅ Client created:', clientId);

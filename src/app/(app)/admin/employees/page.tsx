@@ -34,14 +34,12 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
 
 function AdminEmployeesPage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const { data: employeesData, loading, error } = useApi<{ users: any[] }>('/api/employees')
+  const { data: employeesData, loading, error } = useApi<{ users: Record<string, any>[] }>('/api/employees')
   const [searchTerm, setSearchTerm] = useState("")
 
   // Redirect if not admin
@@ -73,7 +71,7 @@ function AdminEmployeesPage() {
         } else {
           throw new Error('Failed to delete employee')
         }
-      } catch (error) {
+      } catch {
         toast({
           title: "Error",
           description: "Failed to delete employee. Please try again.",
@@ -103,7 +101,7 @@ function AdminEmployeesPage() {
       <Container>
         <Center style={{ height: '80vh' }}>
           <Loader />
-          <Text ml="md">Loading employees...</Text>
+          <Text ml="md">Loading Employees...</Text>
         </Center>
       </Container>
     )
@@ -113,7 +111,7 @@ function AdminEmployeesPage() {
     return (
       <Container>
         <Center style={{ height: '80vh' }}>
-          <Text color="red">Error loading employees: {error.toString()}</Text>
+          <Text color="red">Error loading Employees: {error.toString()}</Text>
         </Center>
       </Container>
     )
@@ -243,4 +241,4 @@ function AdminEmployeesPage() {
   )
 }
 
-export default withAuth(AdminEmployeesPage, hasAdminAccess);
+export default AdminEmployeesPage;

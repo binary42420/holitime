@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import { UserProvider } from '@/hooks/use-user';
 import NextAuthSessionProvider from '@/components/providers/session-provider';
 import { MantineProvider } from '@/components/providers/mantine-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
@@ -27,16 +26,14 @@ export default function RootLayout({
           `}
         </style>
       </head>
-      <body style={{ backgroundColor: '#F3F4F6' }}>
+      <body>
         <NextAuthSessionProvider>
-          <UserProvider>
-            <ThemeProvider>
-              <MantineProvider>
-                <Notifications />
-                {children}
-              </MantineProvider>
-            </ThemeProvider>
-          </UserProvider>
+          <ThemeProvider>
+            <MantineProvider>
+              <Notifications />
+              {children}
+            </MantineProvider>
+          </ThemeProvider>
         </NextAuthSessionProvider>
       </body>
     </html>

@@ -8,7 +8,7 @@ import { Badge } from '@mantine/core'
 import { Separator } from '@/components/ui/separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { ArrowLeft, Building2, Calendar, CheckCircle, Clock, FileSignature, MapPin, User, Shield } from 'lucide-react'
-import { formatTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
+import { formatTimeTo12Hour, calculateTotalRoundedHours, formatDate, getTimeEntryDisplay } from "@/lib/time-utils"
 import SignatureCaptureModal from '@/components/signature-capture-modal'
 import { useToast } from '@/hooks/use-toast'
 import { useSession } from 'next-auth/react'
@@ -266,7 +266,7 @@ export default function ManagerApprovalPage() {
             </div>
             <div className="space-y-1">
               <p className="text-muted-foreground">Start Time</p>
-              <p className="font-medium">{formatTo12Hour(shift?.startTime)}</p>
+              <p className="font-medium">{formatTimeTo12Hour(shift?.startTime)}</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">

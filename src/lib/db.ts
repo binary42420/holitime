@@ -31,7 +31,6 @@ let lastEnvVarsHash: string | null = null;
 
 function hashEnvVars(): string {
   return [
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED,
     process.env.DATABASE_PROVIDER,
     process.env.DATABASE_CA_CERT,
     process.env.NODE_ENV,
@@ -58,18 +57,11 @@ export function getPool(): Pool {
     }
 
     // SSL configuration for Aiven and other cloud databases
-    let sslConfig: any = false;
-
-    // Aggressive SSL config: disable rejectUnauthorized in development or for Aiven provider
-    if (process.env.NODE_ENV !== 'production' || process.env.DATABASE_PROVIDER === 'aiven') {
-      sslConfig = {
-        rejectUnauthorized: false,
-      };
-    } else if (connectionString.includes('sslmode=require')) {
-      sslConfig = {
-        rejectUnauthorized: process.env.NODE_TLS_REJECT_UNAUTHORIZED !== '0',
-      };
-    }
+    // SSL is required for all connections now.
+    // The `DATABASE_URL` should include `?sslmode=require`
+    const sslConfig = {
+      rejectUnauthorized: process.env.NODE_ENV === 'production', // Validate SSL certs in prod only
+    };
 
     console.log('Database SSL config:', sslConfig);
 
@@ -89,8 +81,6 @@ export function getPool(): Pool {
       allowExitOnIdle: process.env.NODE_ENV !== 'production', // Allow exit in development
       // Application identification
       application_name: 'holitime-app',
-      // Explicitly set rejectUnauthorized false for Aiven to fix self-signed cert error
-      ...(connectionString.includes('aivencloud.com') || process.env.DATABASE_PROVIDER === 'aiven' ? { ssl: { rejectUnauthorized: false } } : {}),
     });
 
     // Enhanced error handling with metrics

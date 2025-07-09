@@ -127,12 +127,21 @@ export type AssignedPersonnelStatus = 'Clocked Out' | 'Clocked In' | 'On Break' 
 
 export type RoleCode = 'CC' | 'SH' | 'FO' | 'RFO' | 'RG' | 'GL';
 
+export interface TimeEntry {
+  id: string;
+  entryNumber: number;
+  clockIn?: string;
+  clockOut?: string;
+  isActive: boolean;
+}
+
 export interface AssignedPersonnel {
+  id: string;
   employee: Employee;
   roleOnShift: string;
   roleCode: RoleCode;
   status: AssignedPersonnelStatus;
-  timeEntries: { clockIn?: string; clockOut?: string }[];
+  timeEntries: TimeEntry[];
   isPlaceholder?: boolean;
 }
 

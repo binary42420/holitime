@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "test:e2e": "playwright test",
     "migrate": "tsx scripts/migrate.js",
     "db:setup": "npm run migrate",
     "deploy": "powershell -ExecutionPolicy Bypass -File deploy-cloud-run.ps1 -ProjectId handsonlabor",
@@ -79,9 +80,11 @@
     "recharts": "^3.0.2",
     "tailwind-merge": "^2.6.0",
     "xlsx": "^0.18.5",
-    "zod": "^3.25.75"
+    "zod": "^3.25.75",
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.53.2",
     "@types/node": "^20.19.4",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",

@@ -21,7 +21,7 @@ import {
   Grid,
   SimpleGrid,
 } from "@mantine/core"
-import { ArrowLeft, Save, User, Mail, Phone, MapPin } from "lucide-react"
+import { ArrowLeft, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 const employeeSchema = z.object({
@@ -68,9 +68,6 @@ const availableCertifications = [
   "Equipment Operation"
 ]
 
-import { withAuth } from '@/lib/with-auth';
-import { hasAdminAccess } from '@/lib/auth';
-
 function NewEmployeePage() {
   const { user } = useUser()
   const router = useRouter()
@@ -78,12 +75,6 @@ function NewEmployeePage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
   const [selectedCertifications, setSelectedCertifications] = useState<string[]>([])
-
-  // Redirect if not admin
-  if (user?.role !== 'Manager/Admin') {
-    router.push('/dashboard')
-    return null
-  }
 
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeSchema),
@@ -94,6 +85,12 @@ function NewEmployeePage() {
       certifications: [],
     },
   })
+
+  // Redirect if not admin
+  if (user?.role !== 'Manager/Admin') {
+    router.push('/dashboard')
+    return null
+  }
 
   const onSubmit = async (data: EmployeeFormData) => {
     setIsSubmitting(true)
@@ -116,7 +113,7 @@ function NewEmployeePage() {
         throw new Error('Failed to create employee')
       }
 
-      const result = await response.json()
+      await response.json()
       
       toast({
         title: "Employee Created",
@@ -124,7 +121,7 @@ function NewEmployeePage() {
       })
 
       router.push('/admin/employees')
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to create employee. Please try again.",
@@ -215,7 +212,7 @@ function NewEmployeePage() {
                         required
                         data={["Employee", "Crew Chief", "Manager/Admin"]}
                         {...form.register("role")}
-                        onChange={(value) => form.setValue("role", value as any)}
+                        onChange={(value) => form.setValue("role", value as "Employee" | "Crew Chief" | "Manager/Admin")}
                         error={form.formState.errors.role?.message}
                       />
                     </Grid.Col>
@@ -349,4 +346,4 @@ function NewEmployeePage() {
   )
 }
 
-export default withAuth(NewEmployeePage, hasAdminAccess);
+export default NewEmployeePage;

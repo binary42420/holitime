@@ -12,6 +12,7 @@
     "gitlens.ai.model": "gitkraken", // GitLens AI model setting
     "gitlens.ai.gitkraken.model": "gemini:gemini-2.0-flash", // Specific GitKraken AI model
 
+
   "extensions.experimental.affinity": {
     "better-ts-errors.better-ts-errors": 1
   }
@@ -57,6 +58,15 @@
         "vscode-insiders",
         "docker-desktop"
     ],
+
+    
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    }
+  },
+
     "terminal.integrated.profiles.windows": { // Define terminal profiles for Windows
         "PowerShell": {
             "source": "PowerShell",
