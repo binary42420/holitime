@@ -70,7 +70,6 @@ gcloud run deploy ${SERVICE_NAME} \
   --set-env-vars "NEXT_TELEMETRY_DISABLED=1" \
   --set-env-vars "DATABASE_URL=postgres://avnadmin:AVNS_ZM2GXlIMUITHMcxFPcy@pg-3595fcb-hol619.b.aivencloud.com:12297/defaultdb?sslmode=require" \
   --set-env-vars "DATABASE_PROVIDER=aiven" \
-  --set-env-vars "DATABASE_SSL=true" \
   --set-env-vars "NODE_TLS_REJECT_UNAUTHORIZED=0" \
   --set-env-vars "NEXTAUTH_SECRET=holitime-super-secure-secret-key-for-production-2024" \
   --set-env-vars "NEXTAUTH_URL=https://holitime-369017734615.us-central1.run.app" \

@@ -25,28 +25,48 @@ import {
 } from "lucide-react"
 import { subDays, startOfMonth, endOfMonth } from "date-fns"
 import { useToast } from "@/hooks/use-toast"
+import { User, Shift } from "@/lib/types"; // Import User and Shift types
+
+//*******************************************************************\\
+//=======  Employee Reports Page - Main Component  =================\\
+//*******************************************************************\\
 
 function EmployeeReportsPage() {
+  //***************************\\
+  //=======  Hooks  ===========\\
+  //***************************\\
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
+  
+  //*********************************\\
+  //=======  State Management  =======\\
+  //*********************************\\
   const [reportType, setReportType] = useState("performance")
   const [dateRange, setDateRange] = useState("thisMonth")
   const [selectedEmployee, setSelectedEmployee] = useState("all")
 
-  const { data: usersData } = useApi<{ users: any[] }>('/api/users')
-  const { data: shiftsData } = useApi<{ shifts: any[] }>('/api/shifts')
+  // Fetch users and shifts data from the API
+  const { data: usersData } = useApi<{ users: User[] }>('/api/users')
+  const { data: shiftsData } = useApi<{ shifts: Shift[] }>('/api/shifts')
 
-  // Redirect if not admin
+  //*********************************\\
+  //=======  Access Control  =========\\
+  //*********************************\\
+  // Redirect if the current user does not have 'Manager/Admin' role
   if (user?.role !== 'Manager/Admin') {
     router.push('/dashboard')
     return null
   }
 
+  //*********************************\\
+  //=======  Data Processing  =======\\
+  //*********************************\\
+  // Filter out client users from the users data
   const employees = usersData?.users?.filter(u => u.role !== 'Client') || []
   const shifts = shiftsData?.shifts || []
 
-  // Calculate date range
+  // Calculate date range based on selected filter
   const getDateRange = () => {
     const now = new Date()
     switch (dateRange) {
@@ -65,13 +85,14 @@ function EmployeeReportsPage() {
     }
   }
 
-  // Generate performance report data
+  // Generate performance report data for employees
   const generatePerformanceReport = () => {
     const { start, end } = getDateRange()
     
     return employees.map(employee => {
+      // Filter shifts relevant to the current employee and date range
       const employeeShifts = shifts.filter(shift => 
-        shift.assignedWorkers?.includes(employee.id) &&
+        shift.assignedPersonnel.some(p => p.employee.id === employee.id) && // Check assignedPersonnel
         new Date(shift.date) >= start &&
         new Date(shift.date) <= end
       )
@@ -96,13 +117,14 @@ function EmployeeReportsPage() {
     }).filter(emp => selectedEmployee === 'all' || emp.id === selectedEmployee)
   }
 
-  // Generate attendance report data
+  // Generate attendance report data for employees
   const generateAttendanceReport = () => {
     const { start, end } = getDateRange()
     
     return employees.map(employee => {
+      // Filter shifts relevant to the current employee and date range
       const employeeShifts = shifts.filter(shift => 
-        shift.assignedWorkers?.includes(employee.id) &&
+        shift.assignedPersonnel.some(p => p.employee.id === employee.id) && // Check assignedPersonnel
         new Date(shift.date) >= start &&
         new Date(shift.date) <= end
       )
@@ -124,22 +146,32 @@ function EmployeeReportsPage() {
     }).filter(emp => selectedEmployee === 'all' || emp.id === selectedEmployee)
   }
 
+  //*********************************\\
+  //=======  Event Handlers  =========\\
+  //*********************************\\
+  // Handler for exporting reports
   const handleExportReport = () => {
     toast({
       title: "Export Started",
       description: "Your report is being prepared for download.",
     })
-    // In a real app, this would trigger a CSV/PDF export
+    // In a real application, this would trigger a CSV/PDF export process
   }
 
+  // Generate report data based on selected report type
   const performanceData = generatePerformanceReport()
   const attendanceData = generateAttendanceReport()
 
+  //***************************\\
+  //=======  Render UI  =========\\
+  //***************************\\
   return (
     <Container size="xl">
       <Stack gap="lg">
+        {/* Header Section */}
         <Group justify="space-between">
           <Stack gap={0}>
+            {/* Back button to Employee Management */}
             <Button
               variant="subtle"
               leftSection={<ArrowLeft size={16} />}
@@ -149,9 +181,11 @@ function EmployeeReportsPage() {
             >
               Back to Employees
             </Button>
+            {/* Page Title and Description */}
             <Title order={1}>Employee Reports</Title>
             <Text c="dimmed">Analyze employee performance and attendance</Text>
           </Stack>
+          {/* Button to export the current report */}
           <Button
             leftSection={<Download size={16} />}
             onClick={handleExportReport}
@@ -160,6 +194,7 @@ function EmployeeReportsPage() {
           </Button>
         </Group>
 
+        {/* Report Filters Card */}
         <Card withBorder>
           <Card.Section withBorder inheritPadding py="sm">
             <Title order={4}>Report Filters</Title>
@@ -167,6 +202,7 @@ function EmployeeReportsPage() {
           </Card.Section>
           <Card.Section inheritPadding py="md">
             <Grid>
+              {/* Report Type Selection */}
               <Grid.Col span={{ base: 12, md: 4 }}>
                 <Select
                   label="Report Type"
@@ -178,6 +214,7 @@ function EmployeeReportsPage() {
                   ]}
                 />
               </Grid.Col>
+              {/* Date Range Selection */}
               <Grid.Col span={{ base: 12, md: 4 }}>
                 <Select
                   label="Date Range"
@@ -191,6 +228,7 @@ function EmployeeReportsPage() {
                   ]}
                 />
               </Grid.Col>
+              {/* Employee Selection */}
               <Grid.Col span={{ base: 12, md: 4 }}>
                 <Select
                   label="Employee"
@@ -198,6 +236,7 @@ function EmployeeReportsPage() {
                   onChange={(value) => setSelectedEmployee(value || "all")}
                   data={[
                     { value: 'all', label: 'All Employees' },
+                    // Map employee data to select options
                     ...employees.map(emp => ({ value: emp.id, label: emp.name }))
                   ]}
                 />
@@ -206,6 +245,7 @@ function EmployeeReportsPage() {
           </Card.Section>
         </Card>
 
+        {/* Performance Report Section (conditionally rendered) */}
         {reportType === 'performance' && (
           <Card withBorder>
             <Card.Section withBorder inheritPadding py="sm">
@@ -228,6 +268,7 @@ function EmployeeReportsPage() {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
+                {/* Map through performance data to render table rows */}
                 {performanceData.map((employee) => (
                   <Table.Tr key={employee.id}>
                     <Table.Td><Text fw={500}>{employee.name}</Text></Table.Td>
@@ -248,6 +289,7 @@ function EmployeeReportsPage() {
           </Card>
         )}
 
+        {/* Attendance Report Section (conditionally rendered) */}
         {reportType === 'attendance' && (
           <Card withBorder>
             <Card.Section withBorder inheritPadding py="sm">
@@ -269,6 +311,7 @@ function EmployeeReportsPage() {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
+                {/* Map through attendance data to render table rows */}
                 {attendanceData.map((employee) => (
                   <Table.Tr key={employee.id}>
                     <Table.Td><Text fw={500}>{employee.name}</Text></Table.Td>

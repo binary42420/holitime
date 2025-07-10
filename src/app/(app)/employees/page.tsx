@@ -6,11 +6,15 @@ import { Users, UserCheck, Settings, Save, X, Edit, Plus, UserPlus, Eye, EyeOff 
 import { useToast } from "@/hooks/use-toast"
 import { useApi } from "@/hooks/use-api"
 import type { User, UserRole } from "@/lib/types"
-import { notifications } from "@mantine/notifications"
 
-interface EmployeeManagementProps {}
+//*******************************************************************\\
+//=======  Employees Page - Main Component  ========================\\
+//*******************************************************************\\
 
-function EmployeesPage({}: EmployeeManagementProps) {
+function EmployeesPage() {
+  //***************************\\
+  //=======  State Management  =\\
+  //***************************\\
   const [editingUser, setEditingUser] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
@@ -18,10 +22,9 @@ function EmployeesPage({}: EmployeeManagementProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [generatedPassword, setGeneratedPassword] = useState('')
 
-  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useApi<{ users: User[] }>('/api/users')
-  const users = usersData?.users || []
-
+  // Form state for editing existing users
   const [editForm, setEditForm] = useState<Partial<User>>({})
+  // Form state for creating new users
   const [newUserForm, setNewUserForm] = useState({
     name: '',
     email: '',
@@ -39,6 +42,18 @@ function EmployeesPage({}: EmployeeManagementProps) {
     contactPhone: ''
   })
 
+  //***************************\\
+  //=======  Hooks  ===========\\
+  //***************************\\
+  const { toast } = useToast()
+  // Fetch users data from the API
+  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useApi<{ users: User[] }>('/api/users')
+  const users = usersData?.users || []
+
+  //*********************************\\
+  //=======  Editing Functions  =======\\
+  //*********************************\\
+  // Initiates the editing mode for a selected user
   const startEditing = (user: User) => {
     setEditingUser(user.id)
     setEditForm({
@@ -58,11 +73,52 @@ function EmployeesPage({}: EmployeeManagementProps) {
     })
   }
 
+  // Cancels the editing mode and resets the edit form
   const cancelEditing = () => {
     setEditingUser(null)
     setEditForm({})
   }
 
+  // Saves the updated user information to the backend
+  const saveUser = async () => {
+    if (!editForm.id) return
+
+    setIsUpdating(true)
+    try {
+      const response = await fetch(`/api/users/${editForm.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to update user')
+      }
+
+      toast({
+        title: "User Updated",
+        description: `${editForm.name}'s information has been updated successfully`,
+      })
+
+      setEditingUser(null)
+      setEditForm({})
+      refetchUsers() // Refresh user data after successful update
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to update user",
+        variant: "destructive",
+      })
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  //*********************************\\
+  //=======  Creation Functions  =======\\
+  //*********************************\\
+  // Generates a random password for new user creation
   const generatePassword = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
     let password = ''
@@ -74,6 +130,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
     return password
   }
 
+  // Resets the new user form to its initial empty state
   const resetNewUserForm = () => {
     setNewUserForm({
       name: '',
@@ -95,54 +152,20 @@ function EmployeesPage({}: EmployeeManagementProps) {
     setShowPassword(false)
   }
 
+  // Opens the create new user dialog and generates a new password
   const openCreateDialog = () => {
     resetNewUserForm()
     generatePassword()
     setShowCreateDialog(true)
   }
 
-  const saveUser = async () => {
-    if (!editForm.id) return
-
-    setIsUpdating(true)
-    try {
-      const response = await fetch(`/api/users/${editForm.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm)
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to update user')
-      }
-
-      notifications.show({
-        title: "User Updated",
-        message: `${editForm.name}'s information has been updated successfully`,
-        color: 'green'
-      })
-
-      setEditingUser(null)
-      setEditForm({})
-      refetchUsers()
-    } catch (error) {
-      notifications.show({
-        title: "Error",
-        message: error instanceof Error ? error.message : "Failed to update user",
-        color: 'red'
-      })
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
+  // Creates a new user in the backend
   const createUser = async () => {
     if (!newUserForm.name || !newUserForm.email || !newUserForm.password) {
-      notifications.show({
+      toast({
         title: "Validation Error",
-        message: "Name, email, and password are required",
-        color: 'red'
+        description: "Name, email, and password are required",
+        variant: "destructive",
       })
       return
     }
@@ -160,26 +183,29 @@ function EmployeesPage({}: EmployeeManagementProps) {
         throw new Error(error.error || 'Failed to create user')
       }
 
-      notifications.show({
+      toast({
         title: "User Created",
-        message: `${newUserForm.name} has been created successfully`,
-        color: 'green'
+        description: `${newUserForm.name} has been created successfully`,
       })
 
       setShowCreateDialog(false)
       resetNewUserForm()
-      refetchUsers()
+      refetchUsers() // Refresh user data after successful creation
     } catch (error) {
-      notifications.show({
+      toast({
         title: "Error",
-        message: error instanceof Error ? error.message : "Failed to create user",
-        color: 'red'
+        description: error instanceof Error ? error.message : "Failed to create user",
+        variant: "destructive",
       })
     } finally {
       setIsCreating(false)
     }
   }
 
+  //*********************************\\
+  //=======  Helper Functions  =======\\
+  //*********************************\\
+  // Determines the badge color for user roles
   const getRoleBadgeColor = (role: UserRole) => {
     switch (role) {
       case 'Manager/Admin': return 'purple'
@@ -190,6 +216,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
     }
   }
 
+  // Displays eligibility status for crew chief and fork operator roles
   const getEligibilityDisplay = (user: User) => {
     const eligibilities = []
     if (user.crewChiefEligible) eligibilities.push('CC')
@@ -197,6 +224,10 @@ function EmployeesPage({}: EmployeeManagementProps) {
     return eligibilities.length > 0 ? eligibilities.join(', ') : 'None'
   }
 
+  //*********************************\\
+  //=======  Loading State  =========\\
+  //*********************************\\
+  // Displays a loading message while user data is being fetched
   if (usersLoading) {
     return (
       <Group justify="center" style={{ height: '64vh' }}>
@@ -205,8 +236,12 @@ function EmployeesPage({}: EmployeeManagementProps) {
     )
   }
 
+  //***************************\\
+  //=======  Render UI  =========\\
+  //***************************\\
   return (
       <Stack gap="lg">
+        {/* Header Section */}
         <Group justify="space-between">
           <div>
             <Title order={1}>Employee Management</Title>
@@ -215,16 +250,20 @@ function EmployeesPage({}: EmployeeManagementProps) {
             </Text>
           </div>
           <Group>
+            {/* Display total number of users */}
             <Badge variant="light" leftSection={<Users size={14} />}>
               {users.length} Total Users
             </Badge>
+            {/* Button to add a new user */}
             <Button onClick={openCreateDialog} leftSection={<UserPlus size={16} />}>
               Add User
             </Button>
           </Group>
         </Group>
 
+        {/* Employee Statistics Cards */}
         <Group>
+          {/* Total Employees Card */}
           <Card withBorder p="md" radius="md" style={{ flex: 1 }}>
             <Group>
               <Users size={24} />
@@ -232,6 +271,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
             </Group>
             <Text size="xl" fw={700}>{users.filter(u => u.role === 'Employee').length}</Text>
           </Card>
+          {/* Total Crew Chiefs Card */}
           <Card withBorder p="md" radius="md" style={{ flex: 1 }}>
             <Group>
               <UserCheck size={24} />
@@ -239,6 +279,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
             </Group>
             <Text size="xl" fw={700}>{users.filter(u => u.role === 'Crew Chief').length}</Text>
           </Card>
+          {/* Crew Chief Eligible Card */}
           <Card withBorder p="md" radius="md" style={{ flex: 1 }}>
             <Group>
               <Settings size={24} />
@@ -246,6 +287,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
             </Group>
             <Text size="xl" fw={700}>{users.filter(u => u.crewChiefEligible).length}</Text>
           </Card>
+          {/* Fork Operator Eligible Card */}
           <Card withBorder p="md" radius="md" style={{ flex: 1 }}>
             <Group>
               <Settings size={24} />
@@ -255,6 +297,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
           </Card>
         </Group>
 
+        {/* All Users Table Card */}
         <Card withBorder radius="md">
           <Card.Section withBorder inheritPadding py="xs">
             <Group>
@@ -278,10 +321,12 @@ function EmployeesPage({}: EmployeeManagementProps) {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
+                {/* Map through users to render table rows */}
                 {users.map((user) => (
                   <Table.Tr key={user.id}>
                     <Table.Td>
                       <Group>
+                        {/* User Avatar and Name */}
                         <Avatar src={user.avatar} radius="xl">
                           {user.name.split(' ').map(n => n[0]).join('')}
                         </Avatar>
@@ -292,6 +337,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
                       </Group>
                     </Table.Td>
                     <Table.Td>
+                      {/* Role selection in editing mode, otherwise display badge */}
                       {editingUser === user.id ? (
                         <Select
                           value={editForm.role}
@@ -305,6 +351,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
                       )}
                     </Table.Td>
                     <Table.Td>
+                      {/* Eligibility checkboxes in editing mode, otherwise display text */}
                       {editingUser === user.id ? (
                         <Stack>
                           <Checkbox
@@ -327,6 +374,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
                       )}
                     </Table.Td>
                     <Table.Td>
+                      {/* Location input in editing mode, otherwise display text */}
                       {editingUser === user.id ? (
                         <TextInput
                           value={editForm.location || ''}
@@ -338,6 +386,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
                       )}
                     </Table.Td>
                     <Table.Td>
+                      {/* Performance input in editing mode, otherwise display text */}
                       {editingUser === user.id ? (
                         <NumberInput
                           min={0}
@@ -353,6 +402,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
                       )}
                     </Table.Td>
                     <Table.Td>
+                      {/* Action buttons for editing or saving/canceling */}
                       {editingUser === user.id ? (
                         <Group>
                           <ActionIcon onClick={saveUser} loading={isUpdating} variant="filled" color="blue"><Save size={16} /></ActionIcon>
@@ -369,6 +419,7 @@ function EmployeesPage({}: EmployeeManagementProps) {
           </Card.Section>
         </Card>
 
+        {/* Create New User Modal */}
         <Modal opened={showCreateDialog} onClose={() => setShowCreateDialog(false)} title="Create New User" size="lg">
           <Stack>
             <Title order={4}>Basic Information</Title>

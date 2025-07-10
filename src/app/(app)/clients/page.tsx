@@ -6,8 +6,8 @@ import { format } from "date-fns"
 import Link from "next/link"
 import { useUser } from "@/hooks/use-user"
 import { useClients } from "@/hooks/use-api"
-import { Button, Card, Text, Group, ActionIcon, Badge, Stack, Title } from '@mantine/core'
-import { Plus, ExternalLink, Mail, User, Calendar } from "lucide-react"
+import { Button, Card, Text, Group, Badge, Stack, Title } from '@mantine/core'
+import { Plus, Mail, User } from "lucide-react"
 
 const safeFormatDate = (date: string | null | undefined) => {
   if (!date || isNaN(new Date(date).getTime())) {

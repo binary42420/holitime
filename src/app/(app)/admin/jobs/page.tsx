@@ -40,20 +40,40 @@ import { format } from "date-fns"
 
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
+import { Job } from "@/lib/types"; // Import Job type
+
+//*******************************************************************\\
+//=======  Admin Jobs Page - Main Component  =======================\\
+//*******************************************************************\\
 
 function AdminJobsPage() {
+  //***************************\\
+  //=======  Hooks  ===========\\
+  //***************************\\
   const { user } = useUser()
   const router = useRouter()
-  const { data: jobsData, loading, error } = useApi<{ jobs: any[] }>('/api/jobs')
+  // Fetch jobs data from the API, specifying the expected type
+  const { data: jobsData, loading, error } = useApi<{ jobs: Job[] }>('/api/jobs')
 
-  // Redirect if not admin
+  //*********************************\\
+  //=======  Access Control  =========\\
+  //*********************************\\
+  // Redirect if the current user does not have 'Manager/Admin' role
   if (user?.role !== 'Manager/Admin') {
     router.push('/dashboard')
     return null
   }
 
+  //*********************************\\
+  //=======  Data Processing  =======\\
+  //*********************************\\
+  // Ensure jobsData.jobs is an array, default to empty array if null/undefined
   const jobs = jobsData?.jobs || []
 
+  //*********************************\\
+  //=======  Helper Functions  =======\\
+  //*********************************\\
+  // Determines the badge color based on the job's status
   const getStatusBadgeColor = (status: string) => {
     const colors: Record<string, string> = {
       'Active': 'blue',
@@ -64,11 +84,37 @@ function AdminJobsPage() {
     return colors[status] || 'gray'
   }
 
+  //*********************************\\
+  //=======  Loading & Error States  =========\\
+  //*********************************\\
+  // Display a loading spinner while data is being fetched
+  if (loading) {
+    return (
+      <Center style={{ height: 200 }}>
+        <Loader />
+      </Center>
+    )
+  }
+
+  // Display an error message if data fetching failed
+  if (error) {
+    return (
+      <Center style={{ height: 200 }}>
+        <Text color="red">Error loading jobs: {error.toString()}</Text>
+      </Center>
+    )
+  }
+
+  //***************************\\
+  //=======  Render UI  =========\\
+  //***************************\\
   return (
     <Container size="xl">
       <Stack gap="lg">
+        {/* Header Section */}
         <Group justify="space-between">
           <Stack gap={0}>
+            {/* Back button to Admin Dashboard */}
             <Button
               variant="subtle"
               leftSection={<ArrowLeft size={16} />}
@@ -78,16 +124,20 @@ function AdminJobsPage() {
             >
               Back to Admin
             </Button>
+            {/* Page Title and Description */}
             <Title order={1}>Job Management</Title>
             <Text c="dimmed">Create and manage jobs and projects</Text>
           </Stack>
+          {/* Group of action buttons */}
           <Group>
+            {/* Button to view job templates */}
             <Button
               variant="default"
               onClick={() => router.push('/admin/jobs/templates')}
             >
               Job Templates
             </Button>
+            {/* Button to create a new job */}
             <Button
               leftSection={<Plus size={16} />}
               onClick={() => router.push('/admin/jobs/new')}
@@ -97,7 +147,9 @@ function AdminJobsPage() {
           </Group>
         </Group>
 
+        {/* Job Statistics Grid */}
         <Grid>
+          {/* Total Jobs Card */}
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Card withBorder>
               <Group justify="space-between">
@@ -107,6 +159,7 @@ function AdminJobsPage() {
               <Text size="xl" fw={700}>{jobs.length}</Text>
             </Card>
           </Grid.Col>
+          {/* Active Jobs Card */}
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Card withBorder>
               <Group justify="space-between">
@@ -118,6 +171,7 @@ function AdminJobsPage() {
               </Text>
             </Card>
           </Grid.Col>
+          {/* Total Shifts Card */}
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Card withBorder>
               <Group justify="space-between">
@@ -125,12 +179,13 @@ function AdminJobsPage() {
                 <Users size={18} />
               </Group>
               <Text size="xl" fw={700}>
-                {jobs.reduce((total, job) => total + (job.shiftsCount || 0), 0)}
+                {jobs.reduce((total, job) => total + (job.shiftCount || 0), 0)}
               </Text>
             </Card>
           </Grid.Col>
         </Grid>
 
+        {/* All Jobs Table Card */}
         <Card withBorder>
           <Card.Section withBorder inheritPadding py="sm">
             <Group>
@@ -139,6 +194,7 @@ function AdminJobsPage() {
             </Group>
             <Text size="sm" c="dimmed">Manage all jobs and projects in the system</Text>
           </Card.Section>
+          {/* Conditional rendering for loading, error, or empty states */}
           {loading ? (
             <Center style={{ height: 200 }}>
               <Loader />
@@ -175,6 +231,7 @@ function AdminJobsPage() {
                 </Table.Tr>
               </Table.Thead>
               <Table.Tbody>
+                {/* Map through jobs data to render table rows */}
                 {jobs.map((job) => (
                   <Table.Tr
                     key={job.id}
@@ -192,7 +249,7 @@ function AdminJobsPage() {
                     <Table.Td>
                       <Badge color={getStatusBadgeColor(job.status)}>{job.status}</Badge>
                     </Table.Td>
-                    <Table.Td>{job.shiftsCount || 0}</Table.Td>
+                    <Table.Td>{job.shiftCount || 0}</Table.Td>
                     <Table.Td>
                       {job.createdAt ? format(new Date(job.createdAt), 'MMM d, yyyy') : 'N/A'}
                     </Table.Td>
@@ -205,22 +262,26 @@ function AdminJobsPage() {
                         </Menu.Target>
                         <Menu.Dropdown>
                           <Menu.Label>Actions</Menu.Label>
+                          {/* View Details Link */}
                           <Menu.Item
                             leftSection={<Eye size={14} />}
                             onClick={() => router.push(`/jobs/${job.id}`)}
                           >
                             View Details
                           </Menu.Item>
+                          {/* Edit Job Link */}
                           <Menu.Item
                             leftSection={<Edit size={14} />}
                             onClick={() => router.push(`/jobs/${job.id}/edit`)}
                           >
                             Edit Job
                           </Menu.Item>
+                          {/* Duplicate Job Link */}
                           <Menu.Item leftSection={<Copy size={14} />}>
                             Duplicate Job
                           </Menu.Item>
                           <Menu.Divider />
+                          {/* Delete Job Button */}
                           <Menu.Item color="red" leftSection={<Trash2 size={14} />}>
                             Delete Job
                           </Menu.Item>

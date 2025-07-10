@@ -1,10 +1,9 @@
 "use client"
 
-import React, { useState, use } from "react"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { useUser } from "@/hooks/use-user"
-import { useApi } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -17,7 +16,6 @@ import {
   Share2, 
   Clock,
   User,
-  Building2,
   Tag,
   Calendar,
   PenTool,
@@ -25,19 +23,34 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import PDFViewer from "@/components/pdf-viewer"
+import { AppDocument } from "@/lib/types";
 
 interface DocumentDetailPageProps {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }
 
 export default function DocumentDetailPage({ params }: DocumentDetailPageProps) {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const { id } = use(params)
+  const { id } = params
 
   // Mock document data - in a real app, this would come from an API
-  const documentData = {
+  const documentData: AppDocument & {
+    description: string;
+    fileUrl: string;
+    size: string;
+    ownerName: string;
+    ownerId: string;
+    version: string;
+    tags: string[];
+    permissions: {
+      canView: boolean;
+      canEdit: boolean;
+      canDelete: boolean;
+      canShare: boolean;
+    };
+  } = {
     id: id,
     name: "Equipment Inspection Form",
     description: "Daily equipment safety checklist and inspection form",
@@ -45,8 +58,9 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
     type: "Form",
     status: "Requires Signature",
     fileUrl: "/documents/sample-form.pdf", // This would be a real PDF URL
+    url: "/documents/sample-form.pdf", // Added missing url property
     size: "1.8 MB",
-    createdAt: "2024-01-10T12:00:00Z",
+    uploadDate: "2024-01-10T12:00:00Z", // Mapped from createdAt
     updatedAt: "2024-01-14T15:30:00Z",
     ownerName: "Maria Garcia",
     ownerId: "user-2",
@@ -60,8 +74,15 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
     }
   }
 
+  //*********************************\\
+  //=======  State Management  =======\\
+  //*********************************\\
   const [activeTab, setActiveTab] = useState("view")
 
+  //*********************************\\
+  //=======  Helper Functions  =======\\
+  //*********************************\\
+  // Determines the badge style based on document status
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Active':
@@ -79,20 +100,29 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
     }
   }
 
+  //*********************************\\
+  //=======  Event Handlers  =========\\
+  //*********************************\\
+  // Handles saving form data (simulated API call)
   const handleSaveForm = async (formData: any) => {
     try {
-      // In a real app, this would save to the backend
+      // In a real application, this would send data to the backend
       console.log('Saving form data:', formData)
       
-      // Simulate API call
+      // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000))
       
       toast({
         title: "Form Saved",
         description: "Your form has been saved successfully.",
       })
-    } catch (error) {
-      throw error
+    } catch {
+      // Handle errors during form saving
+      toast({
+        title: "Error",
+        description: "Failed to save form. Please try again.",
+        variant: "destructive",
+      })
     }
   }
 
@@ -191,11 +221,11 @@ export default function DocumentDetailPage({ params }: DocumentDetailPageProps) 
               </div>
 
               <div>
-                <label className="text-sm font-medium text-muted-foreground">Created</label>
+                <label className="text-sm font-medium text-muted-foreground">Uploaded</label>
                 <div className="mt-1 flex items-center gap-1">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">
-                    {format(new Date(documentData.createdAt), 'MMM d, yyyy')}
+                    {format(new Date(documentData.uploadDate), 'MMM d, yyyy')}
                   </span>
                 </div>
               </div>

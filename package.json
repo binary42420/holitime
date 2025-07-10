@@ -85,6 +85,7 @@
     "genkit-cli": "^1.14.0",
     "postcss": "^8.4.30",
     "tsx": "^4.20.3",
-    "typescript": "^5.5.0"
+    "typescript": "^5.5.0",
+    "react": "19.1.0"
   }
 }

@@ -94,7 +94,7 @@ function ShiftTemplatesPage() {
     template.location.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleUseTemplate = (template: any) => {
+  const handleUseTemplate = (template: typeof mockTemplates[0]) => {
     // Navigate to new shift page with template data pre-filled
     const queryParams = new URLSearchParams({
       template: template.id,
@@ -108,14 +108,14 @@ function ShiftTemplatesPage() {
     router.push(`/admin/shifts/new?${queryParams.toString()}`)
   }
 
-  const handleEditTemplate = (templateId: string) => {
+  const handleEditTemplate = () => {
     toast({
       title: "Feature Coming Soon",
       description: "Template editing will be available in a future update.",
     })
   }
 
-  const handleDeleteTemplate = (templateId: string) => {
+  const handleDeleteTemplate = () => {
     toast({
       title: "Feature Coming Soon", 
       description: "Template deletion will be available in a future update.",
@@ -246,14 +246,14 @@ function ShiftTemplatesPage() {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => handleEditTemplate(template.id)}
+                        onClick={() => handleEditTemplate()}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => handleDeleteTemplate(template.id)}
+                        onClick={() => handleDeleteTemplate()}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

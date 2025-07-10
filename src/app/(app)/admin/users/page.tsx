@@ -18,7 +18,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   DropdownMenu,
@@ -28,17 +27,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
 import { Label } from '@/components/ui/label'
 import {
   Users,
@@ -56,12 +44,13 @@ import { useToast } from "@/hooks/use-toast"
 
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
+import { User } from "@/lib/types";
 
 function AdminUsersPage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const { data: usersData, loading, error, refetch } = useApi<{ users: any[] }>('/api/users')
+  const { data: usersData, loading, error } = useApi<{ users: User[] }>('/api/users')
 
   const [searchTerm, setSearchTerm] = useState("")
   const [roleFilter, setRoleFilter] = useState("all")
@@ -140,7 +129,7 @@ function AdminUsersPage() {
       setNewPassword("")
       setConfirmPassword("")
       setShowPassword(false)
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to reset password. Please try again.",

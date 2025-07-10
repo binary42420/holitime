@@ -3,16 +3,13 @@
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
-import Link from "next/link"
 import { useUser } from "@/hooks/use-user"
-import { useApi } from "@/hooks/use-api"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from '@mantine/core'
 import { Input } from '@mantine/core'
 import { Badge } from '@mantine/core'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +32,6 @@ import {
   FilePenLine,
   FileImage,
   FileSpreadsheet,
-  Plus,
   Folder,
   Clock,
   User,

@@ -70,6 +70,10 @@ class Database {
   public async close(): Promise<void> {
     await this.pool.end();
   }
+
+  public getPool(): Pool {
+    return this.pool;
+  }
 }
 
 const db = Database.getInstance();
@@ -79,6 +83,22 @@ export const query = db.query.bind(db);
 
 // Function to get a client for transactions
 export const getClient = db.getClient.bind(db);
+
+// Export the pool for specific use cases, like the health check
+export const getPool = db.getPool.bind(db);
+
+export async function checkDatabaseHealth() {
+  const client = await getClient();
+  try {
+    await client.query('SELECT 1');
+    return { isHealthy: true };
+  } catch (error) {
+    console.error('Database health check failed:', error);
+    return { isHealthy: false, error };
+  } finally {
+    client.release();
+  }
+}
 
 // Transaction wrapper
 export async function withTransaction<T>(

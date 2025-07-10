@@ -13,10 +13,8 @@ import {
   Plus, 
   Calendar,
   Clock,
-  Users,
   Building2,
   AlertTriangle,
-  CheckCircle,
   MoreHorizontal,
   Eye,
   Edit,
@@ -35,11 +33,12 @@ import { format } from "date-fns"
 
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
+import { Shift } from "@/lib/types";
 
 function AdminShiftsPage() {
   const { user } = useUser()
   const router = useRouter()
-  const { data: shiftsData, loading, error } = useApi<{ shifts: any[] }>('/api/shifts')
+  const { data: shiftsData, loading, error } = useApi<{ shifts: Shift[] }>('/api/shifts')
 
   // Redirect if not admin
   if (user?.role !== 'Manager/Admin') {

@@ -5,11 +5,10 @@ import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
 import { Card, Button, Badge, Group, Text, Title, Stack, ActionIcon } from "@mantine/core"
 import { ArrowLeft, Building2, Phone, Mail, MapPin, Briefcase, Plus, Calendar, Users } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 import { generateClientEditUrl } from "@/lib/url-utils"
 import { CrewChiefPermissionManager } from "@/components/crew-chief-permission-manager"
 import { DangerZone } from "@/components/danger-zone"
-import { notifications } from "@mantine/notifications"
+import { Client, Job, Shift } from "@/lib/types";
 
 function ClientDetailPage({ params }: { params: { id: string } }) {
   const { id: clientId } = params
@@ -17,13 +16,13 @@ function ClientDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
   const canEdit = user?.role === 'Manager/Admin'
 
-  const { data: clientData, loading: clientLoading, error: clientError } = useApi<{ client: any }>(
+  const { data: clientData, loading: clientLoading, error: clientError } = useApi<{ client: Client }>(
     clientId ? `/api/clients/${clientId}` : ''
   );
-  const { data: jobsData, loading: jobsLoading, error: jobsError } = useApi<{ jobs: any[] }>(
+  const { data: jobsData, loading: jobsLoading } = useApi<{ jobs: Job[] }>(
     clientId ? `/api/clients/${clientId}/jobs` : ''
   );
-  const { data: shiftsData, loading: shiftsLoading, error: shiftsError } = useApi<{ shifts: any[] }>(
+  const { data: shiftsData, loading: shiftsLoading } = useApi<{ shifts: Shift[] }>(
     clientId ? `/api/shifts?clientId=${clientId}` : ''
   );
 
@@ -115,13 +114,13 @@ function ClientDetailPage({ params }: { params: { id: string } }) {
               <Group justify="space-between">
                 <Text size="sm">Active Jobs</Text>
                 <Badge color="blue">
-                  {jobs.filter((job:any) => job.status === 'Active').length}
+                  {jobs.filter((job) => job.status === 'Active').length}
                 </Badge>
               </Group>
               <Group justify="space-between">
                 <Text size="sm">Completed Jobs</Text>
                 <Badge color="gray">
-                  {jobs.filter((job:any) => job.status === 'Completed').length}
+                  {jobs.filter((job) => job.status === 'Completed').length}
                 </Badge>
               </Group>
             </Stack>
@@ -157,7 +156,7 @@ function ClientDetailPage({ params }: { params: { id: string } }) {
         <Card.Section p="md">
           {jobs && jobs.length > 0 ? (
             <Stack>
-              {jobs.map((job:any) => (
+              {jobs.map((job) => (
                 <Card key={job.id} withBorder p="md" radius="sm" style={{ cursor: 'pointer' }} onClick={() => router.push(`/jobs/${job.id}`)}>
                   <Group justify="space-between">
                     <div>
@@ -170,7 +169,7 @@ function ClientDetailPage({ params }: { params: { id: string } }) {
                         </Group>
                         <Group gap="xs">
                           <Users size={14} />
-                          <Text size="xs">{job.shiftsCount || 0} shifts</Text>
+                          <Text size="xs">{job.shiftCount || 0} shifts</Text>
                         </Group>
                       </Group>
                     </div>
@@ -209,11 +208,11 @@ function ClientDetailPage({ params }: { params: { id: string } }) {
         <Card.Section p="md">
           {shifts && shifts.length > 0 ? (
             <Stack>
-              {shifts.map((shift:any) => (
+              {shifts.map((shift) => (
                 <Card key={shift.id} withBorder p="md" radius="sm" style={{ cursor: 'pointer' }} onClick={() => router.push(`/shifts/${shift.id}`)}>
                   <Group justify="space-between">
                     <div>
-                      <Title order={5}>{shift.job ? shift.job.name : 'No Job Assigned'}</Title>
+                      <Title order={5}>{shift.jobName || 'No Job Assigned'}</Title>
                       <Text size="sm" c="dimmed">{new Date(shift.startTime).toLocaleString()} - {new Date(shift.endTime).toLocaleString()}</Text>
                     </div>
                     <Group>

@@ -11,7 +11,6 @@ import {
   Users,
   Briefcase,
   Calendar,
-  Plus,
   Settings,
   BarChart3,
   FileText,

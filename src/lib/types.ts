@@ -23,6 +23,7 @@ export interface User {
   contactPerson?: string;
   contactEmail?: string;
   contactPhone?: string;
+  is_active?: boolean;
 }
 
 // Client Company interface - represents the actual client company entity
@@ -96,6 +97,8 @@ export interface Job {
   endDate?: string;
   status?: 'Planning' | 'Active' | 'Completed';
   authorizedCrewChiefIds?: string[];
+  location?: string;
+  createdAt?: string;
 }
 
 // Crew Chief Permission System Types
@@ -187,6 +190,8 @@ export interface Shift {
   status: 'Upcoming' | 'In Progress' | 'Completed' | 'Cancelled' | 'Pending Approval';
   timesheetStatus: TimesheetStatus;
   notes?: string;
+  assignedWorkers?: number;
+  createdAt?: string;
 }
 
 export interface Announcement {
@@ -196,18 +201,20 @@ export interface Announcement {
   date: string;
 }
 
-export type DocumentStatus = 'Pending Submission' | 'Submitted' | 'Approved' | 'Rejected';
+export type DocumentStatus = 'Pending Submission' | 'Submitted' | 'Approved' | 'Rejected' | 'Active' | 'Draft' | 'Pending Review' | 'Requires Signature' | 'Archived';
 
 export interface AppDocument {
   id: string;
   name: string;
-  type: 'Contract' | 'Certification' | 'Insurance' | 'Training Record' | 'Tax Form' | 'Policy';
-  category: 'Employee' | 'Client' | 'Company';
+  type: 'Contract' | 'Certification' | 'Insurance' | 'Training Record' | 'Tax Form' | 'Policy' | 'PDF' | 'Form' | 'Image' | 'Spreadsheet';
+  category: 'Employee' | 'Client' | 'Company' | 'Safety' | 'Training' | 'Project' | 'Template';
   uploadDate: string;
   url: string;
   status?: DocumentStatus;
   assigneeId?: string;
   isTemplate?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Timesheet {
@@ -217,6 +224,15 @@ export interface Timesheet {
     clientSignature?: string; // a data URI
     approvedByClientAt?: string;
     approvedByManagerAt?: string;
+    submittedAt?: string;
+    createdAt?: string;
+    shiftDate?: string;
+    startTime?: string;
+    endTime?: string;
+    jobName?: string;
+    clientName?: string;
+    crewChiefName?: string;
+    workerCount?: number;
 }
 
 export interface TimesheetDetails extends Timesheet {

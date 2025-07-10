@@ -30,12 +30,13 @@ import { useToast } from "@/hooks/use-toast"
 
 import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
+import { Timesheet } from "@/lib/types";
 
 function AdminTimesheetsPage() {
   const { user } = useUser()
   const router = useRouter()
   const { toast } = useToast()
-  const { data: timesheetsData, loading, error, refetch } = useApi<{ timesheets: any[] }>('/api/timesheets')
+  const { data: timesheetsData, loading, error, refetch } = useApi<{ timesheets: Timesheet[] }>('/api/timesheets')
 
   // Redirect if not admin
   if (user?.role !== 'Manager/Admin') {
@@ -75,7 +76,7 @@ function AdminTimesheetsPage() {
       })
 
       refetch()
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to approve timesheet. Please try again.",
@@ -104,7 +105,7 @@ function AdminTimesheetsPage() {
       })
 
       refetch()
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to reject timesheet. Please try again.",

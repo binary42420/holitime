@@ -30,7 +30,6 @@ import {
   Merge,
   AlertTriangle,
   CheckCircle,
-  User,
   Mail,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
@@ -39,7 +38,7 @@ import { withAuth } from '@/lib/with-auth';
 import { hasAdminAccess } from '@/lib/auth';
 
 import { User as UserIcon } from "lucide-react"
-import { User as UserType, Client, Job } from "@/lib/types"
+import { User as UserType, Client, Job, UserRole } from "@/lib/types"
 
 function AdminMergePage() {
   const { user } = useUser()
@@ -68,7 +67,7 @@ function AdminMergePage() {
   const jobs = jobsData?.jobs || []
 
   const getFilteredData = () => {
-    let data = []
+    let data: (UserType | Client | Job)[] = []
     switch (activeTab) {
       case 'employees':
         data = employees
@@ -82,17 +81,19 @@ function AdminMergePage() {
     }
     
     return data.filter(item => {
-      const searchFields = [
-        item.name,
-        item.email,
-        item.company_name,
-        item.contactPerson,
-        item.contactEmail,
-        item.clientName,
-        item.description
-      ].filter(Boolean).join(' ').toLowerCase()
+      let searchFields: (string | undefined | null)[] = [];
+      if (activeTab === 'employees') {
+        const userItem = item as UserType;
+        searchFields = [userItem.name, userItem.email, userItem.companyName];
+      } else if (activeTab === 'clients') {
+        const clientItem = item as Client;
+        searchFields = [clientItem.name, clientItem.contactPerson, clientItem.contactEmail, clientItem.companyName];
+      } else if (activeTab === 'jobs') {
+        const jobItem = item as Job;
+        searchFields = [jobItem.name, jobItem.clientName, jobItem.description];
+      }
       
-      return searchFields.includes(searchTerm.toLowerCase())
+      return searchFields.filter(Boolean).join(' ').toLowerCase().includes(searchTerm.toLowerCase())
     })
   }
 
@@ -186,7 +187,7 @@ function AdminMergePage() {
           <div className="flex items-start gap-3">
             {activeTab === 'employees' && (
               <Avatar className="h-10 w-10">
-                <AvatarImage src={item.avatar} alt={item.name} />
+                <AvatarImage src={(item as UserType).avatar} alt={item.name} />
                 <AvatarFallback>{item.name?.charAt(0) || 'U'}</AvatarFallback>
               </Avatar>
             )}
@@ -200,10 +201,10 @@ function AdminMergePage() {
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Mail className="h-3 w-3" />
-                    <span className="truncate">{item.email}</span>
+                    <span className="truncate">{(item as UserType).email}</span>
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    {item.role}
+                    {(item as UserType).role}
                   </Badge>
                 </div>
               )}
@@ -212,14 +213,14 @@ function AdminMergePage() {
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <UserIcon className="h-3 w-3" />
-                    <span className="truncate">{item.contactPerson}</span>
+                    <span className="truncate">{(item as Client).contactPerson}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Mail className="h-3 w-3" />
-                    <span className="truncate">{item.contactEmail}</span>
+                    <span className="truncate">{(item as Client).contactEmail}</span>
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    {item.jobCount || 0} jobs
+                    {(item as any).jobCount || 0} jobs
                   </Badge>
                 </div>
               )}
@@ -228,11 +229,11 @@ function AdminMergePage() {
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Building2 className="h-3 w-3" />
-                    <span className="truncate">{item.clientName}</span>
+                    <span className="truncate">{(item as Job).clientName}</span>
                   </div>
-                  <p className="text-xs truncate">{item.description}</p>
+                  <p className="text-xs truncate">{(item as Job).description}</p>
                   <Badge variant="outline" className="text-xs">
-                    {item.shiftCount || 0} shifts
+                    {(item as Job).shiftCount || 0} shifts
                   </Badge>
                 </div>
               )}
@@ -273,7 +274,7 @@ function AdminMergePage() {
                   <Card className="p-3">
                     <div className="text-sm">
                       <div className="font-medium">{item.name}</div>
-                      <div className="text-muted-foreground">{item.email || item.contactEmail}</div>
+                      <div className="text-muted-foreground">{(item as UserType).email || (item as Client).contactEmail}</div>
                     </div>
                   </Card>
                 </div>
@@ -304,7 +305,7 @@ function AdminMergePage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="merge-role">Role</Label>
-                    <Select value={mergeData.role || ''} onValueChange={(value) => setMergeData({ ...mergeData, role: value })}>
+                    <Select value={mergeData.role || ''} onValueChange={(value) => setMergeData({ ...mergeData, role: value as UserRole })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

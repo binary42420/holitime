@@ -15,28 +15,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { ArrowLeft, Save } from 'lucide-react'
+import { Client } from '@/lib/types'; // Import Client type
 
-interface Client {
-  id: string
-  name: string
-}
+//*******************************************************************\\
+//=======  New Job Page - Main Component  ==========================\\
+//*******************************************************************\\
 
 export default function NewJobPage() {
+  //***************************\\
+  //=======  Hooks  ===========\\
+  //***************************\\
   const { user } = useUser()
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
   
+  // Fetch clients data from the API
   const { data: clientsData } = useApi<{ clients: Client[] }>('/api/clients')
   
+  //*********************************\\
+  //=======  State Management  =======\\
+  //*********************************\\
+  const [loading, setLoading] = useState(false)
+  // Form data for new job creation
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    clientId: searchParams.get('clientId') || ''
+    clientId: searchParams.get('clientId') || '' // Pre-fill clientId if available from URL
   })
 
-  // Only managers can create jobs
+  //*********************************\\
+  //=======  Access Control  =========\\
+  //*********************************\\
+  // Only users with 'Manager/Admin' role can create jobs
   if (user?.role !== 'Manager/Admin') {
     return (
       <div className="flex items-center justify-center py-8">
@@ -48,11 +59,16 @@ export default function NewJobPage() {
     )
   }
 
+  //*********************************\\
+  //=======  Event Handlers  =========\\
+  //*********************************\\
+  // Handles form submission for creating a new job
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+    setLoading(true) // Set loading state to true during submission
 
     try {
+      // Send POST request to the API to create a new job
       const response = await fetch('/api/jobs', {
         method: 'POST',
         headers: {
@@ -62,18 +78,22 @@ export default function NewJobPage() {
       })
 
       if (!response.ok) {
+        // Throw an error if the API call failed
         throw new Error('Failed to create job')
       }
 
       const result = await response.json()
       
+      // Display success toast notification
       toast({
         title: "Success",
         description: "Job created successfully",
       })
 
+      // Redirect to the newly created job's detail page
       router.push(`/jobs/${result.job.id}`)
     } catch (error) {
+      // Catch and handle any errors during the creation process
       console.error('Error creating job:', error)
       toast({
         title: "Error",
@@ -81,10 +101,11 @@ export default function NewJobPage() {
         variant: "destructive",
       })
     } finally {
-      setLoading(false)
+      setLoading(false) // Reset loading state
     }
   }
 
+  // Handles changes in input and textarea fields
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
@@ -93,6 +114,7 @@ export default function NewJobPage() {
     }))
   }
 
+  // Handles changes in the client selection dropdown
   const handleClientChange = (value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -100,9 +122,14 @@ export default function NewJobPage() {
     }))
   }
 
+  //***************************\\
+  //=======  Render UI  =========\\
+  //***************************\\
   return (
     <div className="flex flex-col gap-6">
+      {/* Header Section */}
       <div className="flex items-center gap-4">
+        {/* Back button */}
         <Button
           variant="ghost"
           size="sm"
@@ -112,9 +139,11 @@ export default function NewJobPage() {
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
+        {/* Page Title */}
         <h1 className="text-3xl font-bold font-headline">New Job</h1>
       </div>
 
+      {/* Job Information Card */}
       <Card>
         <CardHeader>
           <CardTitle>Job Information</CardTitle>
@@ -123,8 +152,10 @@ export default function NewJobPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* New Job Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Job Name Input */}
               <div className="space-y-2">
                 <Label htmlFor="name">Job Name *</Label>
                 <Input
@@ -137,6 +168,7 @@ export default function NewJobPage() {
                 />
               </div>
 
+              {/* Client Selection */}
               <div className="space-y-2">
                 <Label htmlFor="clientId">Client *</Label>
                 <Select value={formData.clientId} onValueChange={handleClientChange} required>
@@ -144,6 +176,7 @@ export default function NewJobPage() {
                     <SelectValue placeholder="Select a client" />
                   </SelectTrigger>
                   <SelectContent>
+                    {/* Map through clients data to populate select options */}
                     {clientsData?.clients?.map((client) => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.name}
@@ -154,6 +187,7 @@ export default function NewJobPage() {
               </div>
             </div>
 
+            {/* Description Textarea */}
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
@@ -166,7 +200,9 @@ export default function NewJobPage() {
               />
             </div>
 
+            {/* Action Buttons */}
             <div className="flex justify-end gap-4">
+              {/* Cancel Button */}
               <Button
                 type="button"
                 variant="outline"
@@ -175,6 +211,7 @@ export default function NewJobPage() {
               >
                 Cancel
               </Button>
+              {/* Create Job Button */}
               <Button
                 type="submit"
                 disabled={loading || !formData.name.trim() || !formData.clientId}

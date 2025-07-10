@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useUser } from "@/hooks/use-user"
 import { useApi } from "@/hooks/use-api"
+import { Job, User } from "@/lib/types"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -47,8 +48,8 @@ function NewShiftPage() {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   
-  const { data: jobsData } = useApi<{ jobs: any[] }>('/api/jobs')
-  const { data: usersData } = useApi<{ users: any[] }>('/api/users')
+  const { data: jobsData } = useApi<{ jobs: Job[] }>('/api/jobs')
+  const { data: usersData } = useApi<{ users: User[] }>('/api/users')
 
   if (user?.role !== 'Manager/Admin') {
     router.push('/dashboard')
@@ -63,7 +64,12 @@ function NewShiftPage() {
     },
   })
 
-  const handleWorkerRequirementsChange = (requirements: any[], totalCount: number) => {
+  const handleWorkerRequirementsChange = (requirements: {
+    roleCode: string;
+    roleName: string;
+    count: number;
+    color: string;
+  }[], totalCount: number) => {
     form.setValue('requestedWorkers', totalCount)
     form.setValue('workerRequirements', requirements)
   }
@@ -91,7 +97,7 @@ function NewShiftPage() {
       })
 
       router.push(generateShiftUrl(result.shift.id))
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to schedule shift. Please try again.",
