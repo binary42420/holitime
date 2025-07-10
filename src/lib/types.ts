@@ -57,6 +57,19 @@ export interface Client {
   notes?: string; // Maps to clientCompany.notes
 
   authorizedCrewChiefIds?: string[];
+  mostRecentCompletedShifts?: {
+    id: string;
+    date: string;
+    jobName: string;
+  }[];
+  mostRecentUpcomingShifts?: {
+    id: string;
+    date: string;
+    startTime: string;
+    jobName: string;
+    requestedWorkers: number;
+    assignedCount: number;
+  }[];
   mostRecentCompletedShift?: {
     id: string;
     date: string;

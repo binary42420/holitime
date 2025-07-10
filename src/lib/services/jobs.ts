@@ -38,7 +38,7 @@ export async function getRecentJobs(limit: number = 5): Promise<Job[]> {
 
 export async function getAllJobs(limit?: number, offset?: number, sort?: string, order?: string): Promise<Job[]> {
   try {
-    const sortColumn = sort || 'created_at';
+    const sortColumn = sort || 'j.created_at';
     const sortOrder = order || 'DESC';
     const queryParams: any[] = [];
 

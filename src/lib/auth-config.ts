@@ -1,7 +1,7 @@
 import { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { authenticateUser, createUser, getUserByEmail } from './auth';
+import { createUser, getUserByEmail, verifyPassword } from './auth';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -18,19 +18,19 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const result = await authenticateUser({
-            email: credentials.email,
-            password: credentials.password
-          });
+          const user = await getUserByEmail(credentials.email);
 
-          if (result) {
-            return {
-              id: result.user.id,
-              email: result.user.email,
-              name: result.user.name,
-              role: result.user.role,
-              image: result.user.avatar,
-            };
+          if (user && user.password) {
+            const isValid = await verifyPassword(credentials.password, user.password);
+            if (isValid) {
+              return {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                image: user.avatar,
+              };
+            }
           }
           return null;
         } catch (error) {
@@ -90,25 +90,32 @@ export const authOptions: NextAuthOptions = {
         return true;
       } catch (error) {
         console.error('Sign-in error:', error);
-        return true; // Allow sign-in even if database operations fail
+        return false;
       }
     },
 
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       try {
-        if (user) {
-          // Get user data from our database
+        // Initial sign-in
+        if (account && user) {
           const dbUser = await getUserByEmail(user.email!);
-          if (dbUser) {
-            token.id = dbUser.id;
-            token.role = dbUser.role;
-            token.clientCompanyId = dbUser.clientCompanyId || undefined;
+          if (!dbUser) {
+            // This case should ideally not be hit if signIn is correct
+            throw new Error('User not found in DB after signIn');
           }
+          return {
+            ...token,
+            id: dbUser.id,
+            role: dbUser.role,
+            clientCompanyId: dbUser.clientCompanyId,
+            accessToken: account.access_token,
+            refreshToken: account.refresh_token,
+          };
         }
+
         return token;
       } catch (error) {
         console.error('JWT callback error:', error);
-        // Return token even if there's an error to prevent auth failure
         return token;
       }
     },
@@ -118,12 +125,14 @@ export const authOptions: NextAuthOptions = {
         if (token && session.user) {
           session.user.id = token.id as string;
           session.user.role = token.role as string;
-          session.user.clientCompanyId = token.clientCompanyId as string;
+          session.user.clientCompanyId = token.clientCompanyId as string | undefined;
+          // You can also add accessToken and refreshToken to the session if needed
+          // session.accessToken = token.accessToken;
+          // session.refreshToken = token.refreshToken;
         }
         return session;
       } catch (error) {
         console.error('Session callback error:', error);
-        // Return session even if there's an error to prevent auth failure
         return session;
       }
     },

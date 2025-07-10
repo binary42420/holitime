@@ -52,9 +52,7 @@ export async function GET(request: NextRequest) {
       pages: shiftsData.pages,
     });
   } catch (error) {
-    console.error('Error getting shifts:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
+    return NextResponse.json({ error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -111,9 +109,7 @@ export async function POST(request: NextRequest) {
       shift,
     });
   } catch (error) {
-    console.error('Error creating shift:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
+    return NextResponse.json({ error: 'Internal server error' },
       { status: 500 }
     );
   }

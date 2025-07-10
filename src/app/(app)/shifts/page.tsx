@@ -6,6 +6,7 @@ import { format, isToday, isTomorrow, isYesterday, startOfWeek, endOfWeek, isWit
 import Link from "next/link"
 import { useUser } from "@/hooks/use-user"
 import { useApi, useShiftsByDate } from "@/hooks/use-api"
+import { useDebounce } from "@/hooks/use-debounce"
 import { Card, Table, Button, Badge, Skeleton, Select, Tabs, Menu, ActionIcon, Group, Text, Title, Stack, TextInput } from "@mantine/core"
 import {
   Calendar as CalendarIcon,
@@ -31,6 +32,13 @@ import { useToast } from "@/hooks/use-toast"
 import { generateShiftEditUrl } from "@/lib/url-utils"
 import { notifications } from "@mantine/notifications"
 
+const safeFormatDate = (date: string | null | undefined) => {
+  if (!date || isNaN(new Date(date).getTime())) {
+    return 'Invalid date';
+  }
+  return format(new Date(date), 'MMM d, yyyy');
+};
+
 export default function ShiftsPage() {
   const { user } = useUser()
   const router = useRouter()
@@ -41,15 +49,13 @@ export default function ShiftsPage() {
   const [clientFilter, setClientFilter] = useState("all")
   const [showFilters, setShowFilters] = useState(false)
 
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+
   const canManage = user?.role === 'Manager/Admin' || user?.role === 'Crew Chief'
 
-  const { data, loading, error, refetch } = useShiftsByDate(dateFilter, statusFilter, clientFilter, searchTerm)
+  const { data, loading, error, refetch } = useShiftsByDate(dateFilter, statusFilter, clientFilter, debouncedSearchTerm)
 
   const shifts = data?.shifts || []
-
-  useEffect(() => {
-    refetch()
-  }, [dateFilter])
 
   const handleRowClick = (shiftId: string) => {
     router.push(`/shifts/${shiftId}`)
@@ -128,42 +134,6 @@ export default function ShiftsPage() {
       })
     }
   }
-
-  const getDateCategory = (date: string) => {
-    const shiftDate = new Date(date)
-    if (isToday(shiftDate)) return 'today'
-    if (isTomorrow(shiftDate)) return 'tomorrow'
-    if (isYesterday(shiftDate)) return 'yesterday'
-    if (isWithinInterval(shiftDate, { start: startOfWeek(new Date()), end: endOfWeek(new Date()) })) return 'this_week'
-    return 'other'
-  }
-
-  const filteredShifts = shifts.filter((shift: any) => {
-    if (dateFilter !== 'all') {
-      const shiftCategory = getDateCategory(shift.date)
-      if (shiftCategory !== dateFilter) {
-        return false
-      }
-    }
-    if (statusFilter !== 'all' && shift.status !== statusFilter) {
-      return false
-    }
-    if (clientFilter !== 'all' && shift.clientName !== clientFilter) {
-      return false
-    }
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase()
-      const matchesSearch =
-        shift.jobName?.toLowerCase().includes(searchLower) ||
-        shift.clientName?.toLowerCase().includes(searchLower) ||
-        shift.location?.toLowerCase().includes(searchLower) ||
-        shift.crewChief?.name?.toLowerCase().includes(searchLower)
-      if (!matchesSearch) {
-        return false
-      }
-    }
-    return true
-  })
 
   const getStatusBadge = (status: string) => {
     const statusColors: Record<string, string> = {
@@ -320,7 +290,7 @@ export default function ShiftsPage() {
       )}
 
       <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-        {filteredShifts.length === 0 ? (
+        {shifts.length === 0 ? (
           <Stack align="center" justify="center" style={{ gridColumn: '1 / -1', minHeight: '300px' }}>
             <Title order={3}>No shifts found</Title>
             <Text c="dimmed">Try adjusting your search or filter criteria.</Text>
@@ -334,7 +304,7 @@ export default function ShiftsPage() {
             </Button>
           </Stack>
         ) : (
-          filteredShifts.map((shift: any) => (
+          shifts.filter(Boolean).map((shift: any) => (
             <Card
               key={shift.id}
               shadow="sm"
@@ -354,7 +324,7 @@ export default function ShiftsPage() {
               <Stack gap="xs">
                 <Group gap="xs">
                   <CalendarIcon size={16} />
-                  <Text size="sm">{format(new Date(shift.date), 'MMM d, yyyy')}</Text>
+                  <Text size="sm">{safeFormatDate(shift.date)}</Text>
                 </Group>
                 <Group gap="xs">
                   <Clock size={16} />

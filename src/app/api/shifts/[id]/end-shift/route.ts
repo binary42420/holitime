@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { query } from '@/lib/db';
+import { withTransaction, getClient } from '@/lib/db';
 import { withCrewChiefPermission } from '@/lib/utils/crew-chief-auth';
 
 export async function POST(
@@ -10,43 +10,37 @@ export async function POST(
 
   return withCrewChiefPermission(shiftId, async (session, permissionCheck) => {
     try {
+      const body = await request.json();
+      const { workerId } = body;
 
-    const body = await request.json();
-    const { workerId } = body;
+      if (!workerId) {
+        return NextResponse.json(
+          { error: 'Worker ID is required' },
+          { status: 400 }
+        );
+      }
 
-    if (!workerId) {
-      return NextResponse.json(
-        { error: 'Worker ID is required' },
-        { status: 400 }
-      );
-    }
+      await withTransaction(async (client) => {
+        const now = new Date();
 
-    const now = new Date().toISOString();
+        // If there's an active entry, clock them out first
+        await client.query(`
+          UPDATE time_entries 
+          SET clock_out = $1, is_active = false, updated_at = $1
+          WHERE assigned_personnel_id = $2 AND is_active = true
+        `, [now, workerId]);
 
-    // If there's an active entry, clock them out first
-    const activeEntryResult = await query(`
-      SELECT id FROM time_entries 
-      WHERE assigned_personnel_id = $1 AND is_active = true
-    `, [workerId]);
+        // Update the assigned personnel status to indicate shift ended
+        await client.query(`
+          UPDATE assigned_personnel 
+          SET status = 'shift_ended', updated_at = $1
+          WHERE id = $2
+        `, [now, workerId]);
+      });
 
-    if (activeEntryResult.rows.length > 0) {
-      await query(`
-        UPDATE time_entries 
-        SET clock_out = $1, is_active = false, updated_at = NOW()
-        WHERE assigned_personnel_id = $2 AND is_active = true
-      `, [now, workerId]);
-    }
-
-    // Update the assigned personnel status to indicate shift ended
-    await query(`
-      UPDATE assigned_personnel 
-      SET status = 'Shift Ended', updated_at = NOW()
-      WHERE id = $1
-    `, [workerId]);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Employee shift ended successfully',
+      return NextResponse.json({
+        success: true,
+        message: 'Employee shift ended successfully',
       });
     } catch (error) {
       console.error('Error ending employee shift:', error);

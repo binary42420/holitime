@@ -17,9 +17,13 @@ export async function GET(
     }
 
     const { id } = await params;
-    console.log('Looking for shift with ID:', id);
+    
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (!uuidRegex.test(id)) {
+      return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
+    }
+    
     const shift = await getShiftById(id);
-    console.log('getShiftById result:', shift ? 'Found shift' : 'Shift not found');
     if (!shift) {
       return NextResponse.json(
         { error: 'Shift not found' },
@@ -33,7 +37,7 @@ export async function GET(
       (user.role === 'Crew Chief' && shift.crewChief?.id === user.id) ||
       (user.role === 'Employee' && shift.assignedPersonnel.some(person => person.employee.id === user.id));
 
-    if (!hasAccess) {
+     if ( !hasAccess) {
       return NextResponse.json(
         { error: 'Access denied' },
         { status: 403 }
@@ -67,7 +71,7 @@ export async function PUT(
     }
 
     // Only managers can edit shifts
-    if (user.role !== 'Manager/Admin') {
+    if (user.role !== 'Manager/Admin' || 'Crew Chief') {
       return NextResponse.json(
         { error: 'Insufficient permissions' },
         { status: 403 }

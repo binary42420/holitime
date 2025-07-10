@@ -17,6 +17,11 @@ export async function GET(
 
     const { id } = await params;
 
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (!uuidRegex.test(id)) {
+      return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
+    }
+
     // Try to get client by user ID first (contact person)
     let client = await getClientById(id);
 

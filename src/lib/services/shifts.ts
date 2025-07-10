@@ -1,4 +1,4 @@
-import { query, cachedQuery } from '../db';
+import { query } from '../db';
 import type { 
   Shift, 
   AssignedPersonnel, 
@@ -143,7 +143,7 @@ export async function getRecentShifts(limit: number = 5): Promise<Shift[]> {
 
 export async function getTodaysShifts(): Promise<Shift[]> {
   try {
-    const result = await cachedQuery(`
+    const result = await query(`
       ${SHIFT_PERSONNEL_CTE}
       SELECT
         s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
@@ -166,7 +166,7 @@ export async function getTodaysShifts(): Promise<Shift[]> {
       LEFT JOIN shift_personnel sp ON s.id = sp.shift_id
       WHERE s.date = CURRENT_DATE
       ORDER BY s.start_time
-    `, [], 'todays_shifts', 5 * 60 * 1000); // 5 minute cache
+    `);
 
     return result.rows.map(mapShiftRow);
   } catch (error) {

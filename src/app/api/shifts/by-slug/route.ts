@@ -17,8 +17,8 @@ export async function GET(request: NextRequest) {
     const companySlug = searchParams.get('company')
     const jobSlug = searchParams.get('job')
     const dateSlug = searchParams.get('date')
-    const startTime = searchParams.get('startTime')
-    const sequence = searchParams.get('sequence')
+    const startTime = search_params.get('startTime')
+    const sequence = search_params.get('sequence')
 
     if (!companySlug || !jobSlug || !dateSlug) {
       return NextResponse.json(
@@ -33,15 +33,6 @@ export async function GET(request: NextRequest) {
     const shiftDate = decodeURIComponent(dateSlug)
     const decodedStartTime = startTime ? decodeURIComponent(startTime) : null
     const sequenceNumber = sequence ? parseInt(sequence) : 1
-
-    console.log('Looking for shift with:', {
-      companyName,
-      jobName,
-      shiftDate,
-      startTime: decodedStartTime,
-      sequence: sequenceNumber,
-      originalParams: { companySlug, jobSlug, dateSlug, startTime, sequence }
-    })
 
     // Build query with more flexible matching
     let queryText = `
@@ -74,7 +65,7 @@ export async function GET(request: NextRequest) {
 
     // Add start time filter if provided
     if (decodedStartTime) {
-      queryText += ` AND s.start_time = $${queryParams.length + 1}`
+      queryText += ` AND s.start_time = ${queryParams.length + 1}`
       queryParams.push(decodedStartTime)
     }
 
@@ -82,23 +73,17 @@ export async function GET(request: NextRequest) {
 
     // If we have a sequence number > 1, use OFFSET to get the nth shift
     if (sequenceNumber > 1) {
-      queryText += ` OFFSET $${queryParams.length + 1}`
+      queryText += ` OFFSET ${queryParams.length + 1}`
       queryParams.push((sequenceNumber - 1).toString())
     }
 
     queryText += ` LIMIT 1`
 
-    console.log('Executing query:', queryText)
-    console.log('Query params:', queryParams)
-
     const result = await query(queryText, queryParams)
-
-    console.log('Query result:', result.rows)
 
     if (result.rows.length === 0) {
       // Try a broader search without start time if no exact match found
       if (decodedStartTime) {
-        console.log('No exact match found, trying without start time...')
         
         const broadQueryText = `
           SELECT s.id, u.name as client_name, u.company_name, j.name as job_name, s.date, s.start_time
@@ -190,7 +175,6 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error getting shift by slug:', error)
     return NextResponse.json(
       { 
         error: 'Internal server error',

@@ -46,6 +46,8 @@ async function comprehensiveSystemTest() {
       { table: 'clients', column: 'company_name' },
       { table: 'crew_chief_permissions', column: 'permission_type' },
       { table: 'crew_chief_permissions', column: 'target_id' },
+      { table: 'users', column: 'name' },
+
     ];
     
     for (const check of columnChecks) {

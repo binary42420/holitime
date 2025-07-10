@@ -71,9 +71,9 @@ export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
   }
 
   const maxEntries = Math.max(
-    ...timesheet.assignedPersonnel.map(p => p.timeEntries.length),
+    ...(timesheet.assignedPersonnel?.map(p => p.timeEntries.length) || [0]),
     1
-  )
+  );
 
   return (
     <div className="space-y-6">
@@ -243,7 +243,7 @@ export function TimesheetDetails({ timesheet }: TimesheetDetailsProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {timesheet.assignedPersonnel.map((worker) => {
+              {timesheet.assignedPersonnel?.map((worker) => {
                 const totalHours = worker.timeEntries.reduce((sum, entry) =>
                   sum + calculateHours(entry.clockIn, entry.clockOut), 0
                 );

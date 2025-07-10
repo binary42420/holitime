@@ -14,11 +14,9 @@ import {
   Coffee,
   UserCheck,
   FileText,
-  Download,
   RefreshCw,
   Wifi,
   WifiOff,
-  AlertTriangle,
   Shield
 } from "lucide-react"
 import { format, differenceInMinutes } from "date-fns"
@@ -26,8 +24,26 @@ import { useCrewChiefPermissions } from "@/hooks/useCrewChiefPermissions"
 import { CrewChiefPermissionBadge, PermissionGuard } from "@/components/crew-chief-permission-badge"
 import { notifications } from '@mantine/notifications'
 import { ROLE_DEFINITIONS } from "@/lib/color-utils"
-import { useShiftManagerStore } from '@/lib/stores/shift-manager-store'
-import type { AssignedPersonnel, TimeEntry } from '@/lib/types'
+import type { RoleCode } from '@/lib/types'
+
+interface TimeEntry {
+  id: string;
+  entryNumber: number;
+  clockIn?: string;
+  clockOut?: string;
+  isActive: boolean;
+}
+
+interface AssignedPersonnel {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  employeeAvatar: string;
+  roleOnShift: string;
+  roleCode: RoleCode;
+  status: string;
+  timeEntries: TimeEntry[];
+}
 
 interface UnifiedShiftManagerProps {
   shiftId: string;
@@ -69,18 +85,42 @@ const UnifiedShiftManager: React.FC<UnifiedShiftManagerProps> = ({
   onUpdate,
   isOnline = true
 }) => {
-  const {
-    assignedPersonnel,
-    setAssignedPersonnel,
-    isProcessing,
-    lastAction,
-    performAction,
-    timesheetStatus,
-    timesheetId,
-    fetchTimesheetStatus,
-  } = useShiftManagerStore();
+  const [assignedPersonnel, setAssignedPersonnel] = useState(initialAssignedPersonnel);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [lastAction, setLastAction] = useState<string | null>(null);
+  const [timesheetStatus, setTimesheetStatus] = useState<string | null>(null);
+  const [timesheetId, setTimesheetId] = useState<string | null>(null);
 
-  const { hasPermission, isLoading: permissionLoading } = useCrewChiefPermissions(shiftId);
+  const fetchTimesheetStatus = useCallback(async (shiftId: string) => {
+    try {
+      const response = await fetch(`/api/shifts/${shiftId}`);
+      const data = await response.json();
+      if (data.shift) {
+        setTimesheetStatus(data.shift.timesheetStatus);
+        setTimesheetId(data.shift.timesheetId);
+      }
+    } catch (error) {
+      console.error("Failed to fetch timesheet status", error);
+    }
+  }, []);
+
+  const performAction = useCallback(async (actionFn: () => Promise<Response>, actionName: string) => {
+    setIsProcessing(true);
+    setLastAction(actionName);
+    try {
+      const response = await actionFn();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Action ${actionName} failed`);
+      }
+      return response;
+    } finally {
+      setIsProcessing(false);
+      setLastAction(null);
+    }
+  }, []);
+
+  const { hasPermission } = useCrewChiefPermissions(shiftId);
   const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date())
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true)
   const [showEndAllShiftsModal, setShowEndAllShiftsModal] = useState(false);
@@ -139,7 +179,7 @@ const UnifiedShiftManager: React.FC<UnifiedShiftManagerProps> = ({
       }),
       `${action}_${assignmentId}`,
       action === 'clock_in' ? "Clocked In" : "Clocked Out",
-      `${worker.employee.name} has been ${action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully.`,
+      `${worker.employeeName} has been ${action === 'clock_in' ? 'clocked in' : 'clocked out'} successfully.`,
       `Failed to ${action.replace('_', ' ')}.`
     );
   };
@@ -278,10 +318,10 @@ const UnifiedShiftManager: React.FC<UnifiedShiftManagerProps> = ({
                   <Stack>
                     <Group justify="space-between">
                       <Group>
-                        <Avatar src={worker.employee.avatar} alt={worker.employee.name} radius="xl" />
+                        <Avatar src={worker.employeeAvatar} alt={worker.employeeName} radius="xl" />
                         <div>
                           <Group>
-                            <Text fw={500}>{worker.employee.name}</Text>
+                            <Text fw={500}>{worker.employeeName}</Text>
                             <Badge color={roleConfig.color} variant="light">{roleConfig.name}</Badge>
                           </Group>
                           <Group>
@@ -361,11 +401,11 @@ const UnifiedShiftManager: React.FC<UnifiedShiftManagerProps> = ({
         </Group>
       </Modal>
 
-      <Modal opened={!!workerToEnd} onClose={() => setWorkerToEnd(null)} title={`End shift for ${workerToEnd?.employee.name}?`}>
+      <Modal opened={!!workerToEnd} onClose={() => setWorkerToEnd(null)} title={`End shift for ${workerToEnd?.employeeName}?`}>
         <Text>This will finalize the current shift for this employee. This can not be undone without manager intervention. Are you sure?</Text>
         <Group justify="flex-end" mt="md">
           <Button variant="default" onClick={() => setWorkerToEnd(null)}>Cancel</Button>
-          <Button color="red" onClick={() => workerToEnd && handleEndShift(workerToEnd.id, workerToEnd.employee.name)}>End Shift</Button>
+          <Button color="red" onClick={() => workerToEnd && handleEndShift(workerToEnd.id, workerToEnd.employeeName)}>End Shift</Button>
         </Group>
       </Modal>
     </Stack>

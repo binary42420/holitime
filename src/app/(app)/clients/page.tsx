@@ -9,6 +9,13 @@ import { useClients } from "@/hooks/use-api"
 import { Button, Card, Text, Group, ActionIcon, Badge, Stack, Title } from '@mantine/core'
 import { Plus, ExternalLink, Mail, User, Calendar } from "lucide-react"
 
+const safeFormatDate = (date: string | null | undefined) => {
+  if (!date || isNaN(new Date(date).getTime())) {
+    return 'Invalid date';
+  }
+  return format(new Date(date), 'MMM d, yyyy');
+};
+
 function ClientsPage() {
   const { user } = useUser()
   const router = useRouter()
@@ -72,50 +79,54 @@ function ClientsPage() {
 
               <div>
                 <Text size="sm" fw={500} mb="xs">Recent Completed</Text>
-                {client.mostRecentCompletedShift ? (
-                  <Card withBorder p="sm" radius="sm">
-                    <Group justify="space-between">
-                      <Text size="sm" component={Link} href={`/shifts/${client.mostRecentCompletedShift.id}`}>
-                        {client.mostRecentCompletedShift.jobName}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {format(new Date(client.mostRecentCompletedShift.date), 'MMM d, yyyy')}
-                      </Text>
-                    </Group>
-                  </Card>
+                {client.mostRecentCompletedShifts && client.mostRecentCompletedShifts.length > 0 ? (
+                  client.mostRecentCompletedShifts.filter(Boolean).map(shift => (
+                    <Card key={shift.id} withBorder p="sm" radius="sm" mb="xs">
+                      <Group justify="space-between">
+                        <Text size="sm" component={Link} href={`/shifts/${shift.id}`}>
+                          {shift.jobName}
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          {safeFormatDate(shift.date)}
+                        </Text>
+                      </Group>
+                    </Card>
+                  ))
                 ) : (
                   <Text size="sm" c="dimmed">No completed shifts</Text>
                 )}
               </div>
 
               <div style={{ marginTop: '1rem' }}>
-                <Text size="sm" fw={500} mb="xs">Upcoming Shift</Text>
-                {client.mostRecentUpcomingShift ? (
-                  <Card withBorder p="sm" radius="sm">
-                    <Group justify="space-between">
-                        <Text size="sm" component={Link} href={`/shifts/${client.mostRecentUpcomingShift.id}`}>
-                          {client.mostRecentUpcomingShift.jobName}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          {format(new Date(client.mostRecentUpcomingShift.date), 'MMM d, yyyy')}
-                        </Text>
-                    </Group>
-                    <Text size="xs" c="dimmed">
-                      {client.mostRecentUpcomingShift.startTime}
-                    </Text>
-                    <Badge
-                      mt="xs"
-                      color={
-                        client.mostRecentUpcomingShift.assignedCount >= client.mostRecentUpcomingShift.requestedWorkers
-                          ? 'green'
-                          : client.mostRecentUpcomingShift.assignedCount > 0
-                          ? 'yellow'
-                          : 'red'
-                      }
-                    >
-                      {client.mostRecentUpcomingShift.assignedCount}/{client.mostRecentUpcomingShift.requestedWorkers} workers
-                    </Badge>
-                  </Card>
+                <Text size="sm" fw={500} mb="xs">Upcoming Shifts</Text>
+                {client.mostRecentUpcomingShifts && client.mostRecentUpcomingShifts.length > 0 ? (
+                  client.mostRecentUpcomingShifts.filter(Boolean).map(shift => (
+                    <Card key={shift.id} withBorder p="sm" radius="sm" mb="xs">
+                      <Group justify="space-between">
+                          <Text size="sm" component={Link} href={`/shifts/${shift.id}`}>
+                            {shift.jobName}
+                          </Text>
+                          <Text size="xs" c="dimmed">
+                            {safeFormatDate(shift.date)}
+                          </Text>
+                      </Group>
+                      <Text size="xs" c="dimmed">
+                        {shift.startTime}
+                      </Text>
+                      <Badge
+                        mt="xs"
+                        color={
+                          shift.assignedCount >= shift.requestedWorkers
+                            ? 'green'
+                            : shift.assignedCount > 0
+                            ? 'yellow'
+                            : 'red'
+                        }
+                      >
+                        {shift.assignedCount}/{shift.requestedWorkers} workers
+                      </Badge>
+                    </Card>
+                  ))
                 ) : (
                   <Text size="sm" c="dimmed">No upcoming shifts</Text>
                 )}

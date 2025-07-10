@@ -21,48 +21,18 @@ import {
   ArrowLeft,
   AlertCircle
 } from "lucide-react"
-import { useApi } from "@/hooks/use-api"
+import { useTimesheet } from "@/hooks/use-api"
 import { format } from "date-fns"
-
-interface TimesheetData {
-  id: string
-  status: string
-  clientSignature?: string
-  clientApprovedAt?: string
-  managerApprovedAt?: string
-  rejectionReason?: string
-  shift: {
-    id: string
-    date: string
-    startTime: string
-    endTime: string
-    location: string
-    jobName: string
-    clientName: string
-    crewChiefName: string
-  }
-  assignedPersonnel: Array<{
-    id: string
-    employeeName: string
-    employeeAvatar: string
-    roleOnShift: string
-    roleCode: string
-    timeEntries: Array<{
-      id: string
-      entryNumber: number
-      clockIn?: string
-      clockOut?: string
-    }>
-  }>
-}
+import { TimesheetDetails } from "@/components/timesheet-details"
+import type { TimesheetDetails as TimesheetDetailsType } from "@/lib/types"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function TimesheetViewPage() {
   const params = useParams()
   const router = useRouter()
   const timesheetId = params.id as string
 
-  // Fetch timesheet data
-  const { data: timesheetData, loading } = useApi<TimesheetData>(`/api/timesheets/${timesheetId}`)
+  const { data: timesheet, loading, error } = useTimesheet(timesheetId)
 
   const formatTime = (timeString?: string) => {
     if (!timeString) return '-'
@@ -100,7 +70,7 @@ export default function TimesheetViewPage() {
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `timesheet-${timesheetData?.shift.jobName}-${timesheetData?.shift.date}.pdf`
+      a.download = `timesheet-${timesheet?.shift.jobName}-${timesheet?.shift.date}.pdf`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
@@ -110,253 +80,86 @@ export default function TimesheetViewPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading timesheet...</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!timesheetData) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Timesheet not found</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!timesheetData.shift) {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-red-500">Error: Shift data is missing for this timesheet.</div>
-        </div>
-      </div>
-    )
-  }
- 
-  const { shift, assignedPersonnel } = timesheetData
-
-  const maxEntries = Math.max(
-    ...assignedPersonnel.map(p => p.timeEntries.length),
-    1
+  if (loading) return <TimesheetPageSkeleton />
+  if (error) return (
+    <div className="container mx-auto py-6 text-center">
+      <p className="text-red-500">{error}</p>
+    </div>
+  )
+  if (!timesheet) return (
+    <div className="container mx-auto py-6 text-center">
+      <p>Timesheet not found.</p>
+    </div>
   )
 
   return (
+    <div className="container mx-auto py-6">
+      <Button variant="outline" size="sm" onClick={() => router.back()} className="mb-4">
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back
+      </Button>
+      <TimesheetDetails timesheet={timesheet} />
+    </div>
+  )
+}
+
+function TimesheetPageSkeleton() {
+  return (
     <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" onClick={() => router.push('/timesheets')}>
-            <ArrowLeft className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline">Back to Timesheets</span>
-          </Button>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Timesheet Details</h1>
-            <p className="text-muted-foreground">
-              View timesheet information and approval status
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 self-end sm:self-center">
-          {getStatusBadge(timesheetData.status)}
-          <Button variant="outline" onClick={downloadPDF}>
-            <Download className="h-4 w-4 mr-2" />
-            PDF
-          </Button>
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-9 w-24" />
+        <div>
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-80 mt-2" />
         </div>
       </div>
-
-      {/* Rejection Notice */}
-      {timesheetData.status === 'rejected' && timesheetData.rejectionReason && (
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-800">
-              <AlertCircle className="h-5 w-5" />
-              Timesheet Rejected
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-700">{timesheetData.rejectionReason}</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Approval Status */}
       <div className="grid gap-4 md:grid-cols-2">
-        {/* Client Approval */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Client Approval
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {timesheetData.clientApprovedAt ? (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="font-medium text-green-700">Approved</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {format(new Date(timesheetData.clientApprovedAt), 'MMMM d, yyyy at h:mm a')}
-                </p>
-                {timesheetData.clientSignature && (
-                  <div className="mt-2">
-                    <p className="text-xs text-muted-foreground mb-1">Client Signature:</p>
-                    <img
-                      src={timesheetData.clientSignature}
-                      alt="Client Signature"
-                      className="h-12 border rounded"
-                    />
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-yellow-600" />
-                <span className="text-yellow-700">Pending</span>
-              </div>
-            )}
-          </CardContent>
+          <CardHeader><Skeleton className="h-6 w-40" /></CardHeader>
+          <CardContent><Skeleton className="h-8 w-full" /></CardContent>
         </Card>
-
-        {/* Manager Approval */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Manager Approval
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {timesheetData.managerApprovedAt ? (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
-                  <span className="font-medium text-green-700">Approved</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {format(new Date(timesheetData.managerApprovedAt), 'MMMM d, yyyy at h:mm a')}
-                </p>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-yellow-600" />
-                <span className="text-yellow-700">Pending</span>
-              </div>
-            )}
-          </CardContent>
+          <CardHeader><Skeleton className="h-6 w-40" /></CardHeader>
+          <CardContent><Skeleton className="h-8 w-full" /></CardContent>
         </Card>
       </div>
-
-      {/* Shift Information */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Shift Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Job</Label>
-              <p className="font-medium">{shift.jobName}</p>
+        <CardHeader><Skeleton className="h-6 w-48" /></CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i}>
+              <Skeleton className="h-4 w-20 mb-2" />
+              <Skeleton className="h-5 w-full" />
             </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Client</Label>
-              <p className="font-medium">{shift.clientName}</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-              <p className="font-medium">{format(new Date(shift.date), 'MMMM d, yyyy')}</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Crew Chief</Label>
-              <p className="font-medium">{shift.crewChiefName}</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Time</Label>
-              <p className="font-medium">{shift.startTime} - {shift.endTime}</p>
-            </div>
-            <div>
-              <Label className="text-sm font-medium text-muted-foreground">Location</Label>
-              <p className="font-medium">{shift.location}</p>
-            </div>
-          </div>
+          ))}
         </CardContent>
       </Card>
-
-      {/* Time Entries */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Worker Time Entries
-          </CardTitle>
-          <CardDescription>
-            Complete record of all worker time entries for this shift
-          </CardDescription>
+          <Skeleton className="h-6 w-56" />
+          <Skeleton className="h-4 w-96 mt-2" />
         </CardHeader>
-        <CardContent className="overflow-x-auto">
+        <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="sticky left-0 bg-white">Worker</TableHead>
-                <TableHead>Role</TableHead>
-                {Array.from({ length: maxEntries }, (_, i) => (
-                  <React.Fragment key={i}>
-                    <TableHead>Time In {i + 1}</TableHead>
-                    <TableHead>Time Out {i + 1}</TableHead>
-                  </React.Fragment>
-                ))}
-                <TableHead>Total Hours</TableHead>
+                <TableHead><Skeleton className="h-5 w-24" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-16" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-20" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-20" /></TableHead>
+                <TableHead><Skeleton className="h-5 w-24" /></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {assignedPersonnel.map((worker) => {
-                const totalHours = worker.timeEntries.reduce((sum, entry) =>
-                  sum + calculateHours(entry.clockIn, entry.clockOut), 0
-                );
-                
-                return (
-                  <TableRow key={worker.id}>
-                    <TableCell className="sticky left-0 bg-white">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={worker.employeeAvatar} />
-                          <AvatarFallback>
-                            {worker.employeeName.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="font-medium truncate">{worker.employeeName}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{worker.roleCode}</Badge>
-                    </TableCell>
-                    {Array.from({ length: maxEntries }, (_, i) => {
-                      const entry = worker.timeEntries.find(e => e.entryNumber === i + 1);
-                      return (
-                        <React.Fragment key={i}>
-                          <TableCell>{formatTime(entry?.clockIn)}</TableCell>
-                          <TableCell>{formatTime(entry?.clockOut)}</TableCell>
-                        </React.Fragment>
-                      )
-                    })}
-                    <TableCell className="font-medium">
-                      {totalHours.toFixed(2)} hrs
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {Array.from({ length: 3 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell><Skeleton className="h-8 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-8 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-8 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-8 w-full" /></TableCell>
+                  <TableCell><Skeleton className="h-8 w-full" /></TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </CardContent>

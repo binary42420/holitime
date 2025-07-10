@@ -4,7 +4,7 @@ import { getJobById, updateJob, deleteJob } from '@/lib/services/jobs';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id:string }> }
 ) {
   try {
     const user = await getCurrentUser(request);
@@ -16,6 +16,12 @@ export async function GET(
     }
 
     const { id } = await params;
+
+    const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+    if (!uuidRegex.test(id)) {
+      return NextResponse.json({ error: 'Invalid ID format' }, { status: 400 });
+    }
+
     const job = await getJobById(id);
     if (!job) {
       return NextResponse.json(

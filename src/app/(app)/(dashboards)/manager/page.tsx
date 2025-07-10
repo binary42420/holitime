@@ -11,14 +11,12 @@ export default function ManagerDashboard() {
   const { user } = useUser();
   const router = useRouter();
 
-  const { data: clientsData, loading: clientsLoading, error: clientsError } = useApi<{ count: number }>('/api/clients/count');
-  const { data: jobsData, loading: jobsLoading, error: jobsError } = useApi<{ count: number }>('/api/jobs/count');
-  const { data: shiftsData, loading: shiftsLoading, error: shiftsError } = useApi<{ count: number }>('/api/shifts/count');
-  const { data: recentShiftsData, loading: recentShiftsLoading, error: recentShiftsError } = useApi<{ shifts: Shift[] }>('/api/shifts/recent');
-  const { data: recentClientsData, loading: recentClientsLoading, error: recentClientsError } = useApi<{ clients: Client[] }>('/api/clients/recent');
+  const { data: clientsData, loading: clientsLoading, error: clientsError } = useApi<{ clients: Client[] }>('/api/clients');
+  const { data: jobsData, loading: jobsLoading, error: jobsError } = useApi<{ jobs: Job[] }>('/api/jobs');
+  const { data: shiftsData, loading: shiftsLoading, error: shiftsError } = useApi<{ shifts: Shift[] }>('/api/shifts');
 
-  const loading = clientsLoading || jobsLoading || shiftsLoading || recentShiftsLoading || recentClientsLoading;
-  const error = clientsError || jobsError || shiftsError || recentShiftsError || recentClientsError;
+  const loading = clientsLoading || jobsLoading || shiftsLoading;
+  const error = clientsError || jobsError || shiftsError;
 
   if (loading) {
     return <Text>Loading dashboard data...</Text>;
@@ -28,11 +26,12 @@ export default function ManagerDashboard() {
     return <Text color="red">Error loading dashboard data.</Text>;
   }
 
-  const clientsCount = clientsData?.count || 0;
-  const jobsCount = jobsData?.count || 0;
-  const shiftsCount = shiftsData?.count || 0;
-  const recentShifts = recentShiftsData?.shifts || [];
-  const recentClients = recentClientsData?.clients || [];
+  const clientsCount = clientsData?.clients?.length || 0;
+  const jobsCount = jobsData?.jobs?.length || 0;
+  const shiftsCount = shiftsData?.shifts?.length || 0;
+  
+  const recentShifts = shiftsData?.shifts?.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5) || [];
+  const recentClients = clientsData?.clients?.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5) || [];
 
   return (
     <Stack gap="lg">

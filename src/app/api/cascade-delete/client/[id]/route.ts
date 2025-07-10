@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
 import { deleteClientCompanyCascade, getDeletionImpact } from '@/lib/services/cascade-deletion';
+import { query } from '@/lib/db';
 
 // GET /api/cascade-delete/client/[id] - Get deletion impact preview
 export async function GET(
@@ -51,10 +52,17 @@ export async function DELETE(
     // Get confirmation from request body
     const body = await request.json();
     const { confirmed, confirmationText } = body;
-    
-    if (!confirmed || confirmationText !== 'DELETE') {
+
+    // Fetch the client's name to confirm deletion
+    const clientResult = await query('SELECT company_name FROM clients WHERE id = $1', [clientId]);
+    if (clientResult.rows.length === 0) {
+      return NextResponse.json({ error: 'Client not found' }, { status: 404 });
+    }
+    const clientName = clientResult.rows[0].company_name;
+
+    if (!confirmed || confirmationText !== clientName) {
       return NextResponse.json({ 
-        error: 'Deletion not confirmed. Please type "DELETE" to confirm.' 
+        error: `Deletion not confirmed. Please type "${clientName}" to confirm.` 
       }, { status: 400 });
     }
     

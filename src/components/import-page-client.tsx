@@ -11,11 +11,12 @@ import {
 import { Button } from '@mantine/core';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, FileSpreadsheet, Upload } from "lucide-react";
+import { Loader2, FileSpreadsheet, Upload, History } from "lucide-react";
 import GoogleDrivePicker from "./google-drive-picker";
 import CSVImport from "./csv-import";
 import GoogleSheetsGeminiProcessor from "./google-sheets-gemini-processor";
 import GoogleSheetsIdInput from "./google-sheets-id-input";
+import ImportHistory from "./import-history";
 
 interface DriveFile {
   id: string;
@@ -208,7 +209,7 @@ export default function ImportPageClient() {
       </div>
 
       <Tabs defaultValue="csv" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="csv" className="flex items-center gap-2">
             <Upload className="h-4 w-4" />
             CSV Import
@@ -216,6 +217,10 @@ export default function ImportPageClient() {
           <TabsTrigger value="google-drive" className="flex items-center gap-2">
             <FileSpreadsheet className="h-4 w-4" />
             Google Drive
+          </TabsTrigger>
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <History className="h-4 w-4" />
+            History
           </TabsTrigger>
         </TabsList>
 
@@ -348,6 +353,10 @@ export default function ImportPageClient() {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="history" className="mt-6">
+          <ImportHistory />
         </TabsContent>
       </Tabs>
     </div>

@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const dateFilter = searchParams.get('filter') || 'all';
     const statusFilter = searchParams.get('status') || 'all';
+    const clientFilter = searchParams.get('client') || 'all';
+    const searchTerm = searchParams.get('search') || '';
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = parseInt(searchParams.get('pageSize') || '20');
 
@@ -41,7 +43,7 @@ export async function GET(request: NextRequest) {
 
     if (startDate && endDate) {
       queryParams.push(startDate, endDate);
-      whereClauses.push(`s.date BETWEEN $1 AND $2`);
+      whereClauses.push(`s.date BETWEEN $${queryParams.length - 1} AND $${queryParams.length}`);
     }
 
     if (statusFilter !== 'all') {
@@ -49,22 +51,31 @@ export async function GET(request: NextRequest) {
       whereClauses.push(`s.status = $${queryParams.length}`);
     }
 
-    const clientFilter = searchParams.get('client') || 'all';
     if (clientFilter !== 'all') {
       queryParams.push(clientFilter);
       whereClauses.push(`c.company_name = $${queryParams.length}`);
     }
 
-    const searchTerm = searchParams.get('search') || '';
     if (searchTerm) {
       queryParams.push(`%${searchTerm}%`);
       const searchParamIndex = `$${queryParams.length}`;
       whereClauses.push(`(j.name ILIKE ${searchParamIndex} OR c.company_name ILIKE ${searchParamIndex} OR s.location ILIKE ${searchParamIndex} OR cc.name ILIKE ${searchParamIndex})`);
     }
 
+    // Role-based filtering
+    if (user.role === 'Crew Chief') {
+      queryParams.push(user.id);
+      whereClauses.push(`s.crew_chief_id = $${queryParams.length}`);
+    } else if (user.role === 'Employee') {
+      queryParams.push(user.id);
+      whereClauses.push(`s.id IN (SELECT shift_id FROM assigned_personnel WHERE employee_id = $${queryParams.length})`);
+    } else if (user.role === 'Client' && user.clientCompanyId) {
+      queryParams.push(user.clientCompanyId);
+      whereClauses.push(`j.client_id = $${queryParams.length}`);
+    }
+
     const whereClause = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
 
-    // Optimized query that gets shifts with all needed data in one query
     const offset = (page - 1) * pageSize;
     queryParams.push(pageSize, offset);
 
@@ -76,103 +87,45 @@ export async function GET(request: NextRequest) {
         c.company_name as client_name,
         cc.id as crew_chief_id, cc.name as crew_chief_name, cc.avatar as crew_chief_avatar,
         t.id as timesheet_id, t.status as timesheet_status,
-        COUNT(CASE WHEN ap.is_placeholder = false THEN ap.id END) as assigned_count,
-        ARRAY_AGG(
-          CASE WHEN ap.id IS NOT NULL THEN
-            json_build_object(
-              'id', ap.id,
-              'employee_id', ap.employee_id,
-              'employee_name', u.name,
-              'employee_avatar', u.avatar,
-              'worker_type', ap.role_code,
-              'is_placeholder', ap.is_placeholder,
-              'status', ap.status
-            )
-          END
-        ) FILTER (WHERE ap.id IS NOT NULL) as assigned_personnel_data
+        COUNT(ap.id) as assigned_count
       FROM shifts s
       JOIN jobs j ON s.job_id = j.id
       JOIN clients c ON j.client_id = c.id
       LEFT JOIN users cc ON s.crew_chief_id = cc.id
       LEFT JOIN timesheets t ON s.id = t.shift_id
       LEFT JOIN assigned_personnel ap ON s.id = ap.shift_id
-      LEFT JOIN users u ON ap.employee_id = u.id
       ${whereClause}
-      GROUP BY s.id, s.date, s.start_time, s.end_time, s.location, s.status, s.notes,
-               s.requested_workers, j.id, j.name, j.client_id, c.company_name,
-               cc.id, cc.name, cc.avatar, t.id, t.status
+      GROUP BY s.id, j.id, c.id, cc.id, t.id
       ORDER BY s.date DESC, s.start_time ASC
       LIMIT $${queryParams.length - 1} OFFSET $${queryParams.length}
     `, queryParams);
 
-    const shifts = result.rows.map(row => {
-      const assignedPersonnel = (row.assigned_personnel_data || [])
-        .filter(Boolean)
-        .map((person: any) => ({
-          id: person.id,
-          employee: {
-            id: person.employee_id,
-            name: person.employee_name,
-            avatar: person.employee_avatar || '',
-          },
-          workerType: person.worker_type,
-          isPlaceholder: person.is_placeholder,
-          status: person.status,
-        }));
-
-      return {
-        id: row.id,
-        timesheetId: row.timesheet_id || '',
-        jobId: row.job_id,
-        jobName: row.job_name,
-        clientName: row.client_name,
-        date: row.date,
-        startTime: row.start_time,
-        endTime: row.end_time,
-        location: row.location,
-        requestedWorkers: parseInt(row.requested_workers) || 1,
-        assignedCount: parseInt(row.assigned_count) || 0,
-        crewChiefId: row.crew_chief_id,
-        crewChiefName: row.crew_chief_name,
-        crewChiefAvatar: row.crew_chief_avatar || '',
-        assignedPersonnel,
-        status: row.status,
-        timesheetStatus: row.timesheet_status || 'Pending Finalization',
-        notes: row.notes,
-      };
-    });
-
-    // Filter based on user role
-    let filteredShifts = shifts;
-    
-    if (user.role === 'Crew Chief') {
-      filteredShifts = shifts.filter(shift => shift.crewChiefId === user.id);
-    } else if (user.role === 'Employee') {
-      filteredShifts = shifts.filter(shift => 
-        shift.assignedPersonnel.some((person: any) => person.employee.id === user.id)
-      );
-    }
-    // Manager/Admin and Client users see all shifts (clients will be filtered by their jobs in future)
-
-    // Filter by clientId if provided and user is Client or Manager/Admin
-    const clientIdParam = searchParams.get('clientId');
-    if (clientIdParam && (user.role === 'Client' || user.role === 'Manager/Admin')) {
-      filteredShifts = filteredShifts.filter(shift => shift.clientName === clientIdParam);
-    }
-
-    // For client users, filter to only their company's shifts
-    if (user.role === 'Client' && user.clientCompanyId) {
-      // We need to get the client company name to filter properly
-      // For now, let's filter by checking if the job belongs to their company
-      // This would require a more complex query, but for now we'll trust the frontend filtering
-    }
+    const shifts = result.rows.map(row => ({
+      id: row.id,
+      timesheetId: row.timesheet_id || '',
+      jobId: row.job_id,
+      jobName: row.job_name,
+      clientName: row.client_name,
+      date: row.date,
+      startTime: row.start_time,
+      endTime: row.end_time,
+      location: row.location,
+      requestedWorkers: parseInt(row.requested_workers) || 1,
+      assignedCount: parseInt(row.assigned_count) || 0,
+      crewChiefId: row.crew_chief_id,
+      crewChiefName: row.crew_chief_name,
+      crewChiefAvatar: row.crew_chief_avatar || '',
+      assignedPersonnel: [],
+      status: row.status,
+      timesheetStatus: row.timesheet_status || 'Pending Finalization',
+      notes: row.notes,
+    }));
 
     return NextResponse.json({
       success: true,
-      shifts: filteredShifts,
+      shifts: shifts,
       dateRange: { startDate, endDate, filter: dateFilter }
     });
-
 
   } catch (error) {
     console.error('Error getting shifts by date:', error);

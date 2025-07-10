@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth-config';
 import { deleteJobCascade, getDeletionImpact } from '@/lib/services/cascade-deletion';
+import { query } from '@/lib/db';
 
 // GET /api/cascade-delete/job/[id] - Get deletion impact preview
 export async function GET(
@@ -51,10 +52,17 @@ export async function DELETE(
     // Get confirmation from request body
     const body = await request.json();
     const { confirmed, confirmationText } = body;
-    
-    if (!confirmed || confirmationText !== 'DELETE') {
+
+    // Fetch the job's name to confirm deletion
+    const jobResult = await query('SELECT name FROM jobs WHERE id = $1', [jobId]);
+    if (jobResult.rows.length === 0) {
+      return NextResponse.json({ error: 'Job not found' }, { status: 404 });
+    }
+    const jobName = jobResult.rows[0].name;
+
+    if (!confirmed || confirmationText !== jobName) {
       return NextResponse.json({ 
-        error: 'Deletion not confirmed. Please type "DELETE" to confirm.' 
+        error: `Deletion not confirmed. Please type "${jobName}" to confirm.` 
       }, { status: 400 });
     }
     

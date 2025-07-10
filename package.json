@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "deploy": "powershell -ExecutionPolicy Bypass -File deploy-cloud-run.ps1 -ProjectId handsonlabor",
-    "deploy:bash": "./deploy.sh"
+    "deploy:bash": "./deploy.sh",
+    "db:validate": "node scripts/validate-schema.js"
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.10.0",
@@ -47,7 +48,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.0",
-    "eslint": "^8.0.0",
+    "eslint": "^9.5.0",
     "firebase": "^11.10.0",
     "genkit": "^1.14.0",
     "googleapis": "^152.0.0",
@@ -74,6 +75,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.53.2",
     "@types/node": "^20.11.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

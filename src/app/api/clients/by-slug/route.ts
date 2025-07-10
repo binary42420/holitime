@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     // Find the client by company name using multiple matching strategies
     const result = await query(`
-      SELECT id, name, company_name, contact_person, contact_email, contact_phone, company_address, created_at, updated_at
+      SELECT id, name, company_name, contact_person, contact_email, contact_phone, company_address
       FROM users
       WHERE role = 'Client' AND (
         LOWER(COALESCE(company_name, name)) = LOWER($1) OR
@@ -68,8 +68,6 @@ export async function GET(request: NextRequest) {
       phone: client.contact_phone,
       address: client.company_address,
       notes: null, // notes column doesn't exist in schema
-      createdAt: client.created_at,
-      updatedAt: client.updated_at
     }
 
     return NextResponse.json({ client: transformedClient })

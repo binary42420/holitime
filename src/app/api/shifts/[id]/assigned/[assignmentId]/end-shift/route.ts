@@ -30,7 +30,7 @@ export async function POST(
       `, [activeEntryResult.rows[0].id])
     }
 
-    // Update assigned personnel status to shift ended
+    // Update assigned personnel status to Shift Ended
     await query(`
       UPDATE assigned_personnel 
       SET status = 'Shift Ended'

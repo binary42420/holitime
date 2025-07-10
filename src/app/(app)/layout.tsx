@@ -28,7 +28,7 @@ import { AuthGuard } from '@/components/auth-guard';
 import { colors } from '@/lib/color-scheme';
 import { useTheme } from '@/components/providers/theme-provider';
 
-function NavContent() {
+function NavContent({ activeColors }: { activeColors: any }) {
   const pathname = usePathname();
   const { user } = useUser();
 
@@ -63,6 +63,13 @@ function NavContent() {
           leftSection={<link.icon size="1.1rem" />}
           active={isActive(link.href)}
           component={Link}
+          styles={{
+            root: {
+              backgroundColor: isActive(link.href) ? activeColors.sidebar.activeBackground : 'transparent',
+              color: activeColors.sidebar.text,
+              borderRadius: '0.375rem', // rounded-md
+            },
+          }}
         />
       ))}
     </>
@@ -102,9 +109,9 @@ function BottomNav() {
         right: 0,
         zIndex: 100,
         backgroundColor: activeColors.surface,
+        borderTop: `1px solid ${activeColors.border}`,
         transform: `translateY(${isVisible ? 0 : '110%'})`,
         transition: 'transform 200ms ease',
-        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)',
       }}
       className="md:hidden"
     >
@@ -158,7 +165,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           },
         }}
       >
-        <AppShell.Header>
+        <AppShell.Header
+          style={{
+            backgroundColor: activeColors.surface,
+            borderBottom: `1px solid ${activeColors.border}`,
+          }}
+        >
           <Group h="100%" px="md">
             <Burger opened={opened} onClick={toggle} hiddenFrom="md" size="sm" />
             <Link href="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -171,8 +183,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <UserNav />
           </Group>
         </AppShell.Header>
-        <AppShell.Navbar p="md">
-          <NavContent />
+        <AppShell.Navbar
+          p="md"
+          style={{
+            backgroundColor: activeColors.sidebar.background,
+            borderRight: `1px solid ${activeColors.border}`,
+          }}
+        >
+          <NavContent activeColors={activeColors} />
         </AppShell.Navbar>
         <AppShell.Main
           style={{

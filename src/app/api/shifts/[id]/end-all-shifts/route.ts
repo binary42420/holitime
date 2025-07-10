@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { query } from '@/lib/db'
+import { withTransaction } from '@/lib/db'
 
 export async function POST(
   request: NextRequest,
@@ -8,43 +8,43 @@ export async function POST(
   try {
     const { id: shiftId } = await params
 
-    console.log(`End all shifts request:`, { shiftId })
+    await withTransaction(async (client) => {
+      const now = new Date();
+      
+      // Get all assigned personnel for this shift who are not already ended
+      const assignedPersonnelResult = await client.query(`
+        SELECT id FROM assigned_personnel 
+        WHERE shift_id = $1 AND status != 'Shift Ended'
+      `, [shiftId]);
 
-    // Get all assigned personnel for this shift
-    const assignedPersonnelResult = await query(`
-      SELECT id, status
-      FROM assigned_personnel 
-      WHERE shift_id = $1 AND status != 'Shift Ended'
-    `, [shiftId])
+      if (assignedPersonnelResult.rows.length === 0) {
+        return; // No active workers to end shifts for
+      }
 
-    if (assignedPersonnelResult.rows.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: 'No active workers to end shifts for'
-      })
-    }
+      const personnelIds = assignedPersonnelResult.rows.map(r => r.id);
+      console.log(`Found ${personnelIds.length} active workers to end shifts for.`);
 
-    // For each assigned personnel, clock out any active time entries and end their shift
-    for (const personnel of assignedPersonnelResult.rows) {
-      // Clock out any active time entries
-      await query(`
+      // Clock out any active time entries for these workers
+      const clockOutResult = await client.query(`
         UPDATE time_entries 
-        SET clock_out = NOW(), is_active = false
-        WHERE assigned_personnel_id = $1 AND clock_out IS NULL
-      `, [personnel.id])
+        SET clock_out = $1, is_active = false, updated_at = $1
+        WHERE assigned_personnel_id = ANY($2::uuid[]) AND is_active = true
+      `, [now, personnelIds]);
+      console.log(`Clocked out ${clockOutResult.rowCount} active time entries.`);
 
-      // Update status to shift ended
-      await query(`
+      // Update status for all these workers to Shift Ended
+      const updateStatusResult = await client.query(`
         UPDATE assigned_personnel 
-        SET status = 'Shift Ended'
-        WHERE id = $1
-      `, [personnel.id])
-    }
+        SET status = 'Shift Ended', updated_at = $1
+        WHERE id = ANY($2::uuid[])
+      `, [now, personnelIds]);
+      console.log(`Updated status for ${updateStatusResult.rowCount} workers.`);
+    });
 
     return NextResponse.json({
       success: true,
-      message: `Ended shifts for ${assignedPersonnelResult.rows.length} workers`
-    })
+      message: `Ended all active shifts successfully.`
+    });
 
   } catch (error) {
     console.error('Error ending all shifts:', error)

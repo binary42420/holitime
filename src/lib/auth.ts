@@ -119,18 +119,16 @@ export async function createUser(userData: RegisterData): Promise<User | null> {
   try {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     const result = await query(
-      `INSERT INTO users (email, password_hash, name, role, avatar, client_company_id, company_name, contact_phone)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-       RETURNING id, email, name, role, avatar, client_company_id, company_name, contact_phone`,
+      `INSERT INTO users (email, password_hash, name, role, avatar, client_company_id)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, email, name, role, avatar, client_company_id`,
       [
         userData.email,
         hashedPassword,
         userData.name,
         userData.role,
         `https://i.pravatar.cc/32?u=${userData.email}`,
-        userData.clientCompanyId || null,
-        userData.companyName || null,
-        userData.phone || null
+        userData.clientCompanyId || null
       ]
     );
 
@@ -174,35 +172,6 @@ export function canViewSensitiveData(userRole: string): boolean {
   return ['Employee', 'Crew Chief', 'Manager/Admin', 'Client'].includes(userRole);
 }
 
-// Authenticate user
-export async function authenticateUser(credentials: LoginCredentials): Promise<{ user: User; token: string } | null> {
-  try {
-    const authUser = await getUserByEmail(credentials.email);
-    if (!authUser || !authUser.password) {
-      return null;
-    }
-
-    const isValidPassword = await verifyPassword(credentials.password, authUser.password);
-    if (!isValidPassword) {
-      return null;
-    }
-
-    // Update last login
-    await query(
-      'UPDATE users SET last_login = NOW() WHERE id = $1',
-      [authUser.id]
-    );
-
-    // Remove password from user object
-    const { password, ...user } = authUser;
-    const token = generateToken(user);
-
-    return { user, token };
-  } catch (error) {
-    console.error('Error authenticating user:', error);
-    return null;
-  }
-}
 
 // Refresh user data (for token refresh)
 export async function refreshUserData(userId: string): Promise<User | null> {

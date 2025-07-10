@@ -215,7 +215,7 @@ export function useApi<T>(
         abortControllerRef.current.abort();
       }
     };
-  }, [url, enabled, ...dependencies]);
+  }, [fetchData, enabled, ...dependencies]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -314,7 +314,7 @@ export function useShiftsByDate(dateFilter: string = 'today', statusFilter: stri
     client: clientFilter,
     search: searchTerm,
   });
-  return useApi<{ shifts: any[], dateRange?: any }>(`/api/shifts/by-date?${params.toString()}`);
+  return useApi<{ shifts: any[], dateRange?: any }>(`/api/shifts/by-date?${params.toString()}`, [dateFilter, statusFilter, clientFilter, searchTerm]);
 }
 
 export function useShift(id: string) {
@@ -328,6 +328,11 @@ export function useAnnouncements() {
 
 export function useTimesheets() {
   return useApi<{ timesheets: any[] }>('/api/timesheets');
+}
+
+export function useTimesheet(id: string) {
+  const { data, ...rest } = useApi<{ timesheet: any }>(`/api/timesheets/${id}`, [id]);
+  return { data: data?.timesheet, ...rest };
 }
 
 export function useClients() {

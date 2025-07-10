@@ -150,45 +150,65 @@ export default function CSVImport({ externalCSVData }: CSVImportProps) {
   }
 
   const handleImport = async () => {
-    if (!editedData.length) return
+    if (!editedData.length || !parsedData) return;
 
-    setIsImporting(true)
+    setIsImporting(true);
     try {
-      // Only import valid rows
-      const validRows = editedData.filter(row => !row._errors || row._errors.length === 0)
+      const validRows = editedData.filter(row => !row._errors || row._errors.length === 0);
 
       const response = await fetch('/api/import/csv/import', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ data: validRows })
-      })
+        body: JSON.stringify({ data: validRows }),
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to import data')
+        throw new Error(result.error || 'Failed to import data');
       }
 
-      setImportSummary(result.summary)
-      setCurrentStep('complete')
+      setImportSummary(result.summary);
+      setCurrentStep('complete');
+
+      // Save to history
+      const historyEntry = {
+        fileName: file?.name || 'gemini-generated.csv',
+        status: result.summary.errors.length > 0 ? 'partial' : 'completed',
+        totalRows: parsedData.summary.totalRows,
+        successfulRows: validRows.length - result.summary.errors.length,
+        failedRows: parsedData.summary.invalidRows + result.summary.errors.length,
+        errors: [
+          ...parsedData.errors.map(e => ({ row: e.rowNumber, error: e.errors.join(', ') })),
+          ...result.summary.errors.map((e: any) => ({ row: e.rowNumber, error: e.error }))
+        ]
+      };
+
+      await fetch('/api/import/history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(historyEntry),
+      });
+
 
       toast({
         title: 'Import Completed',
-        description: `Successfully imported ${validRows.length} rows`
-      })
-
+        description: `Successfully imported ${validRows.length - result.summary.errors.length} rows`,
+      });
     } catch (error) {
       toast({
         title: 'Import Failed',
         description: error instanceof Error ? error.message : 'Failed to import data',
-        variant: 'destructive'
-      })
+        variant: 'destructive',
+      });
     } finally {
-      setIsImporting(false)
+      setIsImporting(false);
     }
-  }
+  };
 
   const downloadTemplate = async () => {
     try {

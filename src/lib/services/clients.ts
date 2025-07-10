@@ -5,7 +5,7 @@ import type { Client, ClientCompany } from '../types';
 export async function getAllClientCompanies(): Promise<ClientCompany[]> {
   try {
     const result = await query(`
-      SELECT id, company_name, company_address, contact_phone, contact_email, notes, created_at, updated_at
+      SELECT id, company_name, company_address, contact_phone, contact_email
       FROM clients
       ORDER BY company_name
     `);
@@ -15,11 +15,7 @@ export async function getAllClientCompanies(): Promise<ClientCompany[]> {
       companyName: row.company_name,
       companyAddress: row.company_address,
       contactPhone: row.contact_phone,
-      contactEmail: row.contact_email,
-      notes: row.notes,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    }));
+      contactEmail: row.contact_email,    }));
   } catch (error) {
     console.error('Error getting all client companies:', error);
     return [];
@@ -29,7 +25,7 @@ export async function getAllClientCompanies(): Promise<ClientCompany[]> {
 export async function getClientCompanyById(id: string): Promise<ClientCompany | null> {
   try {
     const result = await query(`
-      SELECT id, company_name, company_address, contact_phone, contact_email, notes, created_at, updated_at
+      SELECT id, company_name, company_address, contact_phone, contact_email
       FROM clients
       WHERE id = $1
     `, [id]);
@@ -58,7 +54,7 @@ export async function getClientCompanyById(id: string): Promise<ClientCompany | 
 // Client Contact functions (for the contact person users)
 export async function getClientsCount(): Promise<number> {
   try {
-    const result = await query("SELECT COUNT(*) FROM users WHERE role = 'Client'");
+    const result = await query("SELECT COUNT(*) FROM clients");
     return parseInt(result.rows[0].count, 10);
   } catch (error) {
     console.error('Error getting clients count:', error);
@@ -97,117 +93,82 @@ export async function getRecentClients(limit: number = 5): Promise<Client[]> {
 
 export async function getAllClients(limit?: number, offset?: number, sort?: string, order?: string): Promise<Client[]> {
   try {
-    const sortColumn = sort || 'company_name';
+    const sortColumn = sort || 'c.company_name';
     const sortOrder = order || 'ASC';
     const queryParams: any[] = [];
+    let paramIndex = 1;
 
     let queryString = `
       SELECT
         u.id, u.name, u.email, u.client_company_id,
-        c.company_name, c.company_address, c.contact_phone, c.contact_email as company_contact_email, c.notes,
-        COALESCE(job_counts.job_count, 0) as job_count,
-        completed_shift.shift_id as completed_shift_id,
-        completed_shift.shift_date as completed_shift_date,
-        completed_shift.job_name as completed_job_name,
-        upcoming_shift.shift_id as upcoming_shift_id,
-        upcoming_shift.shift_date as upcoming_shift_date,
-        upcoming_shift.start_time as upcoming_shift_start_time,
-        upcoming_shift.job_name as upcoming_job_name,
-        upcoming_shift.requested_workers as upcoming_requested_workers,
-        upcoming_shift.assigned_count as upcoming_assigned_count
+        c.company_name, c.company_address, c.contact_phone, c.contact_email as company_contact_email, c.notes
       FROM users u
-      LEFT JOIN clients c ON u.client_company_id = c.id
-      LEFT JOIN (
-        SELECT client_id, COUNT(*) as job_count
-        FROM jobs
-        GROUP BY client_id
-      ) job_counts ON u.client_company_id = job_counts.client_id
-      LEFT JOIN (
-        SELECT DISTINCT ON (j.client_id)
-          j.client_id,
-          s.id as shift_id,
-          s.date as shift_date,
-          j.name as job_name
-        FROM shifts s
-        JOIN jobs j ON s.job_id = j.id
-        WHERE s.status = 'Completed'
-        ORDER BY j.client_id, s.date DESC, s.start_time DESC
-      ) completed_shift ON u.client_company_id = completed_shift.client_id
-      LEFT JOIN (
-        SELECT DISTINCT ON (j.client_id)
-          j.client_id,
-          s.id as shift_id,
-          s.date as shift_date,
-          s.start_time,
-          j.name as job_name,
-          COALESCE(s.requested_workers, 1) as requested_workers,
-          COALESCE(assigned_counts.assigned_count, 0) as assigned_count
-        FROM shifts s
-        JOIN jobs j ON s.job_id = j.id
-        LEFT JOIN (
-          SELECT shift_id, COUNT(*) as assigned_count
-          FROM assigned_personnel
-          WHERE is_placeholder = false
-          GROUP BY shift_id
-        ) assigned_counts ON s.id = assigned_counts.shift_id
-        WHERE s.status IN ('Upcoming', 'In Progress') AND s.date >= CURRENT_DATE
-        ORDER BY j.client_id, s.date ASC, s.start_time ASC
-      ) upcoming_shift ON u.client_company_id = upcoming_shift.client_id
-      WHERE u.role = 'Client' AND u.client_company_id IS NOT NULL
+      JOIN clients c ON u.client_company_id = c.id
+      WHERE u.role = 'Client'
       ORDER BY ${sortColumn} ${sortOrder}
     `;
 
     if (limit) {
-      queryString += ` LIMIT ${queryParams.length + 1}`;
+      queryString += ` LIMIT $${paramIndex++}`;
       queryParams.push(limit);
     }
-
     if (offset) {
-      queryString += ` OFFSET ${queryParams.length + 1}`;
+      queryString += ` OFFSET $${paramIndex++}`;
       queryParams.push(offset);
     }
 
-    const result = await query(queryString, queryParams);
+    const clientsResult = await query(queryString, queryParams);
+    if (clientsResult.rows.length === 0) {
+      return [];
+    }
 
-    return result.rows.map(row => ({
-      id: row.id, // User ID (contact person)
-      name: row.name, // Contact person name
-      email: row.email, // Contact person email
+    const clientCompanyIds = clientsResult.rows.map(c => c.client_company_id);
+
+    // Now, fetch the shifts for these specific clients in a more optimized way
+    const shiftsQuery = `
+      WITH ranked_shifts AS (
+        SELECT
+          j.client_id, s.id, s.date, s.start_time, j.name as job_name, s.status,
+          s.requested_workers,
+          (SELECT COUNT(*) FROM assigned_personnel ap WHERE ap.shift_id = s.id AND ap.is_placeholder = false) as assigned_count,
+          ROW_NUMBER() OVER(PARTITION BY j.client_id, s.status ORDER BY s.date DESC, s.start_time DESC) as rn
+        FROM shifts s
+        JOIN jobs j ON s.job_id = j.id
+        WHERE j.client_id = ANY($1::uuid[])
+      )
+      SELECT * FROM ranked_shifts WHERE rn <= 5;
+    `;
+    
+    const shiftsResult = await query(shiftsQuery, [clientCompanyIds]);
+    
+    const shiftsByClient = shiftsResult.rows.reduce((acc, shift) => {
+      if (!acc[shift.client_id]) {
+        acc[shift.client_id] = { completed: [], upcoming: [] };
+      }
+      if (shift.status === 'Completed') {
+        acc[shift.client_id].completed.push(shift);
+      } else if (shift.status === 'Upcoming' || shift.status === 'In Progress') {
+        acc[shift.client_id].upcoming.push(shift);
+      }
+      return acc;
+    }, {} as Record<string, { completed: any[], upcoming: any[] }>);
+
+
+    return clientsResult.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      email: row.email,
       clientCompanyId: row.client_company_id,
-      clientCompany: row.client_company_id ? {
-        id: row.client_company_id,
-        companyName: row.company_name,
-        companyAddress: row.company_address,
-        contactPhone: row.contact_phone,
-        contactEmail: row.company_contact_email,
-        notes: row.notes,
-      } : undefined,
-
-      // Backward compatibility fields for the frontend
       companyName: row.company_name,
       companyAddress: row.company_address,
-      contactPerson: row.name, // Contact person is the user name
-      contactEmail: row.email, // Contact person email is the user email
+      contactPerson: row.name,
+      contactEmail: row.email,
       contactPhone: row.contact_phone,
-      address: row.company_address,
-      phone: row.contact_phone,
       notes: row.notes,
-
-      authorizedCrewChiefIds: [], // Will be populated separately if needed
-      mostRecentCompletedShift: row.completed_shift_id ? {
-        id: row.completed_shift_id,
-        date: row.completed_shift_date,
-        jobName: row.completed_job_name,
-      } : undefined,
-      mostRecentUpcomingShift: row.upcoming_shift_id ? {
-        id: row.upcoming_shift_id,
-        date: row.upcoming_shift_date,
-        startTime: row.upcoming_shift_start_time,
-        jobName: row.upcoming_job_name,
-        requestedWorkers: parseInt(row.upcoming_requested_workers) || 1,
-        assignedCount: parseInt(row.upcoming_assigned_count) || 0,
-      } : undefined,
+      mostRecentCompletedShifts: shiftsByClient[row.client_company_id]?.completed || [],
+      mostRecentUpcomingShifts: shiftsByClient[row.client_company_id]?.upcoming || [],
     }));
+
   } catch (error) {
     console.error('Error getting all clients:', error);
     return [];
@@ -303,6 +264,19 @@ export async function getClientById(id: string): Promise<Client | null> {
       notes: row.notes,
 
       authorizedCrewChiefIds: crewChiefsResult.rows.map(r => r.crew_chief_id),
+      mostRecentCompletedShifts: recentCompletedResult.rows.map(r => ({
+        id: r.id,
+        date: r.date,
+        jobName: r.job_name,
+      })),
+      mostRecentUpcomingShifts: upcomingResult.rows.map(r => ({
+        id: r.id,
+        date: r.date,
+        startTime: r.start_time,
+        jobName: r.job_name,
+        requestedWorkers: parseInt(r.requested_workers) || 1,
+        assignedCount: parseInt(r.assigned_count) || 0,
+      })),
       mostRecentCompletedShift: recentCompletedResult.rows.length > 0 ? {
         id: recentCompletedResult.rows[0].id,
         date: recentCompletedResult.rows[0].date,
